@@ -1,0 +1,20 @@
+# タスクIDの存在チェック
+# コミットメッセージに [T001] 形式のタスクIDが必須
+if ! grep -qE '\[T[0-9]+[a-z]?\]' "$1"; then
+  echo ""
+  echo "Error: Commit message must include task ID"
+  echo ""
+  echo "Expected format:"
+  echo "  feat(scope): description [T031]"
+  echo "  or"
+  echo "  feat(scope): description"
+  echo "  "
+  echo "  [T031]"
+  echo ""
+  echo "Your message:"
+  cat "$1"
+  echo ""
+  exit 1
+fi
+
+echo "Task ID check passed"
