@@ -109,16 +109,16 @@
 
 #### [T004] [P] Configure ESLint + Prettier
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T001-init-nextjs
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `.eslintrc.json` 作成（CLAUDE.md の設定に従う）
-- [ ] `.prettierrc` 作成
-- [ ] `npm run lint` が動作
-- [ ] VSCode 設定との連携確認
+- [x] `.eslintrc.json` 作成（CLAUDE.md の設定に従う）
+- [x] `.prettierrc` 作成
+- [x] `npm run lint` が動作
+- [x] VSCode 設定との連携確認
 
 **関連ファイル:**
 
@@ -130,14 +130,14 @@
 
 #### [T005] [P] Set up path aliases
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T001-init-nextjs
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `tsconfig.json` に `@/` エイリアス設定
-- [ ] `import { Button } from '@/components/ui/button'` が動作
+- [x] `tsconfig.json` に `@/` エイリアス設定
+- [x] `import { Button } from '@/components/ui/button'` が動作
 
 **関連ファイル:**
 
@@ -149,19 +149,19 @@
 
 #### [T006] Create directory structure
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T001-init-nextjs
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/` ディレクトリ作成
-- [ ] `src/stores/` ディレクトリ作成
-- [ ] `src/types/` ディレクトリ作成
-- [ ] `src/hooks/` ディレクトリ作成
-- [ ] `src/lib/` ディレクトリ作成
-- [ ] `src/components/common/` ディレクトリ作成
-- [ ] 各ディレクトリに `index.ts` または `.gitkeep` 配置
+- [x] `src/features/` ディレクトリ作成
+- [x] `src/stores/` ディレクトリ作成
+- [x] `src/types/` ディレクトリ作成
+- [x] `src/hooks/` ディレクトリ作成
+- [x] `src/lib/` ディレクトリ作成
+- [x] `src/components/common/` ディレクトリ作成
+- [x] 各ディレクトリに `index.ts` または `.gitkeep` 配置
 
 **関連ファイル:**
 
