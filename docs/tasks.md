@@ -89,16 +89,16 @@
 
 #### [T003] [P] Install and configure shadcn/ui
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T001-init-nextjs
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `npx shadcn-ui@latest init` 実行
-- [ ] Button, Dialog, Input 等の基本コンポーネント追加
-- [ ] `components.json` 設定済み
-- [ ] コンポーネントが正しく動作することを確認
+- [x] `npx shadcn-ui@latest init` 実行
+- [x] Button, Dialog, Input 等の基本コンポーネント追加
+- [x] `components.json` 設定済み
+- [x] コンポーネントが正しく動作することを確認
 
 **関連ファイル:**
 
