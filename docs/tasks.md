@@ -48,16 +48,16 @@
 
 #### [T001] [P] Initialize Next.js project
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T001-init-nextjs
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `npx create-next-app@latest` でプロジェクト作成
-- [ ] App Router 有効化
-- [ ] TypeScript 有効化
-- [ ] `npm run dev` で起動確認
+- [x] `npx create-next-app@latest` でプロジェクト作成
+- [x] App Router 有効化
+- [x] TypeScript 有効化
+- [x] `npm run dev` で起動確認
 
 **関連ファイル:**
 
@@ -69,16 +69,16 @@
 
 #### [T002] [P] Configure Tailwind CSS
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T001-init-nextjs
 - **PR:** -
 
 **完了条件:**
 
-- [ ] Tailwind CSS インストール済み
-- [ ] `tailwind.config.js` 設定済み
-- [ ] `globals.css` に Tailwind ディレクティブ追加
-- [ ] サンプルクラス（`bg-blue-500` 等）が適用されることを確認
+- [x] Tailwind CSS インストール済み
+- [x] `tailwind.config.js` 設定済み
+- [x] `globals.css` に Tailwind ディレクティブ追加
+- [x] サンプルクラス（`bg-blue-500` 等）が適用されることを確認
 
 **関連ファイル:**
 
