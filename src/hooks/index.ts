@@ -7,3 +7,10 @@ export {
   type UseAutoSaveReturn,
   type TempDataRecovery,
 } from './useAutoSave';
+
+export {
+  useStorage,
+  type StorageOperation,
+  type StorageState,
+  type UseStorageReturn,
+} from './useStorage';
