@@ -640,20 +640,20 @@
 
 #### [T021] Implement IndexedDB storage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T021-indexeddb-storage
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/lib/storage/indexedDB.ts` 作成
-- [ ] `idb` ライブラリ使用（または直接 IndexedDB API）
-- [ ] `projects` オブジェクトストア
-- [ ] `undoHistory` オブジェクトストア
-- [ ] `gameSaves` オブジェクトストア
-- [ ] CRUD 操作実装
-- [ ] エラーハンドリング
-- [ ] テスト追加
+- [x] `src/lib/storage/indexedDB.ts` 作成
+- [x] `idb` ライブラリ使用（または直接 IndexedDB API）
+- [x] `projects` オブジェクトストア
+- [x] `undoHistory` オブジェクトストア
+- [x] `gameSaves` オブジェクトストア
+- [x] CRUD 操作実装
+- [x] エラーハンドリング
+- [x] テスト追加
 
 **関連ファイル:**
 
