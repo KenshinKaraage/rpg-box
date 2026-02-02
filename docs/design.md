@@ -452,6 +452,118 @@ export interface UITemplate {
 
 ### 4.5 イベントアクション
 
+#### EventContext（実行コンテキスト）
+
+EventActionが実行時にアクセスできるゲーム状態とAPI。
+
+```typescript
+// types/actions/EventAction.ts
+
+export interface EventContext {
+  // 変数アクセス
+  getVariable(variableId: string): unknown;
+  setVariable(variableId: string, value: unknown): void;
+
+  // マップ
+  currentMapId: string;
+  getMapChip(mapId: string, x: number, y: number, layer?: number): number;
+  changeMap(mapId: string, x: number, y: number, transition?: 'fade' | 'none'): Promise<void>;
+
+  // オブジェクト
+  getObject(objectId: string): GameObjectRef | undefined;
+
+  // カメラ制御
+  camera: CameraController;
+
+  // オーディオ制御
+  audio: AudioController;
+
+  // 待機
+  wait(frames: number): Promise<void>;
+
+  // テンプレート呼び出し
+  callTemplate(templateId: string, args: Record<string, unknown>): Promise<void>;
+
+  // スクリプト専用API（ScriptActionから使用）
+  scriptAPI: ScriptAPI;
+}
+
+// ゲームオブジェクトへの参照
+export interface GameObjectRef {
+  id: string;
+  x: number;
+  y: number;
+  rotation: number;
+  moveTo(x: number, y: number, speed?: number): Promise<void>;
+  rotateTo(angle: number, duration?: number): Promise<void>;
+  setAutoWalk(enabled: boolean, pattern?: AutoWalkPattern): void;
+}
+
+export interface AutoWalkPattern {
+  type: 'random' | 'route' | 'follow';
+  route?: { x: number; y: number }[];
+  targetId?: string;
+  speed?: number;
+}
+
+// カメラ制御
+export interface CameraController {
+  zoom(scale: number, duration?: number): Promise<void>;
+  pan(x: number, y: number, duration?: number): Promise<void>;
+  applyEffect(
+    effect: 'shake' | 'flash' | 'fadeIn' | 'fadeOut',
+    options?: {
+      intensity?: number;
+      duration?: number;
+      color?: string;
+    }
+  ): Promise<void>;
+  reset(duration?: number): Promise<void>;
+}
+
+// オーディオ制御
+export interface AudioController {
+  playBGM(audioId: string, options?: { volume?: number; fadeIn?: number }): void;
+  stopBGM(options?: { fadeOut?: number }): void;
+  playSE(audioId: string, options?: { volume?: number; pitch?: number }): void;
+}
+```
+
+#### ScriptAPI（スクリプト専用）
+
+ScriptAction内のJavaScriptから呼び出すUI系機能。メッセージ表示や選択肢表示はEventActionではなく、スクリプトから呼び出す関数として提供。
+
+```typescript
+export interface ScriptAPI {
+  // メッセージ・選択肢
+  showMessage(
+    text: string,
+    options?: {
+      face?: string;
+      faceName?: string;
+      position?: 'top' | 'center' | 'bottom';
+    }
+  ): Promise<void>;
+  showChoice(
+    choices: string[],
+    options?: {
+      cancelIndex?: number;
+      defaultIndex?: number;
+    }
+  ): Promise<number>;
+
+  // 入力
+  showNumberInput(options?: { min?: number; max?: number; default?: number }): Promise<number>;
+  showTextInput(options?: { maxLength?: number; default?: string }): Promise<string>;
+
+  // 変数の簡易アクセス
+  getVar(variableId: string): unknown;
+  setVar(variableId: string, value: unknown): void;
+}
+```
+
+#### EventAction基底クラス
+
 ```typescript
 // types/actions/EventAction.ts
 export abstract class EventAction {
@@ -476,37 +588,9 @@ export function registerAction(type: string, cls: typeof EventAction) {
 
 #### 組み込みアクション
 
+各アクションは`operation`プロパティで動作を切り替える設計。
+
 ```typescript
-// types/actions/MessageAction.ts
-export class MessageAction extends EventAction {
-  readonly type = 'message';
-  text: string = '';
-  faceImageId?: string;
-  faceName?: string;
-  position: 'top' | 'center' | 'bottom' = 'bottom';
-
-  async execute(context: EventContext) {
-    await context.showMessage(this.text, {
-      face: this.faceImageId,
-      position: this.position,
-    });
-  }
-  // ...
-}
-
-// types/actions/ChoiceAction.ts
-export class ChoiceAction extends EventAction {
-  readonly type = 'choice';
-  choices: string[] = [];
-  cancelIndex?: number; // キャンセル時の選択肢（-1で無効）
-
-  async execute(context: EventContext): Promise<void> {
-    const index = await context.showChoice(this.choices);
-    context.setChoiceResult(index);
-  }
-  // ...
-}
-
 // types/actions/VariableOpAction.ts
 export class VariableOpAction extends EventAction {
   readonly type = 'variableOp';
@@ -519,7 +603,155 @@ export class VariableOpAction extends EventAction {
     const result = this.calculate(current, this.value);
     context.setVariable(this.variableId, result);
   }
-  // ...
+}
+
+// types/actions/ObjectAction.ts
+export class ObjectAction extends EventAction {
+  readonly type = 'object';
+  operation: 'move' | 'rotate' | 'autoWalk' = 'move';
+  targetId: string;
+  // move用
+  x?: number;
+  y?: number;
+  speed?: number;
+  // rotate用
+  angle?: number;
+  duration?: number;
+  // autoWalk用
+  enabled?: boolean;
+  pattern?: AutoWalkPattern;
+
+  async execute(context: EventContext) {
+    const obj = context.getObject(this.targetId);
+    if (!obj) return;
+    switch (this.operation) {
+      case 'move':
+        await obj.moveTo(this.x!, this.y!, this.speed);
+        break;
+      case 'rotate':
+        await obj.rotateTo(this.angle!, this.duration);
+        break;
+      case 'autoWalk':
+        obj.setAutoWalk(this.enabled!, this.pattern);
+        break;
+    }
+  }
+}
+
+// types/actions/CameraAction.ts
+export class CameraAction extends EventAction {
+  readonly type = 'camera';
+  operation: 'zoom' | 'pan' | 'effect' | 'reset' = 'zoom';
+  // zoom/pan用
+  scale?: number;
+  x?: number;
+  y?: number;
+  duration?: number;
+  // effect用
+  effect?: 'shake' | 'flash' | 'fadeIn' | 'fadeOut';
+  intensity?: number;
+  color?: string;
+
+  async execute(context: EventContext) {
+    switch (this.operation) {
+      case 'zoom':
+        await context.camera.zoom(this.scale!, this.duration);
+        break;
+      case 'pan':
+        await context.camera.pan(this.x!, this.y!, this.duration);
+        break;
+      case 'effect':
+        await context.camera.applyEffect(this.effect!, {
+          intensity: this.intensity,
+          duration: this.duration,
+          color: this.color,
+        });
+        break;
+      case 'reset':
+        await context.camera.reset(this.duration);
+        break;
+    }
+  }
+}
+
+// types/actions/AudioAction.ts
+export class AudioAction extends EventAction {
+  readonly type = 'audio';
+  operation: 'playBGM' | 'stopBGM' | 'playSE' = 'playSE';
+  audioId?: string;
+  volume?: number;
+  pitch?: number;
+  fadeIn?: number;
+  fadeOut?: number;
+
+  async execute(context: EventContext) {
+    switch (this.operation) {
+      case 'playBGM':
+        context.audio.playBGM(this.audioId!, { volume: this.volume, fadeIn: this.fadeIn });
+        break;
+      case 'stopBGM':
+        context.audio.stopBGM({ fadeOut: this.fadeOut });
+        break;
+      case 'playSE':
+        context.audio.playSE(this.audioId!, { volume: this.volume, pitch: this.pitch });
+        break;
+    }
+  }
+}
+
+// types/actions/MapAction.ts
+export class MapAction extends EventAction {
+  readonly type = 'map';
+  operation: 'getChip' | 'changeMap' = 'changeMap';
+  // getChip用
+  resultVariableId?: string;
+  sourceMapId?: string;
+  chipX?: number;
+  chipY?: number;
+  layer?: number;
+  // changeMap用
+  targetMapId?: string;
+  x?: number;
+  y?: number;
+  transition?: 'fade' | 'none';
+
+  async execute(context: EventContext) {
+    switch (this.operation) {
+      case 'getChip':
+        const chip = context.getMapChip(this.sourceMapId!, this.chipX!, this.chipY!, this.layer);
+        context.setVariable(this.resultVariableId!, chip);
+        break;
+      case 'changeMap':
+        await context.changeMap(this.targetMapId!, this.x!, this.y!, this.transition);
+        break;
+    }
+  }
+}
+
+// types/actions/WaitAction.ts
+export class WaitAction extends EventAction {
+  readonly type = 'wait';
+  frames: number = 60;
+
+  async execute(context: EventContext) {
+    await context.wait(this.frames);
+  }
+}
+
+// types/actions/LoopAction.ts
+export class LoopAction extends EventAction {
+  readonly type = 'loop';
+  count?: number; // undefinedで無限ループ
+  actions: EventAction[] = [];
+
+  async execute(context: EventContext) {
+    const iterations = this.count ?? Infinity;
+    for (let i = 0; i < iterations; i++) {
+      for (const action of this.actions) {
+        await action.execute(context);
+      }
+    }
+  }
 }
 
 // types/actions/ConditionalAction.ts
@@ -540,34 +772,6 @@ export class ConditionalAction extends EventAction {
       }
     }
   }
-  // ...
-}
-
-// types/actions/PlaySEAction.ts
-export class PlaySEAction extends EventAction {
-  readonly type = 'playSE';
-  audioId: string;
-  volume: number = 100;
-  pitch: number = 100;
-
-  async execute(context: EventContext) {
-    context.sound.playSE(this.audioId, {
-      volume: this.volume / 100,
-      pitch: this.pitch / 100,
-    });
-  }
-  // ...
-}
-
-// types/actions/WaitAction.ts
-export class WaitAction extends EventAction {
-  readonly type = 'wait';
-  frames: number = 60;
-
-  async execute(context: EventContext) {
-    await context.wait(this.frames);
-  }
-  // ...
 }
 
 // types/actions/CallTemplateAction.ts
@@ -579,11 +783,19 @@ export class CallTemplateAction extends EventAction {
   async execute(context: EventContext) {
     await context.callTemplate(this.templateId, this.args);
   }
-  // ...
 }
 
-// 他: LoopAction, PlayBGMAction, StopBGMAction, FadeScreenAction,
-//     CallScriptAction, ChangeMapAction, etc.
+// types/actions/ScriptAction.ts
+// JavaScript実行。showMessage, showChoice等はscriptAPI経由で呼び出す
+export class ScriptAction extends EventAction {
+  readonly type = 'script';
+  code: string = '';
+
+  async execute(context: EventContext) {
+    const fn = new Function('api', 'context', this.code);
+    await fn(context.scriptAPI, context);
+  }
+}
 ```
 
 ### 4.6 イベント・テンプレート構造
