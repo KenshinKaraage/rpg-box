@@ -22,3 +22,16 @@ export {
   type UseUndoReturn,
   type UseUndoWithKeyReturn,
 } from './useUndo';
+
+export {
+  useKeyboardShortcut,
+  useShortcut,
+  parseShortcut,
+  shortcutToString,
+  shortcutManager,
+  CommonShortcuts,
+  type ModifierKey,
+  type ShortcutKey,
+  type ShortcutConfig,
+  type UseKeyboardShortcutOptions,
+} from './useKeyboardShortcut';
