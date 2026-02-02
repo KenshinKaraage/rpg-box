@@ -239,17 +239,17 @@
 
 #### [T010] [P] Create ThreeColumnLayout
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T010-three-column-layout
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/ThreeColumnLayout.tsx` 作成
-- [ ] 左・中央・右の3カラム構成
-- [ ] 各カラムのサイズ調整可能（リサイズハンドル）
-- [ ] 最小/最大幅の制限
-- [ ] テスト追加
+- [x] `src/components/common/ThreeColumnLayout.tsx` 作成
+- [x] 左・中央・右の3カラム構成
+- [x] 各カラムのサイズ調整可能（リサイズハンドル）
+- [x] 最小/最大幅の制限
+- [x] テスト追加
 
 **関連ファイル:**
 
