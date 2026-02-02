@@ -8,8 +8,7 @@ export type {
   ScriptAPI,
 } from './EventAction';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type EventActionConstructor = new (...args: any[]) => EventAction;
+type EventActionConstructor = new () => EventAction;
 
 /**
  * イベントアクションのレジストリ

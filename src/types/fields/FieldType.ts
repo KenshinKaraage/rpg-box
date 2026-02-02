@@ -73,37 +73,25 @@ export abstract class FieldType<T = unknown> {
    * フィールドID（英数字とアンダースコアのみ）
    * データベース内で一意に識別するために使用
    */
-  id: string;
+  id: string = '';
 
   /**
    * フィールドの表示名
    * UIに表示されるラベル
    */
-  name: string;
+  name: string = '';
 
   /**
    * 必須フィールドかどうか
    * trueの場合、値が空だとバリデーションエラーになる
    */
-  required: boolean;
+  required: boolean = false;
 
   /**
    * フィールドの表示条件
    * 指定された場合、条件を満たすときのみフィールドが表示される
    */
   displayCondition?: DisplayCondition;
-
-  /**
-   * コンストラクタ
-   * @param id フィールドID
-   * @param name 表示名
-   * @param required 必須かどうか（デフォルト: false）
-   */
-  constructor(id: string, name: string, required: boolean = false) {
-    this.id = id;
-    this.name = name;
-    this.required = required;
-  }
 
   /**
    * フィールドのデフォルト値を取得

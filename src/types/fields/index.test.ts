@@ -152,7 +152,9 @@ describe('FieldType registry', () => {
 
 describe('FieldType abstract class', () => {
   it('can be instantiated through subclass', () => {
-    const field = new TestFieldType('test_id', 'テストフィールド');
+    const field = new TestFieldType();
+    field.id = 'test_id';
+    field.name = 'テストフィールド';
 
     expect(field.id).toBe('test_id');
     expect(field.name).toBe('テストフィールド');
@@ -160,14 +162,18 @@ describe('FieldType abstract class', () => {
     expect(field.type).toBe('test');
   });
 
-  it('accepts required parameter', () => {
-    const field = new TestFieldType('required_id', '必須フィールド', true);
+  it('has default values', () => {
+    const field = new TestFieldType();
 
-    expect(field.required).toBe(true);
+    expect(field.id).toBe('');
+    expect(field.name).toBe('');
+    expect(field.required).toBe(false);
   });
 
   it('supports displayCondition', () => {
-    const field = new TestFieldType('conditional', '条件付き');
+    const field = new TestFieldType();
+    field.id = 'conditional';
+    field.name = '条件付き';
     field.displayCondition = {
       fieldId: 'category',
       value: 'special',
@@ -183,7 +189,10 @@ describe('FieldType abstract class', () => {
     let field: TestFieldType;
 
     beforeEach(() => {
-      field = new TestFieldType('test', 'Test', true);
+      field = new TestFieldType();
+      field.id = 'test';
+      field.name = 'Test';
+      field.required = true;
     });
 
     it('getDefaultValue returns default', () => {

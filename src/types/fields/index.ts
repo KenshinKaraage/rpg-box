@@ -1,8 +1,7 @@
 export { FieldType } from './FieldType';
 export type { ValidationResult, DisplayCondition, FieldEditorProps } from './FieldType';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FieldTypeConstructor = new (...args: any[]) => FieldType;
+type FieldTypeConstructor = new () => FieldType;
 
 /**
  * フィールドタイプのレジストリ

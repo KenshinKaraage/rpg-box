@@ -1,7 +1,6 @@
 export { Component } from './Component';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ComponentConstructor = new (...args: any[]) => Component;
+type ComponentConstructor = new () => Component;
 
 /**
  * コンポーネントのレジストリ

@@ -1,8 +1,7 @@
 export { UIComponent, createDefaultRectTransform } from './UIComponent';
 export type { UIObject, RectTransform } from './UIComponent';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UIComponentConstructor = new (...args: any[]) => UIComponent;
+type UIComponentConstructor = new () => UIComponent;
 
 /**
  * UIコンポーネントのレジストリ
