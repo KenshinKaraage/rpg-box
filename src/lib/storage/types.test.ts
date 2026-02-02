@@ -50,7 +50,11 @@ describe('Storage types', () => {
           {
             id: 'character',
             name: 'キャラクター',
-            fieldSetId: 'fs_character',
+            fields: [
+              { id: 'name', name: '名前', type: 'string', required: true },
+              { id: 'hp', name: 'HP', type: 'number', required: true },
+              { id: 'mp', name: 'MP', type: 'number', required: false },
+            ],
             maxEntries: 100,
           },
         ],
@@ -69,12 +73,13 @@ describe('Storage types', () => {
         },
         fieldSets: [
           {
-            id: 'fs_character',
-            name: 'キャラクター設定',
+            id: 'fs_basic_stats',
+            name: '基本ステータス',
             fields: [
-              { id: 'name', name: '名前', type: 'string', required: true },
-              { id: 'hp', name: 'HP', type: 'number', required: true },
-              { id: 'mp', name: 'MP', type: 'number', required: false },
+              { id: 'max_hp', name: '最大HP', type: 'number', required: true },
+              { id: 'max_mp', name: '最大MP', type: 'number', required: true },
+              { id: 'attack', name: '攻撃力', type: 'number', required: true },
+              { id: 'defense', name: '防御力', type: 'number', required: true },
             ],
           },
         ],

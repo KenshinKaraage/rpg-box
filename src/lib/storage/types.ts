@@ -16,7 +16,7 @@
 export interface DataType {
   id: string;
   name: string;
-  fieldSetId: string;
+  fields: FieldDefinition[];
   maxEntries?: number;
 }
 
