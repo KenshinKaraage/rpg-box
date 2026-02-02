@@ -204,6 +204,7 @@
 - [x] メタデータ設定（title, description）
 - [x] フォント設定（Inter または Noto Sans JP）
 - [x] 全画面レイアウト（`min-h-screen`）
+- [x] Header コンポーネント組み込み
 
 **関連ファイル:**
 
