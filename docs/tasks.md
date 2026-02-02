@@ -400,17 +400,17 @@
 
 #### [T011g] Create SaveIndicator
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T011g-save-indicator
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/SaveIndicator.tsx` 作成
-- [ ] 未保存時の表示（ドット等）
-- [ ] 保存中のローディング表示
-- [ ] 保存完了時の表示
-- [ ] store の `unsavedChanges` と連携
+- [x] `src/components/common/SaveIndicator.tsx` 作成
+- [x] 未保存時の表示（ドット等）
+- [x] 保存中のローディング表示
+- [x] 保存完了時の表示
+- [x] store の `unsavedChanges` と連携
 
 **関連ファイル:**
 
