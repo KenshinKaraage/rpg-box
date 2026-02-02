@@ -616,17 +616,17 @@
 
 #### [T020] [P] Define storage interfaces
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T020-storage-interfaces
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/lib/storage/types.ts` 作成
-- [ ] `StorageProvider` インターフェース定義
-- [ ] `ProjectData` インターフェース定義
-- [ ] `SaveResult` 型定義
-- [ ] `LoadResult` 型定義
+- [x] `src/lib/storage/types.ts` 作成
+- [x] `StorageProvider` インターフェース定義
+- [x] `ProjectData` インターフェース定義
+- [x] `SaveResult` 型定義
+- [x] `LoadResult` 型定義
 
 **関連ファイル:**
 
