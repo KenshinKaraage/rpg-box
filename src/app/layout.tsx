@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+
+import { Header } from '@/components/common/Header';
+
 import './globals.css';
 
 const inter = Inter({
@@ -16,8 +19,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" className={inter.variable}>
-      <body className={`${inter.className} min-h-screen bg-background antialiased`}>
-        {children}
+      <body className={`${inter.className} flex min-h-screen flex-col bg-background antialiased`}>
+        <Header />
+        <main className="flex-1">{children}</main>
       </body>
     </html>
   );
