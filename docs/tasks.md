@@ -171,16 +171,16 @@
 
 #### [T007] [P] Set up Zustand store
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T007-zustand-store
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `zustand` と `immer` インストール
-- [ ] `src/stores/index.ts` 作成
-- [ ] immer middleware 設定
-- [ ] サンプル slice で動作確認
+- [x] `zustand` と `immer` インストール
+- [x] `src/stores/index.ts` 作成
+- [x] immer middleware 設定
+- [x] サンプル slice で動作確認
 
 **関連ファイル:**
 
@@ -282,17 +282,17 @@
 
 #### [T011a] Create HamburgerMenu
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T011a-hamburger-menu
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/HamburgerMenu.tsx` 作成
-- [ ] メニューアイコンクリックで展開
-- [ ] 外部クリックで閉じる
-- [ ] キーボード操作対応（Escape で閉じる）
-- [ ] サブメニュー構造対応
+- [x] `src/components/common/HamburgerMenu.tsx` 作成
+- [x] メニューアイコンクリックで展開
+- [x] 外部クリックで閉じる
+- [x] キーボード操作対応（Escape で閉じる）
+- [x] サブメニュー構造対応
 
 **関連ファイル:**
 
