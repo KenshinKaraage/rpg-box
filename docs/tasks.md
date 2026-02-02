@@ -685,17 +685,17 @@
 
 #### [T023] Create useAutoSave hook
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T023-useAutoSave-hook
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/hooks/useAutoSave.ts` 作成
-- [ ] 500ms デバウンスで LocalStorage に保存
-- [ ] store の変更を監視
-- [ ] 保存状態の通知
-- [ ] テスト追加
+- [x] `src/hooks/useAutoSave.ts` 作成
+- [x] 500ms デバウンスで LocalStorage に保存
+- [ ] store の変更を監視 → T023-refactor で対応
+- [x] 保存状態の通知
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -705,6 +705,54 @@
 **参照:**
 
 - design.md#自動保存フロー
+
+**備考:**
+
+- 現在は引数でデータを受け取る形式で実装（ストア未実装のため）
+- ストア実装後、design.md 通りに `useStore.subscribe()` を使う形式にリファクタリング必要 → T023-refactor
+
+---
+
+#### [T023-refactor] Refactor useAutoSave to use Zustand store
+
+- **ステータス:** [ ] 未着手（ストア実装後に対応）
+- **ブランチ:** -
+- **PR:** -
+- **依存:** Zustand ストア実装完了後
+
+**完了条件:**
+
+- [ ] `useAutoSave` を design.md 通りの形式にリファクタリング
+- [ ] 引数なし（`useStore()` から状態取得）
+- [ ] `useStore.subscribe()` でストア変更を監視
+- [ ] `getSerializableState(state)` でシリアライズ可能な状態を取得
+- [ ] テスト更新
+
+**参照:**
+
+- design.md#自動保存フロー
+
+```typescript
+// design.md の仕様
+export function useAutoSave() {
+  const state = useStore();
+
+  useEffect(() => {
+    const saveToLocalStorage = debounce(() => {
+      localStorage.setItem(
+        'rpg-box-temp',
+        JSON.stringify({
+          timestamp: Date.now(),
+          data: getSerializableState(state),
+        })
+      );
+    }, 500);
+
+    const unsubscribe = useStore.subscribe(saveToLocalStorage);
+    return () => unsubscribe();
+  }, []);
+}
+```
 
 ---
 
