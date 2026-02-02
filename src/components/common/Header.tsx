@@ -1,9 +1,10 @@
 'use client';
 
-import { Menu, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { HamburgerMenu } from '@/components/common/HamburgerMenu';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -70,11 +71,10 @@ export function Header() {
 
   return (
     <header className="flex h-12 items-center border-b bg-background px-4">
-      {/* Hamburger menu placeholder */}
-      <Button variant="ghost" size="icon" className="mr-2">
-        <Menu className="h-5 w-5" />
-        <span className="sr-only">メニュー</span>
-      </Button>
+      {/* Hamburger menu */}
+      <div className="mr-2">
+        <HamburgerMenu />
+      </div>
 
       {/* Logo */}
       <Link href="/" className="mr-6 flex items-center gap-2 font-semibold">
