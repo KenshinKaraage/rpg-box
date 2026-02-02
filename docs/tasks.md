@@ -1117,18 +1117,18 @@ export function useAutoSave() {
 
 #### [T030] [P] Create ConfirmDialog
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/ConfirmDialog.tsx` 作成
-- [ ] タイトル/メッセージ表示
-- [ ] 確認/キャンセルボタン
-- [ ] バリアント（warning, danger）
-- [ ] Promise ベースの API
-- [ ] テスト追加
+- [x] `src/components/common/ConfirmDialog.tsx` 作成
+- [x] タイトル/メッセージ表示
+- [x] 確認/キャンセルボタン
+- [x] バリアント（warning, danger）
+- [x] Promise ベースの API
+- [x] テスト追加
 
 **関連ファイル:**
 
