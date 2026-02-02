@@ -260,16 +260,16 @@
 
 #### [T011] [P] Create TwoColumnLayout
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T011-two-column-layout
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/TwoColumnLayout.tsx` 作成
-- [ ] 左・右の2カラム構成
-- [ ] リサイズハンドル
-- [ ] テスト追加
+- [x] `src/components/common/TwoColumnLayout.tsx` 作成
+- [x] 左・右の2カラム構成
+- [x] リサイズハンドル
+- [x] テスト追加
 
 **関連ファイル:**
 
