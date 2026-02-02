@@ -194,16 +194,16 @@
 
 #### [T008] [P] Create base layout
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T008-base-layout
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/layout.tsx` 作成
-- [ ] メタデータ設定（title, description）
-- [ ] フォント設定（Inter または Noto Sans JP）
-- [ ] 全画面レイアウト（`min-h-screen`）
+- [x] `src/app/layout.tsx` 作成
+- [x] メタデータ設定（title, description）
+- [x] フォント設定（Inter または Noto Sans JP）
+- [x] 全画面レイアウト（`min-h-screen`）
 
 **関連ファイル:**
 
