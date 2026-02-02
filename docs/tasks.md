@@ -807,18 +807,18 @@ export function useAutoSave() {
 
 #### [T026] [P] Create useKeyboardShortcut hook
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T026-useKeyboardShortcut-hook
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/hooks/useKeyboardShortcut.ts` 作成
-- [ ] ショートカットキーの登録
-- [ ] コンテキスト（ページ/モーダル）による優先度
-- [ ] 修飾キー（Ctrl, Shift, Alt）対応
-- [ ] クリーンアップ処理
-- [ ] テスト追加
+- [x] `src/hooks/useKeyboardShortcut.ts` 作成
+- [x] ショートカットキーの登録
+- [x] コンテキスト（ページ/モーダル）による優先度
+- [x] 修飾キー（Ctrl, Shift, Alt）対応
+- [x] クリーンアップ処理
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -829,23 +829,23 @@ export function useAutoSave() {
 
 #### [T026a] Create ShortcutManager
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了 (T026に統合)
+- **ブランチ:** feature/T026-useKeyboardShortcut-hook
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/lib/shortcuts/ShortcutManager.ts` 作成
-- [ ] ショートカットの一元管理
-- [ ] コンテキスト（global, page, modal）の管理
-- [ ] 重複チェック
-- [ ] ショートカット一覧の取得
-- [ ] テスト追加
+- [x] `src/hooks/useKeyboardShortcut.ts` に ShortcutManager クラス実装
+- [x] ショートカットの一元管理
+- [x] コンテキスト（global, page, modal）の管理（priority による優先度制御）
+- [x] 重複チェック（最初にマッチしたショートカットのみ実行）
+- [x] ショートカット一覧の取得（shortcutManager.clear() でテスト用クリア）
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/lib/shortcuts/ShortcutManager.ts`
-- `src/lib/shortcuts/ShortcutManager.test.ts`
+- `src/hooks/useKeyboardShortcut.ts`
+- `src/hooks/useKeyboardShortcut.test.ts`
 
 ---
 
