@@ -353,10 +353,9 @@ export interface SavedProject extends ProjectMeta {
 
 /**
  * Undo/Redo履歴
+ * キー: [projectId, pageId]
  */
 export interface UndoHistory {
-  projectId: string;
-  pageId: string;
   states: unknown[];
   currentIndex: number;
 }
@@ -367,9 +366,9 @@ export interface UndoHistory {
 
 /**
  * ゲームセーブデータ
+ * キー: [projectId, slotId]
  */
 export interface GameSaveData {
-  projectId: string;
   slotId: number;
   savedAt: Date;
   playtime: number;
@@ -453,8 +452,11 @@ export interface StorageProvider {
   // Undo/Redo履歴操作
   /**
    * Undo履歴を保存
+   * @param projectId プロジェクトID
+   * @param pageId ページID
+   * @param history 履歴データ
    */
-  saveUndoHistory(history: UndoHistory): Promise<void>;
+  saveUndoHistory(projectId: string, pageId: string, history: UndoHistory): Promise<void>;
 
   /**
    * Undo履歴を読み込み
@@ -469,8 +471,10 @@ export interface StorageProvider {
   // ゲームセーブ操作
   /**
    * ゲームセーブを保存
+   * @param projectId プロジェクトID
+   * @param save セーブデータ
    */
-  saveGameData(save: GameSaveData): Promise<void>;
+  saveGameData(projectId: string, save: GameSaveData): Promise<void>;
 
   /**
    * ゲームセーブを読み込み

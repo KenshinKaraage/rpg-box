@@ -210,7 +210,6 @@ describe('Storage types', () => {
   describe('GameSaveData', () => {
     it('represents a game save slot', () => {
       const gameSave: GameSaveData = {
-        projectId: 'proj_001',
         slotId: 1,
         savedAt: new Date(),
         playtime: 3600000, // 1 hour in ms
@@ -237,8 +236,6 @@ describe('Storage types', () => {
   describe('UndoHistory', () => {
     it('tracks state history for a page', () => {
       const undoHistory: UndoHistory = {
-        projectId: 'proj_001',
-        pageId: 'map_editor',
         states: [{ zoom: 1 }, { zoom: 1.5 }, { zoom: 2 }],
         currentIndex: 2,
       };
