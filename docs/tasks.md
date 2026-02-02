@@ -664,17 +664,17 @@
 
 #### [T022] Implement LocalStorage auto-save
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T022-localstorage-autosave
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/lib/storage/localStorage.ts` 作成
-- [ ] 一時保存データの保存/読み込み
-- [ ] タイムスタンプ付きで保存
-- [ ] サイズ制限のチェック
-- [ ] テスト追加
+- [x] `src/lib/storage/localStorage.ts` 作成
+- [x] 一時保存データの保存/読み込み
+- [x] タイムスタンプ付きで保存
+- [x] サイズ制限のチェック
+- [x] テスト追加
 
 **関連ファイル:**
 
