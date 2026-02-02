@@ -758,20 +758,20 @@ export function useAutoSave() {
 
 #### [T024] Create useStorage hook
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T024-useStorage-hook
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/hooks/useStorage.ts` 作成
-- [ ] `save()` 関数（IndexedDB に保存）
-- [ ] `load()` 関数
-- [ ] `exportProject()` 関数
-- [ ] `importProject()` 関数
-- [ ] ローディング状態管理
-- [ ] エラーハンドリング
-- [ ] テスト追加
+- [x] `src/hooks/useStorage.ts` 作成
+- [x] `save()` 関数（IndexedDB に保存）
+- [x] `load()` 関数
+- [x] `exportProject()` 関数
+- [x] `importProject()` 関数
+- [x] ローディング状態管理
+- [x] エラーハンドリング
+- [x] テスト追加
 
 **関連ファイル:**
 
