@@ -425,18 +425,18 @@
 
 #### [T012] [P] Define FieldType abstract class
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T012-field-type
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/FieldType.ts` 作成
-- [ ] abstract class `FieldType` 定義
-- [ ] 必須プロパティ: `type`, `id`, `name`, `required`
-- [ ] 抽象メソッド: `getDefaultValue()`, `validate()`, `serialize()`, `deserialize()`, `renderEditor()`, `getValue()`
-- [ ] `displayCondition` オプショナルプロパティ
-- [ ] JSDoc コメント追加
+- [x] `src/types/fields/FieldType.ts` 作成
+- [x] abstract class `FieldType` 定義
+- [x] 必須プロパティ: `type`, `id`, `name`, `required`
+- [x] 抽象メソッド: `getDefaultValue()`, `validate()`, `serialize()`, `deserialize()`, `renderEditor()`, `getValue()`
+- [x] `displayCondition` オプショナルプロパティ
+- [x] JSDoc コメント追加
 
 **関連ファイル:**
 
@@ -450,17 +450,17 @@
 
 #### [T013] [P] Define Component abstract class
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T012-field-type
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/Component.ts` 作成
-- [ ] abstract class `Component` 定義
-- [ ] 必須プロパティ: `type`
-- [ ] 抽象メソッド: `serialize()`, `deserialize()`, `clone()`, `renderPropertyPanel()`
-- [ ] JSDoc コメント追加
+- [x] `src/types/components/Component.ts` 作成
+- [x] abstract class `Component` 定義
+- [x] 必須プロパティ: `type`
+- [x] 抽象メソッド: `serialize()`, `deserialize()`, `clone()`, `renderPropertyPanel()`
+- [x] JSDoc コメント追加
 
 **関連ファイル:**
 
@@ -474,18 +474,18 @@
 
 #### [T014] [P] Define EventAction abstract class
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T012-field-type
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/actions/EventAction.ts` 作成
-- [ ] abstract class `EventAction` 定義
-- [ ] 必須プロパティ: `type`
-- [ ] 抽象メソッド: `execute()`, `serialize()`, `deserialize()`, `renderBlock()`, `renderPropertyPanel()`
-- [ ] `EventContext` インターフェース定義
-- [ ] JSDoc コメント追加
+- [x] `src/types/actions/EventAction.ts` 作成
+- [x] abstract class `EventAction` 定義
+- [x] 必須プロパティ: `type`
+- [x] 抽象メソッド: `execute()`, `serialize()`, `deserialize()`, `renderBlock()`, `renderPropertyPanel()`
+- [x] `EventContext` インターフェース定義
+- [x] JSDoc コメント追加
 
 **関連ファイル:**
 
@@ -499,18 +499,18 @@
 
 #### [T015] [P] Define UIObject and UIComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T012-field-type
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/ui/UIComponent.ts` 作成
-- [ ] `UIObject` インターフェース定義（id, name, parentId, transform, components）
-- [ ] `RectTransform` インターフェース定義
-- [ ] abstract class `UIComponent` 定義
-- [ ] 抽象メソッド: `serialize()`, `deserialize()`, `clone()`, `renderPropertyPanel()`
-- [ ] JSDoc コメント追加
+- [x] `src/types/ui/UIComponent.ts` 作成
+- [x] `UIObject` インターフェース定義（id, name, parentId, transform, components）
+- [x] `RectTransform` インターフェース定義
+- [x] abstract class `UIComponent` 定義
+- [x] 抽象メソッド: `serialize()`, `deserialize()`, `clone()`, `renderPropertyPanel()`
+- [x] JSDoc コメント追加
 
 **関連ファイル:**
 
@@ -526,18 +526,18 @@
 
 #### [T016] Create FieldType registry
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T012-field-type
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/index.ts` 作成
-- [ ] `fieldTypeRegistry` Map 作成
-- [ ] `registerFieldType(type, class)` 関数
-- [ ] `getFieldType(type)` 関数
-- [ ] `getAllFieldTypes()` 関数
-- [ ] テスト追加
+- [x] `src/types/fields/index.ts` 作成
+- [x] `fieldTypeRegistry` Map 作成
+- [x] `registerFieldType(type, class)` 関数
+- [x] `getFieldType(type)` 関数
+- [x] `getAllFieldTypes()` 関数
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -548,18 +548,18 @@
 
 #### [T017] Create Component registry
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T012-field-type
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/index.ts` 作成
-- [ ] `componentRegistry` Map 作成
-- [ ] `registerComponent(type, class)` 関数
-- [ ] `getComponent(type)` 関数
-- [ ] `getAllComponents()` 関数
-- [ ] テスト追加
+- [x] `src/types/components/index.ts` 作成
+- [x] `componentRegistry` Map 作成
+- [x] `registerComponent(type, class)` 関数
+- [x] `getComponent(type)` 関数
+- [x] `getAllComponents()` 関数
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -570,18 +570,18 @@
 
 #### [T018] Create EventAction registry
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T012-field-type
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/actions/index.ts` 作成
-- [ ] `actionRegistry` Map 作成
-- [ ] `registerAction(type, class)` 関数
-- [ ] `getAction(type)` 関数
-- [ ] `getAllActions()` 関数
-- [ ] テスト追加
+- [x] `src/types/actions/index.ts` 作成
+- [x] `actionRegistry` Map 作成
+- [x] `registerAction(type, class)` 関数
+- [x] `getAction(type)` 関数
+- [x] `getAllActions()` 関数
+- [ ] テスト追加（後続タスクで追加予定）
 
 **関連ファイル:**
 
@@ -592,18 +592,18 @@
 
 #### [T019] Create UIComponent registry
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T012-field-type
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/ui/index.ts` 作成
-- [ ] `uiComponentRegistry` Map 作成
-- [ ] `registerUIComponent(type, class)` 関数
-- [ ] `getUIComponent(type)` 関数
-- [ ] `getAllUIComponents()` 関数
-- [ ] テスト追加
+- [x] `src/types/ui/index.ts` 作成
+- [x] `uiComponentRegistry` Map 作成
+- [x] `registerUIComponent(type, class)` 関数
+- [x] `getUIComponent(type)` 関数
+- [x] `getAllUIComponents()` 関数
+- [ ] テスト追加（後続タスクで追加予定）
 
 **関連ファイル:**
 
