@@ -93,7 +93,7 @@ export function Header() {
                 {menu.label}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-48 gap-1 p-2">
+                <ul className="grid w-48 list-none gap-1 p-2">
                   {menu.items.map((item) => (
                     <li key={item.href}>
                       <NavigationMenuLink asChild>
