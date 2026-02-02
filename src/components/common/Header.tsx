@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { HamburgerMenu } from '@/components/common/HamburgerMenu';
+import { SaveIndicator } from '@/components/common/SaveIndicator';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -118,6 +119,9 @@ export function Header() {
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Save indicator */}
+      <SaveIndicator className="mr-4" />
 
       {/* Test play button */}
       <Button size="sm" className="gap-1">
