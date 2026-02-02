@@ -1,4 +1,6 @@
-export { Component } from './Component';
+import { Component } from './Component';
+
+export { Component };
 
 type ComponentConstructor = new () => Component;
 

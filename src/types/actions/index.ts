@@ -1,4 +1,6 @@
-export { EventAction } from './EventAction';
+import { EventAction } from './EventAction';
+
+export { EventAction };
 export type {
   EventContext,
   GameObjectRef,

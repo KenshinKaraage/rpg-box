@@ -156,11 +156,13 @@ src/
 
 ```typescript
 // types/fields/FieldType.ts
-export abstract class FieldType {
+export abstract class FieldType<T = unknown> {
   abstract readonly type: string;
 
-  id: string; // フィールドID（英数字+アンダースコア）
-  name: string; // 表示名
+  // 引数なしコンストラクタパターン: プロパティはデフォルト値を持ち、
+  // インスタンス化後に設定する
+  id: string = '';
+  name: string = '';
   required: boolean = false;
   displayCondition?: {
     // 表示条件（選択肢フィールドのみ対象）
@@ -168,26 +170,37 @@ export abstract class FieldType {
     value: unknown;
   };
 
-  abstract getDefaultValue(): unknown;
-  abstract validate(value: unknown): ValidationResult;
-  abstract serialize(value: unknown): unknown;
-  abstract deserialize(data: unknown): unknown;
+  abstract getDefaultValue(): T;
+  abstract validate(value: T): ValidationResult;
+  abstract serialize(value: T): unknown;
+  abstract deserialize(data: unknown): T;
 
   // エディタ用（Reactコンポーネントを返す）
-  abstract renderEditor(props: FieldEditorProps): React.ReactNode;
+  abstract renderEditor(props: FieldEditorProps<T>): React.ReactNode;
   // ゲーム実行時用（値の取得）
-  abstract getValue(data: unknown): unknown;
+  abstract getValue(data: unknown): T;
 }
 
 // types/fields/index.ts - レジストリ
-const fieldTypeRegistry = new Map<string, typeof FieldType>();
+// 異なる型パラメータを持つサブクラスを格納するため any を使用
+type FieldTypeConstructor = new () => FieldType<any>;
+const fieldTypeRegistry = new Map<string, FieldTypeConstructor>();
 
-export function registerFieldType(type: string, cls: typeof FieldType) {
+export function registerFieldType(type: string, cls: FieldTypeConstructor) {
   fieldTypeRegistry.set(type, cls);
 }
 
-export function getFieldType(type: string): typeof FieldType | undefined {
+export function getFieldType(type: string): FieldTypeConstructor | undefined {
   return fieldTypeRegistry.get(type);
+}
+
+// 使用例
+const NumberField = getFieldType('number');
+if (NumberField) {
+  const field = new NumberField();
+  field.id = 'hp';
+  field.name = 'HP';
+  field.required = true;
 }
 ```
 
@@ -309,6 +322,15 @@ export abstract class Component {
 
   // エディタ用
   abstract renderPropertyPanel(): React.ReactNode;
+}
+
+// types/components/index.ts - レジストリ
+// 引数なしコンストラクタを持つクラスのみ登録可能（型安全）
+type ComponentConstructor = new () => Component;
+const componentRegistry = new Map<string, ComponentConstructor>();
+
+export function registerComponent(type: string, cls: ComponentConstructor) {
+  componentRegistry.set(type, cls);
 }
 ```
 
@@ -579,10 +601,19 @@ export abstract class EventAction {
 }
 
 // types/actions/index.ts - レジストリ
-const actionRegistry = new Map<string, typeof EventAction>();
+// 引数なしコンストラクタを持つクラスのみ登録可能（型安全）
+type EventActionConstructor = new () => EventAction;
+const actionRegistry = new Map<string, EventActionConstructor>();
 
-export function registerAction(type: string, cls: typeof EventAction) {
+export function registerAction(type: string, cls: EventActionConstructor) {
   actionRegistry.set(type, cls);
+}
+
+// 使用例（読み込み時）
+const ActionClass = getAction(savedData.type); // 'object' → ObjectAction
+if (ActionClass) {
+  const action = new ActionClass();
+  action.deserialize(savedData.data); // プロパティ復元
 }
 ```
 
@@ -864,9 +895,11 @@ export abstract class UIComponent {
 }
 
 // types/ui/index.ts - レジストリ
-const uiComponentRegistry = new Map<string, typeof UIComponent>();
+// 引数なしコンストラクタを持つクラスのみ登録可能（型安全）
+type UIComponentConstructor = new () => UIComponent;
+const uiComponentRegistry = new Map<string, UIComponentConstructor>();
 
-export function registerUIComponent(type: string, cls: typeof UIComponent) {
+export function registerUIComponent(type: string, cls: UIComponentConstructor) {
   uiComponentRegistry.set(type, cls);
 }
 ```

@@ -1,7 +1,11 @@
-export { FieldType } from './FieldType';
+import { FieldType } from './FieldType';
+
+export { FieldType };
 export type { ValidationResult, DisplayCondition, FieldEditorProps } from './FieldType';
 
-type FieldTypeConstructor = new () => FieldType;
+// 異なる型パラメータを持つサブクラスを格納するため any を使用
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FieldTypeConstructor = new () => FieldType<any>;
 
 /**
  * フィールドタイプのレジストリ
