@@ -354,6 +354,41 @@ export interface GameSaveData {
 }
 
 // =============================================================================
+// 操作結果型
+// =============================================================================
+
+/**
+ * ストレージエラーの種類
+ */
+export type StorageErrorType =
+  | 'NOT_FOUND'
+  | 'ALREADY_EXISTS'
+  | 'QUOTA_EXCEEDED'
+  | 'INVALID_DATA'
+  | 'PERMISSION_DENIED'
+  | 'NETWORK_ERROR'
+  | 'UNKNOWN';
+
+/**
+ * ストレージエラー
+ */
+export interface StorageError {
+  type: StorageErrorType;
+  message: string;
+  cause?: unknown;
+}
+
+/**
+ * 保存操作の結果
+ */
+export type SaveResult = { success: true } | { success: false; error: StorageError };
+
+/**
+ * 読み込み操作の結果
+ */
+export type LoadResult<T> = { success: true; data: T } | { success: false; error: StorageError };
+
+// =============================================================================
 // ストレージプロバイダー
 // =============================================================================
 

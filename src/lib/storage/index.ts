@@ -37,6 +37,11 @@ export type {
   UndoHistory,
   // ゲームセーブ
   GameSaveData,
+  // 操作結果
+  StorageErrorType,
+  StorageError,
+  SaveResult,
+  LoadResult,
   // ストレージプロバイダー
   StorageProvider,
   // 一時保存
