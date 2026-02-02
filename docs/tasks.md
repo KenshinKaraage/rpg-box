@@ -784,19 +784,19 @@ export function useAutoSave() {
 
 #### [T025] [P] Create useUndo hook
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T025-useUndo-hook
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/hooks/useUndo.ts` 作成
-- [ ] `undo()` 関数
-- [ ] `redo()` 関数
-- [ ] `canUndo` / `canRedo` 状態
-- [ ] `pushState()` 関数
-- [ ] 履歴サイズ制限（設定可能）
-- [ ] テスト追加
+- [x] `src/hooks/useUndo.ts` 作成
+- [x] `undo()` 関数
+- [x] `redo()` 関数
+- [x] `canUndo` / `canRedo` 状態
+- [x] `pushState()` 関数
+- [x] 履歴サイズ制限（設定可能）
+- [x] テスト追加
 
 **関連ファイル:**
 
