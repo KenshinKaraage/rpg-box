@@ -1,5 +1,12 @@
 export { EventAction } from './EventAction';
-export type { EventContext } from './EventAction';
+export type {
+  EventContext,
+  GameObjectRef,
+  AutoWalkPattern,
+  CameraController,
+  AudioController,
+  ScriptAPI,
+} from './EventAction';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EventActionConstructor = new (...args: any[]) => EventAction;
