@@ -1072,18 +1072,18 @@ export function useAutoSave() {
 
 #### [T028] [P] Create Toast notification
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T028-toast-component
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/Toast.tsx` 作成
-- [ ] success/warning/error バリアント
-- [ ] 自動消去（タイムアウト設定可能）
-- [ ] 手動クローズボタン
-- [ ] スタック表示（複数同時表示）
-- [ ] テスト追加
+- [x] `src/components/common/Toast.tsx` 作成
+- [x] success/warning/error バリアント
+- [x] 自動消去（タイムアウト設定可能）
+- [x] 手動クローズボタン
+- [x] スタック表示（複数同時表示）
+- [x] テスト追加
 
 **関連ファイル:**
 
