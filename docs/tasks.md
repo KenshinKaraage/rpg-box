@@ -303,19 +303,19 @@
 
 #### [T011b] [P] Create ProjectMenu
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T011g-save-indicator
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/menus/ProjectMenu.tsx` 作成
-- [ ] 「新規作成」メニュー項目
-- [ ] 「開く」メニュー項目
-- [ ] 「保存」メニュー項目（Ctrl+S）
-- [ ] 「名前を付けて保存」メニュー項目
-- [ ] 「一時保存クリア」メニュー項目
-- [ ] ショートカットキー表示
+- [x] `src/components/common/menus/ProjectMenu.tsx` 作成
+- [x] 「新規作成」メニュー項目
+- [x] 「開く」メニュー項目
+- [x] 「保存」メニュー項目（Ctrl+S）
+- [x] 「名前を付けて保存」メニュー項目
+- [x] 「一時保存クリア」メニュー項目
+- [x] ショートカットキー表示
 
 **関連ファイル:**
 
@@ -325,15 +325,15 @@
 
 #### [T011c] [P] Create ExportMenu
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T011g-save-indicator
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/menus/ExportMenu.tsx` 作成
-- [ ] 「WebGL出力」メニュー項目
-- [ ] 出力設定オプション表示
+- [x] `src/components/common/menus/ExportMenu.tsx` 作成
+- [x] 「WebGL出力」メニュー項目
+- [ ] 出力設定オプション表示（後続タスクで実装）
 
 **関連ファイル:**
 
@@ -343,15 +343,15 @@
 
 #### [T011d] [P] Create SettingsMenu
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T011g-save-indicator
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/menus/SettingsMenu.tsx` 作成
-- [ ] 「エディタ設定」メニュー項目
-- [ ] 「ショートカット」メニュー項目
+- [x] `src/components/common/menus/SettingsMenu.tsx` 作成
+- [x] 「エディタ設定」メニュー項目
+- [x] 「ショートカット」メニュー項目
 
 **関連ファイル:**
 
@@ -361,15 +361,15 @@
 
 #### [T011e] [P] Create HelpMenu
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T011g-save-indicator
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/menus/HelpMenu.tsx` 作成
-- [ ] 「ドキュメント」メニュー項目（外部リンク）
-- [ ] 「バージョン情報」メニュー項目
+- [x] `src/components/common/menus/HelpMenu.tsx` 作成
+- [x] 「ドキュメント」メニュー項目（外部リンク）
+- [x] 「バージョン情報」メニュー項目
 
 **関連ファイル:**
 
@@ -379,16 +379,16 @@
 
 #### [T011f] [P] Create AccountMenu
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T011g-save-indicator
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/menus/AccountMenu.tsx` 作成
-- [ ] 「ログイン」メニュー項目（Phase 2 用プレースホルダー）
-- [ ] 「ログアウト」メニュー項目
-- [ ] 「プロフィール」メニュー項目
+- [x] `src/components/common/menus/AccountMenu.tsx` 作成
+- [x] 「ログイン」メニュー項目（Phase 2 用プレースホルダー）
+- [x] 「ログアウト」メニュー項目
+- [x] 「プロフィール」メニュー項目
 
 **関連ファイル:**
 
