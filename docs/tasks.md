@@ -1094,19 +1094,19 @@ export function useAutoSave() {
 
 #### [T029] [P] Create Modal component
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T029-modal-component
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/components/common/Modal.tsx` 作成
-- [ ] オーバーレイ背景
-- [ ] Escape キーで閉じる
-- [ ] フォーカストラップ
-- [ ] アニメーション（フェードイン/アウト）
-- [ ] サイズバリアント（sm, md, lg, full）
-- [ ] テスト追加
+- [x] `src/components/common/Modal.tsx` 作成
+- [x] オーバーレイ背景
+- [x] Escape キーで閉じる
+- [x] フォーカストラップ
+- [x] アニメーション（フェードイン/アウト）
+- [x] サイズバリアント（sm, md, lg, full）
+- [x] テスト追加
 
 **関連ファイル:**
 
