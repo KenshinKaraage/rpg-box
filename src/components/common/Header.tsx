@@ -5,14 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 
 const navigationItems = [
@@ -83,38 +75,45 @@ export function Header() {
       </Link>
 
       {/* Navigation */}
-      <NavigationMenu className="hidden md:flex">
-        <NavigationMenuList>
-          {navigationItems.map((menu) => (
-            <NavigationMenuItem key={menu.label}>
-              <NavigationMenuTrigger
-                className={cn(isActiveMenu(menu.items) && 'bg-accent text-accent-foreground')}
-              >
-                {menu.label}
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-48 gap-1 p-2">
-                  {menu.items.map((item) => (
-                    <li key={item.href}>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            'block rounded-md px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
-                            pathname === item.href && 'bg-accent text-accent-foreground'
-                          )}
-                        >
-                          {item.label}
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          ))}
-        </NavigationMenuList>
-      </NavigationMenu>
+      <nav className="flex items-center gap-1">
+        {navigationItems.map((menu) => (
+          <div key={menu.label} className="relative group">
+            <button
+              className={cn(
+                'inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                isActiveMenu(menu.items) && 'bg-accent text-accent-foreground'
+              )}
+            >
+              {menu.label}
+              <svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            <div className="absolute left-0 top-full hidden pt-1 group-hover:block">
+              <ul className="w-48 rounded-md border bg-popover p-2 shadow-md">
+                {menu.items.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        'block rounded-md px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
+                        pathname === item.href && 'bg-accent text-accent-foreground'
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </nav>
 
       {/* Spacer */}
       <div className="flex-1" />
@@ -122,7 +121,7 @@ export function Header() {
       {/* Test play button */}
       <Button size="sm" className="gap-1">
         <Play className="h-4 w-4" />
-        <span className="hidden sm:inline">テストプレイ</span>
+        <span>テストプレイ</span>
       </Button>
     </header>
   );
