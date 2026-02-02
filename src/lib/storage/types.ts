@@ -91,9 +91,9 @@ export interface GameMap {
   name: string;
   width: number;
   height: number;
-  chipsetId: string;
   layers: MapLayer[];
-  objects: MapObject[];
+  bgmId?: string;
+  backgroundImageId?: string;
 }
 
 /**
@@ -102,20 +102,21 @@ export interface GameMap {
 export interface MapLayer {
   id: string;
   name: string;
-  type: 'tile' | 'object' | 'collision';
-  data: number[][];
-  visible: boolean;
+  type: 'tile' | 'object';
+  tiles?: string[][]; // tiles[y][x] = chipId（例: "chipset001:42"）
+  objects?: MapObject[];
 }
 
 /**
  * マップオブジェクト
+ * 位置情報はTransformコンポーネント内に保持
  */
 export interface MapObject {
   id: string;
   name: string;
-  x: number;
-  y: number;
+  prefabId?: string;
   components: SerializedComponent[];
+  overrides?: Record<string, unknown>;
 }
 
 /**
@@ -132,10 +133,19 @@ export interface SerializedComponent {
 export interface Chipset {
   id: string;
   name: string;
-  imageAssetId: string;
+  imageId: string;
   tileWidth: number;
   tileHeight: number;
-  passabilityData?: number[];
+  chips: ChipProperty[];
+}
+
+/**
+ * チッププロパティ
+ */
+export interface ChipProperty {
+  index: number;
+  passable: boolean;
+  footstepType?: string;
 }
 
 /**
@@ -149,29 +159,12 @@ export interface Prefab {
 
 /**
  * ゲームイベント
+ * トリガーコンポーネント内で定義されるイベント
  */
 export interface GameEvent {
   id: string;
   name: string;
-  trigger: EventTrigger;
-  conditions: EventCondition[];
   actions: SerializedAction[];
-}
-
-/**
- * イベントトリガー
- */
-export interface EventTrigger {
-  type: 'talk' | 'touch' | 'autorun' | 'parallel' | 'custom';
-  config?: Record<string, unknown>;
-}
-
-/**
- * イベント条件
- */
-export interface EventCondition {
-  type: string;
-  config: Record<string, unknown>;
 }
 
 /**
@@ -188,18 +181,18 @@ export interface SerializedAction {
 export interface EventTemplate {
   id: string;
   name: string;
-  parameters: TemplateParameter[];
+  args: TemplateArg[];
   actions: SerializedAction[];
 }
 
 /**
- * テンプレートパラメータ
+ * テンプレート引数
  */
-export interface TemplateParameter {
+export interface TemplateArg {
   id: string;
   name: string;
-  type: string;
-  defaultValue?: unknown;
+  fieldType: SerializedFieldType;
+  required: boolean;
 }
 
 /**
@@ -208,26 +201,40 @@ export interface TemplateParameter {
 export interface UICanvas {
   id: string;
   name: string;
-  width: number;
-  height: number;
-  objects: UIObjectData[];
+  objects: UIObject[];
+  functions: UIFunction[];
 }
 
 /**
- * UIオブジェクトデータ
+ * UIオブジェクト
  */
-export interface UIObjectData {
+export interface UIObject {
   id: string;
   name: string;
   parentId?: string;
-  transform: {
-    anchorMin: { x: number; y: number };
-    anchorMax: { x: number; y: number };
-    offsetMin: { x: number; y: number };
-    offsetMax: { x: number; y: number };
-    pivot: { x: number; y: number };
-  };
+  transform: RectTransform;
   components: SerializedComponent[];
+}
+
+/**
+ * RectTransform（UI用トランスフォーム）
+ */
+export interface RectTransform {
+  anchorMin: { x: number; y: number };
+  anchorMax: { x: number; y: number };
+  offsetMin: { x: number; y: number };
+  offsetMax: { x: number; y: number };
+  pivot: { x: number; y: number };
+}
+
+/**
+ * UIファンクション
+ */
+export interface UIFunction {
+  id: string;
+  name: string;
+  args: TemplateArg[];
+  actions: SerializedAction[];
 }
 
 /**
@@ -236,7 +243,7 @@ export interface UIObjectData {
 export interface UITemplate {
   id: string;
   name: string;
-  canvas: UICanvas;
+  rootObject: UIObject;
 }
 
 /**
@@ -255,9 +262,20 @@ export interface Script {
 export interface AssetReference {
   id: string;
   name: string;
-  type: 'image' | 'audio' | 'video' | 'font' | 'data';
-  path: string;
-  metadata?: Record<string, unknown>;
+  type: 'image' | 'audio' | 'font';
+  folderId?: string;
+  data: string; // URL or base64
+  metadata: AssetMetadata;
+}
+
+/**
+ * アセットメタデータ
+ */
+export interface AssetMetadata {
+  width?: number;
+  height?: number;
+  duration?: number;
+  fileSize: number;
 }
 
 /**
@@ -266,12 +284,12 @@ export interface AssetReference {
 export interface GameSettings {
   title: string;
   version: string;
-  screenWidth: number;
-  screenHeight: number;
+  author: string;
+  description: string;
+  resolution: { width: number; height: number };
   startMapId: string;
   startPosition: { x: number; y: number };
-  defaultFont?: string;
-  customSettings?: Record<string, unknown>;
+  defaultBGM?: string;
 }
 
 /**
