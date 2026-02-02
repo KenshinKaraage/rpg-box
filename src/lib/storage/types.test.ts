@@ -62,7 +62,7 @@ describe('Storage types', () => {
           character: [
             {
               id: 'char_001',
-              dataTypeId: 'character',
+              typeId: 'character',
               values: {
                 name: '勇者',
                 hp: 100,

@@ -10,6 +10,7 @@ export type {
   FieldSet,
   FieldDefinition,
   CustomClass,
+  SerializedFieldType,
   Variable,
   GameMap,
   MapLayer,

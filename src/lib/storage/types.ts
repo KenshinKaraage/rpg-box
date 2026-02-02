@@ -25,7 +25,7 @@ export interface DataType {
  */
 export interface DataEntry {
   id: string;
-  dataTypeId: string;
+  typeId: string;
   values: Record<string, unknown>;
 }
 
@@ -55,12 +55,21 @@ export interface FieldDefinition {
 
 /**
  * カスタムクラス定義
+ * 変数で使用するカスタム構造体
  */
 export interface CustomClass {
   id: string;
   name: string;
-  baseClass?: string;
-  fieldSetId: string;
+  fields: FieldDefinition[];
+}
+
+/**
+ * シリアライズ済みフィールドタイプ
+ * FieldType クラスインスタンスの保存形式
+ */
+export interface SerializedFieldType {
+  type: string;
+  config?: Record<string, unknown>;
 }
 
 /**
@@ -69,9 +78,9 @@ export interface CustomClass {
 export interface Variable {
   id: string;
   name: string;
-  type: 'number' | 'string' | 'boolean' | 'array' | 'object';
-  scope: 'global' | 'map' | 'event';
-  defaultValue?: unknown;
+  fieldType: SerializedFieldType;
+  isArray: boolean;
+  initialValue: unknown;
 }
 
 /**
