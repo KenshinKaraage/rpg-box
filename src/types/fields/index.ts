@@ -4,6 +4,7 @@ import { StringFieldType } from './StringFieldType';
 import { TextareaFieldType } from './TextareaFieldType';
 import { BooleanFieldType } from './BooleanFieldType';
 import { SelectFieldType } from './SelectFieldType';
+import { ColorFieldType } from './ColorFieldType';
 
 export {
   FieldType,
@@ -12,6 +13,7 @@ export {
   TextareaFieldType,
   BooleanFieldType,
   SelectFieldType,
+  ColorFieldType,
 };
 export type { SelectOption } from './SelectFieldType';
 export type { ValidationResult, DisplayCondition, FieldEditorProps } from './FieldType';
