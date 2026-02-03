@@ -1589,8 +1589,8 @@ export function useAutoSave() {
 
 #### [T043] [US1] Create gameSettingsSlice
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -1610,8 +1610,8 @@ export function useAutoSave() {
 
 #### [T044] [US1] Create GameInfoPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -1629,8 +1629,8 @@ export function useAutoSave() {
 
 #### [T045] [US1] Create GameInfoForm
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -1655,8 +1655,8 @@ export function useAutoSave() {
 
 #### [T046] [US1] Define GameSettings type
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
