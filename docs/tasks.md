@@ -1143,8 +1143,8 @@ export function useAutoSave() {
 
 #### [T031] [P] Implement NumberFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T031-number-field-type
 - **PR:** -
 
 **完了条件:**
@@ -1172,8 +1172,8 @@ export function useAutoSave() {
 
 #### [T032] [P] Implement StringFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T031-number-field-type
 - **PR:** -
 
 **完了条件:**
@@ -1195,8 +1195,8 @@ export function useAutoSave() {
 
 #### [T033] [P] Implement TextareaFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T031-number-field-type
 - **PR:** -
 
 **完了条件:**
@@ -1217,8 +1217,8 @@ export function useAutoSave() {
 
 #### [T034] [P] Implement BooleanFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T031-number-field-type
 - **PR:** -
 
 **完了条件:**
@@ -1239,8 +1239,8 @@ export function useAutoSave() {
 
 #### [T035] [P] Implement SelectFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T031-number-field-type
 - **PR:** -
 
 **完了条件:**
@@ -1262,8 +1262,8 @@ export function useAutoSave() {
 
 #### [T036] [P] Implement ColorFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T031-number-field-type
 - **PR:** -
 
 **完了条件:**
