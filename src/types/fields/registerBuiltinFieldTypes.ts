@@ -5,6 +5,7 @@
  */
 import { registerFieldType } from './index';
 import { NumberFieldType } from './NumberFieldType';
+import { StringFieldType } from './StringFieldType';
 
 let initialized = false;
 
@@ -12,8 +13,8 @@ export function registerBuiltinFieldTypes(): void {
   if (initialized) return;
 
   registerFieldType('number', NumberFieldType);
+  registerFieldType('string', StringFieldType);
   // 今後追加されるフィールドタイプもここに登録
-  // registerFieldType('string', StringFieldType);
   // registerFieldType('boolean', BooleanFieldType);
   // etc.
 

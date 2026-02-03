@@ -1,7 +1,8 @@
 import { FieldType } from './FieldType';
 import { NumberFieldType } from './NumberFieldType';
+import { StringFieldType } from './StringFieldType';
 
-export { FieldType, NumberFieldType };
+export { FieldType, NumberFieldType, StringFieldType };
 export type { ValidationResult, DisplayCondition, FieldEditorProps } from './FieldType';
 
 // 異なる型パラメータを持つサブクラスを格納するため any を使用
