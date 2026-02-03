@@ -9,10 +9,9 @@ import type { GameSettings } from '@/types/gameSettings';
  * ゲーム情報設定ページ
  */
 export default function GameInfoPage() {
-  const { gameSettings, updateGameSettings } = useStore((state) => ({
-    gameSettings: state.gameSettings,
-    updateGameSettings: state.updateGameSettings,
-  }));
+  // 個別にセレクトして無限ループを防ぐ
+  const gameSettings = useStore((state) => state.gameSettings);
+  const updateGameSettings = useStore((state) => state.updateGameSettings);
 
   const handleSubmit = (values: GameSettings) => {
     updateGameSettings(values);
