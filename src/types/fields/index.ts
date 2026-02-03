@@ -3,8 +3,17 @@ import { NumberFieldType } from './NumberFieldType';
 import { StringFieldType } from './StringFieldType';
 import { TextareaFieldType } from './TextareaFieldType';
 import { BooleanFieldType } from './BooleanFieldType';
+import { SelectFieldType } from './SelectFieldType';
 
-export { FieldType, NumberFieldType, StringFieldType, TextareaFieldType, BooleanFieldType };
+export {
+  FieldType,
+  NumberFieldType,
+  StringFieldType,
+  TextareaFieldType,
+  BooleanFieldType,
+  SelectFieldType,
+};
+export type { SelectOption } from './SelectFieldType';
 export type { ValidationResult, DisplayCondition, FieldEditorProps } from './FieldType';
 
 // 異なる型パラメータを持つサブクラスを格納するため any を使用
