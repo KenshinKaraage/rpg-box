@@ -55,7 +55,7 @@ const navigationItems = [
   {
     label: 'ゲーム設定',
     items: [
-      { href: '/settings', label: 'ゲーム情報' },
+      { href: '/settings/info', label: 'ゲーム情報' },
       { href: '/settings/images', label: '画像アセット' },
       { href: '/settings/audio', label: '音声アセット' },
       { href: '/settings/fonts', label: 'フォントアセット' },
