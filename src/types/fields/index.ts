@@ -1,8 +1,9 @@
 import { FieldType } from './FieldType';
 import { NumberFieldType } from './NumberFieldType';
 import { StringFieldType } from './StringFieldType';
+import { TextareaFieldType } from './TextareaFieldType';
 
-export { FieldType, NumberFieldType, StringFieldType };
+export { FieldType, NumberFieldType, StringFieldType, TextareaFieldType };
 export type { ValidationResult, DisplayCondition, FieldEditorProps } from './FieldType';
 
 // 異なる型パラメータを持つサブクラスを格納するため any を使用
