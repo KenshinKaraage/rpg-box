@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
  */
 export class StringFieldType extends FieldType<string> {
   readonly type = 'string';
+  readonly label = '文字列';
 
   /** 最大文字数 */
   maxLength?: number;

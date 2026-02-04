@@ -30,6 +30,7 @@ export interface SelectOption {
  */
 export class SelectFieldType extends FieldType<string> {
   readonly type = 'select';
+  readonly label = '選択';
 
   /** 選択肢 */
   options: SelectOption[] = [];

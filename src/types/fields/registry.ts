@@ -77,3 +77,52 @@ export function getFieldTypeNames(): string[] {
 export function clearFieldTypeRegistry(): void {
   fieldTypeRegistry.clear();
 }
+
+/**
+ * タイプ名からフィールドタイプインスタンスを生成
+ *
+ * @param type フィールドタイプの識別子
+ * @returns 新しいインスタンス、存在しない場合はundefined
+ *
+ * @example
+ * ```typescript
+ * const field = createFieldTypeInstance('number');
+ * if (field) {
+ *   field.id = 'hp';
+ *   field.name = 'HP';
+ * }
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createFieldTypeInstance(type: string): FieldType<any> | undefined {
+  const FieldClass = fieldTypeRegistry.get(type);
+  if (!FieldClass) return undefined;
+  return new FieldClass();
+}
+
+/**
+ * ドロップダウン用のフィールドタイプオプション一覧を取得
+ *
+ * @param allowedTypes 許可するタイプ名の配列（省略時は全タイプ）
+ * @returns { type, label } の配列
+ *
+ * @example
+ * ```typescript
+ * // 全タイプ取得
+ * const allOptions = getFieldTypeOptions();
+ *
+ * // 特定タイプのみ取得
+ * const basicOptions = getFieldTypeOptions(['number', 'string', 'boolean']);
+ * ```
+ */
+export function getFieldTypeOptions(
+  allowedTypes?: string[]
+): Array<{ type: string; label: string }> {
+  const entries = Array.from(fieldTypeRegistry.entries());
+  return entries
+    .filter(([type]) => !allowedTypes || allowedTypes.includes(type))
+    .map(([type, FieldClass]) => {
+      const instance = new FieldClass();
+      return { type, label: instance.label };
+    });
+}

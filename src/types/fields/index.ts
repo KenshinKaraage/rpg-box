@@ -10,6 +10,8 @@ export {
   getAllFieldTypes,
   getFieldTypeNames,
   clearFieldTypeRegistry,
+  createFieldTypeInstance,
+  getFieldTypeOptions,
 } from './registry';
 
 // 組み込みフィールドタイプ
@@ -19,6 +21,7 @@ import { TextareaFieldType } from './TextareaFieldType';
 import { BooleanFieldType } from './BooleanFieldType';
 import { SelectFieldType } from './SelectFieldType';
 import { ColorFieldType } from './ColorFieldType';
+import { FieldSetFieldType } from './FieldSetFieldType';
 
 export {
   NumberFieldType,
@@ -27,8 +30,10 @@ export {
   BooleanFieldType,
   SelectFieldType,
   ColorFieldType,
+  FieldSetFieldType,
 };
 export type { SelectOption } from './SelectFieldType';
+export type { FieldSetValue } from './FieldSetFieldType';
 
 // 組み込みフィールドタイプの登録
 import { registerFieldType } from './registry';
@@ -39,3 +44,4 @@ registerFieldType('textarea', TextareaFieldType);
 registerFieldType('boolean', BooleanFieldType);
 registerFieldType('select', SelectFieldType);
 registerFieldType('color', ColorFieldType);
+registerFieldType('fieldSet', FieldSetFieldType);

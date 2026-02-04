@@ -70,6 +70,12 @@ export abstract class FieldType<T = unknown> {
   abstract readonly type: string;
 
   /**
+   * UI表示用ラベル
+   * ドロップダウン等で表示される日本語名
+   */
+  abstract readonly label: string;
+
+  /**
    * フィールドID（英数字とアンダースコアのみ）
    * データベース内で一意に識別するために使用
    */

@@ -18,9 +18,10 @@ import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
  */
 export class BooleanFieldType extends FieldType<boolean> {
   readonly type = 'boolean';
+  readonly label = '真偽値';
 
   /** チェックボックスの横に表示するラベル */
-  label?: string;
+  checkboxLabel?: string;
 
   getDefaultValue(): boolean {
     return false;
@@ -70,7 +71,7 @@ export class BooleanFieldType extends FieldType<boolean> {
             disabled={disabled}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
           />
-          {this.label && <span className="text-sm">{this.label}</span>}
+          {this.checkboxLabel && <span className="text-sm">{this.checkboxLabel}</span>}
         </label>
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>

@@ -1,42 +1,27 @@
-import { create, StateCreator } from 'zustand';
+/**
+ * Zustand ストア
+ *
+ * 各スライスを統合してストアを作成
+ */
+import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+
+import { createUISlice, UISlice } from './uiSlice';
 import { createGameSettingsSlice, GameSettingsSlice } from './gameSettingsSlice';
+import { createVariableSlice, VariableSlice } from './variableSlice';
+import { createClassSlice, ClassSlice } from './classSlice';
+import { createFieldSetSlice, FieldSetSlice } from './fieldSetSlice';
 
-type SaveStatus = 'saved' | 'unsaved' | 'saving';
+// 全スライスを統合した型
+type StoreState = UISlice & GameSettingsSlice & VariableSlice & ClassSlice & FieldSetSlice;
 
-interface UISlice {
-  saveStatus: SaveStatus;
-  setSaveStatus: (status: SaveStatus) => void;
-  markAsUnsaved: () => void;
-  markAsSaving: () => void;
-  markAsSaved: () => void;
-}
-
-const createUISlice: StateCreator<StoreState, [['zustand/immer', never]], [], UISlice> = (set) => ({
-  saveStatus: 'saved' as SaveStatus,
-  setSaveStatus: (status) =>
-    set((state) => {
-      state.saveStatus = status;
-    }),
-  markAsUnsaved: () =>
-    set((state) => {
-      state.saveStatus = 'unsaved';
-    }),
-  markAsSaving: () =>
-    set((state) => {
-      state.saveStatus = 'saving';
-    }),
-  markAsSaved: () =>
-    set((state) => {
-      state.saveStatus = 'saved';
-    }),
-});
-
-type StoreState = UISlice & GameSettingsSlice;
-
+// ストア作成
 export const useStore = create<StoreState>()(
-  immer((...args) => ({
-    ...createUISlice(...args),
-    ...createGameSettingsSlice(...args),
+  immer((set, get) => ({
+    ...createUISlice(set),
+    ...createGameSettingsSlice(set),
+    ...createVariableSlice(set, get),
+    ...createClassSlice(set),
+    ...createFieldSetSlice(set),
   }))
 );

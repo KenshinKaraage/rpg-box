@@ -22,6 +22,7 @@ const HEX_COLOR_REGEX = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
  */
 export class ColorFieldType extends FieldType<string> {
   readonly type = 'color';
+  readonly label = '色';
 
   /** HEX入力欄を表示するかどうか */
   showHexInput?: boolean;

@@ -117,11 +117,16 @@ describe('BooleanFieldType', () => {
   });
 
   describe('properties', () => {
-    it('has optional label property', () => {
+    it('has label property for type name', () => {
       const field = new BooleanFieldType();
-      expect(field.label).toBeUndefined();
-      field.label = '有効にする';
-      expect(field.label).toBe('有効にする');
+      expect(field.label).toBe('真偽値');
+    });
+
+    it('has optional checkboxLabel property', () => {
+      const field = new BooleanFieldType();
+      expect(field.checkboxLabel).toBeUndefined();
+      field.checkboxLabel = '有効にする';
+      expect(field.checkboxLabel).toBe('有効にする');
     });
   });
 

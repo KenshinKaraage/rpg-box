@@ -19,6 +19,7 @@ import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
  */
 export class TextareaFieldType extends FieldType<string> {
   readonly type = 'textarea';
+  readonly label = 'テキストエリア';
 
   /** 最大文字数 */
   maxLength?: number;

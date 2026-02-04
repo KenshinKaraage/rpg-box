@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
  */
 export class NumberFieldType extends FieldType<number> {
   readonly type = 'number';
+  readonly label = '数値';
 
   /** 最小値 */
   min?: number;

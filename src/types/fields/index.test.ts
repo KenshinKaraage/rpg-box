@@ -9,11 +9,14 @@ import {
   getAllFieldTypes,
   getFieldTypeNames,
   clearFieldTypeRegistry,
+  createFieldTypeInstance,
+  getFieldTypeOptions,
 } from './index';
 
 // テスト用の具象クラス
 class TestFieldType extends FieldType<string> {
   readonly type = 'test';
+  readonly label = 'テスト';
 
   getDefaultValue(): string {
     return '';
@@ -45,6 +48,7 @@ class TestFieldType extends FieldType<string> {
 
 class AnotherFieldType extends FieldType<number> {
   readonly type = 'another';
+  readonly label = '別のタイプ';
 
   getDefaultValue(): number {
     return 0;
@@ -146,6 +150,48 @@ describe('FieldType registry', () => {
       clearFieldTypeRegistry();
 
       expect(getAllFieldTypes()).toEqual([]);
+    });
+  });
+
+  describe('createFieldTypeInstance', () => {
+    it('creates an instance of registered type', () => {
+      registerFieldType('test', TestFieldType);
+
+      const instance = createFieldTypeInstance('test');
+
+      expect(instance).toBeInstanceOf(TestFieldType);
+      expect(instance?.type).toBe('test');
+    });
+
+    it('returns undefined for unregistered type', () => {
+      expect(createFieldTypeInstance('nonexistent')).toBeUndefined();
+    });
+  });
+
+  describe('getFieldTypeOptions', () => {
+    it('returns all types when no filter provided', () => {
+      registerFieldType('test', TestFieldType);
+      registerFieldType('another', AnotherFieldType);
+
+      const options = getFieldTypeOptions();
+
+      expect(options).toHaveLength(2);
+      expect(options).toContainEqual({ type: 'test', label: 'テスト' });
+      expect(options).toContainEqual({ type: 'another', label: '別のタイプ' });
+    });
+
+    it('returns filtered types when allowedTypes provided', () => {
+      registerFieldType('test', TestFieldType);
+      registerFieldType('another', AnotherFieldType);
+
+      const options = getFieldTypeOptions(['test']);
+
+      expect(options).toHaveLength(1);
+      expect(options[0]).toEqual({ type: 'test', label: 'テスト' });
+    });
+
+    it('returns empty array when no types registered', () => {
+      expect(getFieldTypeOptions()).toEqual([]);
     });
   });
 });
