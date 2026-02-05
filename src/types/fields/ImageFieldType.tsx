@@ -7,6 +7,7 @@
 
 import type { ReactNode } from 'react';
 
+import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
 import { FieldType, type FieldEditorProps, type ValidationResult } from './FieldType';
 
 /**
@@ -16,6 +17,9 @@ import { FieldType, type FieldEditorProps, type ValidationResult } from './Field
 export class ImageFieldType extends FieldType<string | null> {
   readonly type = 'image';
   readonly label = '画像';
+
+  /** 初期表示フォルダID */
+  initialFolderId?: string;
 
   /**
    * デフォルト値（未選択）
@@ -53,40 +57,10 @@ export class ImageFieldType extends FieldType<string | null> {
 
   /**
    * エディタを描画
-   * TODO: AssetPickerModal との連携
    */
   renderEditor({ value, onChange }: FieldEditorProps<string | null>): ReactNode {
     return (
-      <div className="flex items-center gap-2">
-        {value ? (
-          <div className="flex items-center gap-2 rounded border bg-muted px-3 py-2 text-sm">
-            <span className="text-muted-foreground">画像ID:</span>
-            <span>{value}</span>
-            <button
-              type="button"
-              onClick={() => onChange(null)}
-              className="ml-2 text-destructive hover:underline"
-            >
-              解除
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              // TODO: AssetPickerModal を開く
-              // 仮実装: プロンプトでIDを入力
-              const assetId = window.prompt('アセットIDを入力');
-              if (assetId) {
-                onChange(assetId);
-              }
-            }}
-            className="rounded border border-dashed px-4 py-2 text-sm text-muted-foreground hover:border-primary hover:text-primary"
-          >
-            画像を選択...
-          </button>
-        )}
-      </div>
+      <ImageFieldEditor value={value} onChange={onChange} initialFolderId={this.initialFolderId} />
     );
   }
 

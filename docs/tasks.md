@@ -2394,17 +2394,17 @@ export function useAutoSave() {
 
 #### [T079] [US5] Create ImageFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/ImageFieldEditor.tsx` 作成
-- [ ] サムネイル表示
-- [ ] 選択ボタン（AssetPickerModal を開く）
-- [ ] クリアボタン
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/ImageFieldEditor.tsx` 作成
+- [x] サムネイル表示
+- [x] 選択ボタン（AssetPickerModal を開く）
+- [x] クリアボタン
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2415,19 +2415,19 @@ export function useAutoSave() {
 
 #### [T080] [US5] Create AssetPickerModal
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/AssetPickerModal.tsx` 作成
-- [ ] モーダル内でアセット選択
-- [ ] フォルダナビゲーション
-- [ ] 検索フィルター
-- [ ] タイプフィルター（image/audio）
-- [ ] 選択確定/キャンセルボタン
-- [ ] テスト追加
+- [x] `src/features/asset-manager/components/AssetPickerModal.tsx` 作成
+- [x] モーダル内でアセット選択
+- [x] フォルダナビゲーション
+- [x] 検索フィルター
+- [x] タイプフィルター（image/audio）
+- [x] 選択確定/キャンセルボタン
+- [x] テスト追加
 
 **関連ファイル:**
 
