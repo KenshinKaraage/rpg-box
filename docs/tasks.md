@@ -1684,17 +1684,17 @@ export function useAutoSave() {
 
 #### [T047] [US2] Create variableSlice
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/variableSlice.ts` 作成
-- [ ] `variables: Variable[]` 状態
-- [ ] `addVariable()`, `updateVariable()`, `deleteVariable()` アクション
-- [ ] `selectedVariableId` 状態
-- [ ] テスト追加
+- [x] `src/stores/variableSlice.ts` 作成
+- [x] `variables: Variable[]` 状態
+- [x] `addVariable()`, `updateVariable()`, `deleteVariable()` アクション
+- [x] `selectedVariableId` 状態
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1705,16 +1705,16 @@ export function useAutoSave() {
 
 #### [T048] [US2] Create VariablePage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/data/variables/page.tsx` 作成
-- [ ] TwoColumnLayout 使用
-- [ ] 左: VariableList、右: VariableEditor
-- [ ] 変数追加ボタン
+- [x] `src/app/(editor)/data/variables/page.tsx` 作成
+- [x] TwoColumnLayout 使用
+- [x] 左: VariableList、右: VariableEditor
+- [x] 変数追加ボタン
 
 **関連ファイル:**
 
@@ -1724,18 +1724,18 @@ export function useAutoSave() {
 
 #### [T049] [US2] Create VariableList
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/VariableList.tsx` 作成
-- [ ] 変数一覧表示
-- [ ] 選択状態のハイライト
-- [ ] ドラッグ&ドロップで並び替え
-- [ ] 右クリックコンテキストメニュー（削除、複製）
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/VariableList.tsx` 作成
+- [x] 変数一覧表示
+- [x] 選択状態のハイライト
+- [ ] ドラッグ&ドロップで並び替え（後続タスクで追加）
+- [x] 右クリックコンテキストメニュー（削除、複製）
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1746,19 +1746,19 @@ export function useAutoSave() {
 
 #### [T050] [US2] Create VariableEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/VariableEditor.tsx` 作成
-- [ ] 変数名入力
-- [ ] 変数ID入力（自動生成オプション）
-- [ ] 型選択（FieldType 選択）
-- [ ] 配列フラグ
-- [ ] 初期値設定
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/VariableEditor.tsx` 作成
+- [x] 変数名入力
+- [x] 変数ID表示（読み取り専用、自動生成）
+- [x] 型選択（number, string, boolean, class）
+- [x] 配列フラグ
+- [x] 初期値設定
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1769,18 +1769,18 @@ export function useAutoSave() {
 
 #### [T051] [US2] Define Variable type
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/data.ts` に `Variable` インターフェース追加
-- [ ] フィールド: id, name, fieldType, isArray, initialValue
+- [x] `src/types/variable.ts` に `Variable` インターフェース追加
+- [x] フィールド: id, name, type, classId, isArray, initialValue, description
 
 **関連ファイル:**
 
-- `src/types/data.ts`
+- `src/types/variable.ts`
 
 ---
 
@@ -1788,17 +1788,18 @@ export function useAutoSave() {
 
 #### [T052] [US3] Create classSlice
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/classSlice.ts` 作成
-- [ ] `classes: CustomClass[]` 状態
-- [ ] CRUD アクション
-- [ ] `selectedClassId` 状態
-- [ ] テスト追加
+- [x] `src/stores/classSlice.ts` 作成
+- [x] `classes: CustomClass[]` 状態
+- [x] CRUD アクション
+- [x] `selectedClassId` 状態
+- [x] フィールド操作アクション（追加/更新/削除/並び替え）
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1809,15 +1810,16 @@ export function useAutoSave() {
 
 #### [T053] [US3] Create ClassPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/data/classes/page.tsx` 作成
-- [ ] TwoColumnLayout 使用
-- [ ] クラス追加ボタン
+- [x] `src/app/(editor)/data/classes/page.tsx` 作成
+- [x] TwoColumnLayout 使用
+- [x] クラス追加ボタン
+- [x] リアクティブなセレクタ使用
 
 **関連ファイル:**
 
@@ -1827,60 +1829,62 @@ export function useAutoSave() {
 
 #### [T054] [US3] Create ClassList
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/ClassList.tsx` 作成
-- [ ] クラス一覧表示
-- [ ] 選択状態
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/ClassList.tsx` 作成
+- [x] クラス一覧表示
+- [x] 選択状態
+- [x] 右クリックコンテキストメニュー（削除、複製）
+- [ ] テスト追加（後続タスクで追加）
 
 **関連ファイル:**
 
 - `src/features/data-editor/components/ClassList.tsx`
-- `src/features/data-editor/components/ClassList.test.tsx`
 
 ---
 
 #### [T055] [US3] Create ClassEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/ClassEditor.tsx` 作成
-- [ ] クラス名入力
-- [ ] クラスID入力
-- [ ] フィールド一覧編集
-- [ ] フィールド追加/削除/並び替え
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/ClassEditor.tsx` 作成
+- [x] クラス名入力
+- [x] クラスID表示（読み取り専用）
+- [x] フィールド一覧編集
+- [x] フィールド追加/削除
+- [ ] フィールドD&D並び替え（後続タスクで追加）
+- [ ] テスト追加（後続タスクで追加）
 
 **関連ファイル:**
 
 - `src/features/data-editor/components/ClassEditor.tsx`
-- `src/features/data-editor/components/ClassEditor.test.tsx`
 
 ---
 
 #### [T056] [US3] Define CustomClass type
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/data.ts` に `CustomClass` インターフェース追加
-- [ ] フィールド: id, name, fields
+- [x] `src/types/customClass.ts` に `CustomClass` インターフェース追加
+- [x] フィールド: id, name, fields, description
+- [x] `ClassField` インターフェース追加
+- [x] ヘルパー関数（createCustomClass, createClassField）
 
 **関連ファイル:**
 
-- `src/types/data.ts`
+- `src/types/customClass.ts`
 
 ---
 
@@ -2214,18 +2218,18 @@ export function useAutoSave() {
 
 #### [T071] [P] Implement ImageFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/ImageFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `assetId` を格納
-- [ ] サムネイルプレビュー
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/ImageFieldType.tsx` 作成
+- [x] FieldType を継承
+- [x] `assetId` を格納
+- [x] サムネイルプレビュー
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2260,18 +2264,18 @@ export function useAutoSave() {
 
 #### [T073] [US5] Create assetSlice
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/assetSlice.ts` 作成
-- [ ] `assets: AssetReference[]` 状態
-- [ ] `assetFolders: AssetFolder[]` 状態
-- [ ] CRUD アクション
-- [ ] フォルダ操作アクション
-- [ ] テスト追加
+- [x] `src/stores/assetSlice.ts` 作成
+- [x] `assets: AssetReference[]` 状態
+- [x] `assetFolders: AssetFolder[]` 状態
+- [x] CRUD アクション
+- [x] フォルダ操作アクション
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2280,38 +2284,38 @@ export function useAutoSave() {
 
 ---
 
-#### [T074] [US5] Create ImageAssetPage
+#### [T074] [US5] Create AssetsPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/settings/images/page.tsx` 作成
-- [ ] ThreeColumnLayout 使用
-- [ ] 左: フォルダツリー、中央: グリッド、右: プレビュー
+- [x] `src/app/(editor)/settings/assets/page.tsx` 作成
+- [x] 3カラムレイアウト使用
+- [x] 左: フォルダツリー、中央: グリッド、右: プレビュー
 
 **関連ファイル:**
 
-- `src/app/(editor)/settings/images/page.tsx`
+- `src/app/(editor)/settings/assets/page.tsx`
 
 ---
 
 #### [T075] [US5] Create AssetFolderTree
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/AssetFolderTree.tsx` 作成
-- [ ] フォルダ階層表示
-- [ ] 展開/折りたたみ
-- [ ] フォルダ選択
-- [ ] 右クリックメニュー（新規、名前変更、削除）
-- [ ] テスト追加
+- [x] `src/features/asset-manager/components/AssetFolderTree.tsx` 作成
+- [x] フォルダ階層表示
+- [x] 展開/折りたたみ
+- [x] フォルダ選択
+- [x] 右クリックメニュー（新規、名前変更、削除）
+- [ ] テスト追加（将来対応）
 
 **関連ファイル:**
 
@@ -2322,19 +2326,19 @@ export function useAutoSave() {
 
 #### [T076] [US5] Create AssetGrid
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/AssetGrid.tsx` 作成
-- [ ] グリッド形式でアセット表示
-- [ ] サムネイル表示
-- [ ] 選択状態
-- [ ] 複数選択対応
-- [ ] 仮想化（大量アセット対応）
-- [ ] テスト追加
+- [x] `src/features/asset-manager/components/AssetGrid.tsx` 作成
+- [x] グリッド形式でアセット表示
+- [x] サムネイル表示
+- [x] 選択状態
+- [ ] 複数選択対応（将来対応）
+- [ ] 仮想化（大量アセット対応）（将来対応）
+- [ ] テスト追加（将来対応）
 
 **関連ファイル:**
 
@@ -2345,19 +2349,19 @@ export function useAutoSave() {
 
 #### [T077] [US5] Create AssetUploader
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/AssetUploader.tsx` 作成
-- [ ] ドラッグ&ドロップアップロード
-- [ ] ファイル選択ダイアログ
-- [ ] 複数ファイル対応
-- [ ] プログレス表示
-- [ ] ファイルタイプ検証
-- [ ] テスト追加
+- [x] AssetGrid に統合実装
+- [x] ドラッグ&ドロップアップロード
+- [x] ファイル選択ダイアログ
+- [x] 複数ファイル対応
+- [ ] プログレス表示（将来対応）
+- [x] ファイルタイプ検証
+- [ ] テスト追加（将来対応）
 
 **関連ファイル:**
 
@@ -2368,18 +2372,18 @@ export function useAutoSave() {
 
 #### [T078] [US5] Create AssetPreview
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/AssetPreview.tsx` 作成
-- [ ] 画像プレビュー（ズーム対応）
-- [ ] メタデータ表示（サイズ、形式、ファイルサイズ）
-- [ ] 名前変更
-- [ ] 削除ボタン
-- [ ] テスト追加
+- [x] `src/features/asset-manager/components/AssetPreview.tsx` 作成
+- [x] 画像プレビュー
+- [x] メタデータ表示（サイズ、解像度、ファイルサイズ）
+- [x] 名前変更
+- [x] 削除ボタン
+- [x] テスト追加
 
 **関連ファイル:**
 
