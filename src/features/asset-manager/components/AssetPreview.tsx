@@ -56,12 +56,17 @@ export function AssetPreview({ asset, folderName, onRename, onDelete }: AssetPre
   const height = metadata?.height;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* プレビュー領域 */}
-      <div className="flex flex-1 items-center justify-center bg-muted/30 p-4">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-muted/30 p-4">
         {asset.type === 'image' && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={asset.data} alt={asset.name} className="max-h-full max-w-full object-contain" />
+          <img
+            src={asset.data}
+            alt={asset.name}
+            className="max-h-full max-w-full object-contain"
+            style={{ maxWidth: '100%', maxHeight: '100%' }}
+          />
         )}
       </div>
 

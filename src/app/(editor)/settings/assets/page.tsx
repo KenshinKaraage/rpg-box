@@ -24,17 +24,20 @@ export default function AssetsPage() {
   const updateFolder = useStore((state) => state.updateFolder);
   const deleteFolder = useStore((state) => state.deleteFolder);
   const selectFolder = useStore((state) => state.selectFolder);
-  const getAssetsByFolder = useStore((state) => state.getAssetsByFolder);
 
-  // 選択中のアセット
+  // 選択中のアセット（リアクティブ）
   const selectedAsset = useStore((state) =>
     state.selectedAssetId
       ? (state.assets.find((a) => a.id === state.selectedAssetId) ?? null)
       : null
   );
 
-  // 選択中のフォルダのアセット一覧
-  const filteredAssets = getAssetsByFolder(selectedFolderId ?? undefined);
+  // 選択中のフォルダのアセット一覧（リアクティブセレクタで assets の変更を検知）
+  const filteredAssets = useStore((state) =>
+    selectedFolderId === null
+      ? state.assets // 「すべてのアセット」選択時は全件表示
+      : state.assets.filter((a) => a.folderId === selectedFolderId)
+  );
 
   // 選択中のアセットのフォルダ名を取得
   const selectedAssetFolderName = selectedAsset?.folderId
@@ -147,7 +150,7 @@ export default function AssetsPage() {
       </div>
 
       {/* 右: プレビュー */}
-      <div className="w-72 shrink-0">
+      <div className="w-72 shrink-0 overflow-hidden">
         <AssetPreview
           asset={selectedAsset}
           folderName={selectedAssetFolderName}
