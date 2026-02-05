@@ -22,6 +22,7 @@ import { BooleanFieldType } from './BooleanFieldType';
 import { SelectFieldType } from './SelectFieldType';
 import { ColorFieldType } from './ColorFieldType';
 import { FieldSetFieldType } from './FieldSetFieldType';
+import { ImageFieldType } from './ImageFieldType';
 
 export {
   NumberFieldType,
@@ -31,6 +32,7 @@ export {
   SelectFieldType,
   ColorFieldType,
   FieldSetFieldType,
+  ImageFieldType,
 };
 export type { SelectOption } from './SelectFieldType';
 export type { FieldSetValue } from './FieldSetFieldType';
@@ -45,3 +47,4 @@ registerFieldType('boolean', BooleanFieldType);
 registerFieldType('select', SelectFieldType);
 registerFieldType('color', ColorFieldType);
 registerFieldType('fieldSet', FieldSetFieldType);
+registerFieldType('image', ImageFieldType);
