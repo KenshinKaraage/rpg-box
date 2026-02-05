@@ -56,7 +56,7 @@ export function AssetPreview({ asset, folderName, onRename, onDelete }: AssetPre
   const height = metadata?.height;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="flex h-full w-full flex-col overflow-hidden">
       {/* プレビュー領域 */}
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-muted/30 p-4">
         {asset.type === 'image' && (
@@ -64,8 +64,8 @@ export function AssetPreview({ asset, folderName, onRename, onDelete }: AssetPre
           <img
             src={asset.data}
             alt={asset.name}
-            className="max-h-full max-w-full object-contain"
-            style={{ maxWidth: '100%', maxHeight: '100%' }}
+            className="h-auto max-h-full w-auto object-contain"
+            style={{ maxWidth: 'calc(100% - 32px)' }}
           />
         )}
       </div>

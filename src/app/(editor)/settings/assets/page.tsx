@@ -149,8 +149,8 @@ export default function AssetsPage() {
         />
       </div>
 
-      {/* 右: プレビュー */}
-      <div className="w-72 shrink-0 overflow-hidden">
+      {/* 右: プレビュー（幅固定300px） */}
+      <div className="h-full w-[300px] min-w-[300px] max-w-[300px] shrink-0 overflow-hidden">
         <AssetPreview
           asset={selectedAsset}
           folderName={selectedAssetFolderName}
