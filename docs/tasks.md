@@ -2240,18 +2240,18 @@ export function useAutoSave() {
 
 #### [T072] [P] Implement AudioFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/AudioFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `assetId` を格納
-- [ ] 再生ボタン付きプレビュー
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/AudioFieldType.tsx` 作成
+- [x] FieldType を継承
+- [x] `assetId` を格納
+- [ ] 再生ボタン付きプレビュー（将来対応）
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
