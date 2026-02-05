@@ -23,6 +23,7 @@ import { SelectFieldType } from './SelectFieldType';
 import { ColorFieldType } from './ColorFieldType';
 import { FieldSetFieldType } from './FieldSetFieldType';
 import { ImageFieldType } from './ImageFieldType';
+import { AudioFieldType } from './AudioFieldType';
 
 export {
   NumberFieldType,
@@ -33,6 +34,7 @@ export {
   ColorFieldType,
   FieldSetFieldType,
   ImageFieldType,
+  AudioFieldType,
 };
 export type { SelectOption } from './SelectFieldType';
 export type { FieldSetValue } from './FieldSetFieldType';
@@ -48,3 +50,4 @@ registerFieldType('select', SelectFieldType);
 registerFieldType('color', ColorFieldType);
 registerFieldType('fieldSet', FieldSetFieldType);
 registerFieldType('image', ImageFieldType);
+registerFieldType('audio', AudioFieldType);
