@@ -34,9 +34,9 @@ export default function AssetsPage() {
 
   // 選択中のフォルダのアセット一覧（リアクティブセレクタで assets の変更を検知）
   const filteredAssets = useStore((state) =>
-    selectedFolderId === null
+    state.selectedFolderId === null
       ? state.assets // 「すべてのアセット」選択時は全件表示
-      : state.assets.filter((a) => a.folderId === selectedFolderId)
+      : state.assets.filter((a) => a.folderId === state.selectedFolderId)
   );
 
   // 選択中のアセットのフォルダ名を取得
