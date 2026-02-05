@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useStore } from '@/stores';
 import { AssetFolderTree } from '@/features/asset-manager/components/AssetFolderTree';
 import { AssetGrid } from '@/features/asset-manager/components/AssetGrid';
@@ -25,18 +25,20 @@ export default function AssetsPage() {
   const deleteFolder = useStore((state) => state.deleteFolder);
   const selectFolder = useStore((state) => state.selectFolder);
 
-  // 選択中のアセット（リアクティブ）
-  const selectedAsset = useStore((state) =>
-    state.selectedAssetId
-      ? (state.assets.find((a) => a.id === state.selectedAssetId) ?? null)
-      : null
+  // アセット一覧を取得
+  const assets = useStore((state) => state.assets);
+
+  // 選択中のアセット
+  const selectedAsset = useMemo(
+    () => (selectedAssetId ? (assets.find((a) => a.id === selectedAssetId) ?? null) : null),
+    [assets, selectedAssetId]
   );
 
-  // 選択中のフォルダのアセット一覧（リアクティブセレクタで assets の変更を検知）
-  const filteredAssets = useStore((state) =>
-    state.selectedFolderId === null
-      ? state.assets // 「すべてのアセット」選択時は全件表示
-      : state.assets.filter((a) => a.folderId === state.selectedFolderId)
+  // 選択中のフォルダのアセット一覧
+  const filteredAssets = useMemo(
+    () =>
+      selectedFolderId === null ? assets : assets.filter((a) => a.folderId === selectedFolderId),
+    [assets, selectedFolderId]
   );
 
   // 選択中のアセットのフォルダ名を取得
