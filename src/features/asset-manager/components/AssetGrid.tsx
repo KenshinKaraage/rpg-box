@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AssetReference } from '@/types/asset';
+import { getAllSupportedExtensions } from '@/types/assets';
 
 interface AssetGridProps {
   assets: AssetReference[];
@@ -15,6 +17,9 @@ interface AssetGridProps {
  * アセットグリッドコンポーネント
  */
 export function AssetGrid({ assets, selectedAssetId, onSelectAsset, onUpload }: AssetGridProps) {
+  // 対応拡張子をaccept属性用に取得
+  const acceptExtensions = useMemo(() => getAllSupportedExtensions().join(','), []);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -52,7 +57,7 @@ export function AssetGrid({ assets, selectedAssetId, onSelectAsset, onUpload }: 
             <input
               type="file"
               className="hidden"
-              accept="image/*"
+              accept={acceptExtensions}
               multiple
               onChange={handleFileSelect}
             />
@@ -95,7 +100,7 @@ export function AssetGrid({ assets, selectedAssetId, onSelectAsset, onUpload }: 
           <input
             type="file"
             className="hidden"
-            accept="image/*"
+            accept={acceptExtensions}
             multiple
             onChange={handleFileSelect}
           />

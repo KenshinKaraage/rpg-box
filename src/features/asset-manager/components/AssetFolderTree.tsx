@@ -17,7 +17,7 @@ interface AssetFolderTreeProps {
   selectedFolderId: string | null;
   onSelectFolder: (id: string | null) => void;
   onAddFolder: (parentId?: string) => void;
-  onRenameFolder: (id: string, name: string) => void;
+  onRenameFolder: (id: string) => void;
   onDeleteFolder: (id: string) => void;
 }
 
@@ -29,7 +29,7 @@ interface FolderNodeProps {
   onToggleExpand: (id: string) => void;
   onSelectFolder: (id: string) => void;
   onAddFolder: (parentId: string) => void;
-  onRenameFolder: (id: string, name: string) => void;
+  onRenameFolder: (id: string) => void;
   onDeleteFolder: (id: string) => void;
   depth: number;
 }
@@ -55,10 +55,7 @@ function FolderNode({
   const isSelected = selectedFolderId === folder.id;
 
   const handleRename = () => {
-    const newName = window.prompt('新しいフォルダ名', folder.name);
-    if (newName && newName !== folder.name) {
-      onRenameFolder(folder.id, newName);
-    }
+    onRenameFolder(folder.id);
   };
 
   return (

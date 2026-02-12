@@ -84,3 +84,34 @@ export function getAssetTypeOptions(): Array<{ type: string; label: string }> {
     return { type, label: instance.label };
   });
 }
+
+/**
+ * 拡張子からアセットタイプを取得
+ * @param extension 拡張子（例: '.png', '.mp3'）
+ * @returns タイプ識別子（未対応の場合undefined）
+ */
+export function getAssetTypeByExtension(extension: string): string | undefined {
+  const ext = extension.toLowerCase();
+  const entries = Array.from(assetTypeRegistry.entries());
+  for (const [type, AssetClass] of entries) {
+    const instance = new AssetClass();
+    if (instance.extensions.includes(ext)) {
+      return type;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * 全ての対応拡張子を取得
+ * @returns 拡張子の配列（例: ['.png', '.jpg', '.mp3', ...]）
+ */
+export function getAllSupportedExtensions(): string[] {
+  const extensions: string[] = [];
+  const entries = Array.from(assetTypeRegistry.entries());
+  for (const [, AssetClass] of entries) {
+    const instance = new AssetClass();
+    extensions.push(...instance.extensions);
+  }
+  return extensions;
+}
