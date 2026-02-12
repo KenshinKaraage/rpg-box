@@ -1,9 +1,9 @@
-import { StateCreator } from 'zustand';
-import { GameSettings, DEFAULT_GAME_SETTINGS } from '@/types/gameSettings';
-
 /**
- * ゲーム設定スライスの状態とアクション
+ * ゲーム設定スライス
  */
+import { DEFAULT_GAME_SETTINGS } from '@/types/gameSettings';
+import type { GameSettings } from '@/types/gameSettings';
+
 export interface GameSettingsSlice {
   /** ゲーム設定 */
   gameSettings: GameSettings;
@@ -15,15 +15,9 @@ export interface GameSettingsSlice {
   resetGameSettings: () => void;
 }
 
-/**
- * ゲーム設定スライスの作成
- */
-export const createGameSettingsSlice: StateCreator<
-  GameSettingsSlice,
-  [['zustand/immer', never]],
-  [],
-  GameSettingsSlice
-> = (set) => ({
+export const createGameSettingsSlice = <T extends GameSettingsSlice>(
+  set: (fn: (state: T) => void) => void
+): GameSettingsSlice => ({
   gameSettings: { ...DEFAULT_GAME_SETTINGS },
 
   updateGameSettings: (updates) =>

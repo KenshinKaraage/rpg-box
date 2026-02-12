@@ -19,13 +19,13 @@ export default function GameInfoPage() {
 
   return (
     <TwoColumnLayout
-      leftColumn={
+      left={
         <div className="p-4">
           <h2 className="mb-4 text-lg font-semibold">ゲーム情報</h2>
           <p className="text-sm text-muted-foreground">ゲームの基本情報を設定します。</p>
         </div>
       }
-      rightColumn={
+      right={
         <div className="p-4">
           <GameInfoForm initialValues={gameSettings} onSubmit={handleSubmit} />
         </div>
