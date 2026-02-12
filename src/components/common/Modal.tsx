@@ -63,10 +63,10 @@ export interface ModalProps {
 // =============================================================================
 
 const sizeClasses: Record<ModalSize, string> = {
-  sm: 'max-w-sm',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
+  sm: 'max-w-modal-sm',
+  md: 'max-w-modal-md',
+  lg: 'max-w-modal-lg',
+  xl: 'max-w-modal-xl',
   full: 'max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] h-full',
 };
 
