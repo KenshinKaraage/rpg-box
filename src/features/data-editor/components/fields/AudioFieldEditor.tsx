@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Music, X } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { Music, X, Play, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/stores';
 import { AssetPickerModal } from '@/features/asset-manager';
@@ -21,6 +21,8 @@ interface AudioFieldEditorProps {
  */
 export function AudioFieldEditor({ value, onChange, initialFolderId }: AudioFieldEditorProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // ストアからアセットとフォルダを取得
   const assets = useStore((state) => state.assets);
@@ -32,6 +34,20 @@ export function AudioFieldEditor({ value, onChange, initialFolderId }: AudioFiel
     [assets, value]
   );
 
+  // クリーンアップ: 値が変更されたか、コンポーネントがアンマウントされた時に音声を停止
+  // 理由: Audioはブラウザの外部リソースであり、適切なクリーンアップが必要です。
+  // - 値変更時: 別の音声が選択されたため、現在の再生を停止
+  // - アンマウント時: コンポーネント消滅後に音声が鳴り続けるのを防ぐ
+  useEffect(() => {
+    setIsPlaying(false);
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [value]);
+
   const handleSelect = (assetId: string | null) => {
     onChange(assetId);
     setIsModalOpen(false);
@@ -40,6 +56,32 @@ export function AudioFieldEditor({ value, onChange, initialFolderId }: AudioFiel
   const handleClear = () => {
     onChange(null);
   };
+
+  // 再生/一時停止の切り替え - イベント駆動、useEffectは不要
+  // Audioインスタンスと'ended'リスナーのライフサイクルはハンドラ内で管理
+  const handlePlayPause = useCallback(() => {
+    if (!selectedAsset) return;
+
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      // 既存の音声があれば先に停止
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      // 新しいAudioインスタンスを作成
+      const audio = new Audio(selectedAsset.data);
+      // 'ended'リスナーはコンポーネントのライフサイクルではなく、Audioインスタンスに紐づける
+      audio.addEventListener('ended', () => setIsPlaying(false));
+      audioRef.current = audio;
+      audio.play().catch(() => {
+        // 自動再生の制限（ブラウザポリシー）を適切にハンドリング
+        setIsPlaying(false);
+      });
+      setIsPlaying(true);
+    }
+  }, [selectedAsset, isPlaying]);
 
   // 未選択状態
   if (!value) {
@@ -105,6 +147,15 @@ export function AudioFieldEditor({ value, onChange, initialFolderId }: AudioFiel
 
         {/* アクションボタン */}
         <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handlePlayPause}
+            title={isPlaying ? '停止' : '再生'}
+          >
+            {isPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            <span className="sr-only">{isPlaying ? '停止' : '再生'}</span>
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setIsModalOpen(true)}>
             変更
           </Button>
