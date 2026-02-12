@@ -11,9 +11,10 @@ import { createGameSettingsSlice, GameSettingsSlice } from './gameSettingsSlice'
 import { createVariableSlice, VariableSlice } from './variableSlice';
 import { createClassSlice, ClassSlice } from './classSlice';
 import { createAssetSlice, AssetSlice } from './assetSlice';
+import { createDataSlice, DataSlice } from './dataSlice';
 
 // 全スライスを統合した型
-type StoreState = UISlice & GameSettingsSlice & VariableSlice & ClassSlice & AssetSlice;
+type StoreState = UISlice & GameSettingsSlice & VariableSlice & ClassSlice & AssetSlice & DataSlice;
 
 // ストア作成
 export const useStore = create<StoreState>()(
@@ -23,5 +24,6 @@ export const useStore = create<StoreState>()(
     ...createVariableSlice(set, get),
     ...createClassSlice(set),
     ...createAssetSlice(set, get),
+    ...createDataSlice(set, get),
   }))
 );
