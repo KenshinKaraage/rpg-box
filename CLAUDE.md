@@ -710,3 +710,93 @@ function processEvent(event: Event | null) {
   }
 }
 ```
+
+## 13. UI Component Templates (Golden Patterns)
+
+AIが新規UIを作成する際は、以下のテンプレートを**必ず**使用すること。
+独自のCSSクラス（`w-[350px]`など）を避け、`tailwind.config.js` に定義されたセマンティッククラスを使用する。
+
+### 1. Standard Form Modal
+
+```tsx
+<Modal
+  open={isOpen}
+  onOpenChange={setIsOpen}
+  title="エンティティ作成"
+  size="md" // sm, md, lg, xl から選択 (tailwind.config.js参照)
+>
+  {/* コンテンツ: space-y-4 で統一 */}
+  <div className="space-y-4 py-4">
+    <div className="space-y-2">
+      <Label htmlFor="name">名前</Label>
+      <Input id="name" placeholder="例: スライム" />
+    </div>
+
+    <div className="space-y-2">
+      <Label htmlFor="type">タイプ</Label>
+      <Select>
+        <SelectTrigger id="type">
+          <SelectValue placeholder="選択してください" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="a">Type A</SelectItem>
+          <SelectItem value="b">Type B</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+
+  {/* フッター: 右寄せボタン */}
+  <DialogFooter>
+    <Button variant="outline" onClick={() => setIsOpen(false)}>
+      キャンセル
+    </Button>
+    <Button onClick={handleSave}>保存</Button>
+  </DialogFooter>
+</Modal>
+```
+
+### 2. Standard Page Layout (Sidebar + Main)
+
+```tsx
+// 画面全体を使うエディタ画面の基本構造
+<div className="flex h-full w-full overflow-hidden">
+  {/* サイドバー: w-sidebar (240px) を厳守 */}
+  <aside className="w-sidebar shrink-0 border-r bg-muted/20">
+    <div className="flex h-header items-center border-b px-4 font-semibold">エクスプローラー</div>
+    <div className="h-[calc(100%-theme(height.header))] overflow-auto p-2">
+      {/* ツリーなどのリスト */}
+    </div>
+  </aside>
+
+  {/* メインエリア */}
+  <main className="flex-1 overflow-auto bg-background">
+    {/* コンテンツ */}
+    <div className="container mx-auto max-w-4xl py-8">{children}</div>
+  </main>
+
+  {/* インスペクタ (右パネル): w-inspector (300px) */}
+  <aside className="w-inspector shrink-0 border-l bg-muted/20">{/* プロパティ設定など */}</aside>
+</div>
+```
+
+### 3. Semantic Tailwind Classes (tailwind.config.js)
+
+数値（マジックナンバー）を直接書かず、以下のクラスを使用すること。
+
+| クラス名         | 定義値 | 用途                     |
+| :--------------- | :----- | :----------------------- |
+| `w-sidebar`      | 240px  | 左サイドバー標準幅       |
+| `w-sidebar-sm`   | 200px  | 狭いサイドバー           |
+| `w-inspector`    | 300px  | 右プロパティパネル標準幅 |
+| `h-header`       | 56px   | ヘッダーの高さ           |
+| `max-w-modal-sm` | 400px  | 小さな確認ダイアログ     |
+| `max-w-modal-md` | 500px  | 標準的なフォーム         |
+| `max-w-modal-lg` | 640px  | 複雑な設定画面           |
+
+### 4. 禁止事項・アンチパターン
+
+- **Flexbox Layout**: `flex-col` で無限に伸びるリストを作らない → `min-h-0` + `flex-1` を使う
+- **Modal Size**: `w-[500px]` と書かない → `size="md"` (`max-w-modal-md`) を使う
+- **Dropdown**: `w-48` 以下にしない → `w-60` 以上を使う（日本語対応）
+- **Button**: アイコンのみのボタンには必ず `aria-label` をつける
