@@ -2,3 +2,7 @@ export { VariableList } from './components/VariableList';
 export { VariableEditor } from './components/VariableEditor';
 export { ClassList } from './components/ClassList';
 export { ClassEditor } from './components/ClassEditor';
+export { DataTypeList } from './components/DataTypeList';
+export { DataTypeEditor } from './components/DataTypeEditor';
+export { DataEntryList } from './components/DataEntryList';
+export { FormBuilder } from './components/FormBuilder';

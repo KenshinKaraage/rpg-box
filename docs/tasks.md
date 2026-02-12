@@ -2654,18 +2654,18 @@ export function useAutoSave() {
 
 #### [T086] [US8] Create dataSlice
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/dataSlice.ts` 作成
-- [ ] `dataTypes: DataType[]` 状態
-- [ ] `dataEntries: Record<string, DataEntry[]>` 状態
-- [ ] CRUD アクション
-- [ ] ID 変更時の参照同期アクション
-- [ ] テスト追加
+- [x] `src/stores/dataSlice.ts` 作成
+- [x] `dataTypes: DataType[]` 状態
+- [x] `dataEntries: Record<string, DataEntry[]>` 状態
+- [x] CRUD アクション
+- [ ] ID 変更時の参照同期アクション（T095で対応）
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2680,15 +2680,15 @@ export function useAutoSave() {
 
 #### [T087] [US8] Create DataPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/data/page.tsx` 作成
-- [ ] ThreeColumnLayout 使用
-- [ ] 左: DataTypeList、中央: DataEntryList、右: FormBuilder
+- [x] `src/app/(editor)/data/page.tsx` 作成
+- [x] ThreeColumnLayout 使用
+- [x] 左: DataTypeList、中央: DataEntryList、右: FormBuilder/DataTypeEditor
 
 **関連ファイル:**
 
@@ -2698,18 +2698,18 @@ export function useAutoSave() {
 
 #### [T088] [US8] Create DataTypeList
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/DataTypeList.tsx` 作成
-- [ ] データタイプ一覧表示
-- [ ] 選択状態
-- [ ] 追加/削除ボタン
-- [ ] ドラッグ&ドロップ並び替え
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/DataTypeList.tsx` 作成
+- [x] データタイプ一覧表示
+- [x] 選択状態
+- [x] 追加/削除ボタン
+- [ ] ドラッグ&ドロップ並び替え（後続タスクで対応）
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2720,19 +2720,19 @@ export function useAutoSave() {
 
 #### [T089] [US8] Create DataEntryList (virtualized)
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/DataEntryList.tsx` 作成
-- [ ] @tanstack/react-virtual で仮想化
-- [ ] 最大1000件対応
-- [ ] 検索フィルター
-- [ ] 選択状態
-- [ ] 追加/削除/複製
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/DataEntryList.tsx` 作成
+- [ ] @tanstack/react-virtual で仮想化（後続タスクで対応）
+- [x] 最大1000件対応（maxEntries制限）
+- [ ] 検索フィルター（T094で対応）
+- [x] 選択状態
+- [x] 追加/削除/複製
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2743,18 +2743,18 @@ export function useAutoSave() {
 
 #### [T090] [US8] Create FormBuilder
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/FormBuilder.tsx` 作成
-- [ ] DataType の fields に基づいてフォーム生成
-- [ ] 各 FieldType の renderEditor() を使用
-- [ ] 条件付き表示対応
-- [ ] バリデーションエラー表示
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/FormBuilder.tsx` 作成
+- [x] DataType の fields に基づいてフォーム生成
+- [x] 各 FieldType の renderEditor() を使用
+- [x] 条件付き表示対応
+- [ ] バリデーションエラー表示（後続タスクで対応）
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2787,18 +2787,18 @@ export function useAutoSave() {
 
 #### [T092] [US8] Create DataTypeEditor sidebar
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/DataTypeEditor.tsx` 作成
-- [ ] データタイプ名編集
-- [ ] フィールド一覧編集
-- [ ] フィールド追加/削除/並び替え
-- [ ] 各フィールドの詳細設定
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/DataTypeEditor.tsx` 作成
+- [x] データタイプ名編集
+- [x] フィールド一覧編集
+- [x] フィールド追加/削除/並び替え
+- [ ] 各フィールドの詳細設定（後続タスクで対応）
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2809,16 +2809,16 @@ export function useAutoSave() {
 
 #### [T093] [US8] Define DataType and DataEntry types
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/data.ts` に `DataType` インターフェース追加
-- [ ] `src/types/data.ts` に `DataEntry` インターフェース追加
-- [ ] DataType: id, name, fields
-- [ ] DataEntry: id, typeId, values
+- [x] `src/types/data.ts` に `DataType` インターフェース追加
+- [x] `src/types/data.ts` に `DataEntry` インターフェース追加
+- [x] DataType: id, name, fields
+- [x] DataEntry: id, typeId, values
 
 **関連ファイル:**
 
