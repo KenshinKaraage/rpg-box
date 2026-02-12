@@ -1,11 +1,14 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { DataTypeList, DataTypeEditor, DataEntryList, FormBuilder } from '@/features/data-editor';
 import { useStore } from '@/stores';
 import { createDataType, createDataEntry } from '@/types/data';
 import { createFieldTypeInstance } from '@/types/fields';
+import type { DataEntry } from '@/types/data';
+
+const EMPTY_ENTRIES: DataEntry[] = [];
 
 /**
  * データ設定ページ
@@ -44,20 +47,21 @@ export default function DataPage() {
       : null
   );
 
-  // 選択中のデータ型に属するエントリ
+  // 選択中のデータ型に属するエントリ（直接参照を返し新規配列生成を避ける）
   const currentEntries = useStore((state) =>
-    state.selectedDataTypeId ? (state.dataEntries[state.selectedDataTypeId] ?? []) : []
+    state.selectedDataTypeId ? (state.dataEntries[state.selectedDataTypeId] ?? null) : null
   );
+  const entries = currentEntries ?? EMPTY_ENTRIES;
 
   // 選択中のエントリ
   const selectedEntry = useStore((state) => {
     if (!state.selectedDataTypeId || !state.selectedDataEntryId) return null;
-    const entries = state.dataEntries[state.selectedDataTypeId];
-    return entries?.find((e) => e.id === state.selectedDataEntryId) ?? null;
+    const typeEntries = state.dataEntries[state.selectedDataTypeId];
+    return typeEntries?.find((e) => e.id === state.selectedDataEntryId) ?? null;
   });
 
   // 既存のデータ型IDリスト（バリデーション用）
-  const existingIds = dataTypes.map((t) => t.id);
+  const existingIds = useMemo(() => dataTypes.map((t) => t.id), [dataTypes]);
 
   // --- ハンドラ ---
 
@@ -117,7 +121,7 @@ export default function DataPage() {
   const handleDuplicateEntry = useCallback(
     (entryId: string) => {
       if (!selectedDataType) return;
-      const original = currentEntries.find((e) => e.id === entryId);
+      const original = entries.find((e) => e.id === entryId);
       if (!original) return;
 
       const newId = `entry_${Date.now()}`;
@@ -129,7 +133,7 @@ export default function DataPage() {
       addDataEntry(duplicated);
       selectDataEntry(newId);
     },
-    [selectedDataType, currentEntries, addDataEntry, selectDataEntry]
+    [selectedDataType, entries, addDataEntry, selectDataEntry]
   );
 
   // エントリを削除
@@ -180,7 +184,7 @@ export default function DataPage() {
       }
       center={
         <DataEntryList
-          entries={currentEntries}
+          entries={entries}
           dataType={selectedDataType}
           selectedId={selectedDataEntryId}
           onSelect={selectDataEntry}
