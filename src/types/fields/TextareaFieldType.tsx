@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { TextareaFieldEditor } from '@/features/data-editor/components/fields/TextareaFieldEditor';
 
 /**
  * 複数行テキストフィールドタイプ
@@ -67,30 +68,16 @@ export class TextareaFieldType extends FieldType<string> {
   }
 
   renderEditor(props: FieldEditorProps<string>): ReactNode {
-    const { value, onChange, disabled, error } = props;
-
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onChange(e.target.value);
-    };
-
     return (
-      <div className="space-y-1">
-        <textarea
-          value={value}
-          onChange={handleChange}
-          disabled={disabled}
-          placeholder={this.placeholder}
-          maxLength={this.maxLength}
-          rows={this.rows ?? 4}
-          className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${error ? 'border-red-500' : ''}`}
-        />
-        {this.maxLength && (
-          <p className="text-xs text-muted-foreground">
-            {value.length} / {this.maxLength}
-          </p>
-        )}
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </div>
+      <TextareaFieldEditor
+        value={props.value}
+        onChange={props.onChange}
+        disabled={props.disabled}
+        error={props.error}
+        maxLength={this.maxLength}
+        placeholder={this.placeholder}
+        rows={this.rows}
+      />
     );
   }
 }

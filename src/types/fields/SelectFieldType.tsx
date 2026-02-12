@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { SelectFieldEditor } from '@/features/data-editor/components/fields/SelectFieldEditor';
 
 /**
  * 選択オプションの型定義
@@ -82,33 +83,15 @@ export class SelectFieldType extends FieldType<string> {
   }
 
   renderEditor(props: FieldEditorProps<string>): ReactNode {
-    const { value, onChange, disabled, error } = props;
-
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange(e.target.value);
-    };
-
     return (
-      <div className="space-y-1">
-        <select
-          value={value}
-          onChange={handleChange}
-          disabled={disabled}
-          className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${error ? 'border-red-500' : ''}`}
-        >
-          {this.placeholder && (
-            <option value="" disabled>
-              {this.placeholder}
-            </option>
-          )}
-          {this.options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </div>
+      <SelectFieldEditor
+        value={props.value}
+        onChange={props.onChange}
+        disabled={props.disabled}
+        error={props.error}
+        options={this.options}
+        placeholder={this.placeholder}
+      />
     );
   }
 }

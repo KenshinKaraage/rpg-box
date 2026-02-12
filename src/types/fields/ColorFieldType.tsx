@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
-import { Input } from '@/components/ui/input';
+import { ColorFieldEditor } from '@/features/data-editor/components/fields/ColorFieldEditor';
 
 /** HEX色コードの正規表現（#rrggbb または #rgb） */
 const HEX_COLOR_REGEX = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
@@ -69,42 +69,15 @@ export class ColorFieldType extends FieldType<string> {
   }
 
   renderEditor(props: FieldEditorProps<string>): ReactNode {
-    const { value, onChange, disabled, error } = props;
-
-    const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(e.target.value);
-    };
-
-    const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(e.target.value);
-    };
-
     return (
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <input
-            type="color"
-            value={value || this.getDefaultValue()}
-            onChange={handleColorChange}
-            disabled={disabled}
-            className="h-10 w-14 cursor-pointer rounded border border-input p-1 disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          {this.showHexInput && (
-            <Input
-              type="text"
-              value={value}
-              onChange={handleTextChange}
-              disabled={disabled}
-              placeholder="#000000"
-              className={`w-28 font-mono ${error ? 'border-red-500' : ''}`}
-            />
-          )}
-          {!this.showHexInput && (
-            <span className="font-mono text-sm text-muted-foreground">{value}</span>
-          )}
-        </div>
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </div>
+      <ColorFieldEditor
+        value={props.value}
+        onChange={props.onChange}
+        disabled={props.disabled}
+        error={props.error}
+        showHexInput={this.showHexInput}
+        defaultColor={this.getDefaultValue()}
+      />
     );
   }
 }

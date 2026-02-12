@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
-import { Input } from '@/components/ui/input';
+import { StringFieldEditor } from '@/features/data-editor/components/fields/StringFieldEditor';
 
 /**
  * 文字列フィールドタイプ
@@ -65,30 +65,15 @@ export class StringFieldType extends FieldType<string> {
   }
 
   renderEditor(props: FieldEditorProps<string>): ReactNode {
-    const { value, onChange, disabled, error } = props;
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(e.target.value);
-    };
-
     return (
-      <div className="space-y-1">
-        <Input
-          type="text"
-          value={value}
-          onChange={handleChange}
-          disabled={disabled}
-          placeholder={this.placeholder}
-          maxLength={this.maxLength}
-          className={error ? 'border-red-500' : ''}
-        />
-        {this.maxLength && (
-          <p className="text-xs text-muted-foreground">
-            {value.length} / {this.maxLength}
-          </p>
-        )}
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </div>
+      <StringFieldEditor
+        value={props.value}
+        onChange={props.onChange}
+        disabled={props.disabled}
+        error={props.error}
+        maxLength={this.maxLength}
+        placeholder={this.placeholder}
+      />
     );
   }
 }

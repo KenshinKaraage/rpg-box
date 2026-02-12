@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
-import { Input } from '@/components/ui/input';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 
 /**
  * 数値フィールドタイプ
@@ -80,27 +80,16 @@ export class NumberFieldType extends FieldType<number> {
   }
 
   renderEditor(props: FieldEditorProps<number>): ReactNode {
-    const { value, onChange, disabled, error } = props;
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value === '' ? NaN : Number(e.target.value);
-      onChange(newValue);
-    };
-
     return (
-      <div className="space-y-1">
-        <Input
-          type="number"
-          value={Number.isNaN(value) ? '' : value}
-          onChange={handleChange}
-          disabled={disabled}
-          min={this.min}
-          max={this.max}
-          step={this.step}
-          className={error ? 'border-red-500' : ''}
-        />
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </div>
+      <NumberFieldEditor
+        value={props.value}
+        onChange={props.onChange}
+        disabled={props.disabled}
+        error={props.error}
+        min={this.min}
+        max={this.max}
+        step={this.step}
+      />
     );
   }
 }

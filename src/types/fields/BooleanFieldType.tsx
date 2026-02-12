@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { BooleanFieldEditor } from '@/features/data-editor/components/fields/BooleanFieldEditor';
 
 /**
  * 真偽値フィールドタイプ
@@ -55,26 +56,14 @@ export class BooleanFieldType extends FieldType<boolean> {
   }
 
   renderEditor(props: FieldEditorProps<boolean>): ReactNode {
-    const { value, onChange, disabled, error } = props;
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(e.target.checked);
-    };
-
     return (
-      <div className="space-y-1">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={value}
-            onChange={handleChange}
-            disabled={disabled}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          {this.checkboxLabel && <span className="text-sm">{this.checkboxLabel}</span>}
-        </label>
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </div>
+      <BooleanFieldEditor
+        value={props.value}
+        onChange={props.onChange}
+        disabled={props.disabled}
+        error={props.error}
+        checkboxLabel={this.checkboxLabel}
+      />
     );
   }
 }
