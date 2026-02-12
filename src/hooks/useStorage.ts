@@ -100,7 +100,6 @@ function isValidSavedProject(data: unknown): data is SavedProject {
   const projectData = obj['data'] as Record<string, unknown>;
   const requiredArrays = [
     'dataTypes',
-    'fieldSets',
     'classes',
     'variables',
     'maps',

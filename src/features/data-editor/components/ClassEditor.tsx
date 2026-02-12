@@ -41,9 +41,6 @@ interface ClassEditorProps {
   onReorderFields: (classId: string, fromIndex: number, toIndex: number) => void;
 }
 
-// クラスで使用可能なフィールドタイプ（シンプルな型のみ）
-const CLASS_ALLOWED_TYPES = ['number', 'string', 'boolean', 'select', 'color'];
-
 /**
  * クラスエディタコンポーネント
  */
@@ -188,7 +185,7 @@ export function ClassEditor({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {getFieldTypeOptions(CLASS_ALLOWED_TYPES).map((option) => (
+                    {getFieldTypeOptions().map((option) => (
                       <SelectItem key={option.type} value={option.type}>
                         {option.label}
                       </SelectItem>

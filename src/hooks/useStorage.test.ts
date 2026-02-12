@@ -14,7 +14,6 @@ function createTestProjectData(): ProjectData {
   return {
     dataTypes: [],
     dataEntries: {},
-    fieldSets: [],
     classes: [],
     variables: [],
     maps: [],

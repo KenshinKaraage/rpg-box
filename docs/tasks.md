@@ -1356,17 +1356,17 @@ export function useAutoSave() {
 
 #### [T037] [P] Create NumberFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/NumberFieldEditor.tsx` 作成
-- [ ] 数値入力 UI
-- [ ] min/max/step 制約の適用
-- [ ] インライン バリデーションエラー表示
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/NumberFieldEditor.tsx` 作成
+- [x] 数値入力 UI
+- [x] min/max/step 制約の適用
+- [x] インライン バリデーションエラー表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1377,17 +1377,17 @@ export function useAutoSave() {
 
 #### [T038] [P] Create StringFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/StringFieldEditor.tsx` 作成
-- [ ] テキスト入力 UI
-- [ ] maxLength 制約の適用
-- [ ] 文字数カウンター表示
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/StringFieldEditor.tsx` 作成
+- [x] テキスト入力 UI
+- [x] maxLength 制約の適用
+- [x] 文字数カウンター表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1398,16 +1398,16 @@ export function useAutoSave() {
 
 #### [T039] [P] Create TextareaFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/TextareaFieldEditor.tsx` 作成
-- [ ] 複数行テキスト入力 UI
-- [ ] 自動リサイズオプション
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/TextareaFieldEditor.tsx` 作成
+- [x] 複数行テキスト入力 UI（shadcn/ui Textarea使用）
+- [x] 文字数カウンター表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1418,16 +1418,16 @@ export function useAutoSave() {
 
 #### [T040] [P] Create BooleanFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/BooleanFieldEditor.tsx` 作成
-- [ ] チェックボックス UI
-- [ ] ラベル表示
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/BooleanFieldEditor.tsx` 作成
+- [x] チェックボックス UI（shadcn/ui Checkbox使用）
+- [x] ラベル表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1438,16 +1438,16 @@ export function useAutoSave() {
 
 #### [T041] [P] Create SelectFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/SelectFieldEditor.tsx` 作成
-- [ ] ドロップダウン UI
-- [ ] オプション一覧表示
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/SelectFieldEditor.tsx` 作成
+- [x] ドロップダウン UI（shadcn/ui Select使用）
+- [x] オプション一覧表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1458,17 +1458,17 @@ export function useAutoSave() {
 
 #### [T042] [P] Create ColorFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/ColorFieldEditor.tsx` 作成
-- [ ] カラーピッカー UI
-- [ ] HEX 入力フィールド
-- [ ] プレビュー表示
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/ColorFieldEditor.tsx` 作成
+- [x] カラーピッカー UI
+- [x] HEX 入力フィールド
+- [x] プレビュー表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1542,16 +1542,16 @@ export function useAutoSave() {
 
 #### [T042d] Create ConditionEvaluator
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/utils/conditionEvaluator.ts` 作成
-- [ ] `displayCondition` の評価ロジック
-- [ ] 比較演算子（==, !=, <, >, etc.）対応
-- [ ] テスト追加
+- [x] `src/features/data-editor/utils/conditionEvaluator.ts` 作成
+- [x] `displayCondition` の評価ロジック（等価比較）
+- [x] `computeFieldVisibility` で複数フィールド一括評価
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1562,17 +1562,17 @@ export function useAutoSave() {
 
 #### [T042e] Create ConditionEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/ConditionEditor.tsx` 作成
-- [ ] 条件設定 UI
-- [ ] フィールド選択
-- [ ] 値選択/入力
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/ConditionEditor.tsx` 作成
+- [x] 条件設定 UI
+- [x] フィールド選択（Selectタイプのみ）
+- [x] 値選択/入力
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1890,18 +1890,18 @@ export function useAutoSave() {
 
 ### US4: フィールドセットページ
 
-#### [T057] [US4] Create fieldSetSlice
+#### [T057] [US4] Create fieldSetSlice （クラスに統合済み — classSlice に統一）
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/fieldSetSlice.ts` 作成
-- [ ] `fieldSets: FieldSet[]` 状態
-- [ ] CRUD アクション
-- [ ] テスト追加
+- [x] `src/stores/fieldSetSlice.ts` 作成
+- [x] `fieldSets: FieldSet[]` 状態
+- [x] CRUD アクション
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1910,16 +1910,16 @@ export function useAutoSave() {
 
 ---
 
-#### [T058] [US4] Create FieldSetPage
+#### [T058] [US4] Create FieldSetPage （クラスに統合済み — /data/classes に統一）
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/data/fieldsets/page.tsx` 作成
-- [ ] TwoColumnLayout 使用
+- [x] `src/app/(editor)/data/fieldsets/page.tsx` 作成
+- [x] TwoColumnLayout 使用
 
 **関連ファイル:**
 
@@ -1927,17 +1927,17 @@ export function useAutoSave() {
 
 ---
 
-#### [T059] [US4] Create FieldSetList
+#### [T059] [US4] Create FieldSetList （クラスに統合済み — ClassList に統一）
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/FieldSetList.tsx` 作成
-- [ ] フィールドセット一覧表示
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/FieldSetList.tsx` 作成
+- [x] フィールドセット一覧表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1946,18 +1946,18 @@ export function useAutoSave() {
 
 ---
 
-#### [T060] [US4] Create FieldSetEditor
+#### [T060] [US4] Create FieldSetEditor （クラスに統合済み — ClassEditor に統一）
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/FieldSetEditor.tsx` 作成
-- [ ] フィールドセット名入力
-- [ ] フィールド一覧編集
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/FieldSetEditor.tsx` 作成
+- [x] フィールドセット名入力
+- [x] フィールド一覧編集
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1966,20 +1966,20 @@ export function useAutoSave() {
 
 ---
 
-#### [T061] [US4] Implement FieldSetFieldType
+#### [T061] [US4] Implement FieldSetFieldType （クラスに統合済み — ClassFieldType に統一）
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/FieldSetFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `fieldSetId` プロパティ
-- [ ] フィールドセットの各フィールドを展開表示
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/FieldSetFieldType.ts` 作成
+- [x] FieldType を継承
+- [x] `fieldSetId` プロパティ
+- [x] フィールドセットの各フィールドを展開表示
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1988,16 +1988,16 @@ export function useAutoSave() {
 
 ---
 
-#### [T062] [US4] Define FieldSet type
+#### [T062] [US4] Define FieldSet type （クラスに統合済み — CustomClass に統一）
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/data.ts` に `FieldSet` インターフェース追加
-- [ ] フィールド: id, name, fields
+- [x] `src/types/fieldSet.ts` に `FieldSet` インターフェース追加
+- [x] フィールド: id, name, fields
 
 **関連ファイル:**
 
@@ -2005,19 +2005,19 @@ export function useAutoSave() {
 
 ---
 
-#### [T062a] [US4] Create default FieldSets
+#### [T062a] [US4] Create default FieldSets （クラスに統合済み — defaultClasses に統一）
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/lib/defaultFieldSets.ts` 作成
-- [ ] status フィールドセット（HP, MP, ATK, DEF 等）
-- [ ] effect フィールドセット（エフェクト関連）
-- [ ] battleSkillResult フィールドセット（スキル結果）
-- [ ] 初期化時に登録
+- [x] `src/lib/defaultFieldSets.ts` 作成
+- [x] status フィールドセット（HP, MP, ATK, DEF 等）
+- [x] effect フィールドセット（エフェクト関連）
+- [x] battleSkillResult フィールドセット（スキル結果）
+- [x] 初期化時に登録
 
 **関連ファイル:**
 
@@ -2101,7 +2101,7 @@ export function useAutoSave() {
 
 ---
 
-#### [T066] [P] Implement FieldSetListFieldType
+#### [T066] [P] Implement ClassListFieldType
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
@@ -2109,18 +2109,18 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/fields/FieldSetListFieldType.ts` 作成
+- [ ] `src/types/fields/ClassListFieldType.ts` 作成
 - [ ] FieldType を継承
-- [ ] `fieldSetId` プロパティ
-- [ ] フィールドセットの複数インスタンス管理
+- [ ] `classId` プロパティ
+- [ ] クラスの複数インスタンス管理
 - [ ] 追加/削除 UI
 - [ ] レジストリに登録
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/types/fields/FieldSetListFieldType.ts`
-- `src/types/fields/FieldSetListFieldType.test.ts`
+- `src/types/fields/ClassListFieldType.ts`
+- `src/types/fields/ClassListFieldType.test.ts`
 
 ---
 
@@ -2189,7 +2189,7 @@ export function useAutoSave() {
 
 ---
 
-#### [T070] [P] Create FieldSetListFieldEditor
+#### [T070] [P] Create ClassListFieldEditor
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
@@ -2197,16 +2197,16 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/FieldSetListFieldEditor.tsx` 作成
-- [ ] フィールドセットインスタンス一覧
+- [ ] `src/features/data-editor/components/fields/ClassListFieldEditor.tsx` 作成
+- [ ] クラスインスタンス一覧
 - [ ] 展開/折りたたみ
 - [ ] 追加/削除ボタン
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/features/data-editor/components/fields/FieldSetListFieldEditor.tsx`
-- `src/features/data-editor/components/fields/FieldSetListFieldEditor.test.tsx`
+- `src/features/data-editor/components/fields/ClassListFieldEditor.tsx`
+- `src/features/data-editor/components/fields/ClassListFieldEditor.test.tsx`
 
 ---
 
@@ -2440,17 +2440,17 @@ export function useAutoSave() {
 
 #### [T080a] [US5] Create CreateFolderModal
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/CreateFolderModal.tsx` 作成
-- [ ] フォルダ名入力
-- [ ] 親フォルダ選択
-- [ ] 重複チェック
-- [ ] テスト追加
+- [x] `src/features/asset-manager/components/CreateFolderModal.tsx` 作成
+- [x] フォルダ名入力
+- [x] 親フォルダ選択
+- [x] 重複チェック
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2461,17 +2461,17 @@ export function useAutoSave() {
 
 #### [T080b] [US5] Create RenameFolderModal
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/RenameFolderModal.tsx` 作成
-- [ ] 現在の名前表示
-- [ ] 新しい名前入力
-- [ ] 重複チェック
-- [ ] テスト追加
+- [x] `src/features/asset-manager/components/RenameFolderModal.tsx` 作成
+- [x] 現在の名前表示
+- [x] 新しい名前入力
+- [x] 重複チェック
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2482,16 +2482,16 @@ export function useAutoSave() {
 
 #### [T080c] [US5] Create DeleteFolderConfirm
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/DeleteFolderConfirm.tsx` 作成
-- [ ] 削除確認ダイアログ
-- [ ] 中身があるフォルダの警告
-- [ ] テスト追加
+- [x] `src/features/asset-manager/components/DeleteFolderConfirm.tsx` 作成
+- [x] 削除確認ダイアログ
+- [x] 中身があるフォルダの警告
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2564,17 +2564,17 @@ export function useAutoSave() {
 
 #### [T082] [US6] Create AudioFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T030-confirm-dialog
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/AudioFieldEditor.tsx` 作成
-- [ ] 音声ファイル名表示
-- [ ] 再生/停止ボタン
-- [ ] 選択ボタン
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/AudioFieldEditor.tsx` 作成
+- [x] 音声ファイル名表示
+- [x] 再生/停止ボタン
+- [x] 選択ボタン
+- [x] テスト追加
 
 **関連ファイル:**
 

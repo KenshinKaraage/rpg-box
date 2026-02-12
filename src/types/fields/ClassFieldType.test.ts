@@ -1,40 +1,40 @@
 /**
- * FieldSetFieldType のテスト
+ * ClassFieldType のテスト
  */
 import { render, screen, fireEvent } from '@testing-library/react';
-import { FieldSetFieldType } from './FieldSetFieldType';
+import { ClassFieldType } from './ClassFieldType';
 import { NumberFieldType } from './NumberFieldType';
 
-describe('FieldSetFieldType', () => {
+describe('ClassFieldType', () => {
   describe('基本プロパティ', () => {
-    it('typeが"fieldSet"である', () => {
-      const field = new FieldSetFieldType();
-      expect(field.type).toBe('fieldSet');
+    it('typeが"class"である', () => {
+      const field = new ClassFieldType();
+      expect(field.type).toBe('class');
     });
 
-    it('fieldSetIdを設定できる', () => {
-      const field = new FieldSetFieldType();
-      field.fieldSetId = 'fs_status';
-      expect(field.fieldSetId).toBe('fs_status');
+    it('classIdを設定できる', () => {
+      const field = new ClassFieldType();
+      field.classId = 'class_status';
+      expect(field.classId).toBe('class_status');
     });
   });
 
   describe('getDefaultValue', () => {
     it('空のオブジェクトを返す', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       expect(field.getDefaultValue()).toEqual({});
     });
   });
 
   describe('validate', () => {
     it('オブジェクト値は有効', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       const result = field.validate({ hp: 100, mp: 50 });
       expect(result.valid).toBe(true);
     });
 
     it('required=trueで空オブジェクトは無効', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       field.required = true;
       const result = field.validate({});
       expect(result.valid).toBe(false);
@@ -43,39 +43,39 @@ describe('FieldSetFieldType', () => {
 
   describe('serialize/deserialize', () => {
     it('オブジェクトをシリアライズできる', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       const value = { hp: 100, mp: 50 };
       expect(field.serialize(value)).toEqual(value);
     });
 
     it('オブジェクトをデシリアライズできる', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       const data = { hp: 100, mp: 50 };
       expect(field.deserialize(data)).toEqual(data);
     });
 
     it('nullをデシリアライズすると空オブジェクトを返す', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       expect(field.deserialize(null)).toEqual({});
     });
   });
 
   describe('getValue', () => {
     it('オブジェクトからそのまま値を取得', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       const data = { hp: 100, mp: 50 };
       expect(field.getValue(data)).toEqual(data);
     });
 
     it('nullの場合はデフォルト値を返す', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       expect(field.getValue(null)).toEqual({});
     });
   });
 
   describe('renderEditor', () => {
-    it('フィールドセット未設定時はメッセージを表示', () => {
-      const field = new FieldSetFieldType();
+    it('クラス未設定時はメッセージを表示', () => {
+      const field = new ClassFieldType();
       field.id = 'test';
       field.name = 'テスト';
 
@@ -84,16 +84,16 @@ describe('FieldSetFieldType', () => {
         field.renderEditor({ value: {}, onChange }) as React.ReactElement
       );
 
-      expect(container.textContent).toContain('フィールドセットが設定されていません');
+      expect(container.textContent).toContain('クラスが設定されていません');
     });
 
-    it('フィールドセットを展開表示', () => {
-      const field = new FieldSetFieldType();
+    it('クラスのフィールドを展開表示', () => {
+      const field = new ClassFieldType();
       field.id = 'status';
       field.name = 'ステータス';
-      field.fieldSetId = 'fs_status';
+      field.classId = 'class_status';
 
-      // フィールドセットを設定
+      // クラスを設定
       const hpField = new NumberFieldType();
       hpField.id = 'hp';
       hpField.name = 'HP';
@@ -102,8 +102,8 @@ describe('FieldSetFieldType', () => {
       mpField.id = 'mp';
       mpField.name = 'MP';
 
-      field.setFieldSet({
-        id: 'fs_status',
+      field.setClass({
+        id: 'class_status',
         name: 'ステータス',
         fields: [hpField, mpField],
       });
@@ -116,23 +116,23 @@ describe('FieldSetFieldType', () => {
         }) as React.ReactElement
       );
 
-      // フィールドセットのフィールドが表示される
+      // クラスのフィールドが表示される
       expect(screen.getByText('HP')).toBeInTheDocument();
       expect(screen.getByText('MP')).toBeInTheDocument();
     });
 
     it('フィールド値を変更できる', () => {
-      const field = new FieldSetFieldType();
+      const field = new ClassFieldType();
       field.id = 'status';
       field.name = 'ステータス';
-      field.fieldSetId = 'fs_status';
+      field.classId = 'class_status';
 
       const hpField = new NumberFieldType();
       hpField.id = 'hp';
       hpField.name = 'HP';
 
-      field.setFieldSet({
-        id: 'fs_status',
+      field.setClass({
+        id: 'class_status',
         name: 'ステータス',
         fields: [hpField],
       });

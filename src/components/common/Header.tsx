@@ -22,9 +22,8 @@ const navigationItems = [
     label: 'データ',
     items: [
       { href: '/data', label: 'データ設定' },
-      { href: '/data/fieldsets', label: 'フィールドセット' },
-      { href: '/data/variables', label: '変数' },
       { href: '/data/classes', label: 'クラス' },
+      { href: '/data/variables', label: '変数' },
     ],
   },
   {
@@ -92,14 +91,14 @@ export function Header() {
                 {menu.label}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-48 list-none gap-1 p-2">
+                <ul className="w-60 list-none p-2">
                   {menu.items.map((item) => (
                     <li key={item.href}>
                       <NavigationMenuLink asChild>
                         <Link
                           href={item.href}
                           className={cn(
-                            'block rounded-md px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
+                            'block whitespace-nowrap rounded-md px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
                             pathname === item.href && 'bg-accent text-accent-foreground'
                           )}
                         >

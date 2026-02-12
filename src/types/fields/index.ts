@@ -21,7 +21,7 @@ import { TextareaFieldType } from './TextareaFieldType';
 import { BooleanFieldType } from './BooleanFieldType';
 import { SelectFieldType } from './SelectFieldType';
 import { ColorFieldType } from './ColorFieldType';
-import { FieldSetFieldType } from './FieldSetFieldType';
+import { ClassFieldType } from './ClassFieldType';
 import { ImageFieldType } from './ImageFieldType';
 import { AudioFieldType } from './AudioFieldType';
 
@@ -32,12 +32,12 @@ export {
   BooleanFieldType,
   SelectFieldType,
   ColorFieldType,
-  FieldSetFieldType,
+  ClassFieldType,
   ImageFieldType,
   AudioFieldType,
 };
 export type { SelectOption } from './SelectFieldType';
-export type { FieldSetValue } from './FieldSetFieldType';
+export type { ClassValue } from './ClassFieldType';
 
 // 組み込みフィールドタイプの登録
 import { registerFieldType } from './registry';
@@ -48,6 +48,6 @@ registerFieldType('textarea', TextareaFieldType);
 registerFieldType('boolean', BooleanFieldType);
 registerFieldType('select', SelectFieldType);
 registerFieldType('color', ColorFieldType);
-registerFieldType('fieldSet', FieldSetFieldType);
+registerFieldType('class', ClassFieldType);
 registerFieldType('image', ImageFieldType);
 registerFieldType('audio', AudioFieldType);

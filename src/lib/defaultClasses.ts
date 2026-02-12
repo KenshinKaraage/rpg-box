@@ -1,24 +1,24 @@
 /**
- * デフォルトフィールドセット
+ * デフォルトクラス
  *
- * ゲーム開発でよく使用されるフィールドセットのプリセット
+ * ゲーム開発でよく使用されるクラスのプリセット
  */
 import { NumberFieldType, StringFieldType, SelectFieldType } from '@/types/fields';
-import type { FieldSet } from '@/types/fieldSet';
+import type { CustomClass } from '@/types/customClass';
 
-/** ステータスフィールドセットID */
-export const STATUS_FIELD_SET_ID = 'fs_status';
+/** ステータスクラスID */
+export const STATUS_CLASS_ID = 'class_status';
 
-/** エフェクトフィールドセットID */
-export const EFFECT_FIELD_SET_ID = 'fs_effect';
+/** エフェクトクラスID */
+export const EFFECT_CLASS_ID = 'class_effect';
 
-/** バトルスキル結果フィールドセットID */
-export const BATTLE_SKILL_RESULT_FIELD_SET_ID = 'fs_battle_skill_result';
+/** バトルスキル結果クラスID */
+export const BATTLE_SKILL_RESULT_CLASS_ID = 'class_battle_skill_result';
 
 /**
- * ステータスフィールドセットを作成
+ * ステータスクラスを作成
  */
-function createStatusFieldSet(): FieldSet {
+function createStatusClass(): CustomClass {
   const hpField = new NumberFieldType();
   hpField.id = 'hp';
   hpField.name = 'HP';
@@ -56,7 +56,7 @@ function createStatusFieldSet(): FieldSet {
   lukField.max = 999;
 
   return {
-    id: STATUS_FIELD_SET_ID,
+    id: STATUS_CLASS_ID,
     name: 'ステータス',
     description: 'キャラクターの基本ステータス',
     fields: [hpField, mpField, atkField, defField, spdField, lukField],
@@ -64,9 +64,9 @@ function createStatusFieldSet(): FieldSet {
 }
 
 /**
- * エフェクトフィールドセットを作成
+ * エフェクトクラスを作成
  */
-function createEffectFieldSet(): FieldSet {
+function createEffectClass(): CustomClass {
   const effectTypeField = new SelectFieldType();
   effectTypeField.id = 'effect_type';
   effectTypeField.name = 'エフェクト種類';
@@ -103,7 +103,7 @@ function createEffectFieldSet(): FieldSet {
   durationField.max = 99;
 
   return {
-    id: EFFECT_FIELD_SET_ID,
+    id: EFFECT_CLASS_ID,
     name: 'エフェクト',
     description: 'スキル・アイテムの効果定義',
     fields: [effectTypeField, targetField, valueField, durationField],
@@ -111,9 +111,9 @@ function createEffectFieldSet(): FieldSet {
 }
 
 /**
- * バトルスキル結果フィールドセットを作成
+ * バトルスキル結果クラスを作成
  */
-function createBattleSkillResultFieldSet(): FieldSet {
+function createBattleSkillResultClass(): CustomClass {
   const damageField = new NumberFieldType();
   damageField.id = 'damage';
   damageField.name = 'ダメージ量';
@@ -144,7 +144,7 @@ function createBattleSkillResultFieldSet(): FieldSet {
   formulaField.name = 'ダメージ計算式';
 
   return {
-    id: BATTLE_SKILL_RESULT_FIELD_SET_ID,
+    id: BATTLE_SKILL_RESULT_CLASS_ID,
     name: 'バトルスキル結果',
     description: 'スキル使用時の結果計算パラメータ',
     fields: [damageField, hitRateField, critRateField, critMultiplierField, formulaField],
@@ -152,10 +152,10 @@ function createBattleSkillResultFieldSet(): FieldSet {
 }
 
 /**
- * デフォルトフィールドセット一覧
+ * デフォルトクラス一覧
  */
-export const defaultFieldSets: FieldSet[] = [
-  createStatusFieldSet(),
-  createEffectFieldSet(),
-  createBattleSkillResultFieldSet(),
+export const defaultClasses: CustomClass[] = [
+  createStatusClass(),
+  createEffectClass(),
+  createBattleSkillResultClass(),
 ];

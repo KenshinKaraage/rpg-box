@@ -30,15 +30,6 @@ export interface DataEntry {
 }
 
 /**
- * フィールドセット（フィールドのグループ定義）
- */
-export interface FieldSet {
-  id: string;
-  name: string;
-  fields: FieldDefinition[];
-}
-
-/**
  * フィールド定義
  */
 export interface FieldDefinition {
@@ -300,7 +291,6 @@ export interface ProjectData {
   // データ設定
   dataTypes: DataType[];
   dataEntries: Record<string, DataEntry[]>;
-  fieldSets: FieldSet[];
   classes: CustomClass[];
   variables: Variable[];
 

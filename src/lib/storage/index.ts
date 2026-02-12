@@ -7,7 +7,6 @@ export type {
   // プロジェクトデータ構造
   DataType,
   DataEntry,
-  FieldSet,
   FieldDefinition,
   CustomClass,
   SerializedFieldType,

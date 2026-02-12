@@ -254,21 +254,21 @@ export class DataSelectFieldType extends FieldType {
   // ...
 }
 
-// types/fields/FieldSetFieldType.ts
-export class FieldSetFieldType extends FieldType {
-  readonly type = 'fieldSet';
-  fieldSetId: string; // 参照するフィールドセットID
+// types/fields/ClassFieldType.ts
+export class ClassFieldType extends FieldType {
+  readonly type = 'class';
+  classId: string; // 参照するクラスID
 
   getDefaultValue() {
     return {};
   }
-  // フィールドセットの各フィールドを展開して表示
+  // クラスの各フィールドを展開して表示
   // ...
 }
 
 // 他: TextareaFieldType, BooleanFieldType, ColorFieldType,
 //     FormulaFieldType, DataListFieldType, DataTableFieldType,
-//     FieldSetListFieldType, ImageFieldType, AudioFieldType,
+//     ClassListFieldType, ImageFieldType, AudioFieldType,
 //     EffectFieldType, ScriptFieldType
 ```
 
@@ -286,12 +286,6 @@ export interface DataEntry {
   id: string; // データID（ユーザー定義）
   typeId: string;
   values: Record<string, unknown>;
-}
-
-export interface FieldSet {
-  id: string;
-  name: string;
-  fields: FieldType[];
 }
 
 export interface CustomClass {
@@ -1161,7 +1155,6 @@ export interface DataSlice {
   // 状態
   dataTypes: DataType[];
   dataEntries: Record<string, DataEntry[]>; // typeId -> entries
-  fieldSets: FieldSet[];
   classes: CustomClass[];
   variables: Variable[];
   selectedDataTypeId: string | null;
@@ -1384,7 +1377,6 @@ interface ProjectData {
   // データ設定
   dataTypes: DataType[];
   dataEntries: Record<string, DataEntry[]>;
-  fieldSets: FieldSet[];
   classes: CustomClass[];
   variables: Variable[];
   // マップ

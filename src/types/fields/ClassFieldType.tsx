@@ -3,65 +3,65 @@
 import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
 import { Label } from '@/components/ui/label';
-import type { FieldSet } from '@/types/fieldSet';
+import type { CustomClass } from '@/types/customClass';
 
 /**
- * フィールドセット値の型
+ * クラス値の型
  */
-export type FieldSetValue = Record<string, unknown>;
+export type ClassValue = Record<string, unknown>;
 
 /**
- * フィールドセットフィールドタイプ
+ * クラスフィールドタイプ
  *
- * 他のフィールドセットを参照し、そのフィールドを展開表示するフィールド。
+ * 他のクラスを参照し、そのフィールドを展開表示するフィールド。
  * 複数のフィールドをグループ化して再利用する際に使用。
  *
  * @example
  * ```typescript
- * const statusField = new FieldSetFieldType();
+ * const statusField = new ClassFieldType();
  * statusField.id = 'base_status';
  * statusField.name = '基本ステータス';
- * statusField.fieldSetId = 'fs_status'; // ステータスフィールドセットを参照
+ * statusField.classId = 'class_status'; // ステータスクラスを参照
  * ```
  */
-export class FieldSetFieldType extends FieldType<FieldSetValue> {
-  readonly type = 'fieldSet';
-  readonly label = 'フィールドセット';
+export class ClassFieldType extends FieldType<ClassValue> {
+  readonly type = 'class';
+  readonly label = 'クラス';
 
-  /** 参照するフィールドセットID */
-  fieldSetId: string = '';
+  /** 参照するクラスID */
+  classId: string = '';
 
-  /** フィールドセット（実行時に設定） */
-  private _fieldSet: FieldSet | null = null;
+  /** クラス（実行時に設定） */
+  private _class: CustomClass | null = null;
 
   /**
-   * フィールドセットを設定
+   * クラスを設定
    * エディタ描画時に呼び出す
    */
-  setFieldSet(fieldSet: FieldSet): void {
-    this._fieldSet = fieldSet;
+  setClass(customClass: CustomClass): void {
+    this._class = customClass;
   }
 
   /**
-   * フィールドセットを取得
+   * クラスを取得
    */
-  getFieldSet(): FieldSet | null {
-    return this._fieldSet;
+  getClass(): CustomClass | null {
+    return this._class;
   }
 
-  getDefaultValue(): FieldSetValue {
+  getDefaultValue(): ClassValue {
     return {};
   }
 
-  validate(value: FieldSetValue): ValidationResult {
+  validate(value: ClassValue): ValidationResult {
     // 必須チェック
     if (this.required && Object.keys(value).length === 0) {
       return { valid: false, message: '値を入力してください' };
     }
 
     // 各フィールドのバリデーション
-    if (this._fieldSet) {
-      for (const field of this._fieldSet.fields) {
+    if (this._class) {
+      for (const field of this._class.fields) {
         const fieldValue = value[field.id];
         if (field.required && (fieldValue === undefined || fieldValue === null)) {
           return { valid: false, message: `${field.name}は必須です` };
@@ -78,13 +78,13 @@ export class FieldSetFieldType extends FieldType<FieldSetValue> {
     return { valid: true };
   }
 
-  serialize(value: FieldSetValue): unknown {
-    if (!this._fieldSet) {
+  serialize(value: ClassValue): unknown {
+    if (!this._class) {
       return value;
     }
 
-    const serialized: FieldSetValue = {};
-    for (const field of this._fieldSet.fields) {
+    const serialized: ClassValue = {};
+    for (const field of this._class.fields) {
       const fieldValue = value[field.id];
       if (fieldValue !== undefined) {
         serialized[field.id] = field.serialize(fieldValue);
@@ -93,7 +93,7 @@ export class FieldSetFieldType extends FieldType<FieldSetValue> {
     return serialized;
   }
 
-  deserialize(data: unknown): FieldSetValue {
+  deserialize(data: unknown): ClassValue {
     if (data === null || data === undefined) {
       return {};
     }
@@ -101,13 +101,13 @@ export class FieldSetFieldType extends FieldType<FieldSetValue> {
       return {};
     }
 
-    if (!this._fieldSet) {
-      return data as FieldSetValue;
+    if (!this._class) {
+      return data as ClassValue;
     }
 
-    const deserialized: FieldSetValue = {};
+    const deserialized: ClassValue = {};
     const dataObj = data as Record<string, unknown>;
-    for (const field of this._fieldSet.fields) {
+    for (const field of this._class.fields) {
       const fieldData = dataObj[field.id];
       if (fieldData !== undefined) {
         deserialized[field.id] = field.deserialize(fieldData);
@@ -116,23 +116,23 @@ export class FieldSetFieldType extends FieldType<FieldSetValue> {
     return deserialized;
   }
 
-  getValue(data: unknown): FieldSetValue {
+  getValue(data: unknown): ClassValue {
     if (data === null || data === undefined) {
       return this.getDefaultValue();
     }
     if (typeof data !== 'object') {
       return this.getDefaultValue();
     }
-    return data as FieldSetValue;
+    return data as ClassValue;
   }
 
-  renderEditor(props: FieldEditorProps<FieldSetValue>): ReactNode {
+  renderEditor(props: FieldEditorProps<ClassValue>): ReactNode {
     const { value, onChange, disabled, error } = props;
 
-    if (!this._fieldSet) {
+    if (!this._class) {
       return (
         <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-          フィールドセットが設定されていません
+          クラスが設定されていません
         </div>
       );
     }
@@ -146,7 +146,7 @@ export class FieldSetFieldType extends FieldType<FieldSetValue> {
 
     return (
       <div className="space-y-3">
-        {this._fieldSet.fields.map((field) => (
+        {this._class.fields.map((field) => (
           <div key={field.id} className="space-y-1">
             <Label className="text-sm font-medium">
               {field.name}

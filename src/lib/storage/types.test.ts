@@ -17,7 +17,6 @@ describe('Storage types', () => {
       const projectData: ProjectData = {
         dataTypes: [],
         dataEntries: {},
-        fieldSets: [],
         classes: [],
         variables: [],
         maps: [],
@@ -72,9 +71,9 @@ describe('Storage types', () => {
             },
           ],
         },
-        fieldSets: [
+        classes: [
           {
-            id: 'fs_basic_stats',
+            id: 'class_basic_stats',
             name: '基本ステータス',
             fields: [
               { id: 'max_hp', name: '最大HP', type: 'number', required: true },
@@ -84,7 +83,6 @@ describe('Storage types', () => {
             ],
           },
         ],
-        classes: [],
         variables: [],
         maps: [],
         chipsets: [],
@@ -123,7 +121,6 @@ describe('Storage types', () => {
         data: {
           dataTypes: [],
           dataEntries: {},
-          fieldSets: [],
           classes: [],
           variables: [],
           maps: [],
