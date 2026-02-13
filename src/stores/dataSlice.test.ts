@@ -169,8 +169,8 @@ describe('dataSlice', () => {
         result.current.addFieldToDataType('character', field);
       });
 
-      expect(result.current.dataTypes[0]?.fields).toHaveLength(1);
-      expect(result.current.dataTypes[0]?.fields[0]?.id).toBe('hp');
+      expect(result.current.dataTypes[0]?.fields).toHaveLength(2); // name + hp
+      expect(result.current.dataTypes[0]?.fields[1]?.id).toBe('hp');
     });
 
     it('replaceDataTypeField: フィールドを置換できる', () => {

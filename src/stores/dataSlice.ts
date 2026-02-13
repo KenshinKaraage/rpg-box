@@ -3,7 +3,7 @@
  *
  * データタイプ（スキーマ）とデータエントリ（レコード）の状態管理
  */
-import type { DataType, DataEntry } from '@/types/data';
+import { NAME_FIELD_ID, type DataType, type DataEntry } from '@/types/data';
 import type { FieldType } from '@/types/fields/FieldType';
 
 export interface DataSlice {
@@ -137,6 +137,7 @@ export const createDataSlice = <T extends DataSlice>(
 
   deleteDataTypeField: (typeId: string, fieldId: string) =>
     set((state) => {
+      if (fieldId === NAME_FIELD_ID) return; // 名前フィールドは削除不可
       const dt = state.dataTypes.find((t) => t.id === typeId);
       if (dt) {
         dt.fields = dt.fields.filter((f) => f.id !== fieldId);

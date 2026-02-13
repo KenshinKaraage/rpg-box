@@ -3,6 +3,7 @@ import {
   createDataEntry,
   validateDataId,
   isDataIdUnique,
+  NAME_FIELD_ID,
   MAX_DATA_TYPES,
   MAX_DATA_ENTRIES_PER_TYPE,
 } from './data';
@@ -10,12 +11,16 @@ import { NumberFieldType, StringFieldType, BooleanFieldType } from './fields';
 
 describe('DataType / DataEntry', () => {
   describe('createDataType', () => {
-    it('デフォルト構造で作成される', () => {
+    it('デフォルト構造で作成される（名前フィールド付き）', () => {
       const dt = createDataType('character', 'キャラクター');
 
       expect(dt.id).toBe('character');
       expect(dt.name).toBe('キャラクター');
-      expect(dt.fields).toEqual([]);
+      expect(dt.fields).toHaveLength(1);
+      expect(dt.fields[0]!.id).toBe(NAME_FIELD_ID);
+      expect(dt.fields[0]!.name).toBe('名前');
+      expect(dt.fields[0]!.type).toBe('string');
+      expect(dt.fields[0]!.required).toBe(true);
       expect(dt.maxEntries).toBeUndefined();
       expect(dt.description).toBeUndefined();
     });

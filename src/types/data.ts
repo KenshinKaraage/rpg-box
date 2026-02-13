@@ -7,6 +7,7 @@
  */
 
 import type { FieldType } from './fields/FieldType';
+import { StringFieldType } from './fields/StringFieldType';
 
 // =============================================================================
 // インターフェース
@@ -57,6 +58,9 @@ export const MAX_DATA_TYPES = 100;
 /** データタイプあたりの最大エントリ数 */
 export const MAX_DATA_ENTRIES_PER_TYPE = 1000;
 
+/** 名前フィールドID（全データ型で必須・削除不可） */
+export const NAME_FIELD_ID = 'name';
+
 /** データID のバリデーションパターン（英数字+アンダースコア、先頭は英字またはアンダースコア） */
 const ID_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
@@ -68,10 +72,15 @@ const ID_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
  * 新しいデータタイプを作成
  */
 export function createDataType(id: string, name: string): DataType {
+  const nameField = new StringFieldType();
+  nameField.id = NAME_FIELD_ID;
+  nameField.name = '名前';
+  nameField.required = true;
+
   return {
     id,
     name,
-    fields: [],
+    fields: [nameField],
   };
 }
 

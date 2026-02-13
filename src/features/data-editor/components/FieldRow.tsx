@@ -29,6 +29,8 @@ interface FieldRowProps {
   onTypeChange: (type: string) => void;
   onConfigChange: (updates: Record<string, unknown>) => void;
   onDelete: () => void;
+  /** 削除不可フラグ（名前フィールドなど） */
+  undeletable?: boolean;
   configContext?: FieldConfigContext;
   allowedTypes?: string[];
 }
@@ -42,6 +44,7 @@ export function FieldRow({
   onTypeChange,
   onConfigChange,
   onDelete,
+  undeletable,
   configContext,
   allowedTypes,
 }: FieldRowProps) {
@@ -87,6 +90,7 @@ export function FieldRow({
             variant="ghost"
             className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
             onClick={onDelete}
+            disabled={undeletable}
             aria-label={`${field.name}を削除`}
           >
             <Trash2 className="h-4 w-4" />

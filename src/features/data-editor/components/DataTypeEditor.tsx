@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import type { DataType } from '@/types/data';
+import { NAME_FIELD_ID, type DataType } from '@/types/data';
 import type { FieldType } from '@/types/fields/FieldType';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { createFieldTypeInstance } from '@/types/fields';
@@ -210,6 +210,7 @@ export function DataTypeEditor({
                 onTypeChange={(type) => handleFieldTypeChange(field.id, type)}
                 onConfigChange={(updates) => handleConfigChange(field.id, updates)}
                 onDelete={() => onDeleteField(dataType.id, field.id)}
+                undeletable={field.id === NAME_FIELD_ID}
                 configContext={configContext}
               />
             ))}
