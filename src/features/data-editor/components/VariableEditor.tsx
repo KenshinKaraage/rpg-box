@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,10 +18,12 @@ import {
 import type { Variable } from '@/types/variable';
 import { getDefaultInitialValue } from '@/types/variable';
 import { createFieldTypeInstance, getFieldTypeOptions } from '@/types/fields';
+import type { FieldConfigContext } from '@/types/fields/FieldType';
+import { useStore } from '@/stores';
 import { CommonFieldConfig } from './fields/CommonFieldConfig';
 
-// 変数で使用可能なフィールドタイプ（シンプルな型のみ）
-const VARIABLE_ALLOWED_TYPES = ['number', 'string', 'boolean'];
+// 変数で使用可能なフィールドタイプ
+const VARIABLE_ALLOWED_TYPES = ['number', 'string', 'boolean', 'class'];
 
 /**
  * バリデーションスキーマ
@@ -44,6 +47,14 @@ interface VariableEditorProps {
  * 変数エディタコンポーネント
  */
 export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
+  const classes = useStore((state) => state.classes);
+  const configContext: FieldConfigContext = useMemo(
+    () => ({
+      classes: classes.map((c) => ({ id: c.id, name: c.name })),
+    }),
+    [classes]
+  );
+
   // variableがある場合はその値をデフォルトに、なければ空のデフォルト
   const defaultValues: VariableFormData = variable
     ? {
@@ -116,10 +127,20 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
 
   return (
     <form className="space-y-6 p-4" onSubmit={handleSubmit(() => {})}>
-      {/* 変数ID（読み取り専用） */}
+      {/* 変数ID */}
       <div className="space-y-2">
-        <Label>変数ID</Label>
-        <Input value={variable.id} disabled className="bg-muted" />
+        <Label htmlFor="variableId">変数ID</Label>
+        <Input
+          id="variableId"
+          defaultValue={variable.id}
+          onBlur={(e) => {
+            const newId = e.target.value.trim();
+            if (newId && newId !== variable.id) {
+              onUpdate(variable.id, { id: newId } as Partial<Variable>);
+            }
+          }}
+          placeholder="変数ID"
+        />
       </div>
 
       {/* 変数名 */}
@@ -175,24 +196,6 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
         </Label>
       </div>
 
-      {/* 初期値（FieldTypeのrenderEditorを使用） */}
-      <div className="space-y-2">
-        <Label htmlFor="initialValue">初期値</Label>
-        {watchIsArray ? (
-          <div className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
-            配列の初期値: []
-          </div>
-        ) : (
-          variable.fieldType.renderEditor({
-            value: watchInitialValue,
-            onChange: (value) => {
-              setValue('initialValue', value);
-              onFieldChange('initialValue', value);
-            },
-          })
-        )}
-      </div>
-
       {/* フィールド設定 */}
       <div className="space-y-3">
         <Label>フィールド設定</Label>
@@ -213,6 +216,7 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
               Object.assign(newFieldType, variable.fieldType, updates);
               onUpdate(variable.id, { fieldType: newFieldType });
             },
+            context: configContext,
           })}
         </div>
       </div>
@@ -231,6 +235,24 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
           rows={3}
         />
         {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+      </div>
+
+      {/* 初期値（FieldTypeのrenderEditorを使用） */}
+      <div className="space-y-2">
+        <Label htmlFor="initialValue">初期値</Label>
+        {watchIsArray ? (
+          <div className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+            配列の初期値: []
+          </div>
+        ) : (
+          variable.fieldType.renderEditor({
+            value: watchInitialValue,
+            onChange: (value) => {
+              setValue('initialValue', value);
+              onFieldChange('initialValue', value);
+            },
+          })
+        )}
       </div>
     </form>
   );

@@ -61,11 +61,11 @@ describe('VariableEditor', () => {
     });
   });
 
-  it('変数IDは編集できない', () => {
+  it('変数IDが表示され編集可能', () => {
     render(<VariableEditor {...defaultProps} />);
 
     const idInput = screen.getByDisplayValue('var_001');
-    expect(idInput).toBeDisabled();
+    expect(idInput).not.toBeDisabled();
   });
 
   it('配列フラグを変更できる', async () => {

@@ -43,6 +43,9 @@ export const createVariableSlice = <T extends VariableSlice>(
       const index = state.variables.findIndex((v) => v.id === id);
       if (index !== -1) {
         state.variables[index] = { ...state.variables[index], ...updates } as Variable;
+        if (updates.id && updates.id !== id && state.selectedVariableId === id) {
+          state.selectedVariableId = updates.id;
+        }
       }
     }),
 

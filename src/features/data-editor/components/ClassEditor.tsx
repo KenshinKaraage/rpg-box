@@ -13,6 +13,7 @@ import type { CustomClass } from '@/types/customClass';
 import type { FieldType } from '@/types/fields/FieldType';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { createFieldTypeInstance } from '@/types/fields';
+import { generateId } from '@/lib/utils';
 import { FieldRow } from './FieldRow';
 
 const classSchema = z.object({
@@ -74,9 +75,21 @@ export function ClassEditor({
   const handleAddField = () => {
     const newField = createFieldTypeInstance('number');
     if (!newField) return;
-    newField.id = `field_${Date.now()}`;
+    newField.id = generateId(
+      'field',
+      customClass.fields.map((f) => f.id)
+    );
     newField.name = '新しいフィールド';
     onAddField(customClass.id, newField);
+  };
+
+  const handleFieldIdChange = (fieldId: string, newId: string) => {
+    const field = customClass.fields.find((f) => f.id === fieldId);
+    if (!field) return;
+    const newField = createFieldTypeInstance(field.type);
+    if (!newField) return;
+    Object.assign(newField, field, { id: newId });
+    onReplaceField(customClass.id, fieldId, newField);
   };
 
   const handleFieldNameChange = (fieldId: string, name: string) => {
@@ -124,8 +137,18 @@ export function ClassEditor({
       {/* クラス基本情報 */}
       <div className="space-y-4 border-b p-4">
         <div className="space-y-2">
-          <Label>クラスID</Label>
-          <Input value={customClass.id} disabled className="bg-muted" />
+          <Label htmlFor="classId">クラスID</Label>
+          <Input
+            id="classId"
+            defaultValue={customClass.id}
+            onBlur={(e) => {
+              const newId = e.target.value.trim();
+              if (newId && newId !== customClass.id) {
+                onUpdateClass(customClass.id, { id: newId } as Partial<CustomClass>);
+              }
+            }}
+            placeholder="クラスID"
+          />
         </div>
 
         <div className="space-y-2">
@@ -179,6 +202,7 @@ export function ClassEditor({
                 field={field}
                 isExpanded={expandedFields.has(field.id)}
                 onToggleExpand={() => toggleExpand(field.id)}
+                onIdChange={(newId) => handleFieldIdChange(field.id, newId)}
                 onNameChange={(name) => handleFieldNameChange(field.id, name)}
                 onTypeChange={(type) => handleFieldTypeChange(field.id, type)}
                 onConfigChange={(updates) => handleConfigChange(field.id, updates)}

@@ -66,7 +66,19 @@ export const createDataSlice = <T extends DataSlice>(
     set((state) => {
       const index = state.dataTypes.findIndex((t) => t.id === id);
       if (index !== -1) {
+        const newId = updates.id;
         state.dataTypes[index] = { ...state.dataTypes[index], ...updates } as DataType;
+        // IDが変更された場合、関連データを移行
+        if (newId && newId !== id) {
+          state.dataEntries[newId] = (state.dataEntries[id] ?? []).map((e) => ({
+            ...e,
+            typeId: newId,
+          }));
+          delete state.dataEntries[id];
+          if (state.selectedDataTypeId === id) {
+            state.selectedDataTypeId = newId;
+          }
+        }
       }
     }),
 
@@ -107,6 +119,18 @@ export const createDataSlice = <T extends DataSlice>(
         const fieldIndex = dt.fields.findIndex((f) => f.id === fieldId);
         if (fieldIndex !== -1) {
           dt.fields[fieldIndex] = newField;
+          // フィールドIDが変更された場合、エントリのキーを移行
+          if (newField.id !== fieldId) {
+            const entries = state.dataEntries[typeId];
+            if (entries) {
+              for (const entry of entries) {
+                if (fieldId in entry.values) {
+                  entry.values[newField.id] = entry.values[fieldId];
+                  delete entry.values[fieldId];
+                }
+              }
+            }
+          }
         }
       }
     }),

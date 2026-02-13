@@ -60,11 +60,11 @@ describe('DataTypeEditor', () => {
     expect(screen.getByText('データ型を選択してください')).toBeInTheDocument();
   });
 
-  it('データ型IDが表示される（読み取り専用）', () => {
+  it('データ型IDが表示され編集可能', () => {
     render(<DataTypeEditor {...defaultProps} />);
 
     const idInput = screen.getByDisplayValue('monsters');
-    expect(idInput).toBeDisabled();
+    expect(idInput).not.toBeDisabled();
   });
 
   it('データ型の情報が表示される', () => {

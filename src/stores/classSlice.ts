@@ -54,6 +54,9 @@ export const createClassSlice = <T extends ClassSlice>(
       const index = state.classes.findIndex((c) => c.id === id);
       if (index !== -1) {
         state.classes[index] = { ...state.classes[index], ...updates } as CustomClass;
+        if (updates.id && updates.id !== id && state.selectedClassId === id) {
+          state.selectedClassId = updates.id;
+        }
       }
     }),
 

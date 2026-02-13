@@ -5,6 +5,7 @@ import { TwoColumnLayout } from '@/components/common/TwoColumnLayout';
 import { VariableList, VariableEditor } from '@/features/data-editor';
 import { useStore } from '@/stores';
 import { createVariable } from '@/types/variable';
+import { generateId } from '@/lib/utils';
 
 /**
  * 変数管理ページ
@@ -27,11 +28,14 @@ export default function VariablesPage() {
 
   // 新規変数を追加
   const handleAdd = useCallback(() => {
-    const id = `var_${Date.now()}`;
+    const id = generateId(
+      'variable',
+      variables.map((v) => v.id)
+    );
     const newVariable = createVariable(id, '新しい変数');
     addVariable(newVariable);
     selectVariable(id);
-  }, [addVariable, selectVariable]);
+  }, [variables, addVariable, selectVariable]);
 
   // 変数を複製
   const handleDuplicate = useCallback(
@@ -39,7 +43,10 @@ export default function VariablesPage() {
       const original = variables.find((v) => v.id === id);
       if (!original) return;
 
-      const newId = `var_${Date.now()}`;
+      const newId = generateId(
+        'variable',
+        variables.map((v) => v.id)
+      );
       const duplicated = {
         ...original,
         id: newId,

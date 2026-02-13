@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import type { SelectOption } from '@/types/fields/SelectFieldType';
+import { generateId } from '@/lib/utils';
 
 interface SelectFieldConfigProps {
   options: SelectOption[];
@@ -15,7 +16,10 @@ interface SelectFieldConfigProps {
 export function SelectFieldConfig({ options, placeholder, onChange }: SelectFieldConfigProps) {
   const handleAddOption = () => {
     const newOption: SelectOption = {
-      value: `option_${Date.now()}`,
+      value: generateId(
+        'option',
+        options.map((o) => o.value)
+      ),
       label: '新しい選択肢',
     };
     onChange({ options: [...options, newOption] });

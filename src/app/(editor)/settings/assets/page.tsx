@@ -10,6 +10,7 @@ import { RenameFolderModal } from '@/features/asset-manager/components/RenameFol
 import { DeleteFolderConfirm } from '@/features/asset-manager/components/DeleteFolderConfirm';
 import { createAssetTypeInstance, getAssetTypeByExtension } from '@/types/assets';
 import type { AssetReference, AssetFolder } from '@/types/asset';
+import { generateId } from '@/lib/utils';
 
 /**
  * アセット管理ページ
@@ -67,7 +68,10 @@ export default function AssetsPage() {
   const handleCreateFolder = useCallback(
     (name: string, parentId?: string) => {
       const folder: AssetFolder = {
-        id: `folder_${Date.now()}`,
+        id: generateId(
+          'folder',
+          assetFolders.map((f) => f.id)
+        ),
         name,
         parentId,
       };
@@ -160,7 +164,10 @@ export default function AssetsPage() {
 
         // アセットを追加
         const asset: AssetReference = {
-          id: `asset_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          id: generateId(
+            'asset',
+            assets.map((a) => a.id)
+          ),
           name: file.name,
           type: assetType,
           folderId: selectedFolderId ?? undefined,

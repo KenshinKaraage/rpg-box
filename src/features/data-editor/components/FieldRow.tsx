@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronRight, Trash2, GripVertical } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +24,7 @@ interface FieldRowProps {
   field: AnyFieldType;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  onIdChange: (newId: string) => void;
   onNameChange: (name: string) => void;
   onTypeChange: (type: string) => void;
   onConfigChange: (updates: Record<string, unknown>) => void;
@@ -35,6 +37,7 @@ export function FieldRow({
   field,
   isExpanded,
   onToggleExpand,
+  onIdChange,
   onNameChange,
   onTypeChange,
   onConfigChange,
@@ -93,6 +96,19 @@ export function FieldRow({
         {/* Expandable config panel */}
         <CollapsibleContent>
           <div className="space-y-3 border-t bg-muted/30 px-4 py-3">
+            <div className="space-y-1">
+              <Label className="text-xs">フィールドID</Label>
+              <Input
+                defaultValue={field.id}
+                onBlur={(e) => {
+                  const newId = e.target.value.trim();
+                  if (newId && newId !== field.id) {
+                    onIdChange(newId);
+                  }
+                }}
+                placeholder="フィールドID"
+              />
+            </div>
             <CommonFieldConfig required={field.required} onChange={onConfigChange} />
             {field.renderConfig({ onChange: onConfigChange, context: configContext })}
           </div>

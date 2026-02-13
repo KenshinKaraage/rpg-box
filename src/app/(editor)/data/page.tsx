@@ -8,6 +8,7 @@ import { createDataType, createDataEntry } from '@/types/data';
 import { createFieldTypeInstance } from '@/types/fields';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import type { DataEntry } from '@/types/data';
+import { generateId } from '@/lib/utils';
 
 const EMPTY_ENTRIES: DataEntry[] = [];
 
@@ -78,11 +79,14 @@ export default function DataPage() {
 
   // データ型を追加
   const handleAddDataType = useCallback(() => {
-    const id = `dt_${Date.now()}`;
+    const id = generateId(
+      'data',
+      dataTypes.map((t) => t.id)
+    );
     const newType = createDataType(id, '新しいデータ型');
     addDataType(newType);
     selectDataType(id);
-  }, [addDataType, selectDataType]);
+  }, [dataTypes, addDataType, selectDataType]);
 
   // データ型を複製
   const handleDuplicateDataType = useCallback(
@@ -90,13 +94,17 @@ export default function DataPage() {
       const original = dataTypes.find((t) => t.id === id);
       if (!original) return;
 
-      const newId = `dt_${Date.now()}`;
+      const newId = generateId(
+        'data',
+        dataTypes.map((t) => t.id)
+      );
+      const allFieldIds = dataTypes.flatMap((t) => t.fields.map((f) => f.id));
       const clonedFields = original.fields.map((f) => {
         const cloned = createFieldTypeInstance(f.type);
         if (!cloned) return f;
-        Object.assign(cloned, f, {
-          id: `field_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        });
+        const fieldId = generateId('field', allFieldIds);
+        allFieldIds.push(fieldId);
+        Object.assign(cloned, f, { id: fieldId });
         return cloned;
       });
       const duplicated = {
@@ -122,11 +130,12 @@ export default function DataPage() {
   // エントリを追加
   const handleAddEntry = useCallback(() => {
     if (!selectedDataType) return;
-    const id = `entry_${Date.now()}`;
+    const existingEntryIds = entries.map((e) => e.id);
+    const id = generateId('entry', existingEntryIds);
     const entry = createDataEntry(id, selectedDataType.id, selectedDataType.fields);
     addDataEntry(entry);
     selectDataEntry(id);
-  }, [selectedDataType, addDataEntry, selectDataEntry]);
+  }, [selectedDataType, entries, addDataEntry, selectDataEntry]);
 
   // エントリを複製
   const handleDuplicateEntry = useCallback(
@@ -135,7 +144,10 @@ export default function DataPage() {
       const original = entries.find((e) => e.id === entryId);
       if (!original) return;
 
-      const newId = `entry_${Date.now()}`;
+      const newId = generateId(
+        'entry',
+        entries.map((e) => e.id)
+      );
       const duplicated = {
         ...original,
         id: newId,

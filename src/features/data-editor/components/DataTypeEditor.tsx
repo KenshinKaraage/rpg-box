@@ -13,6 +13,7 @@ import type { DataType } from '@/types/data';
 import type { FieldType } from '@/types/fields/FieldType';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { createFieldTypeInstance } from '@/types/fields';
+import { generateId } from '@/lib/utils';
 import { FieldRow } from './FieldRow';
 
 const dataTypeSchema = z.object({
@@ -75,9 +76,21 @@ export function DataTypeEditor({
   const handleAddField = () => {
     const newField = createFieldTypeInstance('number');
     if (!newField) return;
-    newField.id = `field_${Date.now()}`;
+    newField.id = generateId(
+      'field',
+      dataType.fields.map((f) => f.id)
+    );
     newField.name = '新しいフィールド';
     onAddField(dataType.id, newField);
+  };
+
+  const handleFieldIdChange = (fieldId: string, newId: string) => {
+    const field = dataType.fields.find((f) => f.id === fieldId);
+    if (!field) return;
+    const newField = createFieldTypeInstance(field.type);
+    if (!newField) return;
+    Object.assign(newField, field, { id: newId });
+    onReplaceField(dataType.id, fieldId, newField);
   };
 
   const handleFieldNameChange = (fieldId: string, name: string) => {
@@ -127,8 +140,18 @@ export function DataTypeEditor({
         <h3 className="text-sm font-semibold">データ型設定</h3>
 
         <div className="space-y-2">
-          <Label>データ型ID</Label>
-          <Input value={dataType.id} disabled className="bg-muted" />
+          <Label htmlFor="dataTypeId">データ型ID</Label>
+          <Input
+            id="dataTypeId"
+            defaultValue={dataType.id}
+            onBlur={(e) => {
+              const newId = e.target.value.trim();
+              if (newId && newId !== dataType.id) {
+                onUpdateDataType(dataType.id, { id: newId } as Partial<DataType>);
+              }
+            }}
+            placeholder="データ型ID"
+          />
         </div>
 
         <div className="space-y-2">
@@ -182,6 +205,7 @@ export function DataTypeEditor({
                 field={field}
                 isExpanded={expandedFields.has(field.id)}
                 onToggleExpand={() => toggleExpand(field.id)}
+                onIdChange={(newId) => handleFieldIdChange(field.id, newId)}
                 onNameChange={(name) => handleFieldNameChange(field.id, name)}
                 onTypeChange={(type) => handleFieldTypeChange(field.id, type)}
                 onConfigChange={(updates) => handleConfigChange(field.id, updates)}

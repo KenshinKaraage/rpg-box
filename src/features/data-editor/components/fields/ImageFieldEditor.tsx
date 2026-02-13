@@ -90,26 +90,25 @@ export function ImageFieldEditor({ value, onChange, initialFolderId }: ImageFiel
   // 選択済み状態
   return (
     <>
-      <div className="flex items-center gap-3">
-        {/* サムネイル */}
-        <div className="h-12 w-12 shrink-0 overflow-hidden rounded border bg-muted">
+      <div className="space-y-2">
+        {/* プレビュー */}
+        <div
+          className="flex items-center justify-center overflow-hidden rounded border bg-muted/30 p-2"
+          style={{ maxHeight: '160px' }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={selectedAsset.data}
             alt={selectedAsset.name}
-            className="h-full w-full object-contain"
+            className="h-auto max-h-[144px] w-auto object-contain"
           />
         </div>
 
-        {/* ファイル名 */}
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm" title={selectedAsset.name}>
+        {/* ファイル名 + アクションボタン */}
+        <div className="flex items-center gap-2">
+          <p className="min-w-0 flex-1 truncate text-sm" title={selectedAsset.name}>
             {selectedAsset.name}
           </p>
-        </div>
-
-        {/* アクションボタン */}
-        <div className="flex gap-1">
           <Button size="sm" variant="outline" onClick={() => setIsModalOpen(true)}>
             変更
           </Button>
