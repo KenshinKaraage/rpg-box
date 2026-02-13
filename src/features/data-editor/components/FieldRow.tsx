@@ -104,6 +104,7 @@ export function FieldRow({
               <Label className="text-xs">フィールドID</Label>
               <Input
                 defaultValue={field.id}
+                disabled={undeletable}
                 onBlur={(e) => {
                   const newId = e.target.value.trim();
                   if (newId && newId !== field.id) {
