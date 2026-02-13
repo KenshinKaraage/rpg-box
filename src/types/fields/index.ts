@@ -1,7 +1,14 @@
 // フィールドタイプ基底クラス
 import { FieldType } from './FieldType';
 export { FieldType };
-export type { ValidationResult, DisplayCondition, FieldEditorProps } from './FieldType';
+export type {
+  ValidationResult,
+  DisplayCondition,
+  FieldEditorProps,
+  FieldConfigProps,
+  FieldConfigContext,
+  FilterCondition,
+} from './FieldType';
 
 // レジストリ関数（registry.tsから）
 export {
@@ -24,6 +31,8 @@ import { ColorFieldType } from './ColorFieldType';
 import { ClassFieldType } from './ClassFieldType';
 import { ImageFieldType } from './ImageFieldType';
 import { AudioFieldType } from './AudioFieldType';
+import { DataSelectFieldType } from './DataSelectFieldType';
+import { DataListFieldType } from './DataListFieldType';
 
 export {
   NumberFieldType,
@@ -35,6 +44,8 @@ export {
   ClassFieldType,
   ImageFieldType,
   AudioFieldType,
+  DataSelectFieldType,
+  DataListFieldType,
 };
 export type { SelectOption } from './SelectFieldType';
 export type { ClassValue } from './ClassFieldType';
@@ -51,3 +62,5 @@ registerFieldType('color', ColorFieldType);
 registerFieldType('class', ClassFieldType);
 registerFieldType('image', ImageFieldType);
 registerFieldType('audio', AudioFieldType);
+registerFieldType('dataSelect', DataSelectFieldType);
+registerFieldType('dataList', DataListFieldType);
