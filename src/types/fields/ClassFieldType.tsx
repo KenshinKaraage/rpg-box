@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
 import { ClassFieldConfig } from '@/features/data-editor/components/fields/ClassFieldConfig';
 import { ClassFieldEditor } from '@/features/data-editor/components/fields/ClassFieldEditor';
-import type { CustomClass } from '@/types/customClass';
 
 /**
  * クラス値の型
@@ -14,6 +13,10 @@ export type ClassValue = Record<string, unknown>;
  *
  * 他のクラスを参照し、そのフィールドを展開表示するフィールド。
  * 複数のフィールドをグループ化して再利用する際に使用。
+ *
+ * classId でクラスを参照し、ClassFieldEditor がストアからクラス定義を
+ * 取得してフィールドを展開表示する。validate/serialize/deserialize は
+ * ClassValue（Record<string, unknown>）をパススルーする。
  *
  * @example
  * ```typescript
@@ -30,66 +33,19 @@ export class ClassFieldType extends FieldType<ClassValue> {
   /** 参照するクラスID */
   classId: string = '';
 
-  /** クラス（実行時に設定） */
-  private _class: CustomClass | null = null;
-
-  /**
-   * クラスを設定
-   * エディタ描画時に呼び出す
-   */
-  setClass(customClass: CustomClass): void {
-    this._class = customClass;
-  }
-
-  /**
-   * クラスを取得
-   */
-  getClass(): CustomClass | null {
-    return this._class;
-  }
-
   getDefaultValue(): ClassValue {
     return {};
   }
 
   validate(value: ClassValue): ValidationResult {
-    // 必須チェック
     if (this.required && Object.keys(value).length === 0) {
       return { valid: false, message: '値を入力してください' };
     }
-
-    // 各フィールドのバリデーション
-    if (this._class) {
-      for (const field of this._class.fields) {
-        const fieldValue = value[field.id];
-        if (field.required && (fieldValue === undefined || fieldValue === null)) {
-          return { valid: false, message: `${field.name}は必須です` };
-        }
-        if (fieldValue !== undefined) {
-          const result = field.validate(fieldValue);
-          if (!result.valid) {
-            return { valid: false, message: `${field.name}: ${result.message}` };
-          }
-        }
-      }
-    }
-
     return { valid: true };
   }
 
   serialize(value: ClassValue): unknown {
-    if (!this._class) {
-      return value;
-    }
-
-    const serialized: ClassValue = {};
-    for (const field of this._class.fields) {
-      const fieldValue = value[field.id];
-      if (fieldValue !== undefined) {
-        serialized[field.id] = field.serialize(fieldValue);
-      }
-    }
-    return serialized;
+    return value;
   }
 
   deserialize(data: unknown): ClassValue {
@@ -99,20 +55,7 @@ export class ClassFieldType extends FieldType<ClassValue> {
     if (typeof data !== 'object') {
       return {};
     }
-
-    if (!this._class) {
-      return data as ClassValue;
-    }
-
-    const deserialized: ClassValue = {};
-    const dataObj = data as Record<string, unknown>;
-    for (const field of this._class.fields) {
-      const fieldData = dataObj[field.id];
-      if (fieldData !== undefined) {
-        deserialized[field.id] = field.deserialize(fieldData);
-      }
-    }
-    return deserialized;
+    return data as ClassValue;
   }
 
   getValue(data: unknown): ClassValue {

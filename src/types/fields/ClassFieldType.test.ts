@@ -105,12 +105,9 @@ describe('ClassFieldType', () => {
   describe('renderEditor', () => {
     it('classId未設定時はメッセージを表示', () => {
       const field = new ClassFieldType();
-      field.id = 'test';
-      field.name = 'テスト';
 
-      const onChange = jest.fn();
       const { container } = render(
-        field.renderEditor({ value: {}, onChange }) as React.ReactElement
+        field.renderEditor({ value: {}, onChange: jest.fn() }) as React.ReactElement
       );
 
       expect(container.textContent).toContain('クラスが設定されていません');
@@ -120,9 +117,8 @@ describe('ClassFieldType', () => {
       const field = new ClassFieldType();
       field.classId = 'nonexistent';
 
-      const onChange = jest.fn();
       const { container } = render(
-        field.renderEditor({ value: {}, onChange }) as React.ReactElement
+        field.renderEditor({ value: {}, onChange: jest.fn() }) as React.ReactElement
       );
 
       expect(container.textContent).toContain('クラス「nonexistent」が見つかりません');
@@ -130,27 +126,21 @@ describe('ClassFieldType', () => {
 
     it('クラスのフィールドを展開表示', () => {
       const field = new ClassFieldType();
-      field.id = 'status';
-      field.name = 'ステータス';
       field.classId = 'class_status';
 
-      const onChange = jest.fn();
       render(
         field.renderEditor({
           value: { hp: 100, mp: 50 },
-          onChange,
+          onChange: jest.fn(),
         }) as React.ReactElement
       );
 
-      // クラスのフィールドが表示される
       expect(screen.getByText('HP')).toBeInTheDocument();
       expect(screen.getByText('MP')).toBeInTheDocument();
     });
 
     it('フィールド値を変更できる', () => {
       const field = new ClassFieldType();
-      field.id = 'status';
-      field.name = 'ステータス';
       field.classId = 'class_status';
 
       const onChange = jest.fn();
@@ -161,7 +151,6 @@ describe('ClassFieldType', () => {
         }) as React.ReactElement
       );
 
-      // HP入力を変更
       const hpInput = screen.getAllByRole('spinbutton')[0]!;
       fireEvent.change(hpInput, { target: { value: '200' } });
 
