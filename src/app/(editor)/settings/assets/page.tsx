@@ -77,7 +77,7 @@ export default function AssetsPage() {
       };
       addFolder(folder);
     },
-    [addFolder]
+    [assetFolders, addFolder]
   );
 
   // フォルダ名変更モーダルを開く
@@ -177,7 +177,7 @@ export default function AssetsPage() {
         addAsset(asset);
       }
     },
-    [addAsset, selectedFolderId]
+    [assets, addAsset, selectedFolderId]
   );
 
   return (
