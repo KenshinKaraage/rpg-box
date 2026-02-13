@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '@/stores';
 import { AssetFolderTree } from '@/features/asset-manager/components/AssetFolderTree';
 import { AssetGrid } from '@/features/asset-manager/components/AssetGrid';
@@ -59,126 +59,105 @@ export default function AssetsPage() {
     : undefined;
 
   // フォルダ追加モーダルを開く
-  const handleAddFolder = useCallback((parentId?: string) => {
+  const handleAddFolder = (parentId?: string) => {
     setCreateFolderParentId(parentId);
     setCreateFolderOpen(true);
-  }, []);
+  };
 
   // フォルダ作成
-  const handleCreateFolder = useCallback(
-    (name: string, parentId?: string) => {
-      const folder: AssetFolder = {
-        id: generateId(
-          'folder',
-          assetFolders.map((f) => f.id)
-        ),
-        name,
-        parentId,
-      };
-      addFolder(folder);
-    },
-    [assetFolders, addFolder]
-  );
+  const handleCreateFolder = (name: string, parentId?: string) => {
+    const folder: AssetFolder = {
+      id: generateId(
+        'folder',
+        assetFolders.map((f) => f.id)
+      ),
+      name,
+      parentId,
+    };
+    addFolder(folder);
+  };
 
   // フォルダ名変更モーダルを開く
-  const handleRenameFolder = useCallback(
-    (id: string) => {
-      const folder = assetFolders.find((f) => f.id === id);
-      if (folder) {
-        setRenameFolderTarget(folder);
-        setRenameFolderOpen(true);
-      }
-    },
-    [assetFolders]
-  );
+  const handleRenameFolder = (id: string) => {
+    const folder = assetFolders.find((f) => f.id === id);
+    if (folder) {
+      setRenameFolderTarget(folder);
+      setRenameFolderOpen(true);
+    }
+  };
 
   // フォルダ名変更を実行
-  const handleRenameFolderConfirm = useCallback(
-    (id: string, name: string) => {
-      updateFolder(id, { name });
-    },
-    [updateFolder]
-  );
+  const handleRenameFolderConfirm = (id: string, name: string) => {
+    updateFolder(id, { name });
+  };
 
   // フォルダ削除確認モーダルを開く
-  const handleDeleteFolder = useCallback(
-    (id: string) => {
-      const folder = assetFolders.find((f) => f.id === id);
-      if (folder) {
-        setDeleteFolderTarget(folder);
-        setDeleteFolderOpen(true);
-      }
-    },
-    [assetFolders]
-  );
+  const handleDeleteFolder = (id: string) => {
+    const folder = assetFolders.find((f) => f.id === id);
+    if (folder) {
+      setDeleteFolderTarget(folder);
+      setDeleteFolderOpen(true);
+    }
+  };
 
   // フォルダ削除を実行
-  const handleDeleteFolderConfirm = useCallback(
-    (id: string) => {
-      deleteFolder(id);
-    },
-    [deleteFolder]
-  );
+  const handleDeleteFolderConfirm = (id: string) => {
+    deleteFolder(id);
+  };
 
   // アセット名変更
-  const handleRenameAsset = useCallback(
-    (id: string, name: string) => {
-      updateAsset(id, { name });
-    },
-    [updateAsset]
-  );
+  const handleRenameAsset = (id: string, name: string) => {
+    updateAsset(id, { name });
+  };
 
   // ファイルアップロード
-  const handleUpload = useCallback(
-    async (files: FileList) => {
-      for (const file of Array.from(files)) {
-        // ファイルタイプを判定
-        const extension = '.' + (file.name.split('.').pop()?.toLowerCase() ?? '');
-        const assetType = getAssetTypeByExtension(extension);
+  const handleUpload = async (files: FileList) => {
+    for (const file of Array.from(files)) {
+      // ファイルタイプを判定
+      const extension = '.' + (file.name.split('.').pop()?.toLowerCase() ?? '');
+      const assetType = getAssetTypeByExtension(extension);
 
-        // 未対応の拡張子
-        if (!assetType) {
-          console.warn(`Unsupported file type: ${extension}`);
-          continue;
-        }
-
-        // アセットタイプのインスタンスを取得
-        const assetTypeInstance = createAssetTypeInstance(assetType);
-        if (!assetTypeInstance) {
-          console.error(`Unknown asset type: ${assetType}`);
-          continue;
-        }
-
-        // バリデーション
-        const validation = assetTypeInstance.validate(file);
-        if (!validation.valid) {
-          console.warn(validation.message);
-          continue;
-        }
-
-        // ファイルをBase64に変換
-        const data = await fileToBase64(file);
-
-        // メタデータを抽出
-        const metadata = await assetTypeInstance.extractMetadata(file);
-
-        // アセットを追加
-        const asset: AssetReference = {
-          id: generateId(
-            'asset',
-            assets.map((a) => a.id)
-          ),
-          name: file.name,
-          type: assetType,
-          folderId: selectedFolderId ?? undefined,
-          data,
-          metadata,
-        };
-        addAsset(asset);
+      // 未対応の拡張子
+      if (!assetType) {
+        console.warn(`Unsupported file type: ${extension}`);
+        continue;
       }
-    },
-    [assets, addAsset, selectedFolderId]
-  );
+
+      // アセットタイプのインスタンスを取得
+      const assetTypeInstance = createAssetTypeInstance(assetType);
+      if (!assetTypeInstance) {
+        console.error(`Unknown asset type: ${assetType}`);
+        continue;
+      }
+
+      // バリデーション
+      const validation = assetTypeInstance.validate(file);
+      if (!validation.valid) {
+        console.warn(validation.message);
+        continue;
+      }
+
+      // ファイルをBase64に変換
+      const data = await fileToBase64(file);
+
+      // メタデータを抽出
+      const metadata = await assetTypeInstance.extractMetadata(file);
+
+      // アセットを追加
+      const asset: AssetReference = {
+        id: generateId(
+          'asset',
+          assets.map((a) => a.id)
+        ),
+        name: file.name,
+        type: assetType,
+        folderId: selectedFolderId ?? undefined,
+        data,
+        metadata,
+      };
+      addAsset(asset);
+    }
+  };
 
   return (
     <div className="flex h-full">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { TwoColumnLayout } from '@/components/common/TwoColumnLayout';
 import { ClassList, ClassEditor } from '@/features/data-editor';
 import { useStore } from '@/stores';
@@ -33,7 +33,7 @@ export default function ClassesPage() {
   );
 
   // 新規クラスを追加
-  const handleAdd = useCallback(() => {
+  const handleAdd = () => {
     const id = generateId(
       'class',
       classes.map((c) => c.id)
@@ -41,47 +41,41 @@ export default function ClassesPage() {
     const newClass = createCustomClass(id, '新しいクラス');
     addClass(newClass);
     selectClass(id);
-  }, [classes, addClass, selectClass]);
+  };
 
   // クラスを複製
-  const handleDuplicate = useCallback(
-    (id: string) => {
-      const original = classes.find((c) => c.id === id);
-      if (!original) return;
+  const handleDuplicate = (id: string) => {
+    const original = classes.find((c) => c.id === id);
+    if (!original) return;
 
-      const newId = generateId(
-        'class',
-        classes.map((c) => c.id)
-      );
-      // FieldTypeインスタンスを適切に複製
-      const allFieldIds = classes.flatMap((c) => c.fields.map((f) => f.id));
-      const clonedFields = original.fields.map((f) => {
-        const cloned = createFieldTypeInstance(f.type);
-        if (!cloned) return f; // フォールバック
-        const fieldId = generateId('field', allFieldIds);
-        allFieldIds.push(fieldId);
-        Object.assign(cloned, f, { id: fieldId });
-        return cloned;
-      });
-      const duplicated = {
-        ...original,
-        id: newId,
-        name: `${original.name} のコピー`,
-        fields: clonedFields,
-      };
-      addClass(duplicated);
-      selectClass(newId);
-    },
-    [classes, addClass, selectClass]
-  );
+    const newId = generateId(
+      'class',
+      classes.map((c) => c.id)
+    );
+    // FieldTypeインスタンスを適切に複製
+    const allFieldIds = classes.flatMap((c) => c.fields.map((f) => f.id));
+    const clonedFields = original.fields.map((f) => {
+      const cloned = createFieldTypeInstance(f.type);
+      if (!cloned) return f; // フォールバック
+      const fieldId = generateId('field', allFieldIds);
+      allFieldIds.push(fieldId);
+      Object.assign(cloned, f, { id: fieldId });
+      return cloned;
+    });
+    const duplicated = {
+      ...original,
+      id: newId,
+      name: `${original.name} のコピー`,
+      fields: clonedFields,
+    };
+    addClass(duplicated);
+    selectClass(newId);
+  };
 
   // クラスを削除
-  const handleDelete = useCallback(
-    (id: string) => {
-      deleteClass(id);
-    },
-    [deleteClass]
-  );
+  const handleDelete = (id: string) => {
+    deleteClass(id);
+  };
 
   const configContext: FieldConfigContext = useMemo(
     () => ({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { DataTypeList, DataTypeEditor, DataEntryList, FormBuilder } from '@/features/data-editor';
 import { useStore } from '@/stores';
@@ -78,7 +78,7 @@ export default function DataPage() {
   // --- ハンドラ ---
 
   // データ型を追加
-  const handleAddDataType = useCallback(() => {
+  const handleAddDataType = () => {
     const id = generateId(
       'data',
       dataTypes.map((t) => t.id)
@@ -86,87 +86,75 @@ export default function DataPage() {
     const newType = createDataType(id, '新しいデータ型');
     addDataType(newType);
     selectDataType(id);
-  }, [dataTypes, addDataType, selectDataType]);
+  };
 
   // データ型を複製
-  const handleDuplicateDataType = useCallback(
-    (id: string) => {
-      const original = dataTypes.find((t) => t.id === id);
-      if (!original) return;
+  const handleDuplicateDataType = (id: string) => {
+    const original = dataTypes.find((t) => t.id === id);
+    if (!original) return;
 
-      const newId = generateId(
-        'data',
-        dataTypes.map((t) => t.id)
-      );
-      const allFieldIds = dataTypes.flatMap((t) => t.fields.map((f) => f.id));
-      const clonedFields = original.fields.map((f) => {
-        const cloned = createFieldTypeInstance(f.type);
-        if (!cloned) return f;
-        const fieldId = generateId('field', allFieldIds);
-        allFieldIds.push(fieldId);
-        Object.assign(cloned, f, { id: fieldId });
-        return cloned;
-      });
-      const duplicated = {
-        ...original,
-        id: newId,
-        name: `${original.name} のコピー`,
-        fields: clonedFields,
-      };
-      addDataType(duplicated);
-      selectDataType(newId);
-    },
-    [dataTypes, addDataType, selectDataType]
-  );
+    const newId = generateId(
+      'data',
+      dataTypes.map((t) => t.id)
+    );
+    const allFieldIds = dataTypes.flatMap((t) => t.fields.map((f) => f.id));
+    const clonedFields = original.fields.map((f) => {
+      const cloned = createFieldTypeInstance(f.type);
+      if (!cloned) return f;
+      const fieldId = generateId('field', allFieldIds);
+      allFieldIds.push(fieldId);
+      Object.assign(cloned, f, { id: fieldId });
+      return cloned;
+    });
+    const duplicated = {
+      ...original,
+      id: newId,
+      name: `${original.name} のコピー`,
+      fields: clonedFields,
+    };
+    addDataType(duplicated);
+    selectDataType(newId);
+  };
 
   // データ型を削除
-  const handleDeleteDataType = useCallback(
-    (id: string) => {
-      deleteDataType(id);
-    },
-    [deleteDataType]
-  );
+  const handleDeleteDataType = (id: string) => {
+    deleteDataType(id);
+  };
 
   // エントリを追加
-  const handleAddEntry = useCallback(() => {
+  const handleAddEntry = () => {
     if (!selectedDataType) return;
     const existingEntryIds = entries.map((e) => e.id);
     const id = generateId('entry', existingEntryIds);
     const entry = createDataEntry(id, selectedDataType.id, selectedDataType.fields);
     addDataEntry(entry);
     selectDataEntry(id);
-  }, [selectedDataType, entries, addDataEntry, selectDataEntry]);
+  };
 
   // エントリを複製
-  const handleDuplicateEntry = useCallback(
-    (entryId: string) => {
-      if (!selectedDataType) return;
-      const original = entries.find((e) => e.id === entryId);
-      if (!original) return;
+  const handleDuplicateEntry = (entryId: string) => {
+    if (!selectedDataType) return;
+    const original = entries.find((e) => e.id === entryId);
+    if (!original) return;
 
-      const newId = generateId(
-        'entry',
-        entries.map((e) => e.id)
-      );
-      const duplicated = {
-        ...original,
-        id: newId,
-        values: { ...original.values },
-      };
-      addDataEntry(duplicated);
-      selectDataEntry(newId);
-    },
-    [selectedDataType, entries, addDataEntry, selectDataEntry]
-  );
+    const newId = generateId(
+      'entry',
+      entries.map((e) => e.id)
+    );
+    const duplicated = {
+      ...original,
+      id: newId,
+      values: { ...original.values },
+    };
+    addDataEntry(duplicated);
+    selectDataEntry(newId);
+  };
 
   // エントリを削除
-  const handleDeleteEntry = useCallback(
-    (entryId: string) => {
-      if (!selectedDataType) return;
-      deleteDataEntry(selectedDataType.id, entryId);
-    },
-    [selectedDataType, deleteDataEntry]
-  );
+  const handleDeleteEntry = (entryId: string) => {
+    if (!selectedDataType) return;
+    deleteDataEntry(selectedDataType.id, entryId);
+  };
 
   // --- レンダリング ---
 

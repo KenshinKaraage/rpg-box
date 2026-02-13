@@ -1,6 +1,5 @@
 'use client';
 
-import { useCallback } from 'react';
 import { TwoColumnLayout } from '@/components/common/TwoColumnLayout';
 import { VariableList, VariableEditor } from '@/features/data-editor';
 import { useStore } from '@/stores';
@@ -27,7 +26,7 @@ export default function VariablesPage() {
   );
 
   // 新規変数を追加
-  const handleAdd = useCallback(() => {
+  const handleAdd = () => {
     const id = generateId(
       'variable',
       variables.map((v) => v.id)
@@ -35,36 +34,30 @@ export default function VariablesPage() {
     const newVariable = createVariable(id, '新しい変数');
     addVariable(newVariable);
     selectVariable(id);
-  }, [variables, addVariable, selectVariable]);
+  };
 
   // 変数を複製
-  const handleDuplicate = useCallback(
-    (id: string) => {
-      const original = variables.find((v) => v.id === id);
-      if (!original) return;
+  const handleDuplicate = (id: string) => {
+    const original = variables.find((v) => v.id === id);
+    if (!original) return;
 
-      const newId = generateId(
-        'variable',
-        variables.map((v) => v.id)
-      );
-      const duplicated = {
-        ...original,
-        id: newId,
-        name: `${original.name} のコピー`,
-      };
-      addVariable(duplicated);
-      selectVariable(newId);
-    },
-    [variables, addVariable, selectVariable]
-  );
+    const newId = generateId(
+      'variable',
+      variables.map((v) => v.id)
+    );
+    const duplicated = {
+      ...original,
+      id: newId,
+      name: `${original.name} のコピー`,
+    };
+    addVariable(duplicated);
+    selectVariable(newId);
+  };
 
   // 変数を削除
-  const handleDelete = useCallback(
-    (id: string) => {
-      deleteVariable(id);
-    },
-    [deleteVariable]
-  );
+  const handleDelete = (id: string) => {
+    deleteVariable(id);
+  };
 
   return (
     <TwoColumnLayout
