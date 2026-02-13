@@ -1,27 +1,20 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import type { CustomClass } from '@/types/customClass';
 import type { FieldType } from '@/types/fields/FieldType';
-import { createFieldTypeInstance, getFieldTypeOptions } from '@/types/fields';
+import type { FieldConfigContext } from '@/types/fields/FieldType';
+import { createFieldTypeInstance } from '@/types/fields';
+import { FieldRow } from './FieldRow';
 
-/**
- * クラス名バリデーションスキーマ
- */
 const classSchema = z.object({
   name: z.string().min(1, 'クラス名は必須です').max(50, '50文字以内で入力してください'),
   description: z.string().max(200, '200文字以内で入力してください').optional(),
@@ -39,18 +32,19 @@ interface ClassEditorProps {
   onReplaceField: (classId: string, fieldId: string, newField: AnyFieldType) => void;
   onDeleteField: (classId: string, fieldId: string) => void;
   onReorderFields: (classId: string, fromIndex: number, toIndex: number) => void;
+  configContext?: FieldConfigContext;
 }
 
-/**
- * クラスエディタコンポーネント
- */
 export function ClassEditor({
   customClass,
   onUpdateClass,
   onAddField,
   onReplaceField,
   onDeleteField,
+  configContext,
 }: ClassEditorProps) {
+  const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
+
   const defaultValues: ClassFormData = customClass
     ? {
         name: customClass.name,
@@ -88,7 +82,6 @@ export function ClassEditor({
   const handleFieldNameChange = (fieldId: string, name: string) => {
     const field = customClass.fields.find((f) => f.id === fieldId);
     if (!field) return;
-    // フィールドを複製して名前を変更
     const newField = createFieldTypeInstance(field.type);
     if (!newField) return;
     Object.assign(newField, field, { name });
@@ -98,7 +91,6 @@ export function ClassEditor({
   const handleFieldTypeChange = (fieldId: string, type: string) => {
     const field = customClass.fields.find((f) => f.id === fieldId);
     if (!field) return;
-    // 新しいタイプのインスタンスを作成し、id/nameを引き継ぐ
     const newField = createFieldTypeInstance(type);
     if (!newField) return;
     newField.id = field.id;
@@ -106,17 +98,36 @@ export function ClassEditor({
     onReplaceField(customClass.id, fieldId, newField);
   };
 
+  const handleConfigChange = (fieldId: string, updates: Record<string, unknown>) => {
+    const field = customClass.fields.find((f) => f.id === fieldId);
+    if (!field) return;
+    const newField = createFieldTypeInstance(field.type);
+    if (!newField) return;
+    Object.assign(newField, field, updates);
+    onReplaceField(customClass.id, fieldId, newField);
+  };
+
+  const toggleExpand = (fieldId: string) => {
+    setExpandedFields((prev) => {
+      const next = new Set(prev);
+      if (next.has(fieldId)) {
+        next.delete(fieldId);
+      } else {
+        next.add(fieldId);
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="flex h-full flex-col">
       {/* クラス基本情報 */}
       <div className="space-y-4 border-b p-4">
-        {/* クラスID（読み取り専用） */}
         <div className="space-y-2">
           <Label>クラスID</Label>
           <Input value={customClass.id} disabled className="bg-muted" />
         </div>
 
-        {/* クラス名 */}
         <div className="space-y-2">
           <Label htmlFor="name">クラス名</Label>
           <Input
@@ -131,7 +142,6 @@ export function ClassEditor({
           {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
         </div>
 
-        {/* 説明 */}
         <div className="space-y-2">
           <Label htmlFor="description">説明（オプション）</Label>
           <Textarea
@@ -164,45 +174,17 @@ export function ClassEditor({
         ) : (
           <div className="space-y-2">
             {customClass.fields.map((field) => (
-              <div key={field.id} className="flex items-center gap-2 rounded-md border bg-card p-2">
-                {/* ドラッグハンドル（将来のD&D用） */}
-                <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" />
-
-                {/* フィールド名 */}
-                <Input
-                  className="flex-1"
-                  value={field.name}
-                  onChange={(e) => handleFieldNameChange(field.id, e.target.value)}
-                  placeholder="フィールド名"
-                />
-
-                {/* 型選択（レジストリから動的に生成） */}
-                <Select
-                  value={field.type}
-                  onValueChange={(value) => handleFieldTypeChange(field.id, value)}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getFieldTypeOptions().map((option) => (
-                      <SelectItem key={option.type} value={option.type}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* 削除ボタン */}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={() => onDeleteField(customClass.id, field.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <FieldRow
+                key={field.id}
+                field={field}
+                isExpanded={expandedFields.has(field.id)}
+                onToggleExpand={() => toggleExpand(field.id)}
+                onNameChange={(name) => handleFieldNameChange(field.id, name)}
+                onTypeChange={(type) => handleFieldTypeChange(field.id, type)}
+                onConfigChange={(updates) => handleConfigChange(field.id, updates)}
+                onDelete={() => onDeleteField(customClass.id, field.id)}
+                configContext={configContext}
+              />
             ))}
           </div>
         )}

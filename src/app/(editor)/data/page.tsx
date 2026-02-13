@@ -6,6 +6,7 @@ import { DataTypeList, DataTypeEditor, DataEntryList, FormBuilder } from '@/feat
 import { useStore } from '@/stores';
 import { createDataType, createDataEntry } from '@/types/data';
 import { createFieldTypeInstance } from '@/types/fields';
+import type { FieldConfigContext } from '@/types/fields/FieldType';
 import type { DataEntry } from '@/types/data';
 
 const EMPTY_ENTRIES: DataEntry[] = [];
@@ -20,6 +21,7 @@ const EMPTY_ENTRIES: DataEntry[] = [];
  */
 export default function DataPage() {
   // ストアから状態とアクションを取得
+  const classes = useStore((state) => state.classes);
   const dataTypes = useStore((state) => state.dataTypes);
   const dataEntries = useStore((state) => state.dataEntries);
   const selectedDataTypeId = useStore((state) => state.selectedDataTypeId);
@@ -62,6 +64,15 @@ export default function DataPage() {
 
   // 既存のデータ型IDリスト（バリデーション用）
   const existingIds = useMemo(() => dataTypes.map((t) => t.id), [dataTypes]);
+
+  // フィールド設定コンテキスト
+  const configContext: FieldConfigContext = useMemo(
+    () => ({
+      classes: classes.map((c) => ({ id: c.id, name: c.name })),
+      dataTypes: dataTypes.map((t) => ({ id: t.id, name: t.name })),
+    }),
+    [classes, dataTypes]
+  );
 
   // --- ハンドラ ---
 
@@ -166,6 +177,7 @@ export default function DataPage() {
         onReplaceField={replaceDataTypeField}
         onDeleteField={deleteDataTypeField}
         onReorderFields={reorderDataTypeFields}
+        configContext={configContext}
       />
     );
 

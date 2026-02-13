@@ -6,3 +6,4 @@ export { DataTypeList } from './components/DataTypeList';
 export { DataTypeEditor } from './components/DataTypeEditor';
 export { DataEntryList } from './components/DataEntryList';
 export { FormBuilder } from './components/FormBuilder';
+export { FieldRow } from './components/FieldRow';

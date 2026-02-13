@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
 import { SelectFieldEditor } from '@/features/data-editor/components/fields/SelectFieldEditor';
+import { SelectFieldConfig } from '@/features/data-editor/components/fields/SelectFieldConfig';
 
 /**
  * 選択オプションの型定義
@@ -91,6 +92,16 @@ export class SelectFieldType extends FieldType<string> {
         error={props.error}
         options={this.options}
         placeholder={this.placeholder}
+      />
+    );
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return (
+      <SelectFieldConfig
+        options={this.options}
+        placeholder={this.placeholder}
+        onChange={props.onChange}
       />
     );
   }

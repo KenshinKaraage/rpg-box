@@ -17,6 +17,7 @@ import {
 import type { Variable } from '@/types/variable';
 import { getDefaultInitialValue } from '@/types/variable';
 import { createFieldTypeInstance, getFieldTypeOptions } from '@/types/fields';
+import { CommonFieldConfig } from './fields/CommonFieldConfig';
 
 // 変数で使用可能なフィールドタイプ（シンプルな型のみ）
 const VARIABLE_ALLOWED_TYPES = ['number', 'string', 'boolean'];
@@ -190,6 +191,30 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
             },
           })
         )}
+      </div>
+
+      {/* フィールド設定 */}
+      <div className="space-y-3">
+        <Label>フィールド設定</Label>
+        <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+          <CommonFieldConfig
+            required={false}
+            onChange={(updates) => {
+              const newFieldType = createFieldTypeInstance(variable.fieldType.type);
+              if (!newFieldType) return;
+              Object.assign(newFieldType, variable.fieldType, updates);
+              onUpdate(variable.id, { fieldType: newFieldType });
+            }}
+          />
+          {variable.fieldType.renderConfig({
+            onChange: (updates) => {
+              const newFieldType = createFieldTypeInstance(variable.fieldType.type);
+              if (!newFieldType) return;
+              Object.assign(newFieldType, variable.fieldType, updates);
+              onUpdate(variable.id, { fieldType: newFieldType });
+            },
+          })}
+        </div>
       </div>
 
       {/* 説明 */}

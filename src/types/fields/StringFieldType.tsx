@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
 import { StringFieldEditor } from '@/features/data-editor/components/fields/StringFieldEditor';
+import { StringFieldConfig } from '@/features/data-editor/components/fields/StringFieldConfig';
 
 /**
  * 文字列フィールドタイプ
@@ -73,6 +74,16 @@ export class StringFieldType extends FieldType<string> {
         error={props.error}
         maxLength={this.maxLength}
         placeholder={this.placeholder}
+      />
+    );
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return (
+      <StringFieldConfig
+        maxLength={this.maxLength}
+        placeholder={this.placeholder}
+        onChange={props.onChange}
       />
     );
   }

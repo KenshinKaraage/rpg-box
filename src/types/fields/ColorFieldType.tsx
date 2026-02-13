@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
 import { ColorFieldEditor } from '@/features/data-editor/components/fields/ColorFieldEditor';
+import { ColorFieldConfig } from '@/features/data-editor/components/fields/ColorFieldConfig';
 
 /** HEX色コードの正規表現（#rrggbb または #rgb） */
 const HEX_COLOR_REGEX = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
@@ -79,5 +80,9 @@ export class ColorFieldType extends FieldType<string> {
         defaultColor={this.getDefaultValue()}
       />
     );
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return <ColorFieldConfig showHexInput={this.showHexInput} onChange={props.onChange} />;
   }
 }

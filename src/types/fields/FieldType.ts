@@ -36,6 +36,39 @@ export interface FieldEditorProps<T = unknown> {
 }
 
 /**
+ * フィールド設定エディタに渡すProps
+ * フィールド自体のプロパティ（min/max/options等）を編集するためのUI用
+ */
+export interface FieldConfigProps {
+  /** フィールド設定が変更されたときのコールバック */
+  onChange: (updates: Record<string, unknown>) => void;
+  /** 外部データ（クラス一覧、データ型一覧等） */
+  context?: FieldConfigContext;
+}
+
+/**
+ * フィールド設定で利用可能な外部コンテキスト
+ */
+export interface FieldConfigContext {
+  /** 利用可能なクラス一覧（ClassFieldType用） */
+  classes?: Array<{ id: string; name: string }>;
+  /** 利用可能なデータ型一覧（DataSelectFieldType等用） */
+  dataTypes?: Array<{ id: string; name: string }>;
+}
+
+/**
+ * データフィルタ条件（DataSelect/DataList用）
+ */
+export interface FilterCondition {
+  /** 条件判定に使用するフィールドID */
+  fieldId: string;
+  /** 比較演算子 */
+  operator: 'eq' | 'ne' | 'contains';
+  /** 比較値 */
+  value: unknown;
+}
+
+/**
  * フィールドタイプの基底抽象クラス
  *
  * データベースのフィールド定義に使用される型システムの基盤。
@@ -140,4 +173,16 @@ export abstract class FieldType<T = unknown> {
    * @returns 実行時に使用する値
    */
   abstract getValue(data: unknown): T;
+
+  /**
+   * フィールド設定UIをレンダリング
+   * 各サブクラスでオーバーライドして固有の設定項目を表示する。
+   * デフォルトは null（設定項目なし）。OSS 拡張型の後方互換のため非 abstract。
+   * @param _props 設定エディタProps
+   * @returns Reactノード（設定項目がない場合はnull）
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  renderConfig(_props: FieldConfigProps): ReactNode {
+    return null;
+  }
 }

@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
 import { BooleanFieldEditor } from '@/features/data-editor/components/fields/BooleanFieldEditor';
+import { BooleanFieldConfig } from '@/features/data-editor/components/fields/BooleanFieldConfig';
 
 /**
  * 真偽値フィールドタイプ
@@ -65,5 +66,9 @@ export class BooleanFieldType extends FieldType<boolean> {
         checkboxLabel={this.checkboxLabel}
       />
     );
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return <BooleanFieldConfig checkboxLabel={this.checkboxLabel} onChange={props.onChange} />;
   }
 }

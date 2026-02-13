@@ -8,7 +8,13 @@
 import type { ReactNode } from 'react';
 
 import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
-import { FieldType, type FieldEditorProps, type ValidationResult } from './FieldType';
+import { ImageFieldConfig } from '@/features/data-editor/components/fields/ImageFieldConfig';
+import {
+  FieldType,
+  type FieldEditorProps,
+  type FieldConfigProps,
+  type ValidationResult,
+} from './FieldType';
 
 /**
  * 画像フィールドタイプ
@@ -72,5 +78,9 @@ export class ImageFieldType extends FieldType<string | null> {
       return data;
     }
     return null;
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return <ImageFieldConfig initialFolderId={this.initialFolderId} onChange={props.onChange} />;
   }
 }

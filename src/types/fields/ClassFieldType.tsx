@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
 import { Label } from '@/components/ui/label';
+import { ClassFieldConfig } from '@/features/data-editor/components/fields/ClassFieldConfig';
 import type { CustomClass } from '@/types/customClass';
 
 /**
@@ -124,6 +125,12 @@ export class ClassFieldType extends FieldType<ClassValue> {
       return this.getDefaultValue();
     }
     return data as ClassValue;
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return (
+      <ClassFieldConfig classId={this.classId} context={props.context} onChange={props.onChange} />
+    );
   }
 
   renderEditor(props: FieldEditorProps<ClassValue>): ReactNode {

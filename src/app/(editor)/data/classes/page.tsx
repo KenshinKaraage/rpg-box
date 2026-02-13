@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { TwoColumnLayout } from '@/components/common/TwoColumnLayout';
 import { ClassList, ClassEditor } from '@/features/data-editor';
 import { useStore } from '@/stores';
 import { createCustomClass } from '@/types/customClass';
 import { createFieldTypeInstance } from '@/types/fields';
+import type { FieldConfigContext } from '@/types/fields/FieldType';
 
 /**
  * クラス管理ページ
@@ -74,6 +75,13 @@ export default function ClassesPage() {
     [deleteClass]
   );
 
+  const configContext: FieldConfigContext = useMemo(
+    () => ({
+      classes: classes.map((c) => ({ id: c.id, name: c.name })),
+    }),
+    [classes]
+  );
+
   return (
     <TwoColumnLayout
       left={
@@ -95,6 +103,7 @@ export default function ClassesPage() {
           onReplaceField={replaceClassField}
           onDeleteField={deleteClassField}
           onReorderFields={reorderClassFields}
+          configContext={configContext}
         />
       }
     />

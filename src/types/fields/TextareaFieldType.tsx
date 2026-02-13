@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
 import { TextareaFieldEditor } from '@/features/data-editor/components/fields/TextareaFieldEditor';
+import { TextareaFieldConfig } from '@/features/data-editor/components/fields/TextareaFieldConfig';
 
 /**
  * 複数行テキストフィールドタイプ
@@ -77,6 +78,17 @@ export class TextareaFieldType extends FieldType<string> {
         maxLength={this.maxLength}
         placeholder={this.placeholder}
         rows={this.rows}
+      />
+    );
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return (
+      <TextareaFieldConfig
+        maxLength={this.maxLength}
+        rows={this.rows}
+        placeholder={this.placeholder}
+        onChange={props.onChange}
       />
     );
   }

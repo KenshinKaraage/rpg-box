@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { FieldType, ValidationResult, FieldEditorProps } from './FieldType';
+import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
 import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
+import { NumberFieldConfig } from '@/features/data-editor/components/fields/NumberFieldConfig';
 
 /**
  * 数値フィールドタイプ
@@ -90,6 +91,12 @@ export class NumberFieldType extends FieldType<number> {
         max={this.max}
         step={this.step}
       />
+    );
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return (
+      <NumberFieldConfig min={this.min} max={this.max} step={this.step} onChange={props.onChange} />
     );
   }
 }

@@ -8,7 +8,13 @@
 import type { ReactNode } from 'react';
 
 import { AudioFieldEditor } from '@/features/data-editor/components/fields/AudioFieldEditor';
-import { FieldType, type FieldEditorProps, type ValidationResult } from './FieldType';
+import { AudioFieldConfig } from '@/features/data-editor/components/fields/AudioFieldConfig';
+import {
+  FieldType,
+  type FieldEditorProps,
+  type FieldConfigProps,
+  type ValidationResult,
+} from './FieldType';
 
 /**
  * 音声フィールドタイプ
@@ -72,5 +78,9 @@ export class AudioFieldType extends FieldType<string | null> {
       return data;
     }
     return null;
+  }
+
+  renderConfig(props: FieldConfigProps): ReactNode {
+    return <AudioFieldConfig initialFolderId={this.initialFolderId} onChange={props.onChange} />;
   }
 }
