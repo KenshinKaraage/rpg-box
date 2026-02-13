@@ -4,8 +4,37 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ClassFieldType } from './ClassFieldType';
 import { NumberFieldType } from './NumberFieldType';
+import { useStore } from '@/stores';
+
+// Mock useStore
+jest.mock('@/stores', () => ({
+  useStore: jest.fn(),
+}));
+
+const hpField = new NumberFieldType();
+hpField.id = 'hp';
+hpField.name = 'HP';
+
+const mpField = new NumberFieldType();
+mpField.id = 'mp';
+mpField.name = 'MP';
+
+const mockClasses = [
+  {
+    id: 'class_status',
+    name: 'ステータス',
+    fields: [hpField, mpField],
+  },
+];
 
 describe('ClassFieldType', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useStore as unknown as jest.Mock).mockImplementation((selector) =>
+      selector({ classes: mockClasses })
+    );
+  });
+
   describe('基本プロパティ', () => {
     it('typeが"class"である', () => {
       const field = new ClassFieldType();
@@ -74,7 +103,7 @@ describe('ClassFieldType', () => {
   });
 
   describe('renderEditor', () => {
-    it('クラス未設定時はメッセージを表示', () => {
+    it('classId未設定時はメッセージを表示', () => {
       const field = new ClassFieldType();
       field.id = 'test';
       field.name = 'テスト';
@@ -87,26 +116,23 @@ describe('ClassFieldType', () => {
       expect(container.textContent).toContain('クラスが設定されていません');
     });
 
+    it('存在しないクラスIDの場合はエラーメッセージを表示', () => {
+      const field = new ClassFieldType();
+      field.classId = 'nonexistent';
+
+      const onChange = jest.fn();
+      const { container } = render(
+        field.renderEditor({ value: {}, onChange }) as React.ReactElement
+      );
+
+      expect(container.textContent).toContain('クラス「nonexistent」が見つかりません');
+    });
+
     it('クラスのフィールドを展開表示', () => {
       const field = new ClassFieldType();
       field.id = 'status';
       field.name = 'ステータス';
       field.classId = 'class_status';
-
-      // クラスを設定
-      const hpField = new NumberFieldType();
-      hpField.id = 'hp';
-      hpField.name = 'HP';
-
-      const mpField = new NumberFieldType();
-      mpField.id = 'mp';
-      mpField.name = 'MP';
-
-      field.setClass({
-        id: 'class_status',
-        name: 'ステータス',
-        fields: [hpField, mpField],
-      });
 
       const onChange = jest.fn();
       render(
@@ -127,16 +153,6 @@ describe('ClassFieldType', () => {
       field.name = 'ステータス';
       field.classId = 'class_status';
 
-      const hpField = new NumberFieldType();
-      hpField.id = 'hp';
-      hpField.name = 'HP';
-
-      field.setClass({
-        id: 'class_status',
-        name: 'ステータス',
-        fields: [hpField],
-      });
-
       const onChange = jest.fn();
       render(
         field.renderEditor({
@@ -146,7 +162,7 @@ describe('ClassFieldType', () => {
       );
 
       // HP入力を変更
-      const hpInput = screen.getByRole('spinbutton');
+      const hpInput = screen.getAllByRole('spinbutton')[0]!;
       fireEvent.change(hpInput, { target: { value: '200' } });
 
       expect(onChange).toHaveBeenCalledWith({ hp: 200 });

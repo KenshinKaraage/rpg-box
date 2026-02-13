@@ -1,9 +1,7 @@
-'use client';
-
 import type { ReactNode } from 'react';
 import { FieldType, ValidationResult, FieldEditorProps, FieldConfigProps } from './FieldType';
-import { Label } from '@/components/ui/label';
 import { ClassFieldConfig } from '@/features/data-editor/components/fields/ClassFieldConfig';
+import { ClassFieldEditor } from '@/features/data-editor/components/fields/ClassFieldEditor';
 import type { CustomClass } from '@/types/customClass';
 
 /**
@@ -134,40 +132,14 @@ export class ClassFieldType extends FieldType<ClassValue> {
   }
 
   renderEditor(props: FieldEditorProps<ClassValue>): ReactNode {
-    const { value, onChange, disabled, error } = props;
-
-    if (!this._class) {
-      return (
-        <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-          クラスが設定されていません
-        </div>
-      );
-    }
-
-    const handleFieldChange = (fieldId: string, fieldValue: unknown) => {
-      onChange({
-        ...value,
-        [fieldId]: fieldValue,
-      });
-    };
-
     return (
-      <div className="space-y-3">
-        {this._class.fields.map((field) => (
-          <div key={field.id} className="space-y-1">
-            <Label className="text-sm font-medium">
-              {field.name}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </Label>
-            {field.renderEditor({
-              value: value[field.id] ?? field.getDefaultValue(),
-              onChange: (newValue) => handleFieldChange(field.id, newValue),
-              disabled,
-            })}
-          </div>
-        ))}
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </div>
+      <ClassFieldEditor
+        value={props.value}
+        onChange={props.onChange}
+        disabled={props.disabled}
+        error={props.error}
+        classId={this.classId}
+      />
     );
   }
 }
