@@ -25,6 +25,7 @@ describe('FieldRow', () => {
     field: createStringField(),
     isExpanded: false,
     onToggleExpand: jest.fn(),
+    onIdChange: jest.fn(),
     onNameChange: jest.fn(),
     onTypeChange: jest.fn(),
     onConfigChange: jest.fn(),
