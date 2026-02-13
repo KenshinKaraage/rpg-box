@@ -33,6 +33,8 @@ import { ImageFieldType } from './ImageFieldType';
 import { AudioFieldType } from './AudioFieldType';
 import { DataSelectFieldType } from './DataSelectFieldType';
 import { DataListFieldType } from './DataListFieldType';
+import { ClassListFieldType } from './ClassListFieldType';
+import { DataTableFieldType } from './DataTableFieldType';
 
 export {
   NumberFieldType,
@@ -46,9 +48,12 @@ export {
   AudioFieldType,
   DataSelectFieldType,
   DataListFieldType,
+  ClassListFieldType,
+  DataTableFieldType,
 };
 export type { SelectOption } from './SelectFieldType';
 export type { ClassValue } from './ClassFieldType';
+export type { DataTableRow, DataTableColumn } from './DataTableFieldType';
 
 // 組み込みフィールドタイプの登録
 import { registerFieldType } from './registry';
@@ -64,3 +69,5 @@ registerFieldType('image', ImageFieldType);
 registerFieldType('audio', AudioFieldType);
 registerFieldType('dataSelect', DataSelectFieldType);
 registerFieldType('dataList', DataListFieldType);
+registerFieldType('classList', ClassListFieldType);
+registerFieldType('dataTable', DataTableFieldType);

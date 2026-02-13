@@ -1,13 +1,16 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { ChevronRight, Plus, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Select,
   SelectContent,
@@ -20,8 +23,6 @@ import { getDefaultInitialValue } from '@/types/variable';
 import { createFieldTypeInstance, getFieldTypeOptions } from '@/types/fields';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { useStore } from '@/stores';
-import { CommonFieldConfig } from './fields/CommonFieldConfig';
-
 // 変数で使用可能なフィールドタイプ
 const VARIABLE_ALLOWED_TYPES = ['number', 'string', 'boolean', 'class'];
 
@@ -47,6 +48,7 @@ interface VariableEditorProps {
  * 変数エディタコンポーネント
  */
 export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
+  const [configOpen, setConfigOpen] = useState(false);
   const classes = useStore((state) => state.classes);
   const configContext: FieldConfigContext = useMemo(
     () => ({
@@ -196,31 +198,6 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
         </Label>
       </div>
 
-      {/* フィールド設定 */}
-      <div className="space-y-3">
-        <Label>フィールド設定</Label>
-        <div className="rounded-md border bg-muted/30 p-3 space-y-3">
-          <CommonFieldConfig
-            required={false}
-            onChange={(updates) => {
-              const newFieldType = createFieldTypeInstance(variable.fieldType.type);
-              if (!newFieldType) return;
-              Object.assign(newFieldType, variable.fieldType, updates);
-              onUpdate(variable.id, { fieldType: newFieldType });
-            }}
-          />
-          {variable.fieldType.renderConfig({
-            onChange: (updates) => {
-              const newFieldType = createFieldTypeInstance(variable.fieldType.type);
-              if (!newFieldType) return;
-              Object.assign(newFieldType, variable.fieldType, updates);
-              onUpdate(variable.id, { fieldType: newFieldType });
-            },
-            context: configContext,
-          })}
-        </div>
-      </div>
-
       {/* 説明 */}
       <div className="space-y-2">
         <Label htmlFor="description">説明（オプション）</Label>
@@ -237,23 +214,94 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
         {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
       </div>
 
-      {/* 初期値（FieldTypeのrenderEditorを使用） */}
-      <div className="space-y-2">
-        <Label htmlFor="initialValue">初期値</Label>
-        {watchIsArray ? (
-          <div className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
-            配列の初期値: []
+      {/* 初期値 + フィールド設定（トグルで展開） */}
+      <Collapsible open={configOpen} onOpenChange={setConfigOpen}>
+        <div className="flex items-center gap-1">
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+              <ChevronRight
+                className={`h-4 w-4 transition-transform ${configOpen ? 'rotate-90' : ''}`}
+              />
+            </Button>
+          </CollapsibleTrigger>
+          <Label className="cursor-pointer" onClick={() => setConfigOpen(!configOpen)}>
+            初期値
+          </Label>
+        </div>
+        <div className="mt-2 pl-7">
+          {watchIsArray ? (
+            <div className="space-y-1">
+              {(Array.isArray(watchInitialValue) ? watchInitialValue : []).map(
+                (item: unknown, index: number) => (
+                  <div key={index} className="flex items-start gap-1">
+                    <div className="flex-1">
+                      {variable.fieldType.renderEditor({
+                        value: item,
+                        onChange: (newVal) => {
+                          const arr = [...(watchInitialValue as unknown[])];
+                          arr[index] = newVal;
+                          setValue('initialValue', arr);
+                          onFieldChange('initialValue', arr);
+                        },
+                      })}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() => {
+                        const arr = (watchInitialValue as unknown[]).filter((_, i) => i !== index);
+                        setValue('initialValue', arr);
+                        onFieldChange('initialValue', arr);
+                      }}
+                      aria-label="削除"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  const arr = [
+                    ...(Array.isArray(watchInitialValue) ? watchInitialValue : []),
+                    variable.fieldType.getDefaultValue(),
+                  ];
+                  setValue('initialValue', arr);
+                  onFieldChange('initialValue', arr);
+                }}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                追加
+              </Button>
+            </div>
+          ) : (
+            variable.fieldType.renderEditor({
+              value: watchInitialValue,
+              onChange: (value) => {
+                setValue('initialValue', value);
+                onFieldChange('initialValue', value);
+              },
+            })
+          )}
+        </div>
+        <CollapsibleContent>
+          <div className="mt-3 space-y-3 rounded-md border bg-muted/30 p-3 ml-7">
+            {variable.fieldType.renderConfig({
+              onChange: (updates) => {
+                const newFieldType = createFieldTypeInstance(variable.fieldType.type);
+                if (!newFieldType) return;
+                Object.assign(newFieldType, variable.fieldType, updates);
+                onUpdate(variable.id, { fieldType: newFieldType });
+              },
+              context: configContext,
+            })}
           </div>
-        ) : (
-          variable.fieldType.renderEditor({
-            value: watchInitialValue,
-            onChange: (value) => {
-              setValue('initialValue', value);
-              onFieldChange('initialValue', value);
-            },
-          })
-        )}
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     </form>
   );
 }

@@ -51,19 +51,31 @@ describe('DataListFieldEditor', () => {
     });
   });
 
-  describe('エントリが存在する場合', () => {
-    it('エントリ名がチェックボックスとして表示される', () => {
-      render(<DataListFieldEditor value={[]} onChange={jest.fn()} referenceTypeId="tag_type" />);
+  describe('リスト表示', () => {
+    it('選択済みエントリがリストに表示される', () => {
+      render(
+        <DataListFieldEditor
+          value={['entry_001', 'entry_002']}
+          onChange={jest.fn()}
+          referenceTypeId="tag_type"
+        />
+      );
       expect(screen.getByText('タグA')).toBeInTheDocument();
       expect(screen.getByText('タグB')).toBeInTheDocument();
     });
 
-    it('name がない場合はエントリIDがラベルとして表示される', () => {
-      render(<DataListFieldEditor value={[]} onChange={jest.fn()} referenceTypeId="tag_type" />);
+    it('name がない場合はエントリIDが表示される', () => {
+      render(
+        <DataListFieldEditor
+          value={['entry_003']}
+          onChange={jest.fn()}
+          referenceTypeId="tag_type"
+        />
+      );
       expect(screen.getByText('entry_003')).toBeInTheDocument();
     });
 
-    it('value に含まれるエントリのチェックボックスがチェック済み', () => {
+    it('選択済みアイテムに削除ボタンがある', () => {
       render(
         <DataListFieldEditor
           value={['entry_001']}
@@ -71,20 +83,28 @@ describe('DataListFieldEditor', () => {
           referenceTypeId="tag_type"
         />
       );
-      const checkboxes = screen.getAllByRole('checkbox');
-      expect(checkboxes[0]).toBeChecked();
-      expect(checkboxes[1]).not.toBeChecked();
+      expect(screen.getByRole('button', { name: 'タグAを削除' })).toBeInTheDocument();
     });
 
-    it('チェックボックスをオンにするとonChangeが呼ばれる', async () => {
-      const user = userEvent.setup();
-      const onChange = jest.fn();
-      render(<DataListFieldEditor value={[]} onChange={onChange} referenceTypeId="tag_type" />);
-      await user.click(screen.getByText('タグA'));
-      expect(onChange).toHaveBeenCalledWith(['entry_001']);
+    it('追加ボタンが表示される', () => {
+      render(<DataListFieldEditor value={[]} onChange={jest.fn()} referenceTypeId="tag_type" />);
+      expect(screen.getByRole('button', { name: '追加' })).toBeInTheDocument();
     });
 
-    it('チェックボックスをオフにするとonChangeが呼ばれる', async () => {
+    it('全エントリが選択済みの場合、追加UIが非表示', () => {
+      render(
+        <DataListFieldEditor
+          value={['entry_001', 'entry_002', 'entry_003']}
+          onChange={jest.fn()}
+          referenceTypeId="tag_type"
+        />
+      );
+      expect(screen.queryByRole('button', { name: '追加' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('操作', () => {
+    it('削除ボタンをクリックするとonChangeが呼ばれる', async () => {
       const user = userEvent.setup();
       const onChange = jest.fn();
       render(
@@ -94,10 +114,34 @@ describe('DataListFieldEditor', () => {
           referenceTypeId="tag_type"
         />
       );
-      await user.click(screen.getByText('タグA'));
+
+      await user.click(screen.getByRole('button', { name: 'タグAを削除' }));
       expect(onChange).toHaveBeenCalledWith(['entry_002']);
     });
+  });
 
+  describe('disabled', () => {
+    it('disabled の場合、削除ボタンが非表示', () => {
+      render(
+        <DataListFieldEditor
+          value={['entry_001']}
+          onChange={jest.fn()}
+          referenceTypeId="tag_type"
+          disabled
+        />
+      );
+      expect(screen.queryByRole('button', { name: 'タグAを削除' })).not.toBeInTheDocument();
+    });
+
+    it('disabled の場合、追加UIが非表示', () => {
+      render(
+        <DataListFieldEditor value={[]} onChange={jest.fn()} referenceTypeId="tag_type" disabled />
+      );
+      expect(screen.queryByRole('button', { name: '追加' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('エラー表示', () => {
     it('error が指定された場合、エラーメッセージが表示される', () => {
       render(
         <DataListFieldEditor
@@ -108,16 +152,6 @@ describe('DataListFieldEditor', () => {
         />
       );
       expect(screen.getByText('1件以上選択してください')).toBeInTheDocument();
-    });
-
-    it('disabled が true の場合、チェックボックスが無効化される', () => {
-      render(
-        <DataListFieldEditor value={[]} onChange={jest.fn()} referenceTypeId="tag_type" disabled />
-      );
-      const checkboxes = screen.getAllByRole('checkbox');
-      checkboxes.forEach((checkbox) => {
-        expect(checkbox).toBeDisabled();
-      });
     });
   });
 });

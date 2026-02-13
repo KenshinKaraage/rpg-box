@@ -1149,15 +1149,15 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/fields/NumberFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `min`, `max`, `step` プロパティ
-- [ ] `getDefaultValue()` → 0 を返す
-- [ ] `validate()` で範囲チェック
-- [ ] `serialize()` / `deserialize()` 実装
-- [ ] `renderEditor()` で数値入力 UI を返す
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/NumberFieldType.ts` 作成
+- [x] FieldType を継承
+- [x] `min`, `max`, `step` プロパティ
+- [x] `getDefaultValue()` → 0 を返す
+- [x] `validate()` で範囲チェック
+- [x] `serialize()` / `deserialize()` 実装
+- [x] `renderEditor()` で数値入力 UI を返す
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1178,13 +1178,13 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/fields/StringFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `maxLength`, `placeholder` プロパティ
-- [ ] `getDefaultValue()` → 空文字を返す
-- [ ] `validate()` で長さチェック
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/StringFieldType.ts` 作成
+- [x] FieldType を継承
+- [x] `maxLength`, `placeholder` プロパティ
+- [x] `getDefaultValue()` → 空文字を返す
+- [x] `validate()` で長さチェック
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1201,12 +1201,12 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/fields/TextareaFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `maxLength`, `rows` プロパティ
-- [ ] 複数行テキスト対応
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/TextareaFieldType.ts` 作成
+- [x] FieldType を継承
+- [x] `maxLength`, `rows` プロパティ
+- [x] 複数行テキスト対応
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1223,12 +1223,12 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/fields/BooleanFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `getDefaultValue()` → false を返す
-- [ ] チェックボックス UI
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/BooleanFieldType.ts` 作成
+- [x] FieldType を継承
+- [x] `getDefaultValue()` → false を返す
+- [x] チェックボックス UI
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1245,13 +1245,13 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/fields/SelectFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `options: { value: string; label: string }[]` プロパティ
-- [ ] `getDefaultValue()` → 最初のオプション値
-- [ ] ドロップダウン UI
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/SelectFieldType.ts` 作成
+- [x] FieldType を継承
+- [x] `options: { value: string; label: string }[]` プロパティ
+- [x] `getDefaultValue()` → 最初のオプション値
+- [x] ドロップダウン UI
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1268,13 +1268,13 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/fields/ColorFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `getDefaultValue()` → '#000000' を返す
-- [ ] カラーピッカー UI
-- [ ] HEX/RGB 形式対応
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/ColorFieldType.ts` 作成
+- [x] FieldType を継承
+- [x] `getDefaultValue()` → '#000000' を返す
+- [x] カラーピッカー UI
+- [x] HEX/RGB 形式対応
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -1595,11 +1595,11 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/stores/gameSettingsSlice.ts` 作成
-- [ ] `GameSettings` 状態定義
-- [ ] `updateGameSettings()` アクション
-- [ ] デフォルト値設定
-- [ ] テスト追加
+- [x] `src/stores/gameSettingsSlice.ts` 作成
+- [x] `GameSettings` 状態定義
+- [x] `updateGameSettings()` アクション
+- [x] デフォルト値設定
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2034,92 +2034,91 @@ export function useAutoSave() {
 
 #### [T063] [P] Implement DataSelectFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/DataSelectFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `referenceTypeId` プロパティ（参照先データタイプ）
-- [ ] データ一覧からの選択 UI
-- [ ] 参照先データのプレビュー
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/DataSelectFieldType.tsx` 作成
+- [x] FieldType を継承
+- [x] `referenceTypeId` プロパティ（参照先データタイプ）
+- [x] データ一覧からの選択 UI
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/types/fields/DataSelectFieldType.ts`
+- `src/types/fields/DataSelectFieldType.tsx`
 - `src/types/fields/DataSelectFieldType.test.ts`
 
 ---
 
 #### [T064] [P] Implement DataListFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/DataListFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `referenceTypeId` プロパティ
-- [ ] 複数データ選択（リスト形式）
-- [ ] 追加/削除/並び替え UI
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/DataListFieldType.tsx` 作成
+- [x] FieldType を継承
+- [x] `referenceTypeId` プロパティ
+- [x] 複数データ選択（リスト形式）
+- [x] 追加/削除 UI
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/types/fields/DataListFieldType.ts`
+- `src/types/fields/DataListFieldType.tsx`
 - `src/types/fields/DataListFieldType.test.ts`
 
 ---
 
 #### [T065] [P] Implement DataTableFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/DataTableFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] テーブル形式でデータ表示
-- [ ] 列定義（FieldType 配列）
-- [ ] 行の追加/削除
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/DataTableFieldType.tsx` 作成
+- [x] FieldType を継承
+- [x] テーブル形式でデータ表示
+- [x] 列定義（DataTableColumn 配列）
+- [x] 行の追加/削除
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/types/fields/DataTableFieldType.ts`
+- `src/types/fields/DataTableFieldType.tsx`
 - `src/types/fields/DataTableFieldType.test.ts`
 
 ---
 
 #### [T066] [P] Implement ClassListFieldType
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/ClassListFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] `classId` プロパティ
-- [ ] クラスの複数インスタンス管理
-- [ ] 追加/削除 UI
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/ClassListFieldType.tsx` 作成
+- [x] FieldType を継承
+- [x] `classId` プロパティ
+- [x] クラスの複数インスタンス管理
+- [x] 追加/削除 UI
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/types/fields/ClassListFieldType.ts`
+- `src/types/fields/ClassListFieldType.tsx`
 - `src/types/fields/ClassListFieldType.test.ts`
 
 ---
@@ -2128,17 +2127,15 @@ export function useAutoSave() {
 
 #### [T067] [P] Create DataSelectFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/DataSelectFieldEditor.tsx` 作成
-- [ ] ドロップダウンでデータ選択
-- [ ] 検索フィルター
-- [ ] 選択中データのプレビュー
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/DataSelectFieldEditor.tsx` 作成
+- [x] ドロップダウンでデータ選択
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2149,17 +2146,17 @@ export function useAutoSave() {
 
 #### [T068] [P] Create DataListFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/DataListFieldEditor.tsx` 作成
-- [ ] リスト形式で選択済みデータ表示
-- [ ] 追加モーダル
-- [ ] ドラッグ&ドロップで並び替え
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/DataListFieldEditor.tsx` 作成
+- [x] リスト形式で選択済みデータ表示
+- [x] ドロップダウンで追加（被りなし）
+- [x] 各行ドロップダウンで変更可能
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2170,17 +2167,17 @@ export function useAutoSave() {
 
 #### [T069] [P] Create DataTableFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/DataTableFieldEditor.tsx` 作成
-- [ ] テーブル UI
-- [ ] 列ごとのフィールドエディタ
-- [ ] 行追加/削除ボタン
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/DataTableFieldEditor.tsx` 作成
+- [x] テーブル UI
+- [x] 列ごとのフィールドエディタ
+- [x] 行追加/削除ボタン
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2191,17 +2188,17 @@ export function useAutoSave() {
 
 #### [T070] [P] Create ClassListFieldEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/ClassListFieldEditor.tsx` 作成
-- [ ] クラスインスタンス一覧
-- [ ] 展開/折りたたみ
-- [ ] 追加/削除ボタン
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/ClassListFieldEditor.tsx` 作成
+- [x] クラスインスタンス一覧
+- [x] 展開/折りたたみ
+- [x] 追加/削除ボタン
+- [x] テスト追加
 
 **関連ファイル:**
 
