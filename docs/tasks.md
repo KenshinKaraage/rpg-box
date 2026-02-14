@@ -2925,51 +2925,13 @@ export function useAutoSave() {
 
 ## Phase 8: イベントシステム（中〜大）
 
+> **design.md との整合性メモ:**
+> Message, Choice, Input (showMessage/showChoice/showNumberInput/showTextInput) は
+> EventAction ではなく ScriptAPI のメソッドとしてイベントスクリプトから呼び出す設計。
+> Save/Load も同様にスクリプト関数 (Save()/Load()) として提供。
+> 旧 T098, T099, T109a, T109e, T109f は削除。
+
 ### 基本アクション実装
-
-#### [T098] [P] Implement MessageAction
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/types/actions/MessageAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: text, faceImageId, faceName, position
-- [ ] execute(): メッセージ表示、入力待ち
-- [ ] レジストリに登録
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/types/actions/MessageAction.ts`
-- `src/types/actions/MessageAction.test.ts`
-
----
-
-#### [T099] [P] Implement ChoiceAction
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/types/actions/ChoiceAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: choices, cancelIndex
-- [ ] execute(): 選択肢表示、結果を context に保存
-- [ ] レジストリに登録
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/types/actions/ChoiceAction.ts`
-- `src/types/actions/ChoiceAction.test.ts`
-
----
 
 #### [T100] [P] Implement VariableOpAction
 
@@ -3062,113 +3024,79 @@ export function useAutoSave() {
 
 ---
 
-#### [T104] [P] Implement PlaySEAction
+#### [T104] [P] Implement AudioAction
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 T104 (PlaySE) + T105 (PlayBGM) + T106 (StopBGM) を統合。
+> design.md の AudioAction に準拠。
+
 **完了条件:**
 
-- [ ] `src/types/actions/PlaySEAction.ts` 作成
+- [ ] `src/types/actions/AudioAction.ts` 作成
 - [ ] EventAction を継承
-- [ ] プロパティ: audioId, volume, pitch
-- [ ] execute(): SE 再生
+- [ ] プロパティ: operation (playBGM/stopBGM/playSE), audioId, volume, pitch, fadeIn, fadeOut
+- [ ] execute(): operation に応じて context.audio の各メソッドを呼び出し
 - [ ] レジストリに登録
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/types/actions/PlaySEAction.ts`
-- `src/types/actions/PlaySEAction.test.ts`
+- `src/types/actions/AudioAction.ts`
+- `src/types/actions/AudioAction.test.ts`
 
 ---
 
-#### [T105] [P] Implement PlayBGMAction
+#### [T107] [P] Implement CameraAction
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 FadeScreenAction を CameraAction に拡張。
+> design.md の CameraAction (zoom/pan/effect/reset) に準拠。
+
 **完了条件:**
 
-- [ ] `src/types/actions/PlayBGMAction.ts` 作成
+- [ ] `src/types/actions/CameraAction.ts` 作成
 - [ ] EventAction を継承
-- [ ] プロパティ: audioId, volume, fadeIn
-- [ ] execute(): BGM 再生
+- [ ] プロパティ: operation (zoom/pan/effect/reset), scale, x, y, duration, effect (shake/flash/fadeIn/fadeOut), intensity, color
+- [ ] execute(): operation に応じて context.camera の各メソッドを呼び出し
 - [ ] レジストリに登録
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/types/actions/PlayBGMAction.ts`
-- `src/types/actions/PlayBGMAction.test.ts`
+- `src/types/actions/CameraAction.ts`
+- `src/types/actions/CameraAction.test.ts`
 
 ---
 
-#### [T106] [P] Implement StopBGMAction
+#### [T108] [P] Implement ScriptAction
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
-**完了条件:**
-
-- [ ] `src/types/actions/StopBGMAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: fadeOut
-- [ ] execute(): BGM 停止
-- [ ] レジストリに登録
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/types/actions/StopBGMAction.ts`
-- `src/types/actions/StopBGMAction.test.ts`
-
----
-
-#### [T107] [P] Implement FadeScreenAction
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
+> 旧 CallScriptAction を ScriptAction に変更。
+> design.md の ScriptAction に準拠。イベントスクリプトを呼び出し、
+> スクリプト内から ScriptAPI (showMessage, showChoice 等) を利用する。
 
 **完了条件:**
 
-- [ ] `src/types/actions/FadeScreenAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: type (in/out), duration, color
-- [ ] execute(): 画面フェード
-- [ ] レジストリに登録
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/types/actions/FadeScreenAction.ts`
-- `src/types/actions/FadeScreenAction.test.ts`
-
----
-
-#### [T108] [P] Implement CallScriptAction
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/types/actions/CallScriptAction.ts` 作成
+- [ ] `src/types/actions/ScriptAction.ts` 作成
 - [ ] EventAction を継承
 - [ ] プロパティ: scriptId, args
-- [ ] execute(): スクリプト呼び出し
+- [ ] execute(): イベントスクリプトを呼び出し（context.scriptAPI 経由で UI 系 API を提供）
 - [ ] レジストリに登録
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/types/actions/CallScriptAction.ts`
-- `src/types/actions/CallScriptAction.test.ts`
+- `src/types/actions/ScriptAction.ts`
+- `src/types/actions/ScriptAction.test.ts`
 
 ---
 
@@ -3194,135 +3122,53 @@ export function useAutoSave() {
 
 ---
 
-#### [T109a] [P] Implement InputAction
+#### [T109b] [P] Implement MapAction
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 ChangeMapAction を MapAction に拡張。
+> design.md の MapAction (getChip/changeMap) に準拠。
+
 **完了条件:**
 
-- [ ] `src/types/actions/InputAction.ts` 作成
+- [ ] `src/types/actions/MapAction.ts` 作成
 - [ ] EventAction を継承
-- [ ] プロパティ: variableId, inputType (number/text), min, max
-- [ ] execute(): 入力待ち、変数に保存
+- [ ] プロパティ: operation (getChip/changeMap), resultVariableId, sourceMapId, chipX, chipY, layer, targetMapId, x, y, transition
+- [ ] execute(): operation に応じてマップチップ取得またはマップ移動
 - [ ] レジストリに登録
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/types/actions/InputAction.ts`
-- `src/types/actions/InputAction.test.ts`
+- `src/types/actions/MapAction.ts`
+- `src/types/actions/MapAction.test.ts`
 
 ---
 
-#### [T109b] [P] Implement ChangeMapAction
+#### [T109c] [P] Implement ObjectAction
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 MoveAction (T109c) + AppearanceChangeAction (T109d) を統合。
+> design.md の ObjectAction (move/rotate/autoWalk) に準拠し、見た目変更も含む。
+
 **完了条件:**
 
-- [ ] `src/types/actions/ChangeMapAction.ts` 作成
+- [ ] `src/types/actions/ObjectAction.ts` 作成
 - [ ] EventAction を継承
-- [ ] プロパティ: mapId, x, y, fadeType
-- [ ] execute(): マップ移動
+- [ ] プロパティ: operation (move/rotate/autoWalk/appearance), targetId, x, y, speed, angle, duration, enabled, pattern, imageId, animationId
+- [ ] execute(): operation に応じて context.getObject() 経由でオブジェクト操作
 - [ ] レジストリに登録
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/types/actions/ChangeMapAction.ts`
-- `src/types/actions/ChangeMapAction.test.ts`
-
----
-
-#### [T109c] [P] Implement MoveAction
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/types/actions/MoveAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: targetId, path, speed
-- [ ] execute(): オブジェクト移動
-- [ ] レジストリに登録
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/types/actions/MoveAction.ts`
-- `src/types/actions/MoveAction.test.ts`
-
----
-
-#### [T109d] [P] Implement AppearanceChangeAction
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/types/actions/AppearanceChangeAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: targetId, imageId, animationId
-- [ ] execute(): 見た目変更
-- [ ] レジストリに登録
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/types/actions/AppearanceChangeAction.ts`
-- `src/types/actions/AppearanceChangeAction.test.ts`
-
----
-
-#### [T109e] [P] Implement SaveAction
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/types/actions/SaveAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: slotId（省略時は選択UI）
-- [ ] execute(): ゲームセーブ
-- [ ] レジストリに登録
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/types/actions/SaveAction.ts`
-- `src/types/actions/SaveAction.test.ts`
-
----
-
-#### [T109f] [P] Implement LoadAction
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/types/actions/LoadAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: slotId（省略時は選択UI）
-- [ ] execute(): ゲームロード
-- [ ] レジストリに登録
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/types/actions/LoadAction.ts`
-- `src/types/actions/LoadAction.test.ts`
+- `src/types/actions/ObjectAction.ts`
+- `src/types/actions/ObjectAction.test.ts`
 
 ---
 
@@ -3498,46 +3344,8 @@ export function useAutoSave() {
 
 ### アクションブロックエディタ
 
-#### [T118] [P] Create MessageActionBlock
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/features/event-editor/components/blocks/MessageActionBlock.tsx` 作成
-- [ ] メッセージテキスト表示/編集
-- [ ] 顔グラフィック設定
-- [ ] プレビュー
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/features/event-editor/components/blocks/MessageActionBlock.tsx`
-- `src/features/event-editor/components/blocks/MessageActionBlock.test.tsx`
-
----
-
-#### [T119] [P] Create ChoiceActionBlock
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/features/event-editor/components/blocks/ChoiceActionBlock.tsx` 作成
-- [ ] 選択肢一覧表示/編集
-- [ ] 選択肢の追加/削除
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/features/event-editor/components/blocks/ChoiceActionBlock.tsx`
-- `src/features/event-editor/components/blocks/ChoiceActionBlock.test.tsx`
-
----
+> Message, Choice, Input のブロックエディタは削除（ScriptAPI に移行のため）。
+> Save/Load も同様に削除（スクリプト関数として提供）。
 
 #### [T120] [P] Create VariableOpActionBlock
 
@@ -3620,103 +3428,71 @@ export function useAutoSave() {
 
 ---
 
-#### [T122b] [P] Create PlaySEActionBlock
+#### [T122b] [P] Create AudioActionBlock
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 PlaySEActionBlock (T122b) + PlayBGMActionBlock (T122c) + StopBGMActionBlock (T122d) を統合。
+
 **完了条件:**
 
-- [ ] `src/features/event-editor/components/blocks/PlaySEActionBlock.tsx` 作成
-- [ ] 音声ファイル選択
-- [ ] ボリューム/ピッチ設定
+- [ ] `src/features/event-editor/components/blocks/AudioActionBlock.tsx` 作成
+- [ ] operation 切替 UI（PlayBGM/StopBGM/PlaySE）
+- [ ] 音声ファイル選択、ボリューム/ピッチ/フェード設定
 - [ ] 試聴ボタン
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/features/event-editor/components/blocks/PlaySEActionBlock.tsx`
-- `src/features/event-editor/components/blocks/PlaySEActionBlock.test.tsx`
+- `src/features/event-editor/components/blocks/AudioActionBlock.tsx`
+- `src/features/event-editor/components/blocks/AudioActionBlock.test.tsx`
 
 ---
 
-#### [T122c] [P] Create PlayBGMActionBlock
+#### [T122e] [P] Create CameraActionBlock
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 FadeScreenActionBlock を CameraActionBlock に拡張。
+
 **完了条件:**
 
-- [ ] `src/features/event-editor/components/blocks/PlayBGMActionBlock.tsx` 作成
-- [ ] BGM選択
-- [ ] ボリューム/フェードイン設定
+- [ ] `src/features/event-editor/components/blocks/CameraActionBlock.tsx` 作成
+- [ ] operation 切替 UI（zoom/pan/effect/reset）
+- [ ] effect サブタイプ選択（shake/flash/fadeIn/fadeOut）
+- [ ] スケール/座標/時間/色/強度設定
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/features/event-editor/components/blocks/PlayBGMActionBlock.tsx`
-- `src/features/event-editor/components/blocks/PlayBGMActionBlock.test.tsx`
+- `src/features/event-editor/components/blocks/CameraActionBlock.tsx`
+- `src/features/event-editor/components/blocks/CameraActionBlock.test.tsx`
 
 ---
 
-#### [T122d] [P] Create StopBGMActionBlock
+#### [T122f] [P] Create ScriptActionBlock
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 CallScriptActionBlock を ScriptActionBlock に変更。
+
 **完了条件:**
 
-- [ ] `src/features/event-editor/components/blocks/StopBGMActionBlock.tsx` 作成
-- [ ] フェードアウト設定
+- [ ] `src/features/event-editor/components/blocks/ScriptActionBlock.tsx` 作成
+- [ ] イベントスクリプト選択
+- [ ] 引数設定 UI
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/features/event-editor/components/blocks/StopBGMActionBlock.tsx`
-- `src/features/event-editor/components/blocks/StopBGMActionBlock.test.tsx`
-
----
-
-#### [T122e] [P] Create FadeScreenActionBlock
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/features/event-editor/components/blocks/FadeScreenActionBlock.tsx` 作成
-- [ ] フェードタイプ選択
-- [ ] 時間/色設定
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/features/event-editor/components/blocks/FadeScreenActionBlock.tsx`
-- `src/features/event-editor/components/blocks/FadeScreenActionBlock.test.tsx`
-
----
-
-#### [T122f] [P] Create CallScriptActionBlock
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/features/event-editor/components/blocks/CallScriptActionBlock.tsx` 作成
-- [ ] スクリプト選択
-- [ ] 引数設定
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/features/event-editor/components/blocks/CallScriptActionBlock.tsx`
-- `src/features/event-editor/components/blocks/CallScriptActionBlock.test.tsx`
+- `src/features/event-editor/components/blocks/ScriptActionBlock.tsx`
+- `src/features/event-editor/components/blocks/ScriptActionBlock.test.tsx`
 
 ---
 
@@ -3740,122 +3516,49 @@ export function useAutoSave() {
 
 ---
 
-#### [T122h] [P] Create InputActionBlock
+#### [T122i] [P] Create MapActionBlock
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 ChangeMapActionBlock を MapActionBlock に拡張。
+
 **完了条件:**
 
-- [ ] `src/features/event-editor/components/blocks/InputActionBlock.tsx` 作成
-- [ ] 入力タイプ選択
-- [ ] 保存先変数選択
+- [ ] `src/features/event-editor/components/blocks/MapActionBlock.tsx` 作成
+- [ ] operation 切替 UI（getChip/changeMap）
+- [ ] マップ選択、座標設定、フェード設定
+- [ ] getChip 時の結果変数選択
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/features/event-editor/components/blocks/InputActionBlock.tsx`
-- `src/features/event-editor/components/blocks/InputActionBlock.test.tsx`
+- `src/features/event-editor/components/blocks/MapActionBlock.tsx`
+- `src/features/event-editor/components/blocks/MapActionBlock.test.tsx`
 
 ---
 
-#### [T122i] [P] Create ChangeMapActionBlock
+#### [T122j] [P] Create ObjectActionBlock
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
 - **PR:** -
 
+> 旧 MoveActionBlock (T122j) + AppearanceChangeActionBlock (T122k) を統合。
+
 **完了条件:**
 
-- [ ] `src/features/event-editor/components/blocks/ChangeMapActionBlock.tsx` 作成
-- [ ] マップ選択
-- [ ] 座標設定
-- [ ] フェード設定
+- [ ] `src/features/event-editor/components/blocks/ObjectActionBlock.tsx` 作成
+- [ ] operation 切替 UI（move/rotate/autoWalk/appearance）
+- [ ] 対象オブジェクト選択
+- [ ] 各 operation に応じた設定（座標/速度/角度/画像等）
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/features/event-editor/components/blocks/ChangeMapActionBlock.tsx`
-- `src/features/event-editor/components/blocks/ChangeMapActionBlock.test.tsx`
-
----
-
-#### [T122j] [P] Create MoveActionBlock
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/features/event-editor/components/blocks/MoveActionBlock.tsx` 作成
-- [ ] 対象選択
-- [ ] 移動パス設定
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/features/event-editor/components/blocks/MoveActionBlock.tsx`
-- `src/features/event-editor/components/blocks/MoveActionBlock.test.tsx`
-
----
-
-#### [T122k] [P] Create AppearanceChangeActionBlock
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/features/event-editor/components/blocks/AppearanceChangeActionBlock.tsx` 作成
-- [ ] 対象選択
-- [ ] 画像/アニメーション選択
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/features/event-editor/components/blocks/AppearanceChangeActionBlock.tsx`
-- `src/features/event-editor/components/blocks/AppearanceChangeActionBlock.test.tsx`
-
----
-
-#### [T122l] [P] Create SaveActionBlock
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/features/event-editor/components/blocks/SaveActionBlock.tsx` 作成
-- [ ] スロット選択
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/features/event-editor/components/blocks/SaveActionBlock.tsx`
-- `src/features/event-editor/components/blocks/SaveActionBlock.test.tsx`
-
----
-
-#### [T122m] [P] Create LoadActionBlock
-
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
-
-**完了条件:**
-
-- [ ] `src/features/event-editor/components/blocks/LoadActionBlock.tsx` 作成
-- [ ] スロット選択
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/features/event-editor/components/blocks/LoadActionBlock.tsx`
-- `src/features/event-editor/components/blocks/LoadActionBlock.test.tsx`
+- `src/features/event-editor/components/blocks/ObjectActionBlock.tsx`
+- `src/features/event-editor/components/blocks/ObjectActionBlock.test.tsx`
 
 ---
 
