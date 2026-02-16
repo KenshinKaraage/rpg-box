@@ -239,13 +239,9 @@ export interface UITemplate {
 
 /**
  * スクリプト
+ * ドメインモデルを再 export
  */
-export interface Script {
-  id: string;
-  name: string;
-  content: string;
-  type: 'action' | 'condition' | 'utility';
-}
+export type { Script } from '@/types/script';
 
 /**
  * アセット参照
