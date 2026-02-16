@@ -140,6 +140,65 @@ describe('scriptSlice', () => {
       expect(result.current.selectedScriptId).toBeNull();
     });
 
+    it('ネストされた内部スクリプトも再帰的に削除される', () => {
+      const { result } = renderHook(() => useStore());
+
+      const parent = createScript('parent', '親スクリプト', 'event');
+      const child: Script = {
+        ...createScript('child1', '子スクリプト', 'internal'),
+        parentId: 'parent',
+      };
+      const grandchild: Script = {
+        ...createScript('grandchild1', '孫スクリプト', 'internal'),
+        parentId: 'child1',
+      };
+      const otherScript = createScript('other', '別スクリプト', 'event');
+
+      act(() => {
+        result.current.addScript(parent);
+        result.current.addScript(child);
+        result.current.addScript(grandchild);
+        result.current.addScript(otherScript);
+      });
+
+      expect(result.current.scripts).toHaveLength(4);
+
+      act(() => {
+        result.current.deleteScript('parent');
+      });
+
+      expect(result.current.scripts).toHaveLength(1);
+      expect(result.current.scripts[0]?.id).toBe('other');
+    });
+
+    it('中間の内部スクリプトを削除するとその子孫も削除される', () => {
+      const { result } = renderHook(() => useStore());
+
+      const parent = createScript('parent', '親スクリプト', 'event');
+      const child: Script = {
+        ...createScript('child1', '子スクリプト', 'internal'),
+        parentId: 'parent',
+      };
+      const grandchild: Script = {
+        ...createScript('grandchild1', '孫スクリプト', 'internal'),
+        parentId: 'child1',
+      };
+
+      act(() => {
+        result.current.addScript(parent);
+        result.current.addScript(child);
+        result.current.addScript(grandchild);
+      });
+
+      act(() => {
+        result.current.deleteScript('child1');
+      });
+
+      // parent remains, child1 and grandchild1 deleted
+      expect(result.current.scripts).toHaveLength(1);
+      expect(result.current.scripts[0]?.id).toBe('parent');
+    });
+
     it('内部スクリプトも連鎖削除される', () => {
       const { result } = renderHook(() => useStore());
 

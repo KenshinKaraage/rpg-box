@@ -57,9 +57,20 @@ export const createScriptSlice = <T extends ScriptSlice>(
 
   deleteScript: (id: string) =>
     set((state) => {
-      // 内部スクリプトも連鎖削除
-      state.scripts = state.scripts.filter((s) => s.id !== id && s.parentId !== id);
-      if (state.selectedScriptId === id) {
+      // Collect all descendant IDs recursively
+      const idsToDelete = new Set<string>();
+      const collectDescendants = (parentId: string) => {
+        idsToDelete.add(parentId);
+        for (const s of state.scripts) {
+          if (s.parentId === parentId && !idsToDelete.has(s.id)) {
+            collectDescendants(s.id);
+          }
+        }
+      };
+      collectDescendants(id);
+
+      state.scripts = state.scripts.filter((s) => !idsToDelete.has(s.id));
+      if (state.selectedScriptId && idsToDelete.has(state.selectedScriptId)) {
         state.selectedScriptId = null;
       }
     }),
