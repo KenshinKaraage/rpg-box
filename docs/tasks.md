@@ -3568,8 +3568,8 @@ export function useAutoSave() {
 
 #### [T123] [US10] Create scriptSlice
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -3589,8 +3589,8 @@ export function useAutoSave() {
 
 #### [T124] [US10] Create EventScriptPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -3607,8 +3607,8 @@ export function useAutoSave() {
 
 #### [T125] [US10] Create ComponentScriptPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -3625,8 +3625,8 @@ export function useAutoSave() {
 
 #### [T126] [US10] Create ScriptList
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -3646,8 +3646,8 @@ export function useAutoSave() {
 
 #### [T127] [US10] Create ScriptEditor (Monaco wrapper)
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -3668,8 +3668,8 @@ export function useAutoSave() {
 
 #### [T128] [US10] Create ScriptSettingsPanel
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -3711,28 +3711,26 @@ export function useAutoSave() {
 
 #### [T130] [US10] Create InternalScriptList
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] T126 で対応済み（ScriptList の再帰ツリーで内部スクリプト表示）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/script-editor/components/InternalScriptList.tsx` 作成
-- [ ] 内部スクリプト一覧
-- [ ] 追加/削除
-- [ ] テスト追加
+- [x] ScriptList の ScriptTreeItem で内部スクリプト一覧を再帰表示
+- [x] コンテキストメニューから追加/削除
+- [x] テスト追加（ScriptList.test.tsx に含む）
 
 **関連ファイル:**
 
-- `src/features/script-editor/components/InternalScriptList.tsx`
-- `src/features/script-editor/components/InternalScriptList.test.tsx`
+- `src/features/script-editor/components/ScriptList.tsx`（統合済み）
 
 ---
 
 #### [T131] [US10] Define Script types
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
