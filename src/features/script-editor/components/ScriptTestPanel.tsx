@@ -6,6 +6,9 @@ import { Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { GameEngine } from '@/engine/core/GameEngine';
+import type { EngineMessage, ScriptModeConfig } from '@/engine/types';
+import { useStore } from '@/stores';
 import type { Script } from '@/types/script';
 
 interface ScriptTestPanelProps {
@@ -13,6 +16,8 @@ interface ScriptTestPanelProps {
 }
 
 export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
+  const scripts = useStore((s) => s.scripts);
+  const variables = useStore((s) => s.variables);
   const [argValues, setArgValues] = useState<Record<string, string>>({});
   const [result, setResult] = useState<string | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
@@ -39,35 +44,60 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     );
   }
 
-  const handleExecute = () => {
+  const handleExecute = async () => {
     const logs: string[] = [];
-    const originalLog = console.log;
-    console.log = (...args: unknown[]) => {
-      logs.push(args.map((a) => String(a)).join(' '));
+    let finalResult: string | null = null;
+    let hasError = false;
+
+    // Build args
+    const args: Record<string, unknown> = {};
+    for (const arg of script.args) {
+      const raw = argValues[arg.id] ?? '';
+      if (arg.fieldType === 'number') args[arg.name] = Number(raw) || 0;
+      else if (arg.fieldType === 'boolean') args[arg.name] = raw === 'true';
+      else args[arg.name] = raw;
+    }
+
+    // Map store variables to engine format
+    const engineVariables = variables.map((v) => ({
+      id: v.id,
+      name: v.name,
+      type: v.fieldType.type,
+      defaultValue: v.initialValue,
+    }));
+
+    const config: ScriptModeConfig = {
+      mode: 'script',
+      projectData: {
+        scripts,
+        variables: engineVariables,
+        dataTypes: [],
+        dataEntries: {},
+      },
+      scriptId: script.id,
+      args,
     };
 
-    try {
-      // Build arg names and values
-      const argNames = script.args.map((a) => a.name);
-      const argVals = script.args.map((a) => {
-        const raw = argValues[a.id] ?? '';
-        if (a.fieldType === 'number') return Number(raw) || 0;
-        if (a.fieldType === 'boolean') return raw === 'true';
-        return raw;
-      });
+    const engine = new GameEngine((msg: EngineMessage) => {
+      switch (msg.type) {
+        case 'log':
+          logs.push(msg.message);
+          break;
+        case 'script-result':
+          finalResult = msg.value !== undefined ? JSON.stringify(msg.value) : 'undefined';
+          break;
+        case 'script-error':
+          finalResult = msg.error;
+          hasError = true;
+          break;
+      }
+    });
 
-      // Create and execute function
-      const fn = new Function(...argNames, script.content);
-      const returnValue = fn(...argVals);
-      setResult(returnValue !== undefined ? JSON.stringify(returnValue) : 'undefined');
-      setIsError(false);
-    } catch (e) {
-      setResult(e instanceof Error ? e.message : String(e));
-      setIsError(true);
-    } finally {
-      console.log = originalLog;
-      setConsoleOutput(logs);
-    }
+    await engine.handleMessage({ type: 'start', config });
+
+    setResult(finalResult);
+    setIsError(hasError);
+    setConsoleOutput(logs);
   };
 
   return (
