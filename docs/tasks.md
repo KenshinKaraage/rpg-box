@@ -3689,8 +3689,8 @@ export function useAutoSave() {
 
 #### [T129] [US10] Create ScriptTestPanel
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
@@ -3748,8 +3748,8 @@ export function useAutoSave() {
 
 #### [T132] [US10] Implement API autocomplete definitions
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
