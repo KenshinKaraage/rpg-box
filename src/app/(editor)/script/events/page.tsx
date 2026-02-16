@@ -1,13 +1,21 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
-import { ScriptList, ScriptEditor, ScriptSettingsPanel } from '@/features/script-editor';
+import {
+  ScriptList,
+  ScriptEditor,
+  ScriptSettingsPanel,
+  ScriptTestPanel,
+} from '@/features/script-editor';
 import { useStore } from '@/stores';
+import { cn } from '@/lib/utils';
 import { generateId } from '@/lib/utils';
 import { createScript } from '@/types/script';
 import type { Script } from '@/types/script';
+
+type RightTab = 'settings' | 'test';
 
 export default function EventScriptPage() {
   const scripts = useStore((state) => state.scripts);
@@ -16,6 +24,7 @@ export default function EventScriptPage() {
   const updateScript = useStore((state) => state.updateScript);
   const deleteScript = useStore((state) => state.deleteScript);
   const selectScript = useStore((state) => state.selectScript);
+  const [rightTab, setRightTab] = useState<RightTab>('settings');
 
   // Top-level event scripts
   const eventScripts = useMemo(
@@ -84,7 +93,41 @@ export default function EventScriptPage() {
         />
       }
       center={<ScriptEditor script={selectedScript} onContentChange={handleContentChange} />}
-      right={<ScriptSettingsPanel script={selectedScript} onUpdate={updateScript} />}
+      right={
+        <div className="flex h-full flex-col">
+          <div className="flex border-b">
+            <button
+              className={cn(
+                'flex-1 px-4 py-2 text-sm font-medium',
+                rightTab === 'settings'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={() => setRightTab('settings')}
+            >
+              設定
+            </button>
+            <button
+              className={cn(
+                'flex-1 px-4 py-2 text-sm font-medium',
+                rightTab === 'test'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={() => setRightTab('test')}
+            >
+              テスト
+            </button>
+          </div>
+          <div className="min-h-0 flex-1">
+            {rightTab === 'settings' ? (
+              <ScriptSettingsPanel script={selectedScript} onUpdate={updateScript} />
+            ) : (
+              <ScriptTestPanel script={selectedScript} />
+            )}
+          </div>
+        </div>
+      }
     />
   );
 }
