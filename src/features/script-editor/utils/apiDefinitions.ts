@@ -57,6 +57,59 @@ declare const scriptAPI: {
   setVar(variableId: string, value: unknown): void;
 };
 
+/** 変数API - ゲーム変数の読み書き */
+declare const Variable: {
+  /** 変数の値を取得 */
+  get(name: string): unknown;
+  /** 変数の値を設定 */
+  set(name: string, value: unknown): void;
+  /** 全変数を取得 */
+  getAll(): Record<string, unknown>;
+};
+
+/** データAPI - データベースエントリの参照 */
+declare const Data: {
+  /** データ型からエントリ一覧を取得 */
+  get(typeId: string): Record<string, unknown>[];
+  /** データ型からエントリを検索 */
+  find(typeId: string, predicate: (entry: Record<string, unknown>) => boolean): Record<string, unknown> | undefined;
+  /** Data.typeId でエントリ一覧にアクセス */
+  [typeId: string]: Record<string, unknown>[];
+};
+
+/** サウンドAPI */
+declare const Sound: {
+  /** BGMを再生 */
+  playBGM(assetId: string, options?: { volume?: number; loop?: boolean }): void;
+  /** BGMを停止 */
+  stopBGM(): void;
+  /** 効果音を再生 */
+  playSE(assetId: string, options?: { volume?: number }): void;
+};
+
+/** カメラAPI */
+declare const Camera: {
+  /** ズーム */
+  zoom(level: number, duration?: number): void;
+  /** パン移動 */
+  pan(x: number, y: number, duration?: number): void;
+  /** 画面揺れ */
+  shake(intensity?: number, duration?: number): void;
+};
+
+/** セーブAPI */
+declare const Save: {
+  /** セーブ */
+  save(slotId?: number): void;
+  /** ロード */
+  load(slotId?: number): void;
+};
+
+/** スクリプト呼び出し - Script.callId() で他のスクリプトを呼び出し */
+declare const Script: {
+  [callId: string]: (args?: Record<string, unknown>) => Promise<unknown>;
+};
+
 /** コンソール出力 (デバッグ用) */
 declare const console: {
   log(...args: unknown[]): void;

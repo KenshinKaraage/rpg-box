@@ -49,13 +49,13 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     let finalResult: string | null = null;
     let hasError = false;
 
-    // Build args
+    // Build args keyed by arg.id (script variable name)
     const args: Record<string, unknown> = {};
     for (const arg of script.args) {
       const raw = argValues[arg.id] ?? '';
-      if (arg.fieldType === 'number') args[arg.name] = Number(raw) || 0;
-      else if (arg.fieldType === 'boolean') args[arg.name] = raw === 'true';
-      else args[arg.name] = raw;
+      if (arg.fieldType === 'number') args[arg.id] = Number(raw) || 0;
+      else if (arg.fieldType === 'boolean') args[arg.id] = raw === 'true';
+      else args[arg.id] = raw;
     }
 
     // Map store variables to engine format

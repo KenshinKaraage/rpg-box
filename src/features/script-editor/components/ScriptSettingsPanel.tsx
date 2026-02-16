@@ -30,6 +30,7 @@ interface ScriptSettingsPanelProps {
 
 export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelProps) {
   const [localName, setLocalName] = useState('');
+  const [localCallId, setLocalCallId] = useState('');
   const [localDesc, setLocalDesc] = useState('');
 
   // Sync local state when script changes
@@ -37,6 +38,7 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
   if (script && script.id !== prevScriptId) {
     setPrevScriptId(script.id);
     setLocalName(script.name);
+    setLocalCallId(script.callId ?? '');
     setLocalDesc(script.description ?? '');
   }
   if (!script && prevScriptId !== null) {
@@ -59,6 +61,13 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
     }
   };
 
+  const handleCallIdBlur = () => {
+    const trimmed = localCallId.trim() || undefined;
+    if (trimmed !== (script.callId ?? undefined)) {
+      onUpdate(script.id, { callId: trimmed });
+    }
+  };
+
   const handleDescBlur = () => {
     if (localDesc !== (script.description ?? '')) {
       onUpdate(script.id, { description: localDesc });
@@ -66,9 +75,10 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
   };
 
   const handleAddArg = () => {
+    const index = script.args.length + 1;
     const newArg: ScriptArg = {
-      id: `arg_${Date.now()}`,
-      name: '新しい引数',
+      id: `param${index}`,
+      name: `引数${index}`,
       fieldType: 'string',
       required: false,
     };
@@ -98,6 +108,24 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
               onBlur={handleNameBlur}
             />
           </div>
+
+          {/* Call ID (event/component only) */}
+          {!isInternal && (
+            <div className="space-y-2">
+              <Label htmlFor="script-call-id">呼び出しID</Label>
+              <Input
+                id="script-call-id"
+                value={localCallId}
+                onChange={(e) => setLocalCallId(e.target.value)}
+                onBlur={handleCallIdBlur}
+                placeholder="例: battle_start"
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                Script.{localCallId || '___'}() で呼び出し可能
+              </p>
+            </div>
+          )}
 
           {/* Description */}
           <div className="space-y-2">
@@ -139,11 +167,23 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
-                      <Input
-                        value={arg.name}
-                        onChange={(e) => handleUpdateArg(arg.id, { name: e.target.value })}
-                        placeholder="引数名"
-                      />
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">変数名</Label>
+                        <Input
+                          value={arg.id}
+                          onChange={(e) => handleUpdateArg(arg.id, { id: e.target.value })}
+                          placeholder="例: damage"
+                          className="font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">表示名</Label>
+                        <Input
+                          value={arg.name}
+                          onChange={(e) => handleUpdateArg(arg.id, { name: e.target.value })}
+                          placeholder="例: ダメージ量"
+                        />
+                      </div>
                       <Select
                         value={arg.fieldType}
                         onValueChange={(v) => handleUpdateArg(arg.id, { fieldType: v })}

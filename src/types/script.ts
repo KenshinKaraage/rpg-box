@@ -36,8 +36,10 @@ export interface ScriptArg {
 export interface Script {
   /** スクリプトID */
   id: string;
-  /** スクリプト名 */
+  /** スクリプト名（表示用） */
   name: string;
+  /** 呼び出し用ID（JS識別子、Script.callId() で呼び出し） */
+  callId?: string;
   /** スクリプトの種類 */
   type: ScriptType;
   /** JavaScript ソースコード */

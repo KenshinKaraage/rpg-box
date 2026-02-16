@@ -39,7 +39,7 @@ export class GameEngine {
   }
 
   private async executeScript(config: ScriptModeConfig): Promise<void> {
-    const { projectData, scriptId, testSettings } = config;
+    const { projectData, scriptId, args, testSettings } = config;
 
     const script = projectData.scripts.find((s) => s.id === scriptId);
     if (!script) {
@@ -66,7 +66,7 @@ export class GameEngine {
       send({ type: 'log', level: 'error', message: a.map(String).join(' ') });
 
     try {
-      const result = await runner.execute(script, context);
+      const result = await runner.execute(script, context, args);
       this.sendMessage({ type: 'script-result', value: result });
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);

@@ -173,4 +173,94 @@ describe('ScriptRunner', () => {
     const context = createMockContext();
     await expect(runner.execute(script, context)).rejects.toThrow('boom');
   });
+
+  it('injects script args as named variables', async () => {
+    const script: Script = {
+      id: 's1',
+      name: 'ダメージ計算',
+      type: 'event',
+      content: 'return damage * multiplier;',
+      args: [
+        { id: 'damage', name: 'ダメージ量', fieldType: 'number', required: true },
+        { id: 'multiplier', name: '倍率', fieldType: 'number', required: true },
+      ],
+    };
+    allScripts.push(script);
+
+    const context = createMockContext();
+    const result = await runner.execute(script, context, { damage: 10, multiplier: 3 });
+    expect(result).toBe(30);
+  });
+
+  it('calls other scripts via Script namespace', async () => {
+    const calcScript: Script = {
+      id: 'calc',
+      name: '計算スクリプト',
+      callId: 'calc_damage',
+      type: 'event',
+      content: 'return atk - def;',
+      args: [
+        { id: 'atk', name: '攻撃力', fieldType: 'number', required: true },
+        { id: 'def', name: '防御力', fieldType: 'number', required: true },
+      ],
+    };
+    const mainScript: Script = {
+      id: 'main',
+      name: 'メイン',
+      type: 'event',
+      content: 'const dmg = await Script.calc_damage({ atk: 50, def: 20 }); return dmg;',
+      args: [],
+    };
+    allScripts.push(calcScript, mainScript);
+
+    const context = createMockContext();
+    const result = await runner.execute(mainScript, context);
+    expect(result).toBe(30);
+  });
+
+  it('Script namespace is not available for internal scripts callId', async () => {
+    const internalScript: Script = {
+      id: 'int',
+      name: '_helper',
+      callId: 'should_not_appear',
+      type: 'internal',
+      content: 'return 1;',
+      parentId: 'main',
+      args: [],
+    };
+    const mainScript: Script = {
+      id: 'main',
+      name: 'メイン',
+      type: 'event',
+      content: 'return typeof Script.should_not_appear;',
+      args: [],
+    };
+    allScripts.push(internalScript, mainScript);
+
+    const context = createMockContext();
+    const result = await runner.execute(mainScript, context);
+    expect(result).toBe('undefined');
+  });
+
+  it('scripts without callId are not in Script namespace', async () => {
+    const noCallId: Script = {
+      id: 'no-call',
+      name: 'No CallId',
+      type: 'event',
+      content: 'return 1;',
+      args: [],
+    };
+    const mainScript: Script = {
+      id: 'main',
+      name: 'メイン',
+      type: 'event',
+      content: 'return Object.keys(Script).length;',
+      args: [],
+    };
+    allScripts.push(noCallId, mainScript);
+
+    const context = createMockContext();
+    const result = await runner.execute(mainScript, context);
+    expect(result).toBe(0);
+  });
 });

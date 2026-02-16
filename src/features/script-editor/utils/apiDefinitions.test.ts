@@ -32,6 +32,30 @@ describe('apiDefinitions', () => {
       expect(SCRIPT_API_DECLARATIONS).toContain('showTextInput');
     });
 
+    it('contains Variable API declaration', () => {
+      expect(SCRIPT_API_DECLARATIONS).toContain('declare const Variable');
+    });
+
+    it('contains Data API declaration', () => {
+      expect(SCRIPT_API_DECLARATIONS).toContain('declare const Data');
+    });
+
+    it('contains Sound API declaration', () => {
+      expect(SCRIPT_API_DECLARATIONS).toContain('declare const Sound');
+    });
+
+    it('contains Camera API declaration', () => {
+      expect(SCRIPT_API_DECLARATIONS).toContain('declare const Camera');
+    });
+
+    it('contains Save API declaration', () => {
+      expect(SCRIPT_API_DECLARATIONS).toContain('declare const Save');
+    });
+
+    it('contains Script namespace declaration', () => {
+      expect(SCRIPT_API_DECLARATIONS).toContain('declare const Script');
+    });
+
     it('contains JSDoc comments for hover documentation', () => {
       expect(SCRIPT_API_DECLARATIONS).toContain('/** メッセージを表示する */');
       expect(SCRIPT_API_DECLARATIONS).toContain('/** 変数の値を取得 */');
