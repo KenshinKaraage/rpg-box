@@ -9,6 +9,10 @@ import {
   ScriptSettingsPanel,
   ScriptTestPanel,
 } from '@/features/script-editor';
+import {
+  generateReturnTemplate,
+  updateContentWithReturn,
+} from '@/features/script-editor/utils/returnTemplate';
 import { useStore } from '@/stores';
 import { cn } from '@/lib/utils';
 import { generateId } from '@/lib/utils';
@@ -24,6 +28,7 @@ export default function ComponentScriptPage() {
   const updateScript = useStore((state) => state.updateScript);
   const deleteScript = useStore((state) => state.deleteScript);
   const selectScript = useStore((state) => state.selectScript);
+  const classes = useStore((state) => state.classes);
   const [rightTab, setRightTab] = useState<RightTab>('settings');
 
   // Top-level component scripts
@@ -78,6 +83,30 @@ export default function ComponentScriptPage() {
     updateScript(id, { content });
   };
 
+  const handleSettingsUpdate = (id: string, updates: Partial<Script>) => {
+    updateScript(id, updates);
+
+    // returns が変更されたらコンテンツの return 文も更新
+    if (updates.returns) {
+      const script = scripts.find((s) => s.id === id);
+      if (script) {
+        const classInfos = classes.map((c) => ({
+          id: c.id,
+          fields: c.fields.map((f) => ({
+            id: f.id,
+            type: f.type,
+            classId: (f as unknown as { classId?: string }).classId,
+          })),
+        }));
+        const template = generateReturnTemplate(updates.returns, classInfos);
+        const newContent = updateContentWithReturn(script.content, template);
+        if (newContent !== script.content) {
+          updateScript(id, { content: newContent });
+        }
+      }
+    }
+  };
+
   return (
     <ThreeColumnLayout
       left={
@@ -121,7 +150,7 @@ export default function ComponentScriptPage() {
           </div>
           <div className="min-h-0 flex-1">
             {rightTab === 'settings' ? (
-              <ScriptSettingsPanel script={selectedScript} onUpdate={updateScript} />
+              <ScriptSettingsPanel script={selectedScript} onUpdate={handleSettingsUpdate} />
             ) : (
               <ScriptTestPanel script={selectedScript} />
             )}

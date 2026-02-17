@@ -182,8 +182,8 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                 <p className="text-sm text-muted-foreground">引数がありません</p>
               ) : (
                 <ul className="space-y-3">
-                  {script.args.map((arg) => (
-                    <li key={arg.id} className="space-y-2 rounded border p-3">
+                  {script.args.map((arg, index) => (
+                    <li key={index} className="space-y-2 rounded border p-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">{arg.name}</span>
                         <Button
@@ -268,8 +268,8 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                     </p>
                   )}
                   <ul className="space-y-3">
-                    {script.returns.map((ret) => (
-                      <li key={ret.id} className="space-y-2 rounded border p-3">
+                    {script.returns.map((ret, index) => (
+                      <li key={index} className="space-y-2 rounded border p-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">{ret.name}</span>
                           <Button

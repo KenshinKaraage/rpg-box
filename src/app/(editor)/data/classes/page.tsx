@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { TwoColumnLayout } from '@/components/common/TwoColumnLayout';
 import { ClassList, ClassEditor } from '@/features/data-editor';
 import { useStore } from '@/stores';
-import { createCustomClass } from '@/types/customClass';
+import { createCustomClass, wouldCreateCycle } from '@/types/customClass';
 import { createFieldTypeInstance } from '@/types/fields';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { generateId } from '@/lib/utils';
@@ -79,9 +79,13 @@ export default function ClassesPage() {
 
   const configContext: FieldConfigContext = useMemo(
     () => ({
-      classes: classes.map((c) => ({ id: c.id, name: c.name })),
+      classes: selectedClassId
+        ? classes
+            .filter((c) => !wouldCreateCycle(selectedClassId, c.id, classes))
+            .map((c) => ({ id: c.id, name: c.name }))
+        : classes.map((c) => ({ id: c.id, name: c.name })),
     }),
-    [classes]
+    [classes, selectedClassId]
   );
 
   return (
