@@ -31,6 +31,21 @@ export interface ScriptArg {
 }
 
 /**
+ * スクリプト返り値定義
+ * イベントアクションで返り値を変数に代入する際の型情報
+ */
+export interface ScriptReturn {
+  /** 返り値ID（return オブジェクトのキー名） */
+  id: string;
+  /** 表示名 */
+  name: string;
+  /** FieldType の type 名 ('number', 'string', 'class' 等) */
+  fieldType: string;
+  /** 配列かどうか */
+  isArray: boolean;
+}
+
+/**
  * スクリプト
  */
 export interface Script {
@@ -46,6 +61,8 @@ export interface Script {
   content: string;
   /** 引数定義（event/component 用） */
   args: ScriptArg[];
+  /** 返り値定義（イベントアクションでの変数代入に使用） */
+  returns: ScriptReturn[];
   /** 親スクリプトID（internal のみ） */
   parentId?: string;
   /** 説明 */
@@ -62,6 +79,7 @@ export function createScript(id: string, name: string, type: ScriptType): Script
     type,
     content: '',
     args: [],
+    returns: [],
     description: '',
   };
 }

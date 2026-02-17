@@ -1,3 +1,4 @@
+import '@/types/fields'; // register field types
 import type { Script } from '@/types/script';
 
 import type { ScriptModeConfig, EngineMessage } from '../types';
@@ -39,7 +40,7 @@ describe('GameEngine', () => {
 
   it('executes script and sends result', async () => {
     const scripts: Script[] = [
-      { id: 's1', name: 'test', type: 'event', content: 'return 42;', args: [] },
+      { id: 's1', name: 'test', type: 'event', content: 'return 42;', args: [], returns: [] },
     ];
     const config = makeScriptConfig(scripts, 's1');
 
@@ -50,7 +51,14 @@ describe('GameEngine', () => {
 
   it('sends script-error on execution failure', async () => {
     const scripts: Script[] = [
-      { id: 's1', name: 'test', type: 'event', content: 'throw new Error("boom");', args: [] },
+      {
+        id: 's1',
+        name: 'test',
+        type: 'event',
+        content: 'throw new Error("boom");',
+        args: [],
+        returns: [],
+      },
     ];
     const config = makeScriptConfig(scripts, 's1');
 
@@ -77,7 +85,14 @@ describe('GameEngine', () => {
 
   it('applies testSettings variables to context', async () => {
     const scripts: Script[] = [
-      { id: 's1', name: 'test', type: 'event', content: 'return Variable.get("hp");', args: [] },
+      {
+        id: 's1',
+        name: 'test',
+        type: 'event',
+        content: 'return Variable.get("hp");',
+        args: [],
+        returns: [],
+      },
     ];
     const config: ScriptModeConfig = {
       ...makeScriptConfig(scripts, 's1'),
@@ -99,6 +114,7 @@ describe('GameEngine', () => {
         type: 'event',
         content: 'console.log("debug info"); return 1;',
         args: [],
+        returns: [],
       },
     ];
     const config = makeScriptConfig(scripts, 's1');
@@ -119,6 +135,7 @@ describe('GameEngine', () => {
         type: 'event',
         content: 'Variable.set("hp", 50); return 1;',
         args: [],
+        returns: [],
       },
     ];
     const config: ScriptModeConfig = {
@@ -147,5 +164,68 @@ describe('GameEngine', () => {
     await engine.handleMessage({ type: 'pause' });
     await engine.handleMessage({ type: 'resume' });
     // Should not throw
+  });
+
+  it('sends return-type error when return value type mismatches', async () => {
+    const scripts: Script[] = [
+      {
+        id: 's1',
+        name: 'test',
+        type: 'event',
+        content: 'return "not a number";',
+        args: [],
+        returns: [{ id: 'damage', name: 'ダメージ', fieldType: 'number', isArray: false }],
+      },
+    ];
+    const config = makeScriptConfig(scripts, 's1');
+
+    await engine.handleMessage({ type: 'start', config });
+
+    const typeError = sentMessages.find(
+      (m) => m.type === 'script-error' && m.errorType === 'return-type'
+    );
+    expect(typeError).toBeDefined();
+  });
+
+  it('does not send return-type error when return value matches', async () => {
+    const scripts: Script[] = [
+      {
+        id: 's1',
+        name: 'test',
+        type: 'event',
+        content: 'return 42;',
+        args: [],
+        returns: [{ id: 'damage', name: 'ダメージ', fieldType: 'number', isArray: false }],
+      },
+    ];
+    const config = makeScriptConfig(scripts, 's1');
+
+    await engine.handleMessage({ type: 'start', config });
+
+    const typeError = sentMessages.find(
+      (m) => m.type === 'script-error' && m.errorType === 'return-type'
+    );
+    expect(typeError).toBeUndefined();
+  });
+
+  it('sends runtime errorType on execution failure', async () => {
+    const scripts: Script[] = [
+      {
+        id: 's1',
+        name: 'test',
+        type: 'event',
+        content: 'throw new Error("boom");',
+        args: [],
+        returns: [],
+      },
+    ];
+    const config = makeScriptConfig(scripts, 's1');
+
+    await engine.handleMessage({ type: 'start', config });
+
+    const errorMsg = sentMessages.find(
+      (m) => m.type === 'script-error' && m.errorType === 'runtime'
+    );
+    expect(errorMsg).toBeDefined();
   });
 });

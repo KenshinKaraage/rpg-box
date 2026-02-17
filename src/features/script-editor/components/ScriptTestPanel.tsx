@@ -21,7 +21,8 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
   const [argValues, setArgValues] = useState<Record<string, string>>({});
   const [result, setResult] = useState<string | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
-  const [isError, setIsError] = useState(false);
+  const [runtimeError, setRuntimeError] = useState<string | null>(null);
+  const [returnTypeErrors, setReturnTypeErrors] = useState<string[]>([]);
 
   // Reset state when script changes
   const [prevScriptId, setPrevScriptId] = useState<string | null>(null);
@@ -30,7 +31,8 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     setArgValues({});
     setResult(null);
     setConsoleOutput([]);
-    setIsError(false);
+    setRuntimeError(null);
+    setReturnTypeErrors([]);
   }
   if (!script && prevScriptId !== null) {
     setPrevScriptId(null);
@@ -47,7 +49,8 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
   const handleExecute = async () => {
     const logs: string[] = [];
     let finalResult: string | null = null;
-    let hasError = false;
+    let errorMsg: string | null = null;
+    const typeErrors: string[] = [];
 
     // Build args keyed by arg.id (script variable name)
     const args: Record<string, unknown> = {};
@@ -87,17 +90,21 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
           finalResult = msg.value !== undefined ? JSON.stringify(msg.value) : 'undefined';
           break;
         case 'script-error':
-          finalResult = msg.error;
-          hasError = true;
+          if (msg.errorType === 'return-type') {
+            typeErrors.push(msg.error);
+          } else {
+            errorMsg = msg.error;
+          }
           break;
       }
     });
 
     await engine.handleMessage({ type: 'start', config });
 
-    setResult(finalResult);
-    setIsError(hasError);
+    setResult(errorMsg ?? finalResult);
+    setRuntimeError(errorMsg);
     setConsoleOutput(logs);
+    setReturnTypeErrors(typeErrors);
   };
 
   return (
@@ -137,10 +144,25 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
             <div className="space-y-1">
               <Label>結果</Label>
               <pre
-                className={`rounded border p-2 text-xs ${isError ? 'border-destructive text-destructive' : ''}`}
+                className={`rounded border p-2 text-xs ${runtimeError ? 'border-destructive text-destructive' : ''}`}
                 data-testid="test-result"
               >
                 {result}
+              </pre>
+            </div>
+          )}
+
+          {/* Return type errors */}
+          {returnTypeErrors.length > 0 && (
+            <div className="space-y-1">
+              <Label>返り値の型エラー</Label>
+              <pre
+                className="rounded border border-destructive p-2 text-xs text-destructive"
+                data-testid="return-type-errors"
+              >
+                {returnTypeErrors.map((err, i) => (
+                  <div key={i}>{err}</div>
+                ))}
               </pre>
             </div>
           )}

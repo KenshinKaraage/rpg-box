@@ -7,6 +7,7 @@
 
 import type { EditorMessage, EngineMessage, FullModeConfig, ScriptModeConfig } from '../types';
 import { GameContext } from '../runtime/GameContext';
+import { validateScriptReturn } from '../validateReturn';
 
 import { ScriptRunner } from './ScriptRunner';
 
@@ -43,7 +44,11 @@ export class GameEngine {
 
     const script = projectData.scripts.find((s) => s.id === scriptId);
     if (!script) {
-      this.sendMessage({ type: 'script-error', error: `Script "${scriptId}" not found` });
+      this.sendMessage({
+        type: 'script-error',
+        error: `Script "${scriptId}" not found`,
+        errorType: 'runtime',
+      });
       return;
     }
 
@@ -68,10 +73,18 @@ export class GameEngine {
     try {
       const result = await runner.execute(script, context, args);
       this.sendMessage({ type: 'script-result', value: result });
+
+      // Validate return value against declared types
+      if (script.returns.length > 0) {
+        const errors = validateScriptReturn(result, script.returns);
+        for (const err of errors) {
+          this.sendMessage({ type: 'script-error', error: err, errorType: 'return-type' });
+        }
+      }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       const stack = error instanceof Error ? error.stack : undefined;
-      this.sendMessage({ type: 'script-error', error: msg, stack });
+      this.sendMessage({ type: 'script-error', error: msg, errorType: 'runtime', stack });
     } finally {
       console.log = originalLog;
       console.warn = originalWarn;

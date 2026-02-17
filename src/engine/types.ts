@@ -102,9 +102,12 @@ export type EditorMessage =
   | { type: 'pause' }
   | { type: 'resume' };
 
+/** スクリプトエラーの種別 */
+export type ScriptErrorType = 'runtime' | 'return-type';
+
 export type EngineMessage =
   | { type: 'ready' }
   | { type: 'log'; level: 'info' | 'warn' | 'error'; message: string }
   | { type: 'script-result'; value: unknown }
-  | { type: 'script-error'; error: string; stack?: string }
+  | { type: 'script-error'; error: string; errorType: ScriptErrorType; stack?: string }
   | { type: 'state-update'; variables: Record<string, unknown> };

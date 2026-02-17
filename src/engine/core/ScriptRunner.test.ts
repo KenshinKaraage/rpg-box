@@ -51,6 +51,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'return 42;',
       args: [],
+      returns: [],
     };
     allScripts.push(script);
 
@@ -66,6 +67,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'await scriptAPI.showMessage("hello"); return "done";',
       args: [],
+      returns: [],
     };
     allScripts.push(script);
 
@@ -82,6 +84,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'Variable.set("hp", 100); return Variable.get("hp");',
       args: [],
+      returns: [],
     };
     allScripts.push(script);
 
@@ -99,6 +102,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'return await _calcDamage(10, 3);',
       args: [],
+      returns: [],
     };
     const child: Script = {
       id: 'child-1',
@@ -107,6 +111,7 @@ describe('ScriptRunner', () => {
       content: 'return args[0] - args[1];',
       parentId: 'parent-1',
       args: [],
+      returns: [],
     };
     allScripts.push(parent, child);
 
@@ -122,6 +127,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'return await _helper();',
       args: [],
+      returns: [],
     };
     const child: Script = {
       id: 'c',
@@ -130,6 +136,7 @@ describe('ScriptRunner', () => {
       content: 'return await _subHelper();',
       parentId: 'p',
       args: [],
+      returns: [],
     };
     const grandchild: Script = {
       id: 'gc',
@@ -138,6 +145,7 @@ describe('ScriptRunner', () => {
       content: 'return 99;',
       parentId: 'c',
       args: [],
+      returns: [],
     };
     allScripts.push(parent, child, grandchild);
 
@@ -153,6 +161,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'return {{{;',
       args: [],
+      returns: [],
     };
     allScripts.push(script);
 
@@ -167,6 +176,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'throw new Error("boom");',
       args: [],
+      returns: [],
     };
     allScripts.push(script);
 
@@ -184,6 +194,7 @@ describe('ScriptRunner', () => {
         { id: 'damage', name: 'ダメージ量', fieldType: 'number', required: true },
         { id: 'multiplier', name: '倍率', fieldType: 'number', required: true },
       ],
+      returns: [],
     };
     allScripts.push(script);
 
@@ -203,6 +214,7 @@ describe('ScriptRunner', () => {
         { id: 'atk', name: '攻撃力', fieldType: 'number', required: true },
         { id: 'def', name: '防御力', fieldType: 'number', required: true },
       ],
+      returns: [],
     };
     const mainScript: Script = {
       id: 'main',
@@ -210,6 +222,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'const dmg = await Script.calc_damage({ atk: 50, def: 20 }); return dmg;',
       args: [],
+      returns: [],
     };
     allScripts.push(calcScript, mainScript);
 
@@ -227,6 +240,7 @@ describe('ScriptRunner', () => {
       content: 'return 1;',
       parentId: 'main',
       args: [],
+      returns: [],
     };
     const mainScript: Script = {
       id: 'main',
@@ -234,6 +248,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'return typeof Script.should_not_appear;',
       args: [],
+      returns: [],
     };
     allScripts.push(internalScript, mainScript);
 
@@ -249,6 +264,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'return 1;',
       args: [],
+      returns: [],
     };
     const mainScript: Script = {
       id: 'main',
@@ -256,6 +272,7 @@ describe('ScriptRunner', () => {
       type: 'event',
       content: 'return Object.keys(Script).length;',
       args: [],
+      returns: [],
     };
     allScripts.push(noCallId, mainScript);
 

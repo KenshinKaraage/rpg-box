@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import type { Script, ScriptArg } from '@/types/script';
+import type { Script, ScriptArg, ScriptReturn } from '@/types/script';
 
 const FIELD_TYPES = [
   { value: 'string', label: '文字列' },
@@ -92,6 +92,26 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
 
   const handleDeleteArg = (argId: string) => {
     onUpdate(script.id, { args: script.args.filter((a) => a.id !== argId) });
+  };
+
+  const handleAddReturn = () => {
+    const index = script.returns.length + 1;
+    const newRet: ScriptReturn = {
+      id: `result${index}`,
+      name: `返り値${index}`,
+      fieldType: 'string',
+      isArray: false,
+    };
+    onUpdate(script.id, { returns: [...script.returns, newRet] });
+  };
+
+  const handleUpdateReturn = (retId: string, updates: Partial<ScriptReturn>) => {
+    const newReturns = script.returns.map((r) => (r.id === retId ? { ...r, ...updates } : r));
+    onUpdate(script.id, { returns: newReturns });
+  };
+
+  const handleDeleteReturn = (retId: string) => {
+    onUpdate(script.id, { returns: script.returns.filter((r) => r.id !== retId) });
   };
 
   return (
@@ -214,6 +234,93 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                     </li>
                   ))}
                 </ul>
+              )}
+            </div>
+          )}
+
+          {/* Returns (event/component only) */}
+          {!isInternal && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>返り値</Label>
+                <Button size="sm" variant="outline" onClick={handleAddReturn}>
+                  <Plus className="mr-1 h-3 w-3" />
+                  追加
+                </Button>
+              </div>
+              {script.returns.length === 0 ? (
+                <p className="text-sm text-muted-foreground">返り値がありません</p>
+              ) : (
+                <>
+                  {script.returns.length > 1 && (
+                    <p className="text-xs text-muted-foreground">
+                      return {'{'} {script.returns.map((r) => r.id).join(', ')} {'}'}{' '}
+                      の形式で返してください
+                    </p>
+                  )}
+                  <ul className="space-y-3">
+                    {script.returns.map((ret) => (
+                      <li key={ret.id} className="space-y-2 rounded border p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{ret.name}</span>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={() => handleDeleteReturn(ret.id)}
+                            aria-label={`${ret.name}を削除`}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">キー名</Label>
+                          <Input
+                            value={ret.id}
+                            onChange={(e) => handleUpdateReturn(ret.id, { id: e.target.value })}
+                            placeholder="例: damage"
+                            className="font-mono"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">表示名</Label>
+                          <Input
+                            value={ret.name}
+                            onChange={(e) => handleUpdateReturn(ret.id, { name: e.target.value })}
+                            placeholder="例: ダメージ量"
+                          />
+                        </div>
+                        <Select
+                          value={ret.fieldType}
+                          onValueChange={(v) => handleUpdateReturn(ret.id, { fieldType: v })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FIELD_TYPES.map((ft) => (
+                              <SelectItem key={ft.value} value={ft.value}>
+                                {ft.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`isArray-${ret.id}`}
+                            checked={ret.isArray}
+                            onCheckedChange={(checked) =>
+                              handleUpdateReturn(ret.id, { isArray: checked === true })
+                            }
+                          />
+                          <Label htmlFor={`isArray-${ret.id}`} className="text-sm">
+                            配列
+                          </Label>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
             </div>
           )}
