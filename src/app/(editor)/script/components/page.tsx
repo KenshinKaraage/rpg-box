@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import {
@@ -9,10 +9,8 @@ import {
   ScriptSettingsPanel,
   ScriptTestPanel,
 } from '@/features/script-editor';
-import {
-  generateReturnTemplate,
-  updateContentWithReturn,
-} from '@/features/script-editor/utils/returnTemplate';
+import type { ScriptEditorHandle } from '@/features/script-editor';
+import { generateReturnTemplate } from '@/features/script-editor/utils/returnTemplate';
 import { useStore } from '@/stores';
 import { cn } from '@/lib/utils';
 import { generateId } from '@/lib/utils';
@@ -30,6 +28,7 @@ export default function ComponentScriptPage() {
   const selectScript = useStore((state) => state.selectScript);
   const classes = useStore((state) => state.classes);
   const [rightTab, setRightTab] = useState<RightTab>('settings');
+  const editorRef = useRef<ScriptEditorHandle>(null);
 
   // Top-level component scripts
   const componentScripts = useMemo(
@@ -84,27 +83,71 @@ export default function ComponentScriptPage() {
   };
 
   const handleSettingsUpdate = (id: string, updates: Partial<Script>) => {
-    updateScript(id, updates);
+    const script = scripts.find((s) => s.id === id);
 
-    // returns が変更されたらコンテンツの return 文も更新
-    if (updates.returns) {
-      const script = scripts.find((s) => s.id === id);
-      if (script) {
-        const classInfos = classes.map((c) => ({
-          id: c.id,
-          fields: c.fields.map((f) => ({
-            id: f.id,
-            type: f.type,
-            classId: (f as unknown as { classId?: string }).classId,
-          })),
-        }));
-        const template = generateReturnTemplate(updates.returns, classInfos);
-        const newContent = updateContentWithReturn(script.content, template);
-        if (newContent !== script.content) {
-          updateScript(id, { content: newContent });
+    // returns が変更されたら Monaco の return 文を部分編集で更新
+    if (updates.returns && script) {
+      const oldReturns = script.returns;
+      const newReturns = updates.returns;
+
+      // キー名(id)だけが変わったか判定
+      if (oldReturns.length === newReturns.length && newReturns.length > 1) {
+        let renamedOldKey: string | null = null;
+        let renamedNewKey: string | null = null;
+        let onlyKeyRenamed = true;
+
+        for (let i = 0; i < oldReturns.length; i++) {
+          const o = oldReturns[i]!;
+          const n = newReturns[i]!;
+          if (
+            o.id === n.id &&
+            o.fieldType === n.fieldType &&
+            o.classId === n.classId &&
+            o.isArray === n.isArray &&
+            o.name === n.name
+          )
+            continue;
+          // id 以外も変わっていたら全体更新
+          if (o.fieldType !== n.fieldType || o.classId !== n.classId || o.isArray !== n.isArray) {
+            onlyKeyRenamed = false;
+            break;
+          }
+          // 2箇所以上変わっていたら全体更新
+          if (renamedOldKey !== null) {
+            onlyKeyRenamed = false;
+            break;
+          }
+          if (o.id !== n.id) {
+            renamedOldKey = o.id;
+            renamedNewKey = n.id;
+          }
+        }
+
+        if (onlyKeyRenamed && renamedOldKey !== null && renamedNewKey !== null) {
+          updateScript(id, updates);
+          editorRef.current?.renameReturnKey(renamedOldKey, renamedNewKey);
+          return;
         }
       }
+
+      // 構造的な変更 — テンプレート全体を再生成
+      updateScript(id, updates);
+      const classInfos = classes.map((c) => ({
+        id: c.id,
+        fields: c.fields.map((f) => ({
+          id: f.id,
+          type: f.type,
+          classId: (f as unknown as { classId?: string }).classId,
+        })),
+      }));
+      const template = generateReturnTemplate(newReturns, classInfos);
+      if (template) {
+        editorRef.current?.applyReturnTemplate(template);
+      }
+      return;
     }
+
+    updateScript(id, updates);
   };
 
   return (
@@ -121,7 +164,13 @@ export default function ComponentScriptPage() {
           title="コンポーネントスクリプト"
         />
       }
-      center={<ScriptEditor script={selectedScript} onContentChange={handleContentChange} />}
+      center={
+        <ScriptEditor
+          ref={editorRef}
+          script={selectedScript}
+          onContentChange={handleContentChange}
+        />
+      }
       right={
         <div className="flex h-full flex-col">
           <div className="flex border-b">
