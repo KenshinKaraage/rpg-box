@@ -32,7 +32,9 @@ describe('FormBuilder', () => {
   const defaultProps = {
     dataType: testDataType,
     entry: testEntry,
+    existingEntryIds: ['alice', 'bob'],
     onUpdateEntry: jest.fn(),
+    onUpdateEntryId: jest.fn(),
   };
 
   beforeEach(() => {
@@ -55,9 +57,9 @@ describe('FormBuilder', () => {
   it('フィールド値を変更するとonUpdateEntryが呼ばれる', () => {
     render(<FormBuilder {...defaultProps} />);
 
-    // 名前フィールド（string）の入力を変更
+    // 名前フィールド（string）の入力を変更（textbox[0]はID入力なので[1]）
     const textInputs = screen.getAllByRole('textbox');
-    fireEvent.change(textInputs[0]!, { target: { value: 'ボブ' } });
+    fireEvent.change(textInputs[1]!, { target: { value: 'ボブ' } });
 
     expect(defaultProps.onUpdateEntry).toHaveBeenCalledWith('character', 'alice', {
       hp: 100,
@@ -77,10 +79,45 @@ describe('FormBuilder', () => {
     expect(screen.getByText('フィールドが定義されていません')).toBeInTheDocument();
   });
 
-  it('エントリIDが表示される', () => {
+  it('エントリIDが編集可能なInputで表示される', () => {
     render(<FormBuilder {...defaultProps} />);
 
-    expect(screen.getByText('alice')).toBeInTheDocument();
+    const idInput = screen.getByLabelText('ID');
+    expect(idInput).toHaveValue('alice');
+  });
+
+  it('エントリIDを変更するとonUpdateEntryIdが呼ばれる', () => {
+    render(<FormBuilder {...defaultProps} />);
+
+    const idInput = screen.getByLabelText('ID');
+    fireEvent.change(idInput, { target: { value: 'carol' } });
+    fireEvent.blur(idInput);
+
+    expect(defaultProps.onUpdateEntryId).toHaveBeenCalledWith('character', 'alice', 'carol');
+  });
+
+  it('重複IDの場合エラーが表示される', () => {
+    render(<FormBuilder {...defaultProps} />);
+
+    const idInput = screen.getByLabelText('ID');
+    fireEvent.change(idInput, { target: { value: 'bob' } });
+    fireEvent.blur(idInput);
+
+    expect(screen.getByText('このIDは既に使用されています')).toBeInTheDocument();
+    expect(defaultProps.onUpdateEntryId).not.toHaveBeenCalled();
+  });
+
+  it('無効なIDの場合エラーが表示される', () => {
+    render(<FormBuilder {...defaultProps} />);
+
+    const idInput = screen.getByLabelText('ID');
+    fireEvent.change(idInput, { target: { value: '123invalid' } });
+    fireEvent.blur(idInput);
+
+    expect(
+      screen.getByText('IDは英数字とアンダースコアのみ、先頭は数字不可です')
+    ).toBeInTheDocument();
+    expect(defaultProps.onUpdateEntryId).not.toHaveBeenCalled();
   });
 
   it('数値フィールドの値を変更するとonUpdateEntryが呼ばれる', () => {

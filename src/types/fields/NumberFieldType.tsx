@@ -22,6 +22,7 @@ import { NumberFieldConfig } from '@/features/data-editor/components/fields/Numb
 export class NumberFieldType extends FieldType<number> {
   readonly type = 'number';
   readonly label = '数値';
+  readonly tsType = 'number';
 
   /** 最小値 */
   min?: number;

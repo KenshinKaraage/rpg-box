@@ -21,6 +21,7 @@ import { BooleanFieldConfig } from '@/features/data-editor/components/fields/Boo
 export class BooleanFieldType extends FieldType<boolean> {
   readonly type = 'boolean';
   readonly label = '真偽値';
+  readonly tsType = 'boolean';
 
   /** チェックボックスの横に表示するラベル */
   checkboxLabel?: string;

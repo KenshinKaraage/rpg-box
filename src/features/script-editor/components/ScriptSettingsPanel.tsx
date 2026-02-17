@@ -62,8 +62,6 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
     );
   }
 
-  const isInternal = script.type === 'internal';
-
   const handleNameBlur = () => {
     if (localName !== script.name) {
       onUpdate(script.id, { name: localName });
@@ -139,7 +137,7 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
           </div>
 
           {/* Call ID (event/component only) */}
-          {!isInternal && (
+          {
             <div className="space-y-2">
               <Label htmlFor="script-call-id">呼び出しID</Label>
               <Input
@@ -154,7 +152,7 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                 Script.{localCallId || '___'}() で呼び出し可能
               </p>
             </div>
-          )}
+          }
 
           {/* Description */}
           <div className="space-y-2">
@@ -168,8 +166,22 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
             />
           </div>
 
+          {/* isAsync */}
+          {
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="script-is-async"
+                checked={script.isAsync}
+                onCheckedChange={(checked) => onUpdate(script.id, { isAsync: checked === true })}
+              />
+              <Label htmlFor="script-is-async" className="text-sm">
+                完了まで待機する
+              </Label>
+            </div>
+          }
+
           {/* Arguments (event/component only) */}
-          {!isInternal && (
+          {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>引数</Label>
@@ -245,10 +257,10 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                 </ul>
               )}
             </div>
-          )}
+          }
 
           {/* Returns (event/component only) */}
-          {!isInternal && (
+          {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>返り値</Label>
@@ -354,7 +366,7 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                 </>
               )}
             </div>
-          )}
+          }
         </div>
       </div>
     </div>

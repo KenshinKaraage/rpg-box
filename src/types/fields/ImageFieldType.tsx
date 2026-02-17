@@ -23,6 +23,7 @@ import {
 export class ImageFieldType extends FieldType<string | null> {
   readonly type = 'image';
   readonly label = '画像';
+  readonly tsType = 'string';
 
   /** 初期表示フォルダID */
   initialFolderId?: string;

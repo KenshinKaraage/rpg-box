@@ -27,6 +27,7 @@ import { DataListFieldConfig } from '@/features/data-editor/components/fields/Da
 export class DataListFieldType extends FieldType<string[]> {
   readonly type = 'dataList';
   readonly label = 'データ参照(複数)';
+  readonly tsType = 'string[]';
 
   /** 参照先DataType ID */
   referenceTypeId: string = '';

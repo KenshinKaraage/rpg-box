@@ -41,7 +41,15 @@ describe('GameEngine', () => {
 
   it('executes script and sends result', async () => {
     const scripts: Script[] = [
-      { id: 's1', name: 'test', type: 'event', content: 'return 42;', args: [], returns: [] },
+      {
+        id: 's1',
+        name: 'test',
+        type: 'event',
+        content: 'return 42;',
+        args: [],
+        returns: [],
+        isAsync: false,
+      },
     ];
     const config = makeScriptConfig(scripts, 's1');
 
@@ -59,6 +67,7 @@ describe('GameEngine', () => {
         content: 'throw new Error("boom");',
         args: [],
         returns: [],
+        isAsync: false,
       },
     ];
     const config = makeScriptConfig(scripts, 's1');
@@ -93,6 +102,7 @@ describe('GameEngine', () => {
         content: 'return Variable.get("hp");',
         args: [],
         returns: [],
+        isAsync: false,
       },
     ];
     const config: ScriptModeConfig = {
@@ -116,6 +126,7 @@ describe('GameEngine', () => {
         content: 'console.log("debug info"); return 1;',
         args: [],
         returns: [],
+        isAsync: false,
       },
     ];
     const config = makeScriptConfig(scripts, 's1');
@@ -137,6 +148,7 @@ describe('GameEngine', () => {
         content: 'Variable.set("hp", 50); return 1;',
         args: [],
         returns: [],
+        isAsync: false,
       },
     ];
     const config: ScriptModeConfig = {
@@ -177,6 +189,7 @@ describe('GameEngine', () => {
         content: 'return "not a number";',
         args: [],
         returns: [{ id: 'damage', name: 'ダメージ', fieldType: 'number', isArray: false }],
+        isAsync: false,
       },
     ];
     const config = makeScriptConfig(scripts, 's1');
@@ -198,6 +211,7 @@ describe('GameEngine', () => {
         content: 'return 42;',
         args: [],
         returns: [{ id: 'damage', name: 'ダメージ', fieldType: 'number', isArray: false }],
+        isAsync: false,
       },
     ];
     const config = makeScriptConfig(scripts, 's1');
@@ -219,6 +233,7 @@ describe('GameEngine', () => {
         content: 'throw new Error("boom");',
         args: [],
         returns: [],
+        isAsync: false,
       },
     ];
     const config = makeScriptConfig(scripts, 's1');

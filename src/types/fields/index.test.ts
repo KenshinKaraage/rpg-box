@@ -17,6 +17,7 @@ import {
 class TestFieldType extends FieldType<string> {
   readonly type = 'test';
   readonly label = 'テスト';
+  readonly tsType = 'string';
 
   getDefaultValue(): string {
     return '';
@@ -49,6 +50,7 @@ class TestFieldType extends FieldType<string> {
 class AnotherFieldType extends FieldType<number> {
   readonly type = 'another';
   readonly label = '別のタイプ';
+  readonly tsType = 'number';
 
   getDefaultValue(): number {
     return 0;

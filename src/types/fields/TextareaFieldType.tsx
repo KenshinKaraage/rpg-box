@@ -22,6 +22,7 @@ import { TextareaFieldConfig } from '@/features/data-editor/components/fields/Te
 export class TextareaFieldType extends FieldType<string> {
   readonly type = 'textarea';
   readonly label = 'テキストエリア';
+  readonly tsType = 'string';
 
   /** 最大文字数 */
   maxLength?: number;

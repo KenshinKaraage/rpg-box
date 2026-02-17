@@ -109,6 +109,12 @@ export abstract class FieldType<T = unknown> {
   abstract readonly label: string;
 
   /**
+   * スクリプトでの TypeScript 型名
+   * Monaco の IntelliSense で引数・返り値の型として使用される
+   */
+  abstract readonly tsType: string;
+
+  /**
    * フィールドID（英数字とアンダースコアのみ）
    * データベース内で一意に識別するために使用
    */

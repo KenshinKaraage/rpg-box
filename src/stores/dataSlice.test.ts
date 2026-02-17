@@ -281,6 +281,27 @@ describe('dataSlice', () => {
       expect(result.current.dataEntries['character']?.[0]?.values['hp']).toBe(200);
     });
 
+    it('updateDataEntryId: エントリIDを変更できる', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.addDataType(createDataType('character', 'キャラクター'));
+        result.current.addDataEntry({
+          id: 'alice',
+          typeId: 'character',
+          values: { name: 'アリス' },
+        });
+        result.current.selectDataEntry('alice');
+      });
+
+      act(() => {
+        result.current.updateDataEntryId('character', 'alice', 'alice_renamed');
+      });
+
+      expect(result.current.dataEntries['character']?.[0]?.id).toBe('alice_renamed');
+      expect(result.current.selectedDataEntryId).toBe('alice_renamed');
+    });
+
     it('deleteDataEntry: エントリを削除できる', () => {
       const { result } = renderHook(() => useStore());
 

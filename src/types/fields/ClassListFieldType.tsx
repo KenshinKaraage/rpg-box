@@ -29,6 +29,7 @@ import { ClassListFieldEditor } from '@/features/data-editor/components/fields/C
 export class ClassListFieldType extends FieldType<ClassValue[]> {
   readonly type = 'classList';
   readonly label = 'クラスリスト';
+  readonly tsType = 'Record<string, unknown>[]';
 
   /** 参照するクラスID */
   classId: string = '';

@@ -39,6 +39,7 @@ export default function DataPage() {
   const reorderDataTypeFields = useStore((state) => state.reorderDataTypeFields);
 
   const addDataEntry = useStore((state) => state.addDataEntry);
+  const updateDataEntryId = useStore((state) => state.updateDataEntryId);
   const updateDataEntry = useStore((state) => state.updateDataEntry);
   const deleteDataEntry = useStore((state) => state.deleteDataEntry);
   const selectDataEntry = useStore((state) => state.selectDataEntry);
@@ -165,7 +166,9 @@ export default function DataPage() {
         key={selectedEntry.id}
         dataType={selectedDataType}
         entry={selectedEntry}
+        existingEntryIds={entries.map((e) => e.id)}
         onUpdateEntry={updateDataEntry}
+        onUpdateEntryId={updateDataEntryId}
       />
     ) : (
       <DataTypeEditor

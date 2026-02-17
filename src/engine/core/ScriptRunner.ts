@@ -37,7 +37,7 @@ const INJECTED_PARAM_NAMES = [
 
 export class ScriptRunner {
   private scripts: Script[];
-  private scriptNamespace: Record<string, (...args: unknown[]) => Promise<unknown>> | null = null;
+  private scriptNamespace: Record<string, (...args: unknown[]) => unknown> | null = null;
 
   constructor(scripts: Script[]) {
     this.scripts = scripts;
@@ -46,33 +46,40 @@ export class ScriptRunner {
   /**
    * Execute a script with the given context.
    * Internal scripts (children) are resolved recursively and injected as
-   * callable async functions by their `name` field.
+   * callable functions by their `name` field.
    * Script args are injected as named variables.
+   *
+   * isAsync scripts return Promise<unknown>, sync scripts return unknown directly.
    */
-  async execute(
-    script: Script,
-    context: ScriptContext,
-    argValues?: Record<string, unknown>
-  ): Promise<unknown> {
+  execute(script: Script, context: ScriptContext, argValues?: Record<string, unknown>): unknown {
     const internalFns = this.resolveInternalScripts(script.id, context);
     const ns = this.getScriptNamespace(context);
-    return this.compileAndRun(script.content, context, ns, internalFns, script.args, argValues);
+    return this.compileAndRun(
+      script.content,
+      context,
+      ns,
+      internalFns,
+      script.isAsync,
+      script.args,
+      argValues
+    );
   }
 
   /**
    * Build or return cached Script namespace object.
-   * Maps callId -> callable async function for all scripts with callId set.
+   * Maps callId -> callable function for all scripts with callId set.
+   * isAsync scripts return Promise, sync scripts return value directly.
    */
   private getScriptNamespace(
     context: ScriptContext
-  ): Record<string, (...args: unknown[]) => Promise<unknown>> {
+  ): Record<string, (...args: unknown[]) => unknown> {
     if (this.scriptNamespace) return this.scriptNamespace;
 
-    const ns: Record<string, (...args: unknown[]) => Promise<unknown>> = {};
+    const ns: Record<string, (...args: unknown[]) => unknown> = {};
     for (const s of this.scripts) {
       if (s.callId && s.type !== 'internal') {
-        ns[s.callId] = async (callArgs?: unknown): Promise<unknown> => {
-          const argsObj = (callArgs as Record<string, unknown>) ?? {};
+        ns[s.callId] = (...callArgs: unknown[]): unknown => {
+          const argsObj = this.resolveCallArgs(s, callArgs);
           return this.execute(s, context, argsObj);
         };
       }
@@ -83,15 +90,37 @@ export class ScriptRunner {
   }
 
   /**
+   * 呼び出し引数を位置引数 or オブジェクト引数から Record<string, unknown> に変換
+   */
+  private resolveCallArgs(script: Script, callArgs: unknown[]): Record<string, unknown> {
+    if (
+      callArgs.length === 1 &&
+      callArgs[0] !== null &&
+      typeof callArgs[0] === 'object' &&
+      !Array.isArray(callArgs[0]) &&
+      script.args.length > 1
+    ) {
+      return callArgs[0] as Record<string, unknown>;
+    }
+    const argsObj: Record<string, unknown> = {};
+    for (let i = 0; i < script.args.length; i++) {
+      if (i < callArgs.length) {
+        argsObj[script.args[i]!.id] = callArgs[i];
+      }
+    }
+    return argsObj;
+  }
+
+  /**
    * Find all internal scripts whose parentId matches the given scriptId,
    * compile each into a callable async function, and recurse for nested children.
    */
   private resolveInternalScripts(
     parentId: string,
     context: ScriptContext
-  ): Record<string, (...args: unknown[]) => Promise<unknown>> {
+  ): Record<string, (...args: unknown[]) => unknown> {
     const children = this.scripts.filter((s) => s.type === 'internal' && s.parentId === parentId);
-    const fns: Record<string, (...args: unknown[]) => Promise<unknown>> = {};
+    const fns: Record<string, (...args: unknown[]) => unknown> = {};
 
     for (const child of children) {
       // Recurse: resolve grandchildren of this child
@@ -99,7 +128,15 @@ export class ScriptRunner {
       const ns = this.getScriptNamespace(context);
 
       fns[child.name] = async (...args: unknown[]): Promise<unknown> => {
-        return this.compileAndRun(child.content, context, ns, { ...childInternalFns }, [], args);
+        return this.compileAndRun(
+          child.content,
+          context,
+          ns,
+          { ...childInternalFns },
+          child.isAsync,
+          [],
+          args
+        );
       };
     }
 
@@ -115,14 +152,15 @@ export class ScriptRunner {
    * 3. Script args as named variables (from ScriptArg.id)
    * 4. 'args' array for internal scripts (positional arguments)
    */
-  private async compileAndRun(
+  private compileAndRun(
     content: string,
     context: ScriptContext,
-    scriptNamespace: Record<string, (...args: unknown[]) => Promise<unknown>>,
-    internalFns: Record<string, (...args: unknown[]) => Promise<unknown>>,
+    scriptNamespace: Record<string, (...args: unknown[]) => unknown>,
+    internalFns: Record<string, (...args: unknown[]) => unknown>,
+    isAsync: boolean,
     scriptArgs?: ScriptArg[],
     argValues?: Record<string, unknown> | unknown[]
-  ): Promise<unknown> {
+  ): unknown {
     const internalNames = Object.keys(internalFns);
 
     // Script arg names (from ScriptArg.id)
@@ -159,8 +197,10 @@ export class ScriptRunner {
       argsArray,
     ];
 
-    // Wrap content in async IIFE for top-level await support
-    const wrappedBody = `return (async () => { ${content} })();`;
+    // isAsync: async IIFE（await 使用可能）、それ以外: 同期 IIFE
+    const wrappedBody = isAsync
+      ? `return (async () => { ${content} })();`
+      : `return (() => { ${content} })();`;
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const fn = new Function(...paramNames, wrappedBody);

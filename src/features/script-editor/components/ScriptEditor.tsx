@@ -1,12 +1,20 @@
 'use client';
 
-import { useRef, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import Editor from '@monaco-editor/react';
-import type { editor, IRange } from 'monaco-editor';
+import type { Monaco } from '@monaco-editor/react';
+import type { editor, IRange, IDisposable } from 'monaco-editor';
 
+import { createFieldTypeInstance } from '@/types/fields';
 import type { Script } from '@/types/script';
 
-import { registerApiDefinitions } from '../utils/apiDefinitions';
+import {
+  registerApiDefinitions,
+  updateScriptDeclarations,
+  updateArgDeclarations,
+  updateDataDeclarations,
+} from '../utils/apiDefinitions';
+import type { DataTypeInfo } from '../utils/apiDefinitions';
 
 export interface ScriptEditorHandle {
   /** return文を部分編集で更新する（Monaco 全体の再レンダリングを回避） */
@@ -17,14 +25,129 @@ export interface ScriptEditorHandle {
 
 interface ScriptEditorProps {
   script: Script | null;
+  scripts: Script[];
+  dataTypes: DataTypeInfo[];
   onContentChange: (id: string, content: string) => void;
 }
 
 export const ScriptEditor = forwardRef<ScriptEditorHandle, ScriptEditorProps>(function ScriptEditor(
-  { script, onContentChange },
+  { script, scripts, dataTypes, onContentChange },
   ref
 ) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
+  const completionDisposableRef = useRef<IDisposable | null>(null);
+
+  // scripts が変わったら動的な Script 型宣言を更新
+  useEffect(() => {
+    if (!monacoRef.current) return;
+    updateScriptDeclarations(monacoRef.current, scripts);
+  }, [scripts]);
+
+  // dataTypes が変わったら動的な Data 型宣言を更新
+  useEffect(() => {
+    if (!monacoRef.current) return;
+    updateDataDeclarations(monacoRef.current, dataTypes);
+  }, [dataTypes]);
+
+  // 選択スクリプトが変わったら引数宣言を更新（パネルで設定した引数が候補に表示される）
+  useEffect(() => {
+    if (!monacoRef.current) return;
+    updateArgDeclarations(monacoRef.current, script);
+  }, [script]);
+
+  // scripts が変わったら補完プロバイダを再登録
+  useEffect(() => {
+    const monaco = monacoRef.current;
+    if (!monaco) return;
+
+    // 前回のプロバイダを破棄
+    if (completionDisposableRef.current) {
+      completionDisposableRef.current.dispose();
+      completionDisposableRef.current = null;
+    }
+
+    const callableScripts = scripts.filter((s) => s.callId && s.type !== 'internal');
+    if (callableScripts.length === 0) return;
+
+    completionDisposableRef.current = monaco.languages.registerCompletionItemProvider(
+      'javascript',
+      {
+        triggerCharacters: ['.'],
+        provideCompletionItems(
+          model: editor.ITextModel,
+          position: { lineNumber: number; column: number }
+        ) {
+          // "Script." の後でのみ発動
+          const textUntilPosition = model.getValueInRange({
+            startLineNumber: position.lineNumber,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          });
+          if (!/Script\.\s*\w*$/.test(textUntilPosition)) return { suggestions: [] };
+
+          const word = model.getWordUntilPosition(position);
+          const range = {
+            startLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endLineNumber: position.lineNumber,
+            endColumn: word.endColumn,
+          };
+
+          const suggestions = callableScripts.map((s) => {
+            const args = s.args;
+            let insertText: string;
+            let insertTextRules:
+              | typeof monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+              | undefined;
+
+            if (args.length === 0) {
+              insertText = `${s.callId}()`;
+            } else if (args.length === 1) {
+              // 引数1つ → 位置引数スニペット
+              const ft = createFieldTypeInstance(args[0]!.fieldType);
+              const defaultStr = defaultSnippetValue(ft?.tsType ?? 'unknown');
+              insertText = `${s.callId}(\${1:${defaultStr}})`;
+              insertTextRules = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
+            } else {
+              // 引数2つ以上 → オブジェクトパターンスニペット
+              const fields = args
+                .map((a, i) => {
+                  const ft = createFieldTypeInstance(a.fieldType);
+                  const defaultStr = defaultSnippetValue(ft?.tsType ?? 'unknown');
+                  return `${a.id}: \${${i + 1}:${defaultStr}}`;
+                })
+                .join(', ');
+              insertText = `${s.callId}({${fields}})`;
+              insertTextRules = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
+            }
+
+            return {
+              label: {
+                label: s.callId!,
+                description: s.name,
+              },
+              kind: monaco.languages.CompletionItemKind.Method,
+              documentation: s.description || `スクリプト: ${s.name}`,
+              insertText,
+              insertTextRules,
+              range,
+            };
+          });
+
+          return { suggestions };
+        },
+      }
+    );
+
+    return () => {
+      if (completionDisposableRef.current) {
+        completionDisposableRef.current.dispose();
+        completionDisposableRef.current = null;
+      }
+    };
+  }, [scripts]);
 
   useImperativeHandle(ref, () => ({
     applyReturnTemplate(template: string) {
@@ -161,8 +284,12 @@ export const ScriptEditor = forwardRef<ScriptEditorHandle, ScriptEditorProps>(fu
           theme="vs-dark"
           value={script.content}
           onChange={(value) => onContentChange(script.id, value ?? '')}
-          onMount={(ed) => {
+          onMount={(ed, monaco) => {
             editorRef.current = ed;
+            monacoRef.current = monaco;
+            updateScriptDeclarations(monaco, scripts);
+            updateDataDeclarations(monaco, dataTypes);
+            updateArgDeclarations(monaco, script);
           }}
           beforeMount={(monaco) => {
             registerApiDefinitions(monaco);
@@ -179,3 +306,13 @@ export const ScriptEditor = forwardRef<ScriptEditorHandle, ScriptEditorProps>(fu
     </div>
   );
 });
+
+/** スニペット挿入時のデフォルト値テキスト */
+function defaultSnippetValue(tsType: string): string {
+  if (tsType === 'number') return '0';
+  if (tsType === 'boolean') return 'false';
+  if (tsType === 'string') return "''";
+  if (tsType.endsWith('[]')) return '[]';
+  if (tsType.startsWith('Record')) return '{}';
+  return 'undefined';
+}

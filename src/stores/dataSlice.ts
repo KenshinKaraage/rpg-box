@@ -35,6 +35,7 @@ export interface DataSlice {
 
   // DataEntry CRUD
   addDataEntry: (entry: DataEntry) => void;
+  updateDataEntryId: (typeId: string, oldId: string, newId: string) => void;
   updateDataEntry: (typeId: string, entryId: string, values: Record<string, unknown>) => void;
   deleteDataEntry: (typeId: string, entryId: string) => void;
   selectDataEntry: (id: string | null) => void;
@@ -170,6 +171,20 @@ export const createDataSlice = <T extends DataSlice>(
       const entries = state.dataEntries[entry.typeId];
       if (entries) {
         entries.push(entry);
+      }
+    }),
+
+  updateDataEntryId: (typeId: string, oldId: string, newId: string) =>
+    set((state) => {
+      const entries = state.dataEntries[typeId];
+      if (entries) {
+        const entry = entries.find((e) => e.id === oldId);
+        if (entry) {
+          entry.id = newId;
+          if (state.selectedDataEntryId === oldId) {
+            state.selectedDataEntryId = newId;
+          }
+        }
       }
     }),
 

@@ -3574,11 +3574,11 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/stores/scriptSlice.ts` 作成
-- [ ] `scripts: Script[]` 状態
-- [ ] CRUD アクション
-- [ ] 階層構造（内部スクリプト）対応
-- [ ] テスト追加
+- [x] `src/stores/scriptSlice.ts` 作成
+- [x] `scripts: Script[]` 状態
+- [x] CRUD アクション
+- [x] 階層構造（内部スクリプト）対応
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3595,9 +3595,9 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/script/event/page.tsx` 作成
-- [ ] ThreeColumnLayout 使用
-- [ ] 左: スクリプト一覧、中央: エディタ、右: 設定
+- [x] `src/app/(editor)/script/event/page.tsx` 作成
+- [x] ThreeColumnLayout 使用
+- [x] 左: スクリプト一覧、中央: エディタ、右: 設定
 
 **関連ファイル:**
 
@@ -3613,9 +3613,9 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/script/component/page.tsx` 作成
-- [ ] EventScriptPage と同様のレイアウト
-- [ ] コンポーネント用フィールド設定
+- [x] `src/app/(editor)/script/component/page.tsx` 作成
+- [x] EventScriptPage と同様のレイアウト
+- [x] コンポーネント用フィールド設定
 
 **関連ファイル:**
 
@@ -3631,11 +3631,11 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/features/script-editor/components/ScriptList.tsx` 作成
-- [ ] 階層構造表示
-- [ ] 親スクリプト + 内部スクリプト
-- [ ] 追加/削除ボタン
-- [ ] テスト追加
+- [x] `src/features/script-editor/components/ScriptList.tsx` 作成
+- [x] 階層構造表示
+- [x] 親スクリプト + 内部スクリプト
+- [x] 追加/削除ボタン
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3652,12 +3652,12 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/features/script-editor/components/ScriptEditor.tsx` 作成
-- [ ] Monaco Editor 統合
-- [ ] JavaScript/TypeScript シンタックスハイライト
-- [ ] エラー表示
-- [ ] 自動補完
-- [ ] テスト追加
+- [x] `src/features/script-editor/components/ScriptEditor.tsx` 作成
+- [x] Monaco Editor 統合
+- [x] JavaScript/TypeScript シンタックスハイライト
+- [x] エラー表示
+- [x] 自動補完
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3674,11 +3674,11 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/features/script-editor/components/ScriptSettingsPanel.tsx` 作成
-- [ ] スクリプト名編集
-- [ ] 引数定義（イベントスクリプト）
-- [ ] フィールド定義（コンポーネントスクリプト）
-- [ ] テスト追加
+- [x] `src/features/script-editor/components/ScriptSettingsPanel.tsx` 作成
+- [x] スクリプト名編集
+- [x] 引数定義（イベントスクリプト）
+- [x] フィールド定義（コンポーネントスクリプト）
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3695,12 +3695,12 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/features/script-editor/components/ScriptTestPanel.tsx` 作成
-- [ ] テスト実行ボタン
-- [ ] 引数入力 UI
-- [ ] 実行結果表示
-- [ ] コンソール出力表示
-- [ ] テスト追加
+- [x] `src/features/script-editor/components/ScriptTestPanel.tsx` 作成
+- [x] テスト実行ボタン
+- [x] 引数入力 UI
+- [x] 実行結果表示
+- [x] コンソール出力表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3735,10 +3735,10 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/script.ts` 作成
-- [ ] `Script` インターフェース
-- [ ] `ScriptType` ('event' | 'component' | 'internal')
-- [ ] `ScriptArg` インターフェース
+- [x] `src/types/script.ts` 作成
+- [x] `Script` インターフェース
+- [x] `ScriptType` ('event' | 'component' | 'internal')
+- [x] `ScriptArg` インターフェース
 
 **関連ファイル:**
 
@@ -3754,11 +3754,11 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/features/script-editor/utils/apiDefinitions.ts` 作成
-- [ ] ゲームAPI の型定義（Data, Variable, Sound, etc.）
-- [ ] Monaco Editor への登録
-- [ ] ホバー時のドキュメント表示
-- [ ] テスト追加
+- [x] `src/features/script-editor/utils/apiDefinitions.ts` 作成
+- [x] ゲームAPI の型定義（Data, Variable, Sound, etc.）
+- [x] Monaco Editor への登録
+- [x] ホバー時のドキュメント表示
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -5547,17 +5547,17 @@ export function useAutoSave() {
 
 #### [T210] [P] Create GameEngine core
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 部分完了（スクリプト実行モード実装済み。ゲームループ・シーン管理・入力は未実装）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/core/GameEngine.ts` 作成
+- [x] `src/engine/core/GameEngine.ts` 作成
 - [ ] ゲームループ実装
 - [ ] シーン管理
 - [ ] 入力ハンドリング
-- [ ] テスト追加
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -5760,17 +5760,17 @@ export function useAutoSave() {
 
 #### [T220] [P] Implement VariableAPI
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 部分完了（GameContext 内に実装済み。スコープ管理は未実装）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/api/VariableAPI.ts` 作成
-- [ ] `game.variable.get(name)`
-- [ ] `game.variable.set(name, value)`
+- [x] `src/engine/runtime/GameContext.ts` 内に実装（`src/engine/api/VariableAPI.ts` ではない）
+- [x] `Variable.get(name)`
+- [x] `Variable.set(name, value)`
 - [ ] スコープ管理（グローバル/ローカル）
-- [ ] テスト追加
+- [x] テスト追加
 
 **関連ファイル:**
 

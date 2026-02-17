@@ -19,8 +19,6 @@ export interface VariableAPI {
 }
 
 export interface DataAPI {
-  get(typeId: string, dataId: string): Record<string, unknown> | null;
-  find(typeId: string, criteria: Record<string, unknown>): Record<string, unknown>[];
   [typeId: string]: unknown;
 }
 
@@ -115,33 +113,21 @@ function createVariableAPI(
 }
 
 function createDataAPI(projectData: EngineProjectData): DataAPI {
-  // Build lookup: { typeId: { dataId: values } }
-  const lookup: Record<string, Record<string, Record<string, unknown>>> = {};
+  const api: DataAPI = {};
 
   for (const [typeId, entries] of Object.entries(projectData.dataEntries)) {
-    lookup[typeId] = {};
-    for (const entry of entries) {
-      lookup[typeId][entry.id] = entry.values;
+    // Build array of entry objects (id + values merged)
+    const arr: Record<string, unknown>[] = entries.map((e) => ({
+      id: e.id,
+      ...e.values,
+    }));
+
+    // Add ID-based access on the array itself
+    for (const entry of arr) {
+      (arr as Record<string, unknown>)[entry['id'] as string] = entry;
     }
-  }
 
-  const api: DataAPI = {
-    get(typeId: string, dataId: string): Record<string, unknown> | null {
-      return lookup[typeId]?.[dataId] ?? null;
-    },
-    find(typeId: string, criteria: Record<string, unknown>): Record<string, unknown>[] {
-      const typeEntries = lookup[typeId];
-      if (!typeEntries) return [];
-
-      return Object.values(typeEntries).filter((values) =>
-        Object.entries(criteria).every(([key, val]) => values[key] === val)
-      );
-    },
-  };
-
-  // Add bracket access for each typeId
-  for (const typeId of Object.keys(lookup)) {
-    (api as Record<string, unknown>)[typeId] = lookup[typeId];
+    api[typeId] = arr;
   }
 
   return api;

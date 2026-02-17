@@ -22,6 +22,7 @@ import { StringFieldConfig } from '@/features/data-editor/components/fields/Stri
 export class StringFieldType extends FieldType<string> {
   readonly type = 'string';
   readonly label = '文字列';
+  readonly tsType = 'string';
 
   /** 最大文字数 */
   maxLength?: number;

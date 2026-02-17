@@ -23,6 +23,7 @@ import {
 export class DataSelectFieldType extends FieldType<string | null> {
   readonly type = 'dataSelect';
   readonly label = 'データ参照';
+  readonly tsType = 'string';
 
   /** 参照先DataType ID */
   referenceTypeId: string = '';

@@ -9,7 +9,7 @@ import {
   ScriptSettingsPanel,
   ScriptTestPanel,
 } from '@/features/script-editor';
-import type { ScriptEditorHandle } from '@/features/script-editor';
+import type { ScriptEditorHandle, DataTypeInfo } from '@/features/script-editor';
 import { generateReturnTemplate } from '@/features/script-editor/utils/returnTemplate';
 import { useStore } from '@/stores';
 import { cn } from '@/lib/utils';
@@ -27,8 +27,20 @@ export default function EventScriptPage() {
   const deleteScript = useStore((state) => state.deleteScript);
   const selectScript = useStore((state) => state.selectScript);
   const classes = useStore((state) => state.classes);
+  const dataTypes = useStore((state) => state.dataTypes);
   const [rightTab, setRightTab] = useState<RightTab>('settings');
   const editorRef = useRef<ScriptEditorHandle>(null);
+
+  // DataType info for IntelliSense
+  const dataTypeInfos: DataTypeInfo[] = useMemo(
+    () =>
+      dataTypes.map((dt) => ({
+        id: dt.id,
+        name: dt.name,
+        fields: dt.fields.map((f) => ({ id: f.id, type: f.type })),
+      })),
+    [dataTypes]
+  );
 
   // Top-level event scripts
   const eventScripts = useMemo(
@@ -168,6 +180,8 @@ export default function EventScriptPage() {
         <ScriptEditor
           ref={editorRef}
           script={selectedScript}
+          scripts={scripts}
+          dataTypes={dataTypeInfos}
           onContentChange={handleContentChange}
         />
       }

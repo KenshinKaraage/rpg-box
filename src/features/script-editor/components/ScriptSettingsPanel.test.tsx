@@ -57,12 +57,24 @@ describe('ScriptSettingsPanel', () => {
     expect(screen.getByText('enemyId')).toBeInTheDocument();
   });
 
-  it('does not show args section for internal scripts', () => {
+  it('shows isAsync checkbox and calls onUpdate when toggled', () => {
+    const onUpdate = jest.fn();
+    render(<ScriptSettingsPanel {...defaultProps} onUpdate={onUpdate} />);
+    const checkbox = screen.getByLabelText('完了まで待機する');
+    expect(checkbox).not.toBeChecked();
+    fireEvent.click(checkbox);
+    expect(onUpdate).toHaveBeenCalledWith('s1', { isAsync: true });
+  });
+
+  it('shows all settings for internal scripts too', () => {
     const internalScript: Script = {
       ...createScript('i1', '_helper', 'internal'),
       parentId: 's1',
     };
     render(<ScriptSettingsPanel script={internalScript} onUpdate={jest.fn()} />);
-    expect(screen.queryByText('引数')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('完了まで待機する')).toBeInTheDocument();
+    expect(screen.getByText('引数')).toBeInTheDocument();
+    expect(screen.getByText('返り値')).toBeInTheDocument();
+    expect(screen.getByLabelText('呼び出しID')).toBeInTheDocument();
   });
 });

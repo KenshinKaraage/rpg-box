@@ -23,6 +23,7 @@ import {
 export class AudioFieldType extends FieldType<string | null> {
   readonly type = 'audio';
   readonly label = '音声';
+  readonly tsType = 'string';
 
   /** 初期表示フォルダID */
   initialFolderId?: string;

@@ -14,6 +14,8 @@ jest.mock('@/stores', () => ({
       scripts: mockScripts,
       variables: [],
       classes: [],
+      dataTypes: [],
+      dataEntries: {},
     })
   ),
 }));

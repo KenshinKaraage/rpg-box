@@ -29,6 +29,7 @@ export type ClassValue = Record<string, unknown>;
 export class ClassFieldType extends FieldType<ClassValue> {
   readonly type = 'class';
   readonly label = 'クラス';
+  readonly tsType = 'Record<string, unknown>';
 
   /** 参照するクラスID */
   classId: string = '';

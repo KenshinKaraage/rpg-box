@@ -61,29 +61,33 @@ describe('GameContext', () => {
   });
 
   describe('Data API', () => {
-    it('get returns entry by typeId and dataId', () => {
+    it('bracket access returns array of entries with id included', () => {
       const ctx = new GameContext(createProjectData());
-      const entry = ctx.data.get('character', 'char-1');
-      expect(entry).toEqual({ name: 'スライム', hp: 30 });
+      const chars = ctx.data['character'] as Record<string, unknown>[];
+      expect(chars).toHaveLength(2);
+      expect(chars[0]).toEqual({ id: 'char-1', name: 'スライム', hp: 30 });
+      expect(chars[1]).toEqual({ id: 'char-2', name: 'ドラゴン', hp: 500 });
     });
 
-    it('get returns null for missing entry', () => {
+    it('entries are accessible by ID via bracket notation', () => {
       const ctx = new GameContext(createProjectData());
-      expect(ctx.data.get('character', 'missing')).toBeNull();
+      const chars = ctx.data['character'] as Record<string, unknown>[] &
+        Record<string, Record<string, unknown>>;
+      expect(chars['char-1']).toEqual({ id: 'char-1', name: 'スライム', hp: 30 });
+      expect(chars['char-2']).toEqual({ id: 'char-2', name: 'ドラゴン', hp: 500 });
     });
 
-    it('find returns entries matching criteria', () => {
+    it('returns undefined for missing typeId', () => {
       const ctx = new GameContext(createProjectData());
-      const found = ctx.data.find('character', { name: 'ドラゴン' });
+      expect(ctx.data['nonexistent']).toBeUndefined();
+    });
+
+    it('array methods work on entries', () => {
+      const ctx = new GameContext(createProjectData());
+      const chars = ctx.data['character'] as Record<string, unknown>[];
+      const found = chars.filter((c) => c['name'] === 'ドラゴン');
       expect(found).toHaveLength(1);
-      expect(found[0]).toEqual({ name: 'ドラゴン', hp: 500 });
-    });
-
-    it('bracket access returns entries by typeId', () => {
-      const ctx = new GameContext(createProjectData());
-      const chars = ctx.data['character'] as Record<string, Record<string, unknown>>;
-      expect(chars).toBeDefined();
-      expect(chars['char-1']).toEqual({ name: 'スライム', hp: 30 });
+      expect(found[0]!['hp']).toBe(500);
     });
   });
 

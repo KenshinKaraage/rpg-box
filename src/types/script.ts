@@ -65,6 +65,8 @@ export interface Script {
   args: ScriptArg[];
   /** 返り値定義（イベントアクションでの変数代入に使用） */
   returns: ScriptReturn[];
+  /** 完了まで待機するか（true: 呼び出し側で await 必須、内部で await 使用可能） */
+  isAsync: boolean;
   /** 親スクリプトID（internal のみ） */
   parentId?: string;
   /** 説明 */
@@ -82,6 +84,7 @@ export function createScript(id: string, name: string, type: ScriptType): Script
     content: '',
     args: [],
     returns: [],
+    isAsync: false,
     description: '',
   };
 }

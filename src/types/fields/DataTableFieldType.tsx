@@ -56,6 +56,7 @@ export interface DataTableColumn {
 export class DataTableFieldType extends FieldType<DataTableRow[]> {
   readonly type = 'dataTable';
   readonly label = 'データテーブル';
+  readonly tsType = 'Record<string, unknown>[]';
 
   /** 参照先DataType ID */
   referenceTypeId: string = '';

@@ -14,6 +14,7 @@ describe('Engine types', () => {
       projectData: {
         scripts: [],
         variables: [],
+        classes: [],
         dataTypes: [],
         dataEntries: {},
       },
@@ -30,6 +31,7 @@ describe('Engine types', () => {
       projectData: {
         scripts: [],
         variables: [],
+        classes: [],
         dataTypes: [],
         dataEntries: {},
       },
