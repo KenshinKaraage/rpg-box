@@ -14,9 +14,21 @@ import type { Script } from '@/types/script';
 /**
  * エンジンが必要とするプロジェクトデータのサブセット
  */
+export interface EngineClassField {
+  id: string;
+  fieldType: string;
+}
+
+export interface EngineClass {
+  id: string;
+  name: string;
+  fields: EngineClassField[];
+}
+
 export interface EngineProjectData {
   scripts: Script[];
   variables: EngineVariable[];
+  classes: EngineClass[];
   dataTypes: EngineDataType[];
   dataEntries: Record<string, EngineDataEntry[]>;
 }

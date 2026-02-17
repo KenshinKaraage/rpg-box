@@ -47,7 +47,7 @@ describe('Engine types', () => {
       type: 'start',
       config: {
         mode: 'script',
-        projectData: { scripts: [], variables: [], dataTypes: [], dataEntries: {} },
+        projectData: { scripts: [], variables: [], classes: [], dataTypes: [], dataEntries: {} },
         scriptId: 'test',
         args: {},
       },
@@ -59,7 +59,7 @@ describe('Engine types', () => {
     const ready: EngineMessage = { type: 'ready' };
     const log: EngineMessage = { type: 'log', level: 'info', message: 'hello' };
     const result: EngineMessage = { type: 'script-result', value: 42 };
-    const error: EngineMessage = { type: 'script-error', error: 'fail' };
+    const error: EngineMessage = { type: 'script-error', error: 'fail', errorType: 'runtime' };
     expect(ready.type).toBe('ready');
     expect(log.type).toBe('log');
     expect(result.type).toBe('script-result');
@@ -73,7 +73,7 @@ describe('Engine types', () => {
       type: 'script',
       config: {
         mode: 'script',
-        projectData: { scripts: [], variables: [], dataTypes: [], dataEntries: {} },
+        projectData: { scripts: [], variables: [], classes: [], dataTypes: [], dataEntries: {} },
         scriptId: 'script-1',
         args: {},
       },

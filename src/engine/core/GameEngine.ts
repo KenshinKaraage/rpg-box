@@ -76,7 +76,7 @@ export class GameEngine {
 
       // Validate return value against declared types
       if (script.returns.length > 0) {
-        const errors = validateScriptReturn(result, script.returns);
+        const errors = validateScriptReturn(result, script.returns, projectData.classes);
         for (const err of errors) {
           this.sendMessage({ type: 'script-error', error: err, errorType: 'return-type' });
         }

@@ -41,6 +41,8 @@ export interface ScriptReturn {
   name: string;
   /** FieldType の type 名 ('number', 'string', 'class' 等) */
   fieldType: string;
+  /** クラスID（fieldType === 'class' の場合に必須） */
+  classId?: string;
   /** 配列かどうか */
   isArray: boolean;
 }

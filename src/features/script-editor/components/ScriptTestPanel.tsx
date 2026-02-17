@@ -18,6 +18,7 @@ interface ScriptTestPanelProps {
 export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
   const scripts = useStore((s) => s.scripts);
   const variables = useStore((s) => s.variables);
+  const classes = useStore((s) => s.classes);
   const [argValues, setArgValues] = useState<Record<string, string>>({});
   const [result, setResult] = useState<string | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
@@ -69,11 +70,19 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
       defaultValue: v.initialValue,
     }));
 
+    // Map store classes to engine format
+    const engineClasses = classes.map((c) => ({
+      id: c.id,
+      name: c.name,
+      fields: c.fields.map((f) => ({ id: f.id, fieldType: f.type })),
+    }));
+
     const config: ScriptModeConfig = {
       mode: 'script',
       projectData: {
         scripts,
         variables: engineVariables,
+        classes: engineClasses,
         dataTypes: [],
         dataEntries: {},
       },

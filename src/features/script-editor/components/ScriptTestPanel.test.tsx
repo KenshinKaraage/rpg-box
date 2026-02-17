@@ -13,6 +13,7 @@ jest.mock('@/stores', () => ({
     selector({
       scripts: mockScripts,
       variables: [],
+      classes: [],
     })
   ),
 }));

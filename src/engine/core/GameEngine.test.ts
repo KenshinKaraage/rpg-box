@@ -26,6 +26,7 @@ describe('GameEngine', () => {
       projectData: {
         scripts,
         variables: [],
+        classes: [],
         dataTypes: [],
         dataEntries: {},
       },
@@ -143,6 +144,7 @@ describe('GameEngine', () => {
       projectData: {
         scripts,
         variables: [{ id: 'var-hp', name: 'hp', type: 'number', defaultValue: 100 }],
+        classes: [],
         dataTypes: [],
         dataEntries: {},
       },

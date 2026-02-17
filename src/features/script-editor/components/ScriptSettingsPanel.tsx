@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useStore } from '@/stores';
 import type { Script, ScriptArg, ScriptReturn } from '@/types/script';
 
 const FIELD_TYPES = [
@@ -23,12 +24,20 @@ const FIELD_TYPES = [
   { value: 'boolean', label: '真偽値' },
 ];
 
+const RETURN_FIELD_TYPES = [
+  { value: 'string', label: '文字列' },
+  { value: 'number', label: '数値' },
+  { value: 'boolean', label: '真偽値' },
+  { value: 'class', label: 'クラス' },
+];
+
 interface ScriptSettingsPanelProps {
   script: Script | null;
   onUpdate: (id: string, updates: Partial<Script>) => void;
 }
 
 export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelProps) {
+  const classes = useStore((s) => s.classes);
   const [localName, setLocalName] = useState('');
   const [localCallId, setLocalCallId] = useState('');
   const [localDesc, setLocalDesc] = useState('');
@@ -292,19 +301,41 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                         </div>
                         <Select
                           value={ret.fieldType}
-                          onValueChange={(v) => handleUpdateReturn(ret.id, { fieldType: v })}
+                          onValueChange={(v) =>
+                            handleUpdateReturn(ret.id, {
+                              fieldType: v,
+                              classId: v === 'class' ? ret.classId : undefined,
+                            })
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {FIELD_TYPES.map((ft) => (
+                            {RETURN_FIELD_TYPES.map((ft) => (
                               <SelectItem key={ft.value} value={ft.value}>
                                 {ft.label}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        {ret.fieldType === 'class' && (
+                          <Select
+                            value={ret.classId ?? ''}
+                            onValueChange={(v) => handleUpdateReturn(ret.id, { classId: v })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="クラスを選択" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {classes.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                         <div className="flex items-center gap-2">
                           <Checkbox
                             id={`isArray-${ret.id}`}

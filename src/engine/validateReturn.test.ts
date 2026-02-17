@@ -2,6 +2,7 @@ import '@/types/fields'; // register field types
 
 import type { ScriptReturn } from '@/types/script';
 
+import type { ClassDef } from './validateReturn';
 import { validateScriptReturn } from './validateReturn';
 
 describe('validateScriptReturn', () => {
@@ -41,7 +42,7 @@ describe('validateScriptReturn', () => {
       expect(validateScriptReturn(1, boolReturn)).toHaveLength(1);
     });
 
-    it('validates class (object) return', () => {
+    it('validates class without classId falls back to object check', () => {
       const classReturn: ScriptReturn[] = [
         { id: 'status', name: 'ステータス', fieldType: 'class', isArray: false },
       ];
@@ -108,6 +109,95 @@ describe('validateScriptReturn', () => {
     it('reports multiple errors', () => {
       const errors = validateScriptReturn({ damage: 'ten', isCritical: 'yes' }, multiReturn);
       expect(errors).toHaveLength(2);
+    });
+  });
+
+  describe('class with classId', () => {
+    const classes: ClassDef[] = [
+      {
+        id: 'class_status',
+        name: 'ステータス',
+        fields: [
+          { id: 'hp', fieldType: 'number' },
+          { id: 'name', fieldType: 'string' },
+        ],
+      },
+    ];
+
+    const classReturn: ScriptReturn[] = [
+      {
+        id: 'status',
+        name: 'ステータス',
+        fieldType: 'class',
+        classId: 'class_status',
+        isArray: false,
+      },
+    ];
+
+    it('passes when object matches class fields', () => {
+      expect(validateScriptReturn({ hp: 100, name: '勇者' }, classReturn, classes)).toEqual([]);
+    });
+
+    it('fails when value is not an object', () => {
+      const errors = validateScriptReturn(42, classReturn, classes);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('ステータス');
+    });
+
+    it('fails when a field is missing', () => {
+      const errors = validateScriptReturn({ hp: 100 }, classReturn, classes);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('name');
+      expect(errors[0]).toContain('存在しません');
+    });
+
+    it('fails when a field has wrong type', () => {
+      const errors = validateScriptReturn({ hp: 'hundred', name: '勇者' }, classReturn, classes);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('hp');
+      expect(errors[0]).toContain('number');
+    });
+
+    it('reports error when classId not found', () => {
+      const badReturn: ScriptReturn[] = [
+        { id: 'x', name: 'X', fieldType: 'class', classId: 'nonexistent', isArray: false },
+      ];
+      const errors = validateScriptReturn({}, badReturn, classes);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('nonexistent');
+    });
+
+    it('validates array of class objects', () => {
+      const arrayClassReturn: ScriptReturn[] = [
+        {
+          id: 'statuses',
+          name: 'ステータス一覧',
+          fieldType: 'class',
+          classId: 'class_status',
+          isArray: true,
+        },
+      ];
+      expect(
+        validateScriptReturn(
+          [
+            { hp: 100, name: '勇者' },
+            { hp: 50, name: '魔法使い' },
+          ],
+          arrayClassReturn,
+          classes
+        )
+      ).toEqual([]);
+
+      const errors = validateScriptReturn(
+        [
+          { hp: 100, name: '勇者' },
+          { hp: 'fifty', name: '魔法使い' },
+        ],
+        arrayClassReturn,
+        classes
+      );
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain('[1]');
     });
   });
 

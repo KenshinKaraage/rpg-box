@@ -9,6 +9,7 @@ function createProjectData(overrides?: Partial<EngineProjectData>): EngineProjec
       { id: 'var-hp', name: 'hp', type: 'number', defaultValue: 100 },
       { id: 'var-name', name: 'player_name', type: 'string', defaultValue: 'Hero' },
     ],
+    classes: [],
     dataTypes: [{ id: 'character', name: 'キャラクター' }],
     dataEntries: {
       character: [
