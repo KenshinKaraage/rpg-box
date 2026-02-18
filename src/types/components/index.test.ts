@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { GameContext } from '@/engine/runtime/GameContext';
 
 import {
   Component,
@@ -14,11 +14,11 @@ class TestComponent extends Component {
   readonly type = 'test';
   value: string = '';
 
-  serialize(): unknown {
+  serialize(): Record<string, unknown> {
     return { value: this.value };
   }
 
-  deserialize(data: unknown): void {
+  deserialize(data: Record<string, unknown>): void {
     const d = data as { value: string };
     this.value = d.value;
   }
@@ -28,21 +28,17 @@ class TestComponent extends Component {
     c.value = this.value;
     return c;
   }
-
-  renderPropertyPanel(): ReactNode {
-    return null;
-  }
 }
 
 class AnotherComponent extends Component {
   readonly type = 'another';
   count: number = 0;
 
-  serialize(): unknown {
+  serialize(): Record<string, unknown> {
     return { count: this.count };
   }
 
-  deserialize(data: unknown): void {
+  deserialize(data: Record<string, unknown>): void {
     const d = data as { count: number };
     this.count = d.count;
   }
@@ -51,10 +47,6 @@ class AnotherComponent extends Component {
     const c = new AnotherComponent();
     c.count = this.count;
     return c;
-  }
-
-  renderPropertyPanel(): ReactNode {
-    return null;
   }
 }
 
@@ -182,5 +174,18 @@ describe('Component abstract class', () => {
       expect(original.value).toBe('original');
       expect(cloned.value).toBe('modified');
     });
+  });
+});
+
+describe('Component lifecycle', () => {
+  it('lifecycle methods are callable and no-op by default', () => {
+    const component = new TestComponent();
+    const mockContext = {} as GameContext;
+
+    expect(() => component.onCreate(mockContext)).not.toThrow();
+    expect(() => component.onUpdate(mockContext, 16)).not.toThrow();
+    expect(() => component.onDestroy(mockContext)).not.toThrow();
+    expect(() => component.onEnable(mockContext)).not.toThrow();
+    expect(() => component.onDisable(mockContext)).not.toThrow();
   });
 });
