@@ -1,0 +1,28 @@
+import { registerComponent } from './index';
+import { TransformComponent } from './TransformComponent';
+import { SpriteComponent } from './SpriteComponent';
+import { ColliderComponent } from './ColliderComponent';
+import { MovementComponent } from './MovementComponent';
+import { VariablesComponent } from './VariablesComponent';
+import { ControllerComponent } from './ControllerComponent';
+import { EffectComponent } from './EffectComponent';
+import { ObjectCanvasComponent } from './ObjectCanvasComponent';
+import { TalkTriggerComponent } from './triggers/TalkTriggerComponent';
+import { TouchTriggerComponent } from './triggers/TouchTriggerComponent';
+import { StepTriggerComponent } from './triggers/StepTriggerComponent';
+import { AutoTriggerComponent } from './triggers/AutoTriggerComponent';
+import { InputTriggerComponent } from './triggers/InputTriggerComponent';
+
+registerComponent('transform', TransformComponent);
+registerComponent('sprite', SpriteComponent);
+registerComponent('collider', ColliderComponent);
+registerComponent('movement', MovementComponent);
+registerComponent('variables', VariablesComponent);
+registerComponent('controller', ControllerComponent);
+registerComponent('effect', EffectComponent);
+registerComponent('objectCanvas', ObjectCanvasComponent);
+registerComponent('talkTrigger', TalkTriggerComponent);
+registerComponent('touchTrigger', TouchTriggerComponent);
+registerComponent('stepTrigger', StepTriggerComponent);
+registerComponent('autoTrigger', AutoTriggerComponent);
+registerComponent('inputTrigger', InputTriggerComponent);

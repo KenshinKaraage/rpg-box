@@ -71,3 +71,17 @@ export function getComponentNames(): string[] {
 export function clearComponentRegistry(): void {
   componentRegistry.clear();
 }
+
+export { TransformComponent } from './TransformComponent';
+export { SpriteComponent } from './SpriteComponent';
+export { ColliderComponent } from './ColliderComponent';
+export { MovementComponent } from './MovementComponent';
+export { VariablesComponent } from './VariablesComponent';
+export { ControllerComponent } from './ControllerComponent';
+export { EffectComponent } from './EffectComponent';
+export { ObjectCanvasComponent } from './ObjectCanvasComponent';
+export { TalkTriggerComponent } from './triggers/TalkTriggerComponent';
+export { TouchTriggerComponent } from './triggers/TouchTriggerComponent';
+export { StepTriggerComponent } from './triggers/StepTriggerComponent';
+export { AutoTriggerComponent } from './triggers/AutoTriggerComponent';
+export { InputTriggerComponent } from './triggers/InputTriggerComponent';
