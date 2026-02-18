@@ -3,6 +3,7 @@ import type { Script } from '@/types/script';
 
 import type { ScriptModeConfig, EventModeConfig, EngineMessage } from '../types';
 import '../actions/register';
+import '../values/register';
 
 import { GameEngine } from './GameEngine';
 
@@ -285,7 +286,12 @@ describe('GameEngine event mode', () => {
 
   it('executes event actions and sends event-complete', async () => {
     const config = makeEventConfig(
-      [{ type: 'variableOp', data: { variableId: 'hp', operation: 'set', value: 50 } }],
+      [
+        {
+          type: 'variableOp',
+          data: { variableId: 'hp', operation: 'set', value: { type: 'literal', value: 50 } },
+        },
+      ],
       { hp: 100 }
     );
 
@@ -330,8 +336,14 @@ describe('GameEngine event mode', () => {
   it('sends state-update with variable values after event execution', async () => {
     const config = makeEventConfig(
       [
-        { type: 'variableOp', data: { variableId: 'score', operation: 'set', value: 0 } },
-        { type: 'variableOp', data: { variableId: 'score', operation: 'add', value: 100 } },
+        {
+          type: 'variableOp',
+          data: { variableId: 'score', operation: 'set', value: { type: 'literal', value: 0 } },
+        },
+        {
+          type: 'variableOp',
+          data: { variableId: 'score', operation: 'add', value: { type: 'literal', value: 100 } },
+        },
       ],
       { score: 0 }
     );
