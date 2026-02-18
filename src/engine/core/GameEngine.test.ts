@@ -1,7 +1,8 @@
 import '@/types/fields'; // register field types
 import type { Script } from '@/types/script';
 
-import type { ScriptModeConfig, EngineMessage } from '../types';
+import type { ScriptModeConfig, EventModeConfig, EngineMessage } from '../types';
+import '../actions/register';
 
 import { GameEngine } from './GameEngine';
 
@@ -244,5 +245,102 @@ describe('GameEngine', () => {
       (m) => m.type === 'script-error' && m.errorType === 'runtime'
     );
     expect(errorMsg).toBeDefined();
+  });
+});
+
+describe('GameEngine event mode', () => {
+  let engine: GameEngine;
+  let sentMessages: EngineMessage[];
+
+  beforeEach(() => {
+    sentMessages = [];
+    engine = new GameEngine((msg: EngineMessage) => {
+      sentMessages.push(msg);
+    });
+  });
+
+  function makeEventConfig(
+    actions: { type: string; data: Record<string, unknown> }[],
+    vars?: Record<string, unknown>
+  ): EventModeConfig {
+    return {
+      mode: 'event',
+      projectData: {
+        scripts: [],
+        variables: vars
+          ? Object.entries(vars).map(([name, value]) => ({
+              id: `var-${name}`,
+              name,
+              type: typeof value === 'number' ? 'number' : 'string',
+              defaultValue: value,
+            }))
+          : [],
+        classes: [],
+        dataTypes: [],
+        dataEntries: {},
+      },
+      actions,
+    };
+  }
+
+  it('executes event actions and sends event-complete', async () => {
+    const config = makeEventConfig(
+      [{ type: 'variableOp', data: { variableId: 'hp', operation: 'set', value: 50 } }],
+      { hp: 100 }
+    );
+
+    await engine.handleMessage({ type: 'start', config });
+
+    expect(sentMessages).toContainEqual({ type: 'event-complete' });
+    const stateMsg = sentMessages.find((m) => m.type === 'state-update');
+    expect(stateMsg).toBeDefined();
+    if (stateMsg && stateMsg.type === 'state-update') {
+      expect(stateMsg.variables['hp']).toBe(50);
+    }
+  });
+
+  it('sends event-error for unknown action type', async () => {
+    const config = makeEventConfig([{ type: 'nonexistent', data: {} }]);
+
+    await engine.handleMessage({ type: 'start', config });
+
+    const errorMsg = sentMessages.find((m) => m.type === 'event-error');
+    expect(errorMsg).toBeDefined();
+  });
+
+  it('sends event-error when action execution throws', async () => {
+    const config: EventModeConfig = {
+      mode: 'event',
+      projectData: {
+        scripts: [],
+        variables: [],
+        classes: [],
+        dataTypes: [],
+        dataEntries: {},
+      },
+      actions: [{ type: 'script', data: { scriptId: 'nonexistent', args: {} } }],
+    };
+
+    await engine.handleMessage({ type: 'start', config });
+
+    const errorMsg = sentMessages.find((m) => m.type === 'event-error');
+    expect(errorMsg).toBeDefined();
+  });
+
+  it('sends state-update with variable values after event execution', async () => {
+    const config = makeEventConfig(
+      [
+        { type: 'variableOp', data: { variableId: 'score', operation: 'set', value: 0 } },
+        { type: 'variableOp', data: { variableId: 'score', operation: 'add', value: 100 } },
+      ],
+      { score: 0 }
+    );
+
+    await engine.handleMessage({ type: 'start', config });
+
+    const stateMsg = sentMessages.find((m) => m.type === 'state-update');
+    if (stateMsg && stateMsg.type === 'state-update') {
+      expect(stateMsg.variables['score']).toBe(100);
+    }
   });
 });

@@ -5,7 +5,15 @@
  * executes scripts, and sends results back via EngineMessage.
  */
 
-import type { EditorMessage, EngineMessage, FullModeConfig, ScriptModeConfig } from '../types';
+import type {
+  EditorMessage,
+  EngineMessage,
+  EventModeConfig,
+  FullModeConfig,
+  ScriptModeConfig,
+} from '../types';
+import { getAction } from '../actions/index';
+import { EventRunner } from '../event/EventRunner';
 import { GameContext } from '../runtime/GameContext';
 import { validateScriptReturn } from '../validateReturn';
 
@@ -33,9 +41,13 @@ export class GameEngine {
     }
   }
 
-  private async handleStart(config: ScriptModeConfig | FullModeConfig): Promise<void> {
+  private async handleStart(
+    config: ScriptModeConfig | FullModeConfig | EventModeConfig
+  ): Promise<void> {
     if (config.mode === 'script') {
       await this.executeScript(config);
+    } else if (config.mode === 'event') {
+      await this.executeEvent(config);
     }
   }
 
@@ -92,5 +104,36 @@ export class GameEngine {
     }
 
     this.sendMessage({ type: 'state-update', variables: context.variable.getAll() });
+  }
+
+  private async executeEvent(config: EventModeConfig): Promise<void> {
+    try {
+      // 1. Deserialize actions
+      const actions = config.actions.map((a) => {
+        const ActionClass = getAction(a.type);
+        if (!ActionClass) throw new Error(`Unknown action type: ${a.type}`);
+        const action = new ActionClass();
+        action.fromJSON(a.data);
+        return action;
+      });
+
+      // 2. Build context
+      const runner = new ScriptRunner(config.projectData.scripts);
+      const context = new GameContext(config.projectData, runner, {
+        variables: config.testSettings?.variables,
+      });
+
+      // 3. Run via EventRunner
+      const eventRunner = new EventRunner();
+      await eventRunner.run(actions, context);
+
+      // 4. Return results
+      this.sendMessage({ type: 'state-update', variables: context.variable.getAll() });
+      this.sendMessage({ type: 'event-complete' });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.sendMessage({ type: 'event-error', error: msg, stack });
+    }
   }
 }

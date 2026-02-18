@@ -63,8 +63,13 @@ export interface ObjectPlacement {
   variables?: Record<string, unknown>;
 }
 
+export interface SerializedAction {
+  type: string;
+  data: Record<string, unknown>;
+}
+
 export interface EngineStartConfig {
-  mode: 'full' | 'script';
+  mode: 'full' | 'script' | 'event';
   projectData: EngineProjectData;
 }
 
@@ -93,6 +98,14 @@ export interface ScriptModeConfig extends EngineStartConfig {
   };
 }
 
+export interface EventModeConfig extends EngineStartConfig {
+  mode: 'event';
+  actions: SerializedAction[];
+  testSettings?: {
+    variables?: Record<string, unknown>;
+  };
+}
+
 // =============================================================================
 // テスト設定パターン
 // =============================================================================
@@ -100,8 +113,8 @@ export interface ScriptModeConfig extends EngineStartConfig {
 export interface TestPattern {
   id: string;
   name: string;
-  type: 'script' | 'full';
-  config: ScriptModeConfig | FullModeConfig;
+  type: 'script' | 'full' | 'event';
+  config: ScriptModeConfig | FullModeConfig | EventModeConfig;
 }
 
 // =============================================================================
@@ -109,7 +122,7 @@ export interface TestPattern {
 // =============================================================================
 
 export type EditorMessage =
-  | { type: 'start'; config: FullModeConfig | ScriptModeConfig }
+  | { type: 'start'; config: FullModeConfig | ScriptModeConfig | EventModeConfig }
   | { type: 'stop' }
   | { type: 'pause' }
   | { type: 'resume' };
@@ -122,4 +135,6 @@ export type EngineMessage =
   | { type: 'log'; level: 'info' | 'warn' | 'error'; message: string }
   | { type: 'script-result'; value: unknown }
   | { type: 'script-error'; error: string; errorType: ScriptErrorType; stack?: string }
-  | { type: 'state-update'; variables: Record<string, unknown> };
+  | { type: 'state-update'; variables: Record<string, unknown> }
+  | { type: 'event-error'; error: string; stack?: string }
+  | { type: 'event-complete' };
