@@ -1,0 +1,22 @@
+import { registerAction } from './index';
+import { VariableOpAction } from './VariableOpAction';
+import { ConditionalAction } from './ConditionalAction';
+import { LoopAction } from './LoopAction';
+import { AudioAction } from './AudioAction';
+import { CameraAction } from './CameraAction';
+import { ScriptAction } from './ScriptAction';
+import { CallTemplateAction } from './CallTemplateAction';
+import { WaitAction } from './WaitAction';
+import { ObjectAction } from './ObjectAction';
+import { MapAction } from './MapAction';
+
+registerAction('variableOp', VariableOpAction);
+registerAction('conditional', ConditionalAction);
+registerAction('loop', LoopAction);
+registerAction('audio', AudioAction);
+registerAction('camera', CameraAction);
+registerAction('script', ScriptAction);
+registerAction('callTemplate', CallTemplateAction);
+registerAction('wait', WaitAction);
+registerAction('object', ObjectAction);
+registerAction('map', MapAction);
