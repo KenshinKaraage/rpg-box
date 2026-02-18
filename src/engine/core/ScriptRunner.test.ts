@@ -1,8 +1,10 @@
 import type { Script } from '@/types/script';
 
+import type { GameContext } from '../runtime/GameContext';
+
 import { ScriptRunner } from './ScriptRunner';
 
-function createMockContext() {
+function createMockContext(): GameContext {
   return {
     scriptAPI: {
       showMessage: jest.fn().mockResolvedValue(undefined),
@@ -32,7 +34,8 @@ function createMockContext() {
       save: jest.fn(),
       load: jest.fn(),
     },
-  };
+    scriptRunner: {} as never,
+  } as GameContext;
 }
 
 describe('ScriptRunner', () => {

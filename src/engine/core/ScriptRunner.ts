@@ -12,17 +12,7 @@
 
 import type { Script, ScriptArg } from '@/types/script';
 
-/**
- * Context object containing all API objects injected into script execution.
- */
-export interface ScriptContext {
-  scriptAPI: unknown;
-  data: unknown;
-  variable: unknown;
-  sound: unknown;
-  camera: unknown;
-  save: unknown;
-}
+import type { GameContext } from '../runtime/GameContext';
 
 /** Parameter names injected into every script function. */
 const INJECTED_PARAM_NAMES = [
@@ -51,7 +41,7 @@ export class ScriptRunner {
    *
    * isAsync scripts return Promise<unknown>, sync scripts return unknown directly.
    */
-  execute(script: Script, context: ScriptContext, argValues?: Record<string, unknown>): unknown {
+  execute(script: Script, context: GameContext, argValues?: Record<string, unknown>): unknown {
     const internalFns = this.resolveInternalScripts(script.id, context);
     const ns = this.getScriptNamespace(context);
     return this.compileAndRun(
@@ -66,12 +56,26 @@ export class ScriptRunner {
   }
 
   /**
+   * Execute a script by its ID. Looks up the script in the registered list
+   * and delegates to execute().
+   */
+  executeById(
+    scriptId: string,
+    context: GameContext,
+    argValues?: Record<string, unknown>
+  ): unknown {
+    const script = this.scripts.find((s) => s.id === scriptId);
+    if (!script) throw new Error(`Script "${scriptId}" not found`);
+    return this.execute(script, context, argValues);
+  }
+
+  /**
    * Build or return cached Script namespace object.
    * Maps callId -> callable function for all scripts with callId set.
    * isAsync scripts return Promise, sync scripts return value directly.
    */
   private getScriptNamespace(
-    context: ScriptContext
+    context: GameContext
   ): Record<string, (...args: unknown[]) => unknown> {
     if (this.scriptNamespace) return this.scriptNamespace;
 
@@ -117,7 +121,7 @@ export class ScriptRunner {
    */
   private resolveInternalScripts(
     parentId: string,
-    context: ScriptContext
+    context: GameContext
   ): Record<string, (...args: unknown[]) => unknown> {
     const children = this.scripts.filter((s) => s.type === 'internal' && s.parentId === parentId);
     const fns: Record<string, (...args: unknown[]) => unknown> = {};
@@ -154,7 +158,7 @@ export class ScriptRunner {
    */
   private compileAndRun(
     content: string,
-    context: ScriptContext,
+    context: GameContext,
     scriptNamespace: Record<string, (...args: unknown[]) => unknown>,
     internalFns: Record<string, (...args: unknown[]) => unknown>,
     isAsync: boolean,

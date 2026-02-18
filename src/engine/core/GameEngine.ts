@@ -52,10 +52,10 @@ export class GameEngine {
       return;
     }
 
-    const context = new GameContext(projectData, {
+    const runner = new ScriptRunner(projectData.scripts);
+    const context = new GameContext(projectData, runner, {
       variables: testSettings?.variables,
     });
-    const runner = new ScriptRunner(projectData.scripts);
 
     // Capture console output and forward as log messages
     const originalLog = console.log;

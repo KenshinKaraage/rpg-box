@@ -1,11 +1,11 @@
 /**
- * GameContext - Assembles all runtime API instances into a single ScriptContext
+ * GameContext - Assembles all runtime API instances into a single context object
  *
  * Takes EngineProjectData and creates VariableAPI, DataAPI, ScriptAPI,
  * and stub APIs (Sound, Camera, Save) for script execution.
  */
 
-import type { ScriptContext } from '../core/ScriptRunner';
+import type { ScriptRunner } from '../core/ScriptRunner';
 import type { EngineProjectData } from '../types';
 
 // =============================================================================
@@ -59,15 +59,21 @@ export interface ContextOverrides {
 // GameContext
 // =============================================================================
 
-export class GameContext implements ScriptContext {
+export class GameContext {
   readonly scriptAPI: GameScriptAPI;
   readonly data: DataAPI;
   readonly variable: VariableAPI;
   readonly sound: SoundAPI;
   readonly camera: CameraAPI;
   readonly save: SaveAPI;
+  readonly scriptRunner: ScriptRunner;
 
-  constructor(projectData: EngineProjectData, overrides?: ContextOverrides) {
+  constructor(
+    projectData: EngineProjectData,
+    scriptRunner: ScriptRunner,
+    overrides?: ContextOverrides
+  ) {
+    this.scriptRunner = scriptRunner;
     this.variable = createVariableAPI(projectData, overrides);
     this.data = createDataAPI(projectData);
     this.scriptAPI = createScriptAPI(this.variable);
