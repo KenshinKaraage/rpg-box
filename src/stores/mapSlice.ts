@@ -4,6 +4,7 @@
  * マップ、レイヤー、タイル、オブジェクト、チップセットの状態管理
  */
 import type { GameMap, MapLayer, MapObject, Chipset } from '@/types/map';
+import type { FieldType } from '@/types/fields/FieldType';
 
 export interface MapSlice {
   /** マップ一覧 */
@@ -52,6 +53,23 @@ export interface MapSlice {
   addChipset: (chipset: Chipset) => void;
   updateChipset: (id: string, updates: Partial<Chipset>) => void;
   deleteChipset: (id: string) => void;
+
+  // Map field operations
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addFieldToMap: (mapId: string, field: FieldType<any>) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  replaceMapField: (mapId: string, fieldId: string, newField: FieldType<any>) => void;
+  deleteMapField: (mapId: string, fieldId: string) => void;
+  reorderMapFields: (mapId: string, fromIndex: number, toIndex: number) => void;
+  updateMapValues: (mapId: string, values: Record<string, unknown>) => void;
+
+  // Chipset field operations
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addFieldToChipset: (chipsetId: string, field: FieldType<any>) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  replaceChipsetField: (chipsetId: string, fieldId: string, newField: FieldType<any>) => void;
+  deleteChipsetField: (chipsetId: string, fieldId: string) => void;
+  reorderChipsetFields: (chipsetId: string, fromIndex: number, toIndex: number) => void;
 }
 
 export const createMapSlice = <T extends MapSlice>(
@@ -248,5 +266,121 @@ export const createMapSlice = <T extends MapSlice>(
   deleteChipset: (id: string) =>
     set((state) => {
       state.chipsets = state.chipsets.filter((c) => c.id !== id);
+    }),
+
+  // =========================================================================
+  // Map field operations
+  // =========================================================================
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addFieldToMap: (mapId: string, field: FieldType<any>) =>
+    set((state) => {
+      const map = state.maps.find((m) => m.id === mapId);
+      if (map) {
+        map.fields.push(field);
+      }
+    }),
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  replaceMapField: (mapId: string, fieldId: string, newField: FieldType<any>) =>
+    set((state) => {
+      const map = state.maps.find((m) => m.id === mapId);
+      if (map) {
+        const index = map.fields.findIndex((f) => f.id === fieldId);
+        if (index !== -1) {
+          newField.id = fieldId;
+          newField.name = map.fields[index]!.name;
+          map.fields[index] = newField;
+        }
+      }
+    }),
+
+  deleteMapField: (mapId: string, fieldId: string) =>
+    set((state) => {
+      const map = state.maps.find((m) => m.id === mapId);
+      if (map) {
+        map.fields = map.fields.filter((f) => f.id !== fieldId);
+        delete map.values[fieldId];
+      }
+    }),
+
+  reorderMapFields: (mapId: string, fromIndex: number, toIndex: number) =>
+    set((state) => {
+      const map = state.maps.find((m) => m.id === mapId);
+      if (
+        map &&
+        fromIndex >= 0 &&
+        toIndex >= 0 &&
+        fromIndex < map.fields.length &&
+        toIndex < map.fields.length
+      ) {
+        const [removed] = map.fields.splice(fromIndex, 1);
+        if (removed) {
+          map.fields.splice(toIndex, 0, removed);
+        }
+      }
+    }),
+
+  updateMapValues: (mapId: string, values: Record<string, unknown>) =>
+    set((state) => {
+      const map = state.maps.find((m) => m.id === mapId);
+      if (map) {
+        Object.assign(map.values, values);
+      }
+    }),
+
+  // =========================================================================
+  // Chipset field operations
+  // =========================================================================
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  addFieldToChipset: (chipsetId: string, field: FieldType<any>) =>
+    set((state) => {
+      const cs = state.chipsets.find((c) => c.id === chipsetId);
+      if (cs) {
+        cs.fields.push(field);
+      }
+    }),
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  replaceChipsetField: (chipsetId: string, fieldId: string, newField: FieldType<any>) =>
+    set((state) => {
+      const cs = state.chipsets.find((c) => c.id === chipsetId);
+      if (cs) {
+        const index = cs.fields.findIndex((f) => f.id === fieldId);
+        if (index !== -1) {
+          newField.id = fieldId;
+          newField.name = cs.fields[index]!.name;
+          cs.fields[index] = newField;
+        }
+      }
+    }),
+
+  deleteChipsetField: (chipsetId: string, fieldId: string) =>
+    set((state) => {
+      const cs = state.chipsets.find((c) => c.id === chipsetId);
+      if (cs) {
+        cs.fields = cs.fields.filter((f) => f.id !== fieldId);
+        for (const chip of cs.chips) {
+          delete chip.values[fieldId];
+        }
+      }
+    }),
+
+  reorderChipsetFields: (chipsetId: string, fromIndex: number, toIndex: number) =>
+    set((state) => {
+      const cs = state.chipsets.find((c) => c.id === chipsetId);
+      if (
+        cs &&
+        fromIndex >= 0 &&
+        toIndex >= 0 &&
+        fromIndex < cs.fields.length &&
+        toIndex < cs.fields.length
+      ) {
+        const [removed] = cs.fields.splice(fromIndex, 1);
+        if (removed) {
+          cs.fields.splice(toIndex, 0, removed);
+        }
+      }
     }),
 });

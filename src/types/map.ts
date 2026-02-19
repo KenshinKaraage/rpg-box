@@ -1,4 +1,5 @@
 import type { Component } from './components/Component';
+import type { FieldType } from './fields/FieldType';
 
 export interface GameMap {
   id: string;
@@ -6,8 +7,9 @@ export interface GameMap {
   width: number; // 20-999
   height: number; // 15-999
   layers: MapLayer[];
-  bgmId?: string;
-  backgroundImageId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fields: FieldType<any>[];
+  values: Record<string, unknown>;
 }
 
 export interface MapLayer {
@@ -32,13 +34,14 @@ export interface Chipset {
   imageId: string;
   tileWidth: number;
   tileHeight: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fields: FieldType<any>[];
   chips: ChipProperty[];
 }
 
 export interface ChipProperty {
   index: number;
-  passable: boolean;
-  footstepType?: string;
+  values: Record<string, unknown>;
 }
 
 export interface Prefab {

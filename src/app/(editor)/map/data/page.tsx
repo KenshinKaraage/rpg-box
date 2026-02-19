@@ -53,6 +53,8 @@ export default function MapDataPage() {
           type: 'tile' as const,
         },
       ],
+      fields: [],
+      values: {},
     };
     addMap(newMap);
     selectMap(id);
@@ -78,6 +80,8 @@ export default function MapDataPage() {
       id: newId,
       name: `${original.name} のコピー`,
       layers: clonedLayers,
+      fields: original.fields.map((f) => Object.assign(Object.create(Object.getPrototypeOf(f)), f)),
+      values: { ...original.values },
     };
     addMap(duplicated);
     selectMap(newId);

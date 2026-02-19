@@ -83,8 +83,8 @@ export interface GameMap {
   width: number;
   height: number;
   layers: MapLayer[];
-  bgmId?: string;
-  backgroundImageId?: string;
+  fields: SerializedFieldType[];
+  values: Record<string, unknown>;
 }
 
 /**
@@ -127,6 +127,7 @@ export interface Chipset {
   imageId: string;
   tileWidth: number;
   tileHeight: number;
+  fields: SerializedFieldType[];
   chips: ChipProperty[];
 }
 
@@ -135,8 +136,7 @@ export interface Chipset {
  */
 export interface ChipProperty {
   index: number;
-  passable: boolean;
-  footstepType?: string;
+  values: Record<string, unknown>;
 }
 
 /**

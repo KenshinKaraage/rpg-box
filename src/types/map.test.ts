@@ -39,8 +39,8 @@ describe('Map type definitions', () => {
       width: 20,
       height: 15,
       layers: [tileLayer, objectLayer],
-      bgmId: 'bgm-field',
-      backgroundImageId: 'bg-sky',
+      fields: [],
+      values: {},
     };
 
     expect(gameMap.id).toBe('map-1');
@@ -51,14 +51,15 @@ describe('Map type definitions', () => {
     expect(gameMap.layers[0]!.tiles![0]![0]).toBe('chip-1');
     expect(gameMap.layers[1]!.type).toBe('object');
     expect(gameMap.layers[1]!.objects![0]!.name).toBe('宝箱');
-    expect(gameMap.bgmId).toBe('bgm-field');
+    expect(gameMap.fields).toEqual([]);
+    expect(gameMap.values).toEqual({});
   });
 
-  it('creates a Chipset with ChipProperties', () => {
+  it('creates a Chipset with ChipProperties using values', () => {
     const chips: ChipProperty[] = [
-      { index: 0, passable: true },
-      { index: 1, passable: false, footstepType: 'grass' },
-      { index: 2, passable: true, footstepType: 'stone' },
+      { index: 0, values: { passable: true } },
+      { index: 1, values: { passable: false, footstepType: 'grass' } },
+      { index: 2, values: { passable: true, footstepType: 'stone' } },
     ];
 
     const chipset: Chipset = {
@@ -67,14 +68,16 @@ describe('Map type definitions', () => {
       imageId: 'img-grassland',
       tileWidth: 32,
       tileHeight: 32,
+      fields: [],
       chips,
     };
 
     expect(chipset.id).toBe('chipset-1');
     expect(chipset.tileWidth).toBe(32);
     expect(chipset.chips).toHaveLength(3);
-    expect(chipset.chips[1]!.passable).toBe(false);
-    expect(chipset.chips[1]!.footstepType).toBe('grass');
+    expect(chipset.chips[1]!.values.passable).toBe(false);
+    expect(chipset.chips[1]!.values.footstepType).toBe('grass');
+    expect(chipset.fields).toEqual([]);
   });
 
   it('creates a Prefab with components', () => {

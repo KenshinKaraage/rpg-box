@@ -14,6 +14,8 @@ const mockMap: GameMap = {
     { id: 'layer_1', name: 'レイヤー1', type: 'tile' },
     { id: 'layer_2', name: 'レイヤー2', type: 'object' },
   ],
+  fields: [],
+  values: {},
 };
 
 describe('MapSettingsEditor', () => {
@@ -86,18 +88,5 @@ describe('MapSettingsEditor', () => {
     fireEvent.click(screen.getByTestId('delete-layer-layer_1'));
 
     expect(defaultProps.onDeleteLayer).toHaveBeenCalledWith('map_1', 'layer_1');
-  });
-
-  it('BGM未設定時に「未設定」と表示される', () => {
-    render(<MapSettingsEditor {...defaultProps} />);
-
-    expect(screen.getByTestId('bgm-display')).toHaveTextContent('未設定');
-  });
-
-  it('BGM設定時にIDが表示される', () => {
-    const mapWithBgm = { ...mockMap, bgmId: 'bgm_battle' };
-    render(<MapSettingsEditor {...defaultProps} map={mapWithBgm} />);
-
-    expect(screen.getByTestId('bgm-display')).toHaveTextContent('bgm_battle');
   });
 });

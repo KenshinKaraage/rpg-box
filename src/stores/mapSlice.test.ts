@@ -4,6 +4,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useStore } from './index';
 import type { GameMap, MapLayer, MapObject, Chipset } from '@/types/map';
+import { createFieldTypeInstance } from '@/types/fields';
 
 const createTestMap = (id: string, name: string): GameMap => ({
   id,
@@ -11,6 +12,8 @@ const createTestMap = (id: string, name: string): GameMap => ({
   width: 20,
   height: 15,
   layers: [],
+  fields: [],
+  values: {},
 });
 
 const createTestLayer = (id: string, name: string, type: 'tile' | 'object'): MapLayer => ({
@@ -32,6 +35,7 @@ const createTestChipset = (id: string, name: string): Chipset => ({
   imageId: 'img_001',
   tileWidth: 32,
   tileHeight: 32,
+  fields: [],
   chips: [],
 });
 
@@ -608,6 +612,345 @@ describe('mapSlice', () => {
       });
 
       expect(result.current.chipsets).toHaveLength(0);
+    });
+  });
+
+  // ===========================================================================
+  // Map field operations
+  // ===========================================================================
+
+  describe('addFieldToMap', () => {
+    it('マップにフィールドを追加できる', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.addMap(createTestMap('map_001', 'フィールド'));
+      });
+
+      const field = createFieldTypeInstance('number')!;
+      field.id = 'hp';
+      field.name = 'HP';
+
+      act(() => {
+        result.current.addFieldToMap('map_001', field);
+      });
+
+      expect(result.current.maps[0]?.fields).toHaveLength(1);
+      expect(result.current.maps[0]?.fields[0]?.id).toBe('hp');
+      expect(result.current.maps[0]?.fields[0]?.name).toBe('HP');
+    });
+
+    it('存在しないマップにフィールドを追加しても何も起きない', () => {
+      const { result } = renderHook(() => useStore());
+
+      const field = createFieldTypeInstance('number')!;
+      field.id = 'hp';
+      field.name = 'HP';
+
+      act(() => {
+        result.current.addFieldToMap('nonexistent', field);
+      });
+
+      expect(result.current.maps).toHaveLength(0);
+    });
+  });
+
+  describe('replaceMapField', () => {
+    it('フィールドを置換できる（IDと名前は保持される）', () => {
+      const { result } = renderHook(() => useStore());
+
+      const originalField = createFieldTypeInstance('number')!;
+      originalField.id = 'field_1';
+      originalField.name = 'HP';
+
+      act(() => {
+        result.current.addMap(createTestMap('map_001', 'フィールド'));
+        result.current.addFieldToMap('map_001', originalField);
+      });
+
+      const newField = createFieldTypeInstance('string')!;
+      newField.id = 'temp';
+      newField.name = 'temp';
+
+      act(() => {
+        result.current.replaceMapField('map_001', 'field_1', newField);
+      });
+
+      expect(result.current.maps[0]?.fields).toHaveLength(1);
+      expect(result.current.maps[0]?.fields[0]?.id).toBe('field_1');
+      expect(result.current.maps[0]?.fields[0]?.name).toBe('HP');
+      expect(result.current.maps[0]?.fields[0]?.type).toBe('string');
+    });
+
+    it('存在しないフィールドを置換しても何も起きない', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.addMap(createTestMap('map_001', 'フィールド'));
+      });
+
+      const newField = createFieldTypeInstance('string')!;
+
+      act(() => {
+        result.current.replaceMapField('map_001', 'nonexistent', newField);
+      });
+
+      expect(result.current.maps[0]?.fields).toHaveLength(0);
+    });
+  });
+
+  describe('deleteMapField', () => {
+    it('フィールドを削除し、対応するvaluesもクリアされる', () => {
+      const { result } = renderHook(() => useStore());
+
+      const field = createFieldTypeInstance('number')!;
+      field.id = 'hp';
+      field.name = 'HP';
+
+      act(() => {
+        const map = createTestMap('map_001', 'フィールド');
+        map.values = { hp: 100 };
+        result.current.addMap(map);
+        result.current.addFieldToMap('map_001', field);
+      });
+
+      act(() => {
+        result.current.deleteMapField('map_001', 'hp');
+      });
+
+      expect(result.current.maps[0]?.fields).toHaveLength(0);
+      expect(result.current.maps[0]?.values).not.toHaveProperty('hp');
+    });
+  });
+
+  describe('reorderMapFields', () => {
+    it('フィールドの順序を変更できる', () => {
+      const { result } = renderHook(() => useStore());
+
+      const field1 = createFieldTypeInstance('number')!;
+      field1.id = 'field_1';
+      field1.name = 'HP';
+
+      const field2 = createFieldTypeInstance('string')!;
+      field2.id = 'field_2';
+      field2.name = '名前';
+
+      act(() => {
+        result.current.addMap(createTestMap('map_001', 'フィールド'));
+        result.current.addFieldToMap('map_001', field1);
+        result.current.addFieldToMap('map_001', field2);
+      });
+
+      act(() => {
+        result.current.reorderMapFields('map_001', 0, 1);
+      });
+
+      expect(result.current.maps[0]?.fields[0]?.id).toBe('field_2');
+      expect(result.current.maps[0]?.fields[1]?.id).toBe('field_1');
+    });
+
+    it('無効なインデックスでは何も起きない', () => {
+      const { result } = renderHook(() => useStore());
+
+      const field = createFieldTypeInstance('number')!;
+      field.id = 'field_1';
+      field.name = 'HP';
+
+      act(() => {
+        result.current.addMap(createTestMap('map_001', 'フィールド'));
+        result.current.addFieldToMap('map_001', field);
+      });
+
+      act(() => {
+        result.current.reorderMapFields('map_001', 0, 5);
+      });
+
+      expect(result.current.maps[0]?.fields[0]?.id).toBe('field_1');
+    });
+  });
+
+  describe('updateMapValues', () => {
+    it('valuesをマージできる', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        const map = createTestMap('map_001', 'フィールド');
+        map.values = { hp: 100 };
+        result.current.addMap(map);
+      });
+
+      act(() => {
+        result.current.updateMapValues('map_001', { mp: 50 });
+      });
+
+      expect(result.current.maps[0]?.values).toEqual({ hp: 100, mp: 50 });
+    });
+
+    it('既存のvalueを上書きできる', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        const map = createTestMap('map_001', 'フィールド');
+        map.values = { hp: 100 };
+        result.current.addMap(map);
+      });
+
+      act(() => {
+        result.current.updateMapValues('map_001', { hp: 200 });
+      });
+
+      expect(result.current.maps[0]?.values).toEqual({ hp: 200 });
+    });
+
+    it('存在しないマップを更新しても何も起きない', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.updateMapValues('nonexistent', { hp: 100 });
+      });
+
+      expect(result.current.maps).toHaveLength(0);
+    });
+  });
+
+  // ===========================================================================
+  // Chipset field operations
+  // ===========================================================================
+
+  describe('addFieldToChipset', () => {
+    it('チップセットにフィールドを追加できる', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.addChipset(createTestChipset('chipset_001', '草原'));
+      });
+
+      const field = createFieldTypeInstance('boolean')!;
+      field.id = 'passable';
+      field.name = '通行可能';
+
+      act(() => {
+        result.current.addFieldToChipset('chipset_001', field);
+      });
+
+      expect(result.current.chipsets[0]?.fields).toHaveLength(1);
+      expect(result.current.chipsets[0]?.fields[0]?.id).toBe('passable');
+    });
+
+    it('存在しないチップセットにフィールドを追加しても何も起きない', () => {
+      const { result } = renderHook(() => useStore());
+
+      const field = createFieldTypeInstance('boolean')!;
+      field.id = 'passable';
+      field.name = '通行可能';
+
+      act(() => {
+        result.current.addFieldToChipset('nonexistent', field);
+      });
+
+      expect(result.current.chipsets).toHaveLength(0);
+    });
+  });
+
+  describe('replaceChipsetField', () => {
+    it('フィールドを置換できる（IDと名前は保持される）', () => {
+      const { result } = renderHook(() => useStore());
+
+      const originalField = createFieldTypeInstance('boolean')!;
+      originalField.id = 'field_1';
+      originalField.name = '通行可能';
+
+      act(() => {
+        result.current.addChipset(createTestChipset('chipset_001', '草原'));
+        result.current.addFieldToChipset('chipset_001', originalField);
+      });
+
+      const newField = createFieldTypeInstance('number')!;
+      newField.id = 'temp';
+      newField.name = 'temp';
+
+      act(() => {
+        result.current.replaceChipsetField('chipset_001', 'field_1', newField);
+      });
+
+      expect(result.current.chipsets[0]?.fields).toHaveLength(1);
+      expect(result.current.chipsets[0]?.fields[0]?.id).toBe('field_1');
+      expect(result.current.chipsets[0]?.fields[0]?.name).toBe('通行可能');
+      expect(result.current.chipsets[0]?.fields[0]?.type).toBe('number');
+    });
+  });
+
+  describe('deleteChipsetField', () => {
+    it('フィールドを削除し、全チップのvaluesもクリアされる', () => {
+      const { result } = renderHook(() => useStore());
+
+      const field = createFieldTypeInstance('boolean')!;
+      field.id = 'passable';
+      field.name = '通行可能';
+
+      act(() => {
+        const chipset = createTestChipset('chipset_001', '草原');
+        chipset.chips = [
+          { index: 0, values: { passable: true } },
+          { index: 1, values: { passable: false } },
+        ];
+        result.current.addChipset(chipset);
+        result.current.addFieldToChipset('chipset_001', field);
+      });
+
+      act(() => {
+        result.current.deleteChipsetField('chipset_001', 'passable');
+      });
+
+      expect(result.current.chipsets[0]?.fields).toHaveLength(0);
+      expect(result.current.chipsets[0]?.chips[0]?.values).not.toHaveProperty('passable');
+      expect(result.current.chipsets[0]?.chips[1]?.values).not.toHaveProperty('passable');
+    });
+  });
+
+  describe('reorderChipsetFields', () => {
+    it('フィールドの順序を変更できる', () => {
+      const { result } = renderHook(() => useStore());
+
+      const field1 = createFieldTypeInstance('boolean')!;
+      field1.id = 'passable';
+      field1.name = '通行可能';
+
+      const field2 = createFieldTypeInstance('string')!;
+      field2.id = 'footstep';
+      field2.name = '足音';
+
+      act(() => {
+        result.current.addChipset(createTestChipset('chipset_001', '草原'));
+        result.current.addFieldToChipset('chipset_001', field1);
+        result.current.addFieldToChipset('chipset_001', field2);
+      });
+
+      act(() => {
+        result.current.reorderChipsetFields('chipset_001', 0, 1);
+      });
+
+      expect(result.current.chipsets[0]?.fields[0]?.id).toBe('footstep');
+      expect(result.current.chipsets[0]?.fields[1]?.id).toBe('passable');
+    });
+
+    it('無効なインデックスでは何も起きない', () => {
+      const { result } = renderHook(() => useStore());
+
+      const field = createFieldTypeInstance('boolean')!;
+      field.id = 'passable';
+      field.name = '通行可能';
+
+      act(() => {
+        result.current.addChipset(createTestChipset('chipset_001', '草原'));
+        result.current.addFieldToChipset('chipset_001', field);
+      });
+
+      act(() => {
+        result.current.reorderChipsetFields('chipset_001', 0, 5);
+      });
+
+      expect(result.current.chipsets[0]?.fields[0]?.id).toBe('passable');
     });
   });
 });

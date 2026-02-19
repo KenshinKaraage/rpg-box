@@ -186,14 +186,6 @@ export function MapSettingsEditor({
             </ul>
           )}
         </div>
-
-        {/* BGM */}
-        <div className="space-y-2">
-          <Label>BGM</Label>
-          <div className="text-sm text-muted-foreground" data-testid="bgm-display">
-            {map.bgmId ?? '未設定'}
-          </div>
-        </div>
       </div>
     </div>
   );
