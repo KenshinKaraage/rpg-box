@@ -119,6 +119,9 @@ export default function AssetsPage() {
     try {
       const result = await importDefaultAssets(assets, addAsset, addFolder, assetFolders);
       console.info(`インポート完了: ${result.imported}件インポート（${result.skipped}件スキップ）`);
+    } catch (error) {
+      console.error('Default asset import failed:', error);
+      // TODO: toast通知（実装後に追加）
     } finally {
       setIsImporting(false);
     }
