@@ -3,6 +3,7 @@
  */
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MapSettingsEditor } from './MapSettingsEditor';
+import { AudioFieldType, ImageFieldType } from '@/types/fields';
 import type { GameMap } from '@/types/map';
 
 const mockMap: GameMap = {
@@ -18,10 +19,27 @@ const mockMap: GameMap = {
   values: {},
 };
 
+function createMapWithFields(): GameMap {
+  const bgmField = new AudioFieldType();
+  bgmField.id = 'bgm';
+  bgmField.name = 'BGM';
+
+  const bgField = new ImageFieldType();
+  bgField.id = 'background_image';
+  bgField.name = '背景画像';
+
+  return {
+    ...mockMap,
+    fields: [bgmField, bgField],
+    values: {},
+  };
+}
+
 describe('MapSettingsEditor', () => {
   const defaultProps = {
     map: mockMap,
     onUpdateMap: jest.fn(),
+    onUpdateMapValues: jest.fn(),
     onAddLayer: jest.fn(),
     onUpdateLayer: jest.fn(),
     onDeleteLayer: jest.fn(),
@@ -88,5 +106,20 @@ describe('MapSettingsEditor', () => {
     fireEvent.click(screen.getByTestId('delete-layer-layer_1'));
 
     expect(defaultProps.onDeleteLayer).toHaveBeenCalledWith('map_1', 'layer_1');
+  });
+
+  it('フィールドがない場合はプロパティセクションが表示されない', () => {
+    render(<MapSettingsEditor {...defaultProps} />);
+
+    expect(screen.queryByTestId('map-fields-section')).not.toBeInTheDocument();
+  });
+
+  it('フィールドがある場合はプロパティセクションが表示される', () => {
+    const mapWithFields = createMapWithFields();
+    render(<MapSettingsEditor {...defaultProps} map={mapWithFields} />);
+
+    expect(screen.getByTestId('map-fields-section')).toBeInTheDocument();
+    expect(screen.getByText('BGM')).toBeInTheDocument();
+    expect(screen.getByText('背景画像')).toBeInTheDocument();
   });
 });

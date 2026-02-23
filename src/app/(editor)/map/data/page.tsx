@@ -4,6 +4,7 @@ import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { MapList, MapSettingsEditor } from '@/features/map-editor';
 import { useStore } from '@/stores';
 import { generateId } from '@/lib/utils';
+import { createDefaultMapFields } from '@/lib/defaultMapFields';
 import type { GameMap } from '@/types/map';
 
 /**
@@ -24,6 +25,7 @@ export default function MapDataPage() {
   const deleteMap = useStore((state) => state.deleteMap);
   const selectMap = useStore((state) => state.selectMap);
 
+  const updateMapValues = useStore((state) => state.updateMapValues);
   const addLayer = useStore((state) => state.addLayer);
   const updateLayer = useStore((state) => state.updateLayer);
   const deleteLayer = useStore((state) => state.deleteLayer);
@@ -53,7 +55,7 @@ export default function MapDataPage() {
           type: 'tile' as const,
         },
       ],
-      fields: [],
+      fields: createDefaultMapFields(),
       values: {},
     };
     addMap(newMap);
@@ -111,6 +113,7 @@ export default function MapDataPage() {
           key={selectedMapId ?? 'none'}
           map={selectedMap}
           onUpdateMap={updateMap}
+          onUpdateMapValues={updateMapValues}
           onAddLayer={addLayer}
           onUpdateLayer={updateLayer}
           onDeleteLayer={deleteLayer}

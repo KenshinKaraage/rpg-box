@@ -11,6 +11,7 @@ import type { GameMap, MapLayer } from '@/types/map';
 interface MapSettingsEditorProps {
   map: GameMap | null;
   onUpdateMap: (id: string, updates: Partial<GameMap>) => void;
+  onUpdateMapValues: (mapId: string, values: Record<string, unknown>) => void;
   onAddLayer: (mapId: string, layer: MapLayer) => void;
   onUpdateLayer: (mapId: string, layerId: string, updates: Partial<MapLayer>) => void;
   onDeleteLayer: (mapId: string, layerId: string) => void;
@@ -22,6 +23,7 @@ interface MapSettingsEditorProps {
 export function MapSettingsEditor({
   map,
   onUpdateMap,
+  onUpdateMapValues,
   onAddLayer,
   onUpdateLayer,
   onDeleteLayer,
@@ -69,6 +71,10 @@ export function MapSettingsEditor({
 
   const handleDeleteLayer = (layerId: string) => {
     onDeleteLayer(map.id, layerId);
+  };
+
+  const handleFieldChange = (fieldId: string, value: unknown) => {
+    onUpdateMapValues(map.id, { ...map.values, [fieldId]: value });
   };
 
   const handleCopyId = () => {
@@ -186,6 +192,30 @@ export function MapSettingsEditor({
             </ul>
           )}
         </div>
+
+        {/* カスタムフィールド */}
+        {map.fields.length > 0 && (
+          <div className="space-y-2" data-testid="map-fields-section">
+            <Label>プロパティ</Label>
+            <div className="space-y-3">
+              {map.fields.map((field) => {
+                const value = map.values[field.id] ?? field.getDefaultValue();
+                return (
+                  <div key={field.id} className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      {field.name}
+                      {field.required && <span className="ml-1 text-red-500">*</span>}
+                    </Label>
+                    {field.renderEditor({
+                      value,
+                      onChange: (newValue: unknown) => handleFieldChange(field.id, newValue),
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
