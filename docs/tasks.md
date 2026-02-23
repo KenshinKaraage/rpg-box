@@ -6357,6 +6357,31 @@ export function useAutoSave() {
 
 ---
 
+#### [T241] デフォルトアセット & チップセット画像表示
+
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T241-default-assets-chipset-image
+- **PR:** -
+
+**完了条件:**
+
+- [x] `assets/images/map_chip/*.png` を `public/assets/images/map_chip/` にコピー
+- [x] `src/lib/defaultAssets.ts`（DEFAULT_ASSET_GROUPS 設定ファイル）作成
+- [x] `src/lib/importDefaultAssets.ts`（fetch → Base64 → AssetReference）+ テスト作成
+- [x] アセット管理ページに「デフォルトをインポート」ボタン追加
+- [x] ChipsetEditor に画像選択 UI（AssetPickerModal）追加
+- [x] チップグリッドに実際の画像タイルを表示（CSS background-image）し、○/× を重ね表示
+
+**関連ファイル:**
+
+- `public/assets/images/map_chip/*.png`
+- `src/lib/defaultAssets.ts`
+- `src/lib/importDefaultAssets.ts`
+- `src/app/(editor)/settings/assets/page.tsx`
+- `src/features/map-editor/components/ChipsetEditor.tsx`
+
+---
+
 #### [T240] [US18] Documentation
 
 - **ステータス:** [ ] 未着手
