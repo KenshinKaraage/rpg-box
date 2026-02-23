@@ -74,4 +74,13 @@ describe('importDefaultAssets', () => {
     expect(result.imported).toBe(0);
     expect(addAsset).not.toHaveBeenCalled();
   });
+
+  it('fetchが例外をスローした場合もスキップされる', async () => {
+    mockFetch.mockRejectedValue(new Error('network error'));
+    const addAsset = jest.fn();
+    const addFolder = jest.fn();
+    const result = await importDefaultAssets([], addAsset, addFolder, []);
+    expect(result.imported).toBe(0);
+    expect(addAsset).not.toHaveBeenCalled();
+  });
 });
