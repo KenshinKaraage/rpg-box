@@ -63,6 +63,13 @@ export interface MapSlice {
   reorderMapFields: (mapId: string, fromIndex: number, toIndex: number) => void;
   updateMapValues: (mapId: string, values: Record<string, unknown>) => void;
 
+  // Chip property operations
+  updateChipProperty: (
+    chipsetId: string,
+    chipIndex: number,
+    values: Record<string, unknown>
+  ) => void;
+
   // Chipset field operations
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   addFieldToChipset: (chipsetId: string, field: FieldType<any>) => void;
@@ -266,6 +273,22 @@ export const createMapSlice = <T extends MapSlice>(
   deleteChipset: (id: string) =>
     set((state) => {
       state.chipsets = state.chipsets.filter((c) => c.id !== id);
+    }),
+
+  // =========================================================================
+  // Chip property operations
+  // =========================================================================
+
+  updateChipProperty: (chipsetId: string, chipIndex: number, values: Record<string, unknown>) =>
+    set((state) => {
+      const cs = state.chipsets.find((c) => c.id === chipsetId);
+      if (!cs) return;
+      const existing = cs.chips.find((c) => c.index === chipIndex);
+      if (existing) {
+        Object.assign(existing.values, values);
+      } else {
+        cs.chips.push({ index: chipIndex, values: { ...values } });
+      }
     }),
 
   // =========================================================================

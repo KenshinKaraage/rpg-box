@@ -624,6 +624,69 @@ describe('mapSlice', () => {
   });
 
   // ===========================================================================
+  // Chip property operations
+  // ===========================================================================
+
+  describe('updateChipProperty', () => {
+    it('既存チップの values を更新する', () => {
+      const { result } = renderHook(() => useStore());
+
+      const chipset: Chipset = {
+        id: 'cs_001',
+        name: 'テスト',
+        imageId: '',
+        tileWidth: 32,
+        tileHeight: 32,
+        fields: [],
+        chips: [{ index: 0, values: { passable: false } }],
+      };
+
+      act(() => {
+        result.current.addChipset(chipset);
+        result.current.updateChipProperty('cs_001', 0, { passable: true });
+      });
+
+      const updated = result.current.chipsets.find((c) => c.id === 'cs_001');
+      expect(updated?.chips[0]?.values['passable']).toBe(true);
+    });
+
+    it('存在しないチップインデックスなら新規追加する', () => {
+      const { result } = renderHook(() => useStore());
+
+      const chipset: Chipset = {
+        id: 'cs_002',
+        name: 'テスト2',
+        imageId: '',
+        tileWidth: 32,
+        tileHeight: 32,
+        fields: [],
+        chips: [],
+      };
+
+      act(() => {
+        result.current.addChipset(chipset);
+        result.current.updateChipProperty('cs_002', 5, { passable: true });
+      });
+
+      const updated = result.current.chipsets.find((c) => c.id === 'cs_002');
+      expect(updated?.chips).toHaveLength(1);
+      expect(updated?.chips[0]?.index).toBe(5);
+      expect(updated?.chips[0]?.values['passable']).toBe(true);
+    });
+
+    it('存在しないチップセットIDは何もしない', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.updateChipProperty('nonexistent', 0, { passable: true });
+      });
+
+      // エラーが出ないこと
+      expect(result.current.chipsets).toHaveLength(0);
+    });
+  });
+
+  // ===========================================================================
   // Map field operations
   // ===========================================================================
 
