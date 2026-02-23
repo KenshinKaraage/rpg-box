@@ -2,9 +2,11 @@
 
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { MapList, MapSettingsEditor } from '@/features/map-editor';
+import { ChipsetEditor } from '@/features/map-editor/components/ChipsetEditor';
 import { useStore } from '@/stores';
 import { generateId } from '@/lib/utils';
 import { createDefaultMapFields } from '@/lib/defaultMapFields';
+import { createDefaultChipsetFields } from '@/lib/defaultChipsetFields';
 import type { GameMap } from '@/types/map';
 
 /**
@@ -29,6 +31,17 @@ export default function MapDataPage() {
   const addLayer = useStore((state) => state.addLayer);
   const updateLayer = useStore((state) => state.updateLayer);
   const deleteLayer = useStore((state) => state.deleteLayer);
+  const reorderLayers = useStore((state) => state.reorderLayers);
+
+  const chipsets = useStore((state) => state.chipsets);
+  const addChipset = useStore((state) => state.addChipset);
+  const updateChipset = useStore((state) => state.updateChipset);
+  const deleteChipset = useStore((state) => state.deleteChipset);
+  const updateChipProperty = useStore((state) => state.updateChipProperty);
+  const addFieldToChipset = useStore((state) => state.addFieldToChipset);
+  const replaceChipsetField = useStore((state) => state.replaceChipsetField);
+  const deleteChipsetField = useStore((state) => state.deleteChipsetField);
+  const reorderChipsetFields = useStore((state) => state.reorderChipsetFields);
 
   // 選択中のマップ
   const selectedMap = useStore((state) =>
@@ -95,6 +108,23 @@ export default function MapDataPage() {
     deleteMap(id);
   };
 
+  // チップセットを追加
+  const handleAddChipset = () => {
+    const id = generateId(
+      'cs',
+      chipsets.map((c) => c.id)
+    );
+    addChipset({
+      id,
+      name: '新しいチップセット',
+      imageId: '',
+      tileWidth: 32,
+      tileHeight: 32,
+      fields: createDefaultChipsetFields(),
+      chips: [],
+    });
+  };
+
   // --- レンダリング ---
 
   return (
@@ -113,14 +143,28 @@ export default function MapDataPage() {
         <MapSettingsEditor
           key={selectedMapId ?? 'none'}
           map={selectedMap}
+          chipsets={chipsets}
           onUpdateMap={updateMap}
           onUpdateMapValues={updateMapValues}
           onAddLayer={addLayer}
           onUpdateLayer={updateLayer}
           onDeleteLayer={deleteLayer}
+          onReorderLayers={reorderLayers}
         />
       }
-      right={<div className="p-4 text-sm text-muted-foreground">チップセット設定（準備中）</div>}
+      right={
+        <ChipsetEditor
+          chipsets={chipsets}
+          onAddChipset={handleAddChipset}
+          onUpdateChipset={updateChipset}
+          onDeleteChipset={deleteChipset}
+          onUpdateChipProperty={updateChipProperty}
+          onAddFieldToChipset={addFieldToChipset}
+          onReplaceChipsetField={replaceChipsetField}
+          onDeleteChipsetField={deleteChipsetField}
+          onReorderChipsetFields={reorderChipsetFields}
+        />
+      }
     />
   );
 }
