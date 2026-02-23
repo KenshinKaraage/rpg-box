@@ -126,6 +126,10 @@ export function ChipsetEditor({
     }));
   }, [chipset, imageSize, assets]);
 
+  const selectedImageAsset = chipset?.imageId
+    ? (assets.find((a) => a.id === chipset.imageId) ?? null)
+    : null;
+
   if (chipsets.length === 0) {
     return (
       <div className="flex h-full flex-col">
@@ -188,23 +192,19 @@ export function ChipsetEditor({
 
       {chipset && (
         <div className="flex-1 space-y-4 overflow-auto p-3">
-          {chipset.imageId &&
-            (() => {
-              const imgAsset = assets.find((a) => a.id === chipset.imageId);
-              return imgAsset ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={chipset.imageId}
-                  src={imgAsset.data}
-                  alt=""
-                  className="hidden"
-                  onLoad={(e) => {
-                    const img = e.currentTarget;
-                    setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
-                  }}
-                />
-              ) : null;
-            })()}
+          {selectedImageAsset && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={chipset.imageId}
+              src={selectedImageAsset.data}
+              alt=""
+              className="hidden"
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
+              }}
+            />
+          )}
           {/* 名前 */}
           <div className="space-y-1">
             <Label className="text-xs">名前</Label>
@@ -219,30 +219,27 @@ export function ChipsetEditor({
           <div className="space-y-1">
             <Label className="text-xs">画像</Label>
             {chipset.imageId ? (
-              (() => {
-                const asset = assets.find((a) => a.id === chipset.imageId);
-                return (
-                  <div className="flex items-center gap-2">
-                    {asset && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={asset.data}
-                        alt={asset.name}
-                        className="h-10 w-10 rounded border object-contain"
-                      />
-                    )}
-                    <span className="truncate text-xs">{asset?.name ?? chipset.imageId}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 shrink-0 text-xs"
-                      onClick={() => setImagePickerOpen(true)}
-                    >
-                      変更
-                    </Button>
-                  </div>
-                );
-              })()
+              <div className="flex items-center gap-2">
+                {selectedImageAsset && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selectedImageAsset.data}
+                    alt={selectedImageAsset.name}
+                    className="h-10 w-10 rounded border object-contain"
+                  />
+                )}
+                <span className="truncate text-xs">
+                  {selectedImageAsset?.name ?? chipset.imageId}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 shrink-0 text-xs"
+                  onClick={() => setImagePickerOpen(true)}
+                >
+                  変更
+                </Button>
+              </div>
             ) : (
               <Button
                 size="sm"
