@@ -55,6 +55,7 @@ export function ChipsetEditor({
   onAddFieldToChipset,
   onReplaceChipsetField,
   onDeleteChipsetField,
+  onReorderChipsetFields: _onReorderChipsetFields,
 }: ChipsetEditorProps) {
   const [selectedChipsetId, setSelectedChipsetId] = useState<string | null>(
     chipsets[0]?.id ?? null
@@ -227,7 +228,6 @@ export function ChipsetEditor({
             selectedAssetId={chipset.imageId || null}
             onSelect={(id) => {
               onUpdateChipset(chipset.id, { imageId: id ?? '' });
-              setImagePickerOpen(false);
             }}
           />
 
