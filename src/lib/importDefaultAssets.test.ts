@@ -72,7 +72,9 @@ describe('importDefaultAssets', () => {
     const addFolder = jest.fn();
     const result = await importDefaultAssets([], addAsset, addFolder, []);
     expect(result.imported).toBe(0);
+    expect(result.skipped).toBeGreaterThan(0);
     expect(addAsset).not.toHaveBeenCalled();
+    expect(addFolder).toHaveBeenCalledTimes(1);
   });
 
   it('fetchが例外をスローした場合もスキップされる', async () => {
@@ -81,6 +83,7 @@ describe('importDefaultAssets', () => {
     const addFolder = jest.fn();
     const result = await importDefaultAssets([], addAsset, addFolder, []);
     expect(result.imported).toBe(0);
+    expect(result.skipped).toBeGreaterThan(0);
     expect(addAsset).not.toHaveBeenCalled();
   });
 });
