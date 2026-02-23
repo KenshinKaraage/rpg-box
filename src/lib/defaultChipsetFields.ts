@@ -11,7 +11,7 @@ export function createDefaultChipsetFields(): FieldType<any>[] {
   footstepField.id = 'footstep_type';
   footstepField.name = '足音';
   footstepField.options = [
-    { value: '', label: 'なし' },
+    { value: 'none', label: 'なし' },
     { value: 'grass', label: '草むら' },
     { value: 'stone', label: '石畳' },
     { value: 'wood', label: '木床' },

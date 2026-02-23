@@ -25,7 +25,7 @@ describe('createDefaultChipsetFields', () => {
     const fields = createDefaultChipsetFields();
     const footstepField = fields[1] as SelectFieldType;
     expect(footstepField.options.map((o) => o.value)).toEqual([
-      '',
+      'none',
       'grass',
       'stone',
       'wood',
