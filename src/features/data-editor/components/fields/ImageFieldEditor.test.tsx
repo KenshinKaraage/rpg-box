@@ -88,4 +88,22 @@ describe('ImageFieldEditor', () => {
       expect(screen.getByText('アセットが見つかりません')).toBeInTheDocument();
     });
   });
+
+  describe('showPreview オプション', () => {
+    it('showPreview=true（デフォルト）は画像プレビューを表示する', () => {
+      render(<ImageFieldEditor value="asset_001" onChange={jest.fn()} />);
+      expect(screen.getByRole('img', { name: 'hero.png' })).toBeInTheDocument();
+    });
+
+    it('showPreview=false はプレビュー画像を表示しない', () => {
+      render(<ImageFieldEditor value="asset_001" onChange={jest.fn()} showPreview={false} />);
+      expect(screen.queryByRole('img', { name: 'hero.png' })).not.toBeInTheDocument();
+    });
+
+    it('showPreview=false でもファイル名と変更ボタンは表示される', () => {
+      render(<ImageFieldEditor value="asset_001" onChange={jest.fn()} showPreview={false} />);
+      expect(screen.getByText('hero.png')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '変更' })).toBeInTheDocument();
+    });
+  });
 });

@@ -28,6 +28,9 @@ export class ImageFieldType extends FieldType<string | null> {
   /** 初期表示フォルダID */
   initialFolderId?: string;
 
+  /** 画像プレビューを表示するか（デフォルト: true） */
+  showPreview?: boolean;
+
   /**
    * デフォルト値（未選択）
    */
@@ -67,7 +70,12 @@ export class ImageFieldType extends FieldType<string | null> {
    */
   renderEditor({ value, onChange }: FieldEditorProps<string | null>): ReactNode {
     return (
-      <ImageFieldEditor value={value} onChange={onChange} initialFolderId={this.initialFolderId} />
+      <ImageFieldEditor
+        value={value}
+        onChange={onChange}
+        initialFolderId={this.initialFolderId}
+        showPreview={this.showPreview}
+      />
     );
   }
 
