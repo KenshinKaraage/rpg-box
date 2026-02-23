@@ -5,7 +5,15 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ChipsetEditor } from './ChipsetEditor';
 import { BooleanFieldType } from '@/types/fields';
 import type { Chipset } from '@/types/map';
-import type { AssetReference } from '@/types/asset';
+
+jest.mock('@/stores', () => ({
+  useStore: jest.fn((selector) =>
+    selector({
+      assets: [],
+      assetFolders: [],
+    })
+  ),
+}));
 
 function makeChipset(override?: Partial<Chipset>): Chipset {
   const passableField = new BooleanFieldType();
@@ -26,8 +34,6 @@ function makeChipset(override?: Partial<Chipset>): Chipset {
 
 const defaultProps = {
   chipsets: [makeChipset()],
-  assets: [],
-  assetFolders: [],
   onAddChipset: jest.fn(),
   onUpdateChipset: jest.fn(),
   onDeleteChipset: jest.fn(),
@@ -85,21 +91,8 @@ describe('ChipsetEditor', () => {
     expect(screen.getByText('画像')).toBeInTheDocument();
   });
 
-  it('imageId未設定時は「画像を選択」ボタンが表示される', () => {
+  it('imageId未設定時は「画像を選択...」ボタンが表示される', () => {
     render(<ChipsetEditor {...defaultProps} />);
-    expect(screen.getByRole('button', { name: '画像を選択' })).toBeInTheDocument();
-  });
-
-  it('imageId設定時は変更ボタンが表示される', () => {
-    const asset: AssetReference = {
-      id: 'asset_1',
-      name: 'test_image',
-      type: 'image',
-      data: 'data:image/png;base64,abc',
-      metadata: null,
-    };
-    const chipsetWithImage = makeChipset({ imageId: 'asset_1' });
-    render(<ChipsetEditor {...defaultProps} chipsets={[chipsetWithImage]} assets={[asset]} />);
-    expect(screen.getByRole('button', { name: '変更' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '画像を選択...' })).toBeInTheDocument();
   });
 });
