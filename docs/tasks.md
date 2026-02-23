@@ -6382,6 +6382,26 @@ export function useAutoSave() {
 
 ---
 
+#### [T242] ChipsetEditor UI 改善
+
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T242-chipset-editor-ui
+- **PR:** -
+
+**完了条件:**
+
+- [x] ImageFieldEditor に showPreview オプション追加
+- [x] ChipsetEditor の画像セクションを ImageFieldEditor (showPreview=false) に置換
+- [x] ChipsetEditor にタブ（チップ一覧 / フィールド定義）追加
+
+**関連ファイル:**
+
+- `src/features/data-editor/components/fields/ImageFieldEditor.tsx`
+- `src/types/fields/ImageFieldType.tsx`
+- `src/features/map-editor/components/ChipsetEditor.tsx`
+
+---
+
 #### [T240] [US18] Documentation
 
 - **ステータス:** [ ] 未着手
