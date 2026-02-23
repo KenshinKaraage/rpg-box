@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,8 +63,13 @@ export function ChipsetEditor({
   const [selectedChipIndex, setSelectedChipIndex] = useState<number | null>(null);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
 
   const chipset = chipsets.find((c) => c.id === selectedChipsetId) ?? null;
+
+  useEffect(() => {
+    setImageSize(null);
+  }, [chipset?.imageId]);
 
   const handleSelectChipset = (id: string) => {
     setSelectedChipsetId(id);
@@ -104,6 +109,25 @@ export function ChipsetEditor({
     const chip = chipset.chips.find((c) => c.index === index);
     const value = chip?.values['passable'] ?? passableField.getDefaultValue();
     return Boolean(value);
+  };
+
+  const getChipStyle = (index: number): React.CSSProperties | null => {
+    if (!chipset?.imageId || !imageSize) return null;
+    const imgAsset = assets.find((a) => a.id === chipset.imageId);
+    if (!imgAsset) return null;
+
+    const { tileWidth } = chipset;
+    const scale = 32 / tileWidth;
+    const cols = Math.floor(imageSize.width / tileWidth);
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+
+    return {
+      backgroundImage: `url(${imgAsset.data})`,
+      backgroundSize: `${imageSize.width * scale}px ${imageSize.height * scale}px`,
+      backgroundPosition: `-${col * 32}px -${row * 32}px`,
+      backgroundRepeat: 'no-repeat',
+    };
   };
 
   if (chipsets.length === 0) {
@@ -168,6 +192,23 @@ export function ChipsetEditor({
 
       {chipset && (
         <div className="flex-1 space-y-4 overflow-auto p-3">
+          {chipset.imageId &&
+            (() => {
+              const imgAsset = assets.find((a) => a.id === chipset.imageId);
+              return imgAsset ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={chipset.imageId}
+                  src={imgAsset.data}
+                  alt=""
+                  className="hidden"
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
+                  }}
+                />
+              ) : null;
+            })()}
           {/* 名前 */}
           <div className="space-y-1">
             <Label className="text-xs">名前</Label>
@@ -304,20 +345,35 @@ export function ChipsetEditor({
               {Array.from({ length: CHIP_DISPLAY_COUNT }, (_, i) => {
                 const passable = getPassable(i);
                 const isSelected = selectedChipIndex === i;
+                const chipStyle = getChipStyle(i);
                 return (
                   <button
                     key={i}
                     className={cn(
-                      'flex h-8 w-full items-center justify-center rounded border text-xs',
+                      'relative h-8 w-full overflow-hidden rounded border',
+                      !chipStyle && 'flex items-center justify-center text-xs',
                       isSelected
                         ? 'border-primary bg-primary/20'
                         : 'border-border bg-muted/30 hover:bg-muted'
                     )}
+                    style={chipStyle ?? undefined}
                     onClick={() => setSelectedChipIndex(i)}
                     data-testid={`chip-cell-${i}`}
                     title={`チップ #${i}`}
                   >
-                    {passable === true ? (
+                    {chipStyle ? (
+                      passable !== null && (
+                        <span
+                          className={cn(
+                            'absolute inset-0 flex items-center justify-center text-sm font-bold',
+                            passable ? 'text-green-600' : 'text-red-500'
+                          )}
+                          style={{ textShadow: '0 0 3px white, 0 0 3px white' }}
+                        >
+                          {passable ? '○' : '×'}
+                        </span>
+                      )
+                    ) : passable === true ? (
                       <span className="text-green-600">○</span>
                     ) : passable === false ? (
                       <span className="text-red-500">×</span>
