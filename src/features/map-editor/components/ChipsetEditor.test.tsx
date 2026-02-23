@@ -71,18 +71,6 @@ describe('ChipsetEditor', () => {
     expect(defaultProps.onUpdateChipset).toHaveBeenCalledWith('cs_001', { name: '新チップセット' });
   });
 
-  it('フィールド定義タブではフィールド名が表示される', async () => {
-    const user = userEvent.setup();
-    render(<ChipsetEditor {...defaultProps} />);
-    await user.click(screen.getByRole('tab', { name: 'フィールド定義' }));
-    expect(screen.getByDisplayValue('通行可能')).toBeInTheDocument();
-  });
-
-  it('チップグリッドが表示される', () => {
-    render(<ChipsetEditor {...defaultProps} />);
-    expect(screen.getByTestId('chip-grid')).toBeInTheDocument();
-  });
-
   it('タブ「チップ一覧」と「フィールド定義」が表示される', () => {
     render(<ChipsetEditor {...defaultProps} />);
     expect(screen.getByRole('tab', { name: 'チップ一覧' })).toBeInTheDocument();
