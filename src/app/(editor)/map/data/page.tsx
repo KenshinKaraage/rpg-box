@@ -53,6 +53,7 @@ export default function MapDataPage() {
           id: generateId('layer', []),
           name: 'レイヤー1',
           type: 'tile' as const,
+          chipsetIds: [],
         },
       ],
       fields: createDefaultMapFields(),

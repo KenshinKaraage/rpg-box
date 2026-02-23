@@ -61,6 +61,7 @@ export function MapSettingsEditor({
       id,
       name: `レイヤー${map.layers.length + 1}`,
       type: 'tile' as const,
+      chipsetIds: [],
     };
     onAddLayer(map.id, newLayer);
   };

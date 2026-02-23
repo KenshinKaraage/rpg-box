@@ -20,6 +20,7 @@ const createTestLayer = (id: string, name: string, type: 'tile' | 'object'): Map
   id,
   name,
   type,
+  chipsetIds: [],
   ...(type === 'tile' ? { tiles: [] } : { objects: [] }),
 });
 
@@ -378,6 +379,7 @@ describe('mapSlice', () => {
         id: 'layer_001',
         name: '地面',
         type: 'tile',
+        chipsetIds: [],
         tiles: [
           ['', '', ''],
           ['', '', ''],
@@ -437,7 +439,13 @@ describe('mapSlice', () => {
     it('objects が未定義のレイヤーにも追加できる', () => {
       const { result } = renderHook(() => useStore());
 
-      const layer: MapLayer = { id: 'layer_001', name: '地面', type: 'tile', tiles: [] };
+      const layer: MapLayer = {
+        id: 'layer_001',
+        name: '地面',
+        type: 'tile',
+        chipsetIds: [],
+        tiles: [],
+      };
 
       act(() => {
         result.current.addMap(createTestMap('map_001', 'フィールド'));
