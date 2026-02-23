@@ -38,11 +38,13 @@ function createMapWithFields(): GameMap {
 describe('MapSettingsEditor', () => {
   const defaultProps = {
     map: mockMap,
+    chipsets: [],
     onUpdateMap: jest.fn(),
     onUpdateMapValues: jest.fn(),
     onAddLayer: jest.fn(),
     onUpdateLayer: jest.fn(),
     onDeleteLayer: jest.fn(),
+    onReorderLayers: jest.fn(),
   };
 
   beforeEach(() => {

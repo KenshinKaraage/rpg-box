@@ -1,20 +1,22 @@
 'use client';
 
-import { Plus, Trash2, Copy } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { generateId } from '@/lib/utils';
-import type { GameMap, MapLayer } from '@/types/map';
+import type { GameMap, MapLayer, Chipset } from '@/types/map';
+import { LayerEditor } from './LayerEditor';
 
 interface MapSettingsEditorProps {
   map: GameMap | null;
+  chipsets: Chipset[];
   onUpdateMap: (id: string, updates: Partial<GameMap>) => void;
   onUpdateMapValues: (mapId: string, values: Record<string, unknown>) => void;
   onAddLayer: (mapId: string, layer: MapLayer) => void;
   onUpdateLayer: (mapId: string, layerId: string, updates: Partial<MapLayer>) => void;
   onDeleteLayer: (mapId: string, layerId: string) => void;
+  onReorderLayers: (mapId: string, fromIndex: number, toIndex: number) => void;
 }
 
 /**
@@ -22,11 +24,13 @@ interface MapSettingsEditorProps {
  */
 export function MapSettingsEditor({
   map,
+  chipsets,
   onUpdateMap,
   onUpdateMapValues,
   onAddLayer,
   onUpdateLayer,
   onDeleteLayer,
+  onReorderLayers,
 }: MapSettingsEditorProps) {
   if (!map) {
     return (
@@ -64,14 +68,6 @@ export function MapSettingsEditor({
       chipsetIds: [],
     };
     onAddLayer(map.id, newLayer);
-  };
-
-  const handleLayerNameChange = (layerId: string, name: string) => {
-    onUpdateLayer(map.id, layerId, { name });
-  };
-
-  const handleDeleteLayer = (layerId: string) => {
-    onDeleteLayer(map.id, layerId);
   };
 
   const handleFieldChange = (fieldId: string, value: unknown) => {
@@ -149,50 +145,14 @@ export function MapSettingsEditor({
         </div>
 
         {/* レイヤー */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>レイヤー</Label>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleAddLayer}
-              data-testid="add-layer-button"
-            >
-              <Plus className="mr-1 h-4 w-4" />
-              追加
-            </Button>
-          </div>
-          {map.layers.length === 0 ? (
-            <div className="text-sm text-muted-foreground">レイヤーがありません</div>
-          ) : (
-            <ul className="space-y-2" data-testid="layer-list">
-              {map.layers.map((layer) => (
-                <li
-                  key={layer.id}
-                  className="flex items-center gap-2 rounded border p-2"
-                  data-testid={`layer-item-${layer.id}`}
-                >
-                  <Input
-                    value={layer.name}
-                    onChange={(e) => handleLayerNameChange(layer.id, e.target.value)}
-                    className="flex-1"
-                    data-testid={`layer-name-input-${layer.id}`}
-                  />
-                  <Badge variant="secondary">{layer.type}</Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDeleteLayer(layer.id)}
-                    aria-label={`${layer.name}を削除`}
-                    data-testid={`delete-layer-${layer.id}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <LayerEditor
+          layers={map.layers}
+          chipsets={chipsets}
+          onAddLayer={handleAddLayer}
+          onUpdateLayer={(layerId, updates) => onUpdateLayer(map.id, layerId, updates)}
+          onDeleteLayer={(layerId) => onDeleteLayer(map.id, layerId)}
+          onReorderLayers={(from, to) => onReorderLayers(map.id, from, to)}
+        />
 
         {/* カスタムフィールド */}
         {map.fields.length > 0 && (
