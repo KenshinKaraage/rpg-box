@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -111,24 +111,20 @@ export function ChipsetEditor({
     return Boolean(value);
   };
 
-  const getChipStyle = (index: number): React.CSSProperties | null => {
-    if (!chipset?.imageId || !imageSize) return null;
+  const chipStyles = useMemo<(React.CSSProperties | null)[]>(() => {
+    if (!chipset?.imageId || !imageSize) return Array(CHIP_DISPLAY_COUNT).fill(null);
     const imgAsset = assets.find((a) => a.id === chipset.imageId);
-    if (!imgAsset) return null;
-
+    if (!imgAsset) return Array(CHIP_DISPLAY_COUNT).fill(null);
     const { tileWidth } = chipset;
     const scale = 32 / tileWidth;
-    const cols = Math.floor(imageSize.width / tileWidth);
-    const col = index % cols;
-    const row = Math.floor(index / cols);
-
-    return {
+    const cols = Math.max(1, Math.floor(imageSize.width / tileWidth));
+    return Array.from({ length: CHIP_DISPLAY_COUNT }, (_, i) => ({
       backgroundImage: `url(${imgAsset.data})`,
       backgroundSize: `${imageSize.width * scale}px ${imageSize.height * scale}px`,
-      backgroundPosition: `-${col * 32}px -${row * 32}px`,
+      backgroundPosition: `-${(i % cols) * 32}px -${Math.floor(i / cols) * 32}px`,
       backgroundRepeat: 'no-repeat',
-    };
-  };
+    }));
+  }, [chipset, imageSize, assets]);
 
   if (chipsets.length === 0) {
     return (
@@ -345,7 +341,7 @@ export function ChipsetEditor({
               {Array.from({ length: CHIP_DISPLAY_COUNT }, (_, i) => {
                 const passable = getPassable(i);
                 const isSelected = selectedChipIndex === i;
-                const chipStyle = getChipStyle(i);
+                const chipStyle = chipStyles[i] ?? null;
                 return (
                   <button
                     key={i}
