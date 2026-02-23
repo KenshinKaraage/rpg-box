@@ -11,6 +11,8 @@ import { DeleteFolderConfirm } from '@/features/asset-manager/components/DeleteF
 import { createAssetTypeInstance, getAssetTypeByExtension } from '@/types/assets';
 import type { AssetReference, AssetFolder } from '@/types/asset';
 import { generateId } from '@/lib/utils';
+import { importDefaultAssets } from '@/lib/importDefaultAssets';
+import { Button } from '@/components/ui/button';
 
 /**
  * アセット管理ページ
@@ -31,6 +33,8 @@ export default function AssetsPage() {
 
   // アセット一覧を取得
   const assets = useStore((state) => state.assets);
+
+  const [isImporting, setIsImporting] = useState(false);
 
   // モーダル状態
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
@@ -110,6 +114,16 @@ export default function AssetsPage() {
     updateAsset(id, { name });
   };
 
+  const handleImportDefaults = async () => {
+    setIsImporting(true);
+    try {
+      const result = await importDefaultAssets(assets, addAsset, addFolder, assetFolders);
+      console.info(`インポート完了: ${result.imported}件インポート（${result.skipped}件スキップ）`);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   // ファイルアップロード
   const handleUpload = async (files: FileList) => {
     for (const file of Array.from(files)) {
@@ -174,13 +188,26 @@ export default function AssetsPage() {
       </div>
 
       {/* 中央: グリッド */}
-      <div className="flex-1 border-r">
-        <AssetGrid
-          assets={filteredAssets}
-          selectedAssetId={selectedAssetId}
-          onSelectAsset={selectAsset}
-          onUpload={handleUpload}
-        />
+      <div className="flex flex-col flex-1 border-r overflow-hidden">
+        <div className="flex items-center justify-end gap-2 border-b px-3 py-2 shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleImportDefaults}
+            disabled={isImporting}
+            data-testid="import-defaults-button"
+          >
+            {isImporting ? 'インポート中...' : 'デフォルトをインポート'}
+          </Button>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <AssetGrid
+            assets={filteredAssets}
+            selectedAssetId={selectedAssetId}
+            onSelectAsset={selectAsset}
+            onUpload={handleUpload}
+          />
+        </div>
       </div>
 
       {/* 右: プレビュー（幅固定300px） */}
