@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import { createFieldTypeInstance } from '@/types/fields';
 import { FieldRow } from '@/features/data-editor/components/FieldRow';
+import { AssetPickerModal } from '@/features/asset-manager/components/AssetPickerModal';
 import { ChipPropertyEditor } from './ChipPropertyEditor';
 import type { Chipset } from '@/types/map';
 import type { FieldType } from '@/types/fields/FieldType';
@@ -27,6 +28,8 @@ type AnyFieldType = FieldType<any>;
 
 interface ChipsetEditorProps {
   chipsets: Chipset[];
+  assets: import('@/types/asset').AssetReference[];
+  assetFolders: import('@/types/asset').AssetFolder[];
   onAddChipset: () => void;
   onUpdateChipset: (id: string, updates: Partial<Chipset>) => void;
   onDeleteChipset: (id: string) => void;
@@ -43,6 +46,8 @@ interface ChipsetEditorProps {
 
 export function ChipsetEditor({
   chipsets,
+  assets,
+  assetFolders,
   onAddChipset,
   onUpdateChipset,
   onDeleteChipset,
@@ -56,6 +61,7 @@ export function ChipsetEditor({
   );
   const [selectedChipIndex, setSelectedChipIndex] = useState<number | null>(null);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
   const chipset = chipsets.find((c) => c.id === selectedChipsetId) ?? null;
 
@@ -170,6 +176,60 @@ export function ChipsetEditor({
               className="h-8 text-sm"
             />
           </div>
+
+          {/* 画像 */}
+          <div className="space-y-1">
+            <Label className="text-xs">画像</Label>
+            {chipset.imageId ? (
+              (() => {
+                const asset = assets.find((a) => a.id === chipset.imageId);
+                return (
+                  <div className="flex items-center gap-2">
+                    {asset && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={asset.data}
+                        alt={asset.name}
+                        className="h-10 w-10 rounded border object-contain"
+                      />
+                    )}
+                    <span className="truncate text-xs">{asset?.name ?? chipset.imageId}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 shrink-0 text-xs"
+                      onClick={() => setImagePickerOpen(true)}
+                    >
+                      変更
+                    </Button>
+                  </div>
+                );
+              })()
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={() => setImagePickerOpen(true)}
+              >
+                画像を選択
+              </Button>
+            )}
+          </div>
+
+          {/* 画像選択モーダル */}
+          <AssetPickerModal
+            open={imagePickerOpen}
+            onOpenChange={setImagePickerOpen}
+            assets={assets}
+            folders={assetFolders}
+            assetType="image"
+            selectedAssetId={chipset.imageId || null}
+            onSelect={(id) => {
+              onUpdateChipset(chipset.id, { imageId: id ?? '' });
+              setImagePickerOpen(false);
+            }}
+          />
 
           {/* タイルサイズ */}
           <div className="space-y-1">

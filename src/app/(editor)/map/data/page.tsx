@@ -33,6 +33,9 @@ export default function MapDataPage() {
   const deleteLayer = useStore((state) => state.deleteLayer);
   const reorderLayers = useStore((state) => state.reorderLayers);
 
+  const assets = useStore((state) => state.assets);
+  const assetFolders = useStore((state) => state.assetFolders);
+
   const chipsets = useStore((state) => state.chipsets);
   const addChipset = useStore((state) => state.addChipset);
   const updateChipset = useStore((state) => state.updateChipset);
@@ -155,6 +158,8 @@ export default function MapDataPage() {
       right={
         <ChipsetEditor
           chipsets={chipsets}
+          assets={assets}
+          assetFolders={assetFolders}
           onAddChipset={handleAddChipset}
           onUpdateChipset={updateChipset}
           onDeleteChipset={deleteChipset}

@@ -25,6 +25,8 @@ function makeChipset(override?: Partial<Chipset>): Chipset {
 
 const defaultProps = {
   chipsets: [makeChipset()],
+  assets: [],
+  assetFolders: [],
   onAddChipset: jest.fn(),
   onUpdateChipset: jest.fn(),
   onDeleteChipset: jest.fn(),
@@ -75,5 +77,15 @@ describe('ChipsetEditor', () => {
     render(<ChipsetEditor {...defaultProps} />);
     fireEvent.click(screen.getByTestId('chip-cell-0'));
     expect(screen.getByTestId('chip-property-editor')).toBeInTheDocument();
+  });
+
+  it('画像セクションが表示される', () => {
+    render(<ChipsetEditor {...defaultProps} />);
+    expect(screen.getByText('画像')).toBeInTheDocument();
+  });
+
+  it('imageId未設定時は「画像を選択」ボタンが表示される', () => {
+    render(<ChipsetEditor {...defaultProps} />);
+    expect(screen.getByRole('button', { name: '画像を選択' })).toBeInTheDocument();
   });
 });
