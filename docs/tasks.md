@@ -4179,60 +4179,69 @@ export function useAutoSave() {
 
 #### [T150] [US11] Create LayerEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/LayerEditor.tsx` 作成
-- [ ] レイヤー一覧
-- [ ] 追加/削除/並び替え
-- [ ] 表示/非表示トグル
-- [ ] タイプ切り替え（tile/object）
-- [ ] テスト追加
+- [x] `src/features/map-editor/components/LayerEditor.tsx` 作成
+- [x] レイヤー一覧（名前編集）
+- [x] 追加/削除/▲▼並び替え
+- [x] 表示/非表示トグル（`MapLayer.visible?: boolean`）
+- [x] タイプ切り替え（tile/object）
+- [x] チップセット割り当て（`MapLayer.chipsetIds: string[]`、tile レイヤーのみ）
+- [x] `src/types/map.ts` の MapLayer に `visible?`, `chipsetIds` 追加
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/features/map-editor/components/LayerEditor.tsx`
 - `src/features/map-editor/components/LayerEditor.test.tsx`
+- `src/types/map.ts`
 
 ---
 
 #### [T151] [US11] Create ChipsetEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/ChipsetEditor.tsx` 作成
-- [ ] チップセット画像選択
-- [ ] タイルサイズ設定
-- [ ] チップ一覧表示
-- [ ] テスト追加
+- [x] `src/features/map-editor/components/ChipsetEditor.tsx` 作成
+- [x] チップセット一覧（追加/削除/名前変更）
+- [ ] チップセット画像選択（AssetPicker）—次フェーズ
+- [x] タイルサイズ設定（tileWidth / tileHeight）
+- [x] フィールドスキーマ編集（FieldRow を使って通行設定・足音などを追加/削除/設定）
+- [x] チップグリッド表示（番号 + 通行インジケータ ○/×）
+- [x] `src/lib/defaultChipsetFields.ts` 作成（新規チップセットのデフォルトフィールド）
+- [x] `src/stores/mapSlice.ts` に `updateChipProperty` アクション追加
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/features/map-editor/components/ChipsetEditor.tsx`
 - `src/features/map-editor/components/ChipsetEditor.test.tsx`
+- `src/lib/defaultChipsetFields.ts`
+- `src/stores/mapSlice.ts`
 
 ---
 
 #### [T152] [US11] Create ChipPropertyEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/ChipPropertyEditor.tsx` 作成
-- [ ] チップ選択時のプロパティ編集
-- [ ] 通行設定
-- [ ] 足音設定
-- [ ] テスト追加
+- [x] `src/features/map-editor/components/ChipPropertyEditor.tsx` 作成
+- [x] 選択チップの FieldType ベースプロパティ編集（chipset.fields を renderEditor() で描画）
+- [x] 通行設定（BooleanFieldType デフォルト）
+- [x] 足音設定（SelectFieldType デフォルト）
+- [x] テスト追加
 
 **関連ファイル:**
 
