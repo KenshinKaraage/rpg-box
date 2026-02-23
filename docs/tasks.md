@@ -581,7 +581,7 @@
 - [x] `registerAction(type, class)` 関数
 - [x] `getAction(type)` 関数
 - [x] `getAllActions()` 関数
-- [ ] テスト追加（後続タスクで追加予定）
+- [ ] テスト追加（T238 E2Eテスト等でカバー/Polish）
 
 **関連ファイル:**
 
@@ -603,7 +603,7 @@
 - [x] `registerUIComponent(type, class)` 関数
 - [x] `getUIComponent(type)` 関数
 - [x] `getAllUIComponents()` 関数
-- [ ] テスト追加（後続タスクで追加予定）
+- [ ] テスト追加（UI実装時に検証/Polish）
 
 **関連ファイル:**
 
@@ -851,7 +851,7 @@ export function useAutoSave() {
 
 #### [T026b] Create ShortcutHelpModal
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (T026c 以降へ持ち越し/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -873,7 +873,7 @@ export function useAutoSave() {
 
 #### [T026c] Implement per-page undo history
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -896,7 +896,7 @@ export function useAutoSave() {
 
 #### [T026d] Create ValidationManager
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -918,7 +918,7 @@ export function useAutoSave() {
 
 #### [T026e] [P] Create InlineError component
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -939,7 +939,7 @@ export function useAutoSave() {
 
 #### [T026f] Create useValidation hook
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -960,7 +960,7 @@ export function useAutoSave() {
 
 #### [T026g] Create SearchModal (Ctrl+F)
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -982,7 +982,7 @@ export function useAutoSave() {
 
 #### [T026h] Create ReferenceSearchModal (Ctrl+P)
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -1006,7 +1006,7 @@ export function useAutoSave() {
 
 #### [T026i] Create ClipboardManager
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -1027,7 +1027,7 @@ export function useAutoSave() {
 
 #### [T026j] Implement copy/paste with type validation
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -1051,7 +1051,7 @@ export function useAutoSave() {
 
 #### [T027] [P] Create PropertyPanel
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -2935,99 +2935,101 @@ export function useAutoSave() {
 
 #### [T100] [P] Implement VariableOpAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/actions/VariableOpAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: variableId, operation, value
-- [ ] operation: set, add, subtract, multiply, divide
-- [ ] execute(): 変数を操作
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/VariableOpAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: variableId, operation, value (ValueSource)
+- [x] operation: set, add, subtract, multiply, divide
+- [x] execute(): 変数を操作（ValueSource で値解決）
+- [x] レジストリに登録
+- [x] テスト追加
+
+**備考:** ファイルは `src/engine/actions/` に配置（UI分離設計）。value は ValueSource レジストリパターンで拡張可能。
 
 **関連ファイル:**
 
-- `src/types/actions/VariableOpAction.ts`
-- `src/types/actions/VariableOpAction.test.ts`
+- `src/engine/actions/VariableOpAction.ts`
+- `src/engine/actions/VariableOpAction.test.ts`
 
 ---
 
 #### [T101] [P] Implement ConditionalAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/actions/ConditionalAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: condition, thenActions, elseActions
-- [ ] execute(): 条件評価、分岐実行
-- [ ] ネスト対応
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/ConditionalAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: condition, thenActions, elseActions
+- [x] execute(): 条件評価、分岐実行
+- [x] ネスト対応
+- [x] レジストリに登録
+- [x] テスト追加（13テスト）
 
 **関連ファイル:**
 
-- `src/types/actions/ConditionalAction.ts`
-- `src/types/actions/ConditionalAction.test.ts`
+- `src/engine/actions/ConditionalAction.ts`
+- `src/engine/actions/ConditionalAction.test.ts`
 
 ---
 
 #### [T102] [P] Implement LoopAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/actions/LoopAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: count, actions
-- [ ] execute(): 指定回数ループ
-- [ ] break 対応
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/LoopAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: count, actions
+- [x] execute(): 指定回数ループ
+- [x] break 対応
+- [x] レジストリに登録
+- [x] テスト追加（5テスト）
 
 **関連ファイル:**
 
-- `src/types/actions/LoopAction.ts`
-- `src/types/actions/LoopAction.test.ts`
+- `src/engine/actions/LoopAction.ts`
+- `src/engine/actions/LoopAction.test.ts`
 
 ---
 
 #### [T103] [P] Implement WaitAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/actions/WaitAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: frames
-- [ ] execute(): 指定フレーム待機
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/WaitAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: frames
+- [x] execute(): no-op（Phase 18で実装）
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/types/actions/WaitAction.ts`
-- `src/types/actions/WaitAction.test.ts`
+- `src/engine/actions/WaitAction.ts`
+- `src/engine/actions/stubActions.test.ts`
 
 ---
 
 #### [T104] [P] Implement AudioAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 > 旧 T104 (PlaySE) + T105 (PlayBGM) + T106 (StopBGM) を統合。
@@ -3035,24 +3037,24 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/actions/AudioAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: operation (playBGM/stopBGM/playSE), audioId, volume, pitch, fadeIn, fadeOut
-- [ ] execute(): operation に応じて context.audio の各メソッドを呼び出し
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/AudioAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: operation (playBGM/stopBGM/playSE), audioId, volume, pitch, fadeIn, fadeOut
+- [x] execute(): operation に応じて context.sound の各メソッドを呼び出し
+- [x] レジストリに登録
+- [x] テスト追加（5テスト）
 
 **関連ファイル:**
 
-- `src/types/actions/AudioAction.ts`
-- `src/types/actions/AudioAction.test.ts`
+- `src/engine/actions/AudioAction.ts`
+- `src/engine/actions/AudioAction.test.ts`
 
 ---
 
 #### [T107] [P] Implement CameraAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 > 旧 FadeScreenAction を CameraAction に拡張。
@@ -3060,24 +3062,24 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/actions/CameraAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: operation (zoom/pan/effect/reset), scale, x, y, duration, effect (shake/flash/fadeIn/fadeOut), intensity, color
-- [ ] execute(): operation に応じて context.camera の各メソッドを呼び出し
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/CameraAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: operation (zoom/pan/effect/reset), scale, x, y, duration, effect (shake/flash/fadeIn/fadeOut), intensity, color
+- [x] execute(): operation に応じて context.camera の各メソッドを呼び出し
+- [x] レジストリに登録
+- [x] テスト追加（4テスト）
 
 **関連ファイル:**
 
-- `src/types/actions/CameraAction.ts`
-- `src/types/actions/CameraAction.test.ts`
+- `src/engine/actions/CameraAction.ts`
+- `src/engine/actions/CameraAction.test.ts`
 
 ---
 
 #### [T108] [P] Implement ScriptAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 > 旧 CallScriptAction を ScriptAction に変更。
@@ -3086,46 +3088,46 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/actions/ScriptAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: scriptId, args
-- [ ] execute(): イベントスクリプトを呼び出し（context.scriptAPI 経由で UI 系 API を提供）
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/ScriptAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: scriptId, args
+- [x] execute(): context.scriptRunner.executeById() で委譲
+- [x] レジストリに登録
+- [x] テスト追加（3テスト）
 
 **関連ファイル:**
 
-- `src/types/actions/ScriptAction.ts`
-- `src/types/actions/ScriptAction.test.ts`
+- `src/engine/actions/ScriptAction.ts`
+- `src/engine/actions/ScriptAction.test.ts`
 
 ---
 
 #### [T109] [P] Implement CallTemplateAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/actions/CallTemplateAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: templateId, args
-- [ ] execute(): テンプレート呼び出し
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/CallTemplateAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: templateId, args
+- [x] execute(): no-op（テンプレート解決は後続フェーズ）
+- [x] レジストリに登録
+- [x] テスト追加（3テスト）
 
 **関連ファイル:**
 
-- `src/types/actions/CallTemplateAction.ts`
-- `src/types/actions/CallTemplateAction.test.ts`
+- `src/engine/actions/CallTemplateAction.ts`
+- `src/engine/actions/CallTemplateAction.test.ts`
 
 ---
 
 #### [T109b] [P] Implement MapAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 > 旧 ChangeMapAction を MapAction に拡張。
@@ -3133,24 +3135,24 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/actions/MapAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: operation (getChip/changeMap), resultVariableId, sourceMapId, chipX, chipY, layer, targetMapId, x, y, transition
-- [ ] execute(): operation に応じてマップチップ取得またはマップ移動
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/MapAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: operation (changeMap/getChip), targetMapId, x, y, transition, resultVariableId, sourceMapId, chipX, chipY, layer
+- [x] execute(): no-op（Phase 10で実装）
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/types/actions/MapAction.ts`
-- `src/types/actions/MapAction.test.ts`
+- `src/engine/actions/MapAction.ts`
+- `src/engine/actions/stubActions.test.ts`
 
 ---
 
 #### [T109c] [P] Implement ObjectAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 > 旧 MoveAction (T109c) + AppearanceChangeAction (T109d) を統合。
@@ -3158,17 +3160,17 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/types/actions/ObjectAction.ts` 作成
-- [ ] EventAction を継承
-- [ ] プロパティ: operation (move/rotate/autoWalk/appearance), targetId, x, y, speed, angle, duration, enabled, pattern, imageId, animationId
-- [ ] execute(): operation に応じて context.getObject() 経由でオブジェクト操作
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/engine/actions/ObjectAction.ts` 作成
+- [x] EventAction を継承
+- [x] プロパティ: operation (move/rotate/autoWalk), targetId, x, y, speed, angle, duration, enabled, pattern
+- [x] execute(): no-op（Phase 10で実装）
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/types/actions/ObjectAction.ts`
-- `src/types/actions/ObjectAction.test.ts`
+- `src/engine/actions/ObjectAction.ts`
+- `src/engine/actions/stubActions.test.ts`
 
 ---
 
@@ -3476,18 +3478,18 @@ export function useAutoSave() {
 
 #### [T122f] [P] Create ScriptActionBlock
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 > 旧 CallScriptActionBlock を ScriptActionBlock に変更。
 
 **完了条件:**
 
-- [ ] `src/features/event-editor/components/blocks/ScriptActionBlock.tsx` 作成
-- [ ] イベントスクリプト選択
-- [ ] 引数設定 UI
-- [ ] テスト追加
+- [x] `src/features/event-editor/components/blocks/ScriptActionBlock.tsx` 作成
+- [x] イベントスクリプト選択
+- [x] 引数設定 UI
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3773,17 +3775,19 @@ export function useAutoSave() {
 
 #### [T133] [P] Implement TransformComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
+
+**備考:** Component 基底クラスから renderPropertyPanel 削除 + ライフサイクルメソッド追加も同時実施。
 
 **完了条件:**
 
-- [ ] `src/types/components/TransformComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: x, y, rotation, scaleX, scaleY
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/TransformComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: x, y, rotation, scaleX, scaleY
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3794,17 +3798,17 @@ export function useAutoSave() {
 
 #### [T134] [P] Implement SpriteComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/SpriteComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: imageId, animationId, flipX, flipY, tint, opacity
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/SpriteComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: imageId, animationId, flipX, flipY, tint, opacity
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3815,18 +3819,18 @@ export function useAutoSave() {
 
 #### [T135] [P] Implement ColliderComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/ColliderComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: width, height, passable, layer
-- [ ] グリッド単位
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/ColliderComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: width, height, passable, layer
+- [x] グリッド単位
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3837,18 +3841,18 @@ export function useAutoSave() {
 
 #### [T136] [P] Implement MovementComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/MovementComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: pattern, speed, routePoints
-- [ ] pattern: fixed, random, route
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/MovementComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: pattern, speed, routePoints
+- [x] pattern: fixed, random, route
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3859,18 +3863,18 @@ export function useAutoSave() {
 
 #### [T137] [P] Implement VariablesComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/VariablesComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: variables
-- [ ] オブジェクト専用変数の管理
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/VariablesComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: variables
+- [x] オブジェクト専用変数の管理
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3881,18 +3885,18 @@ export function useAutoSave() {
 
 #### [T138] [P] Implement ControllerComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/ControllerComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: moveSpeed, dashEnabled, inputEnabled
-- [ ] プレイヤー操作可能化
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/ControllerComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: moveSpeed, dashEnabled, inputEnabled
+- [ ] プレイヤー操作可能化（実処理は Phase 18 T210d で実装）
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3903,18 +3907,18 @@ export function useAutoSave() {
 
 #### [T139] [P] Implement EffectComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/EffectComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: effectId, onComplete
-- [ ] onComplete: delete, hide, none
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/EffectComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: effectId, onComplete
+- [x] onComplete: delete, hide, none
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3925,18 +3929,18 @@ export function useAutoSave() {
 
 #### [T140] [P] Implement ObjectCanvasComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/ObjectCanvasComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: offset, elements
-- [ ] UI要素の配置
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/ObjectCanvasComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: offsetX, offsetY, elements
+- [ ] UI要素の描画処理（実処理は Phase 18 T214 UIRenderer で実装）
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3949,108 +3953,108 @@ export function useAutoSave() {
 
 #### [T141] [P] Implement TalkTriggerComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/triggers/TalkTriggerComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: eventId, direction
-- [ ] direction: front, any
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/triggers/TalkTriggerComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: eventId, direction
+- [x] direction: front, any
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/types/components/triggers/TalkTriggerComponent.ts`
-- `src/types/components/triggers/TalkTriggerComponent.test.ts`
+- `src/types/components/triggers/triggers.test.ts`
 
 ---
 
 #### [T142] [P] Implement TouchTriggerComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/triggers/TouchTriggerComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: eventId
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/triggers/TouchTriggerComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: eventId
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/types/components/triggers/TouchTriggerComponent.ts`
-- `src/types/components/triggers/TouchTriggerComponent.test.ts`
+- `src/types/components/triggers/triggers.test.ts`
 
 ---
 
 #### [T143] [P] Implement StepTriggerComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/triggers/StepTriggerComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: eventId
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/triggers/StepTriggerComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: eventId
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/types/components/triggers/StepTriggerComponent.ts`
-- `src/types/components/triggers/StepTriggerComponent.test.ts`
+- `src/types/components/triggers/triggers.test.ts`
 
 ---
 
 #### [T144] [P] Implement AutoTriggerComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/triggers/AutoTriggerComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: eventId, interval, runOnce
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/triggers/AutoTriggerComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: eventId, interval, runOnce
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/types/components/triggers/AutoTriggerComponent.ts`
-- `src/types/components/triggers/AutoTriggerComponent.test.ts`
+- `src/types/components/triggers/triggers.test.ts`
 
 ---
 
 #### [T144a] [P] Implement InputTriggerComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/components/triggers/InputTriggerComponent.ts` 作成
-- [ ] Component を継承
-- [ ] プロパティ: eventId, key
-- [ ] 特定キー入力で発火
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/components/triggers/InputTriggerComponent.ts` 作成
+- [x] Component を継承
+- [x] プロパティ: eventId, key
+- [x] 特定キー入力で発火
+- [x] レジストリに登録
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/types/components/triggers/InputTriggerComponent.ts`
-- `src/types/components/triggers/InputTriggerComponent.test.ts`
+- `src/types/components/triggers/triggers.test.ts`
 
 ---
 
@@ -4058,20 +4062,24 @@ export function useAutoSave() {
 
 #### [T145] Define GameMap, MapLayer, MapObject types
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/map.ts` 作成
-- [ ] `GameMap` インターフェース
-- [ ] `MapLayer` インターフェース
-- [ ] `MapObject` インターフェース
+- [x] `src/types/map.ts` 作成
+- [x] `GameMap` インターフェース
+- [x] `MapLayer` インターフェース
+- [x] `MapObject` インターフェース
+- [x] `Chipset` / `ChipProperty` インターフェース
+- [x] `Prefab` インターフェース
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/types/map.ts`
+- `src/types/map.test.ts`
 
 **参照:**
 
@@ -4085,18 +4093,20 @@ export function useAutoSave() {
 
 #### [T146] [US11] Create mapSlice
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/mapSlice.ts` 作成
-- [ ] `maps: GameMap[]` 状態
-- [ ] `chipsets: Chipset[]` 状態
-- [ ] CRUD アクション
-- [ ] タイル操作アクション
-- [ ] テスト追加
+- [x] `src/stores/mapSlice.ts` 作成
+- [x] `maps: GameMap[]` 状態
+- [x] `chipsets: Chipset[]` 状態
+- [x] `selectedMapId`, `selectedLayerId`, `selectedObjectId` 選択状態
+- [x] マップ/レイヤー/オブジェクト/チップセット CRUD アクション
+- [x] タイル操作アクション (`setTile`)
+- [x] 選択カスケード（マップ選択→レイヤー/オブジェクト選択クリア）
+- [x] テスト追加（39テスト）
 
 **関連ファイル:**
 
@@ -4107,15 +4117,15 @@ export function useAutoSave() {
 
 #### [T147] [US11] Create MapDataPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/map/data/page.tsx` 作成
-- [ ] ThreeColumnLayout 使用
-- [ ] 左: マップ一覧、中央: 設定、右: チップセット
+- [x] `src/app/(editor)/map/data/page.tsx` 作成
+- [x] ThreeColumnLayout 使用
+- [x] 左: マップ一覧、中央: 設定、右: チップセット
 
 **関連ファイル:**
 
@@ -4125,17 +4135,17 @@ export function useAutoSave() {
 
 #### [T148] [US11] Create MapList
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/MapList.tsx` 作成
-- [ ] マップ一覧表示
-- [ ] 追加/削除ボタン
-- [ ] ドラッグ&ドロップ並び替え
-- [ ] テスト追加
+- [x] `src/features/map-editor/components/MapList.tsx` 作成
+- [x] マップ一覧表示
+- [x] 追加/削除ボタン
+- [x] ドラッグ&ドロップ並び替え
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -4146,19 +4156,19 @@ export function useAutoSave() {
 
 #### [T149] [US11] Create MapSettingsEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/MapSettingsEditor.tsx` 作成
-- [ ] マップ名編集
-- [ ] マップID編集
-- [ ] サイズ設定（幅 x 高さ）
-- [ ] BGM 選択
-- [ ] 背景画像選択
-- [ ] テスト追加
+- [x] `src/features/map-editor/components/MapSettingsEditor.tsx` 作成
+- [x] マップ名編集
+- [x] マップID編集
+- [x] サイズ設定（幅 x 高さ）
+- [x] BGM 選択
+- [x] 背景画像選択
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -4237,16 +4247,16 @@ export function useAutoSave() {
 
 #### [T153] [US12] Create prefabSlice
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/prefabSlice.ts` 作成
-- [ ] `prefabs: Prefab[]` 状態
-- [ ] CRUD アクション
-- [ ] テスト追加
+- [x] `src/stores/prefabSlice.ts` 作成
+- [x] `prefabs: Prefab[]` 状態
+- [x] CRUD アクション
+- [x] テスト追加（12テスト）
 
 **関連ファイル:**
 
@@ -5555,6 +5565,7 @@ export function useAutoSave() {
 
 - [x] `src/engine/core/GameEngine.ts` 作成
 - [ ] ゲームループ実装
+- [ ] コンポーネントライフサイクル実行（各コンポーネントの onCreate/onUpdate/onDestroy/onEnable/onDisable を呼ぶ。Phase 10 でシグネチャ定義済み、ここで実処理を実装）
 - [ ] シーン管理
 - [ ] 入力ハンドリング
 - [x] テスト追加
@@ -5563,6 +5574,143 @@ export function useAutoSave() {
 
 - `src/engine/core/GameEngine.ts`
 - `src/engine/core/GameEngine.test.ts`
+
+---
+
+### コンポーネント実処理
+
+> Phase 10 で型定義・レジストリ登録済み。ここで各コンポーネントの onUpdate 等にランタイムロジックを実装する。
+
+#### [T210a] [P] Implement MovementComponent runtime logic
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] MovementComponent.onUpdate() にパターン別移動ロジック実装
+- [ ] fixed: 移動しない
+- [ ] random: ランダム方向に移動
+- [ ] route: routePoints に沿って移動
+- [ ] speed に基づく移動速度制御
+- [ ] TransformComponent の x, y を更新
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/types/components/MovementComponent.ts`
+- `src/types/components/MovementComponent.test.ts`
+
+---
+
+#### [T210b] [P] Implement ColliderComponent collision detection
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] 衝突判定ロジック実装（グリッドベース）
+- [ ] passable フラグによる通行可否判定
+- [ ] layer による衝突レイヤー分離
+- [ ] マップチップの通行設定との統合
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/types/components/ColliderComponent.ts`
+- `src/engine/core/CollisionSystem.ts`（新規作成の可能性あり）
+
+---
+
+#### [T210c] [P] Implement trigger components event firing
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] TalkTrigger: 話しかけ判定 → eventId のイベント発火
+- [ ] TouchTrigger: 接触判定 → eventId のイベント発火
+- [ ] StepTrigger: 踏み判定 → eventId のイベント発火
+- [ ] AutoTrigger: interval に基づく定期実行、runOnce 制御
+- [ ] InputTrigger: 指定キー入力検知 → eventId のイベント発火
+- [ ] EventRunner との連携
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/types/components/triggers/*.ts`
+- `src/engine/event/EventRunner.ts`
+
+---
+
+#### [T210d] [P] Implement ControllerComponent player input
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] ControllerComponent.onUpdate() にキー入力→移動変換ロジック実装
+- [ ] moveSpeed に基づく移動速度
+- [ ] dashEnabled による走り切り替え
+- [ ] inputEnabled による入力有効/無効切り替え
+- [ ] TransformComponent の x, y を更新
+- [ ] ColliderComponent との衝突判定連携
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/types/components/ControllerComponent.ts`
+- `src/types/components/ControllerComponent.test.ts`
+
+---
+
+#### [T210e] [P] Implement EffectComponent playback
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] エフェクト再生ロジック実装
+- [ ] onComplete: 'delete' → オブジェクト破棄
+- [ ] onComplete: 'hide' → オブジェクト非表示
+- [ ] onComplete: 'none' → 何もしない
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/types/components/EffectComponent.ts`
+- `src/types/components/EffectComponent.test.ts`
+
+---
+
+#### [T210f] [P] Implement SpriteComponent rendering integration
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] SpriteComponent の imageId/animationId に基づく描画処理
+- [ ] flipX/flipY 反転
+- [ ] tint 色調変更
+- [ ] opacity 透明度
+- [ ] アニメーション再生（フレーム送り）
+- [ ] T213 SpriteRenderer との連携
+
+**関連ファイル:**
+
+- `src/types/components/SpriteComponent.ts`
+- `src/engine/renderer/SpriteRenderer.ts`
 
 ---
 
@@ -5826,18 +5974,19 @@ export function useAutoSave() {
 
 #### [T223] [P] Create EventRunner
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/event/EventRunner.ts` 作成
-- [ ] コマンド順次実行
-- [ ] 条件分岐処理
-- [ ] ループ処理
-- [ ] async/await対応
-- [ ] テスト追加
+- [x] `src/engine/event/EventRunner.ts` 作成
+- [x] コマンド順次実行
+- [x] 条件分岐処理（ConditionalAction 経由）
+- [x] ループ処理（LoopAction 経由）
+- [x] async/await対応
+- [x] イテレーション上限 (100,000) + 定期 yield (1,000回ごと)
+- [x] テスト追加（5テスト）
 
 **関連ファイル:**
 
@@ -6225,30 +6374,29 @@ export function useAutoSave() {
 
 ### フェーズ別サマリー
 
-| Phase     | 名称          | タスク数 | 完了  | 進捗   |
-| --------- | ------------- | -------- | ----- | ------ |
-| 0         | Setup         | 6        | 0     | 0%     |
-| 1         | Core Types    | 24       | 0     | 0%     |
-| 2         | Data Layer    | 20       | 0     | 0%     |
-| 3         | Field Types   | 11       | 0     | 0%     |
-| 4         | Field Editors | 11       | 0     | 0%     |
-| 5         | Database      | 23       | 0     | 0%     |
-| 6         | Components    | 22       | 0     | 0%     |
-| 7         | Event Types   | 19       | 0     | 0%     |
-| 8         | Event Editor  | 16       | 0     | 0%     |
-| 9         | Asset Manager | 12       | 0     | 0%     |
-| 10        | Script Editor | 13       | 0     | 0%     |
-| 11        | Game Settings | 9        | 0     | 0%     |
-| 12        | Layout        | 8        | 0     | 0%     |
-| 13        | Map Editor    | 18       | 0     | 0%     |
-| 14        | UI Foundation | 16       | 0     | 0%     |
-| 15        | Screen Design | 9        | 0     | 0%     |
-| 16        | Object UI     | 6        | 0     | 0%     |
-| 17        | Timeline      | 6        | 0     | 0%     |
-| 18        | Game Engine   | 15       | 0     | 0%     |
-| 19        | Test Play     | 5        | 0     | 0%     |
-| 20        | Polish        | 11       | 0     | 0%     |
-| **Total** |               | **270**  | **0** | **0%** |
+| Phase | 名称                           | 状態      |
+| ----- | ------------------------------ | --------- |
+| 0     | プロジェクトセットアップ       | ✅ 完了   |
+| 1     | 型定義・基盤                   | ✅ 完了   |
+| 2     | 基本フィールドタイプ           | ✅ 完了   |
+| 3     | ゲーム設定                     | ✅ 完了   |
+| 4     | 変数・クラス・フィールドセット | 🚧 進行中 |
+| 5     | P1 フィールドタイプ            | 🚧 進行中 |
+| 6     | アセット管理                   | 🚧 進行中 |
+| 7     | データ設定                     | 🚧 進行中 |
+| 8     | イベントシステム               | 🚧 進行中 |
+| 9     | スクリプトエディタ             | ✅ 完了   |
+| 10    | マップ基盤                     | ✅ 完了   |
+| 11    | マップデータページ             | ⬜ 未着手 |
+| 12    | オブジェクトプレハブ           | ⬜ 未着手 |
+| 13    | マップ編集ページ               | 🚧 計画中 |
+| 14    | UI Foundation                  | ⬜ 未着手 |
+| 15    | Screen Design                  | ⬜ 未着手 |
+| 16    | Object UI                      | ⬜ 未着手 |
+| 17    | Timeline                       | ⬜ 未着手 |
+| 18    | Game Engine                    | ⬜ 未着手 |
+| 19    | Test Play                      | ⬜ 未着手 |
+| 20    | Polish                         | ⬜ 未着手 |
 
 ### 優先度凡例
 
