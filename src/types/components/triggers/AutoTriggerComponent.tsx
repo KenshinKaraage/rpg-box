@@ -7,6 +7,7 @@ import { TriggerPropertyPanel } from '@/features/map-editor/components/panels/Tr
 
 export class AutoTriggerComponent extends Component {
   readonly type = 'autoTrigger';
+  readonly label = 'Auto Trigger';
 
   eventId = '';
   interval = 0;

@@ -7,6 +7,7 @@ import { TransformPropertyPanel } from '@/features/map-editor/components/panels/
 
 export class TransformComponent extends Component {
   readonly type = 'transform';
+  readonly label = 'Transform';
 
   x = 0;
   y = 0;

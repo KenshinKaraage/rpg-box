@@ -59,6 +59,11 @@ export abstract class Component {
   abstract readonly type: string;
 
   /**
+   * UI 表示用ラベル（エディタのコンポーネント一覧に表示される名前）
+   */
+  abstract readonly label: string;
+
+  /**
    * コンポーネントをシリアライズ（保存用の形式に変換）
    * @returns シリアライズされたデータ
    */

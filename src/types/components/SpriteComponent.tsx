@@ -7,6 +7,7 @@ import { SpritePropertyPanel } from '@/features/map-editor/components/panels/Spr
 
 export class SpriteComponent extends Component {
   readonly type = 'sprite';
+  readonly label = 'Sprite';
 
   imageId?: string;
   animationId?: string;

@@ -7,6 +7,7 @@ import { ControllerPropertyPanel } from '@/features/map-editor/components/panels
 
 export class ControllerComponent extends Component {
   readonly type = 'controller';
+  readonly label = 'Controller';
 
   moveSpeed = 1;
   dashEnabled = true;

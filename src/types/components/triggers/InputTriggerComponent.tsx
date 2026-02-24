@@ -7,6 +7,7 @@ import { TriggerPropertyPanel } from '@/features/map-editor/components/panels/Tr
 
 export class InputTriggerComponent extends Component {
   readonly type = 'inputTrigger';
+  readonly label = 'Input Trigger';
 
   eventId = '';
   key = '';

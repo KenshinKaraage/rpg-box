@@ -7,6 +7,7 @@ import { TriggerPropertyPanel } from '@/features/map-editor/components/panels/Tr
 
 export class TalkTriggerComponent extends Component {
   readonly type = 'talkTrigger';
+  readonly label = 'Talk Trigger';
 
   eventId = '';
   direction: 'front' | 'any' = 'front';

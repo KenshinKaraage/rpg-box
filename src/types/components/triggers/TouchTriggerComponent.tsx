@@ -7,6 +7,7 @@ import { TriggerPropertyPanel } from '@/features/map-editor/components/panels/Tr
 
 export class TouchTriggerComponent extends Component {
   readonly type = 'touchTrigger';
+  readonly label = 'Touch Trigger';
 
   eventId = '';
 

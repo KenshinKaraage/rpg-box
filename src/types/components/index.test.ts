@@ -12,6 +12,7 @@ import {
 // テスト用の具象クラス
 class TestComponent extends Component {
   readonly type = 'test';
+  readonly label = 'Test';
   value: string = '';
 
   serialize(): Record<string, unknown> {
@@ -32,6 +33,7 @@ class TestComponent extends Component {
 
 class AnotherComponent extends Component {
   readonly type = 'another';
+  readonly label = 'Another';
   count: number = 0;
 
   serialize(): Record<string, unknown> {

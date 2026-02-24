@@ -10,36 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getComponent } from '@/types/components';
+import { getAllComponents, getComponent } from '@/types/components';
 import '@/types/components/register';
 import type { Prefab } from '@/types/map';
-
-/** コンポーネントタイプの表示名マッピング */
-const COMPONENT_LABELS: Record<string, string> = {
-  transform: 'Transform（位置・回転・スケール）',
-  sprite: 'Sprite（スプライト）',
-  collider: 'Collider（当たり判定）',
-  movement: 'Movement（移動）',
-  variables: 'Variables（変数）',
-  controller: 'Controller（操作）',
-  effect: 'Effect（エフェクト）',
-  objectCanvas: 'ObjectCanvas（UI）',
-  talkTrigger: 'Talk Trigger（話しかけ）',
-  touchTrigger: 'Touch Trigger（接触）',
-  stepTrigger: 'Step Trigger（踏み込み）',
-  autoTrigger: 'Auto Trigger（自動）',
-  inputTrigger: 'Input Trigger（キー入力）',
-};
-
-/** カテゴリ分類 */
-const COMPONENT_CATEGORIES: { label: string; types: string[] }[] = [
-  { label: '基本', types: ['transform', 'sprite', 'collider'] },
-  { label: '動作', types: ['movement', 'controller', 'effect', 'objectCanvas', 'variables'] },
-  {
-    label: 'トリガー',
-    types: ['talkTrigger', 'touchTrigger', 'stepTrigger', 'autoTrigger', 'inputTrigger'],
-  },
-];
 
 interface ComponentEditorProps {
   prefab: Prefab | null;
@@ -51,7 +24,10 @@ interface ComponentEditorProps {
  *
  * 選択中のプレハブに付与されたコンポーネント一覧を表示し、
  * 各コンポーネントのプロパティパネルを呼び出す。
- * コンポーネントの追加・削除も行う（T157 + T158 統合）。
+ * コンポーネントの追加・削除も行う。
+ *
+ * 追加できるコンポーネントは getAllComponents() で取得するため、
+ * カスタムコンポーネントスクリプト（registerComponent() で登録済み）も自動で表示される。
  */
 export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps) {
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
@@ -98,6 +74,8 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
     onUpdatePrefab(prefab.id, { components: [...prefab.components, newComponent] });
   };
 
+  const registeredComponents = getAllComponents();
+
   return (
     <div className="flex h-full flex-col">
       {/* ヘッダー */}
@@ -114,7 +92,6 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
           </div>
         )}
         {prefab.components.map((component, index) => {
-          const label = COMPONENT_LABELS[component.type] ?? component.type;
           const isCollapsed = collapsed.has(index);
           const panel = component.renderPropertyPanel({
             onChange: (updates) => handleComponentChange(index, updates),
@@ -135,14 +112,14 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
                   ) : (
                     <ChevronUp className="h-3 w-3 shrink-0 text-muted-foreground" />
                   )}
-                  {label}
+                  {component.label}
                 </button>
                 <Button
                   size="sm"
                   variant="ghost"
                   className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                   onClick={() => handleDeleteComponent(index)}
-                  aria-label={`${label}を削除`}
+                  aria-label={`${component.label}を削除`}
                   data-testid={`delete-component-${component.type}`}
                 >
                   <Trash2 className="h-3 w-3" />
@@ -163,18 +140,14 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
             <SelectValue placeholder="コンポーネントを追加..." />
           </SelectTrigger>
           <SelectContent>
-            {COMPONENT_CATEGORIES.map((category) => (
-              <div key={category.label}>
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                  {category.label}
-                </div>
-                {category.types.map((type) => (
-                  <SelectItem key={type} value={type} className="text-xs">
-                    {COMPONENT_LABELS[type] ?? type}
-                  </SelectItem>
-                ))}
-              </div>
-            ))}
+            {registeredComponents.map(([type, Constructor]) => {
+              const instance = new Constructor();
+              return (
+                <SelectItem key={type} value={type} className="text-xs">
+                  {instance.label}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>

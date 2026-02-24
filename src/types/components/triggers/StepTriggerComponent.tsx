@@ -7,6 +7,7 @@ import { TriggerPropertyPanel } from '@/features/map-editor/components/panels/Tr
 
 export class StepTriggerComponent extends Component {
   readonly type = 'stepTrigger';
+  readonly label = 'Step Trigger';
 
   eventId = '';
 
