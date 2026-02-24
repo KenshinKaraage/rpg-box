@@ -37,11 +37,13 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
   }
 
   const handleAdd = () => {
+    let n = fields.length + 1;
+    while (fields.some((f) => f.name === `field${n}`)) n++;
     const newField: ComponentField = {
-      name: `field${fields.length + 1}`,
+      name: `field${n}`,
       fieldType: 'string',
       defaultValue: '',
-      label: `フィールド${fields.length + 1}`,
+      label: `フィールド${n}`,
     };
     onContentChange(replaceExportDefault(content, [...fields, newField]));
   };
@@ -81,8 +83,7 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
               const fieldInstance = FieldClass ? new FieldClass() : null;
               return (
                 <li key={index} className="space-y-2 rounded border p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs text-muted-foreground">{field.name}</span>
+                  <div className="flex justify-end">
                     <Button
                       size="icon"
                       variant="ghost"
