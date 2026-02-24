@@ -6409,6 +6409,49 @@ export function useAutoSave() {
 
 ---
 
+#### [T243] ChipsetEditor autotile/animation フィールド & 新規追加時自動選択
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main（直接コミット）
+- **PR:** -
+
+**完了条件:**
+
+- [x] `Chipset` 型に `autotile`, `animated`, `animFrameCount`, `animIntervalMs` を追加
+- [x] ChipsetEditor に隣接変形・アニメーションチェックボックスを追加
+- [x] `animated=true` の時のみフレーム数・間隔の入力欄を表示
+- [x] チップセット追加（+ボタン）時に新規チップセットを自動選択
+
+**関連ファイル:**
+
+- `src/types/map.ts`
+- `src/app/(editor)/map/data/page.tsx`
+- `src/features/map-editor/components/ChipsetEditor.tsx`
+- `src/features/map-editor/components/ChipsetEditor.test.tsx`
+
+---
+
+#### [T244] LayerEditor チップセット割り当て UI
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main（直接コミット）
+- **PR:** -
+
+**完了条件:**
+
+- [x] tile レイヤーに割り当て済みチップセットをバッジで表示
+- [x] バッジの×ボタンでチップセットを除去
+- [x] ドロップダウンで未割り当てチップセットを追加
+- [x] 全チップセット割り当て済みの場合はドロップダウン非表示
+- [x] object レイヤーには表示しない
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/LayerEditor.tsx`
+- `src/features/map-editor/components/LayerEditor.test.tsx`
+
+---
+
 #### [T240] [US18] Documentation
 
 - **ステータス:** [ ] 未着手
