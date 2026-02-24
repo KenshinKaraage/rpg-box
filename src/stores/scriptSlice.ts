@@ -2,6 +2,7 @@
  * スクリプトスライス
  */
 import type { Script, ScriptType } from '@/types/script';
+import { getDefaultComponentScripts } from '@/lib/defaultComponentScripts';
 
 export interface ScriptSlice {
   /** スクリプト一覧 */
@@ -30,6 +31,9 @@ export interface ScriptSlice {
 
   /** 親スクリプトの内部スクリプトを取得 */
   getInternalScripts: (parentId: string) => Script[];
+
+  /** ビルトインコンポーネントスクリプトをシードする（プロジェクト初期化時に呼ぶ） */
+  seedDefaultComponentScripts: () => void;
 }
 
 export const createScriptSlice = <T extends ScriptSlice>(
@@ -90,5 +94,16 @@ export const createScriptSlice = <T extends ScriptSlice>(
 
   getInternalScripts: (parentId: string) => {
     return get().scripts.filter((s) => s.parentId === parentId);
+  },
+
+  seedDefaultComponentScripts: () => {
+    const defaults = getDefaultComponentScripts();
+    set((state) => {
+      for (const script of defaults) {
+        if (!state.scripts.find((s) => s.id === script.id)) {
+          state.scripts.push(script);
+        }
+      }
+    });
   },
 });

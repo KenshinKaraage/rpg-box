@@ -317,6 +317,41 @@ describe('scriptSlice', () => {
     expect(script.fields).toEqual([]);
   });
 
+  describe('seedDefaultComponentScripts', () => {
+    it('ビルトインコンポーネントスクリプトを追加する', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.seedDefaultComponentScripts();
+      });
+
+      const componentScripts = result.current.scripts.filter((s) => s.type === 'component');
+      expect(componentScripts.length).toBeGreaterThanOrEqual(13);
+    });
+
+    it('transform スクリプトが含まれる', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.seedDefaultComponentScripts();
+      });
+
+      expect(result.current.scripts.find((s) => s.id === 'transform')).toBeDefined();
+    });
+
+    it('2回呼んでも重複しない', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.seedDefaultComponentScripts();
+        result.current.seedDefaultComponentScripts();
+      });
+
+      const ids = result.current.scripts.map((s) => s.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+  });
+
   describe('getInternalScripts', () => {
     it('親スクリプトの内部スクリプトを返す', () => {
       const { result } = renderHook(() => useStore());
