@@ -54,6 +54,12 @@ export abstract class Component {
   abstract readonly type: string;
 
   /**
+   * コンポーネントの表示名
+   * 各サブクラスで固有の値を定義する
+   */
+  abstract readonly label: string;
+
+  /**
    * コンポーネントをシリアライズ（保存用の形式に変換）
    * @returns シリアライズされたデータ
    */

@@ -2,6 +2,7 @@ import { Component } from '../Component';
 
 export class AutoTriggerComponent extends Component {
   readonly type = 'autoTrigger';
+  readonly label = 'Auto Trigger';
 
   eventId = '';
   interval = 0;

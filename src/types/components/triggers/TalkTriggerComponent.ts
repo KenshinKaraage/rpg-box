@@ -2,6 +2,7 @@ import { Component } from '../Component';
 
 export class TalkTriggerComponent extends Component {
   readonly type = 'talkTrigger';
+  readonly label = 'Talk Trigger';
 
   eventId = '';
   direction: 'front' | 'any' = 'front';

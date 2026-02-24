@@ -2,6 +2,7 @@ import { Component } from '../Component';
 
 export class InputTriggerComponent extends Component {
   readonly type = 'inputTrigger';
+  readonly label = 'Input Trigger';
 
   eventId = '';
   key = '';

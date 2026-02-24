@@ -2,6 +2,7 @@ import { Component } from './Component';
 
 export class VariablesComponent extends Component {
   readonly type = 'variables';
+  readonly label = 'Variables';
 
   variables: Record<string, unknown> = {};
 

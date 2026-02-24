@@ -2,6 +2,7 @@ import { Component } from './Component';
 
 export class EffectComponent extends Component {
   readonly type = 'effect';
+  readonly label = 'Effect';
 
   effectId?: string;
   onComplete: 'delete' | 'hide' | 'none' = 'none';

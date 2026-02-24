@@ -27,11 +27,9 @@ export function generateScriptContent(fields: ComponentField[]): string {
  * Component クラスを Script (type: 'component') に変換する
  *
  * serialize() から デフォルト値を取得し、型を推論する。
- * label プロパティがあればそれを使用し、なければ type をフォールバックとして使用する。
- * Component クラスへの変更は不要。
  */
 export function componentClassToScript(Cls: ComponentConstructor): Script {
-  const instance = new Cls() as Component & { label?: string };
+  const instance = new Cls();
   const defaults = instance.serialize();
 
   const fields: ComponentField[] = Object.entries(defaults).map(([name, value]) => ({
@@ -43,7 +41,7 @@ export function componentClassToScript(Cls: ComponentConstructor): Script {
 
   return {
     id: instance.type,
-    name: instance.label ?? instance.type,
+    name: instance.label,
     type: 'component',
     content: generateScriptContent(fields),
     fields,
