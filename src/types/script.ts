@@ -55,7 +55,7 @@ export interface ComponentField {
   /** フィールド名（JS識別子） */
   name: string;
   /** FieldType の type 名 ('number', 'string', 'boolean', 'array', 'object') */
-  type: string;
+  fieldType: string;
   /** デフォルト値 */
   defaultValue: unknown;
   /** 表示名 */
