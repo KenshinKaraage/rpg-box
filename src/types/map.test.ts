@@ -1,4 +1,12 @@
-import type { GameMap, MapLayer, MapObject, Chipset, ChipProperty, Prefab } from './map';
+import type {
+  GameMap,
+  MapLayer,
+  MapObject,
+  Chipset,
+  ChipProperty,
+  Prefab,
+  PrefabComponent,
+} from './map';
 import { TransformComponent } from './components/TransformComponent';
 import { SpriteComponent } from './components/SpriteComponent';
 
@@ -70,6 +78,10 @@ describe('Map type definitions', () => {
       imageId: 'img-grassland',
       tileWidth: 32,
       tileHeight: 32,
+      autotile: false,
+      animated: false,
+      animFrameCount: 1,
+      animIntervalMs: 100,
       fields: [],
       chips,
     };
@@ -83,8 +95,8 @@ describe('Map type definitions', () => {
   });
 
   it('creates a Prefab with components', () => {
-    const transform = new TransformComponent();
-    const sprite = new SpriteComponent();
+    const transform: PrefabComponent = { scriptId: 'transform', fieldValues: { x: 0, y: 0 } };
+    const sprite: PrefabComponent = { scriptId: 'sprite', fieldValues: {} };
 
     const prefab: Prefab = {
       id: 'prefab-1',
@@ -94,7 +106,7 @@ describe('Map type definitions', () => {
 
     expect(prefab.id).toBe('prefab-1');
     expect(prefab.components).toHaveLength(2);
-    expect(prefab.components[0]!.type).toBe('transform');
+    expect(prefab.components[0]!.scriptId).toBe('transform');
   });
 
   it('creates a MapObject with prefabId and overrides', () => {

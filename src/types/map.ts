@@ -1,6 +1,17 @@
 import type { Component } from './components/Component';
 import type { FieldType } from './fields/FieldType';
 
+/**
+ * プレハブに付与されたコンポーネントのインスタンス
+ * スクリプトID とフィールドの現在値を保持する
+ */
+export interface PrefabComponent {
+  /** コンポーネントスクリプトの ID（Script.id） */
+  scriptId: string;
+  /** フィールド名 → 現在値 のマップ */
+  fieldValues: Record<string, unknown>;
+}
+
 export interface GameMap {
   id: string;
   name: string;
@@ -53,5 +64,5 @@ export interface ChipProperty {
 export interface Prefab {
   id: string;
   name: string;
-  components: Component[];
+  components: PrefabComponent[];
 }

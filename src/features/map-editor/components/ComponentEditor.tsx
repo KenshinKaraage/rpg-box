@@ -1,8 +1,10 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -10,9 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getAllComponents, getComponent } from '@/types/components';
-import '@/types/components/register';
-import type { Prefab } from '@/types/map';
+import { getFieldType } from '@/types/fields';
+import { parseComponentFields } from '@/lib/componentScriptUtils';
+import { useStore } from '@/stores';
+import type { Prefab, PrefabComponent } from '@/types/map';
 
 interface ComponentEditorProps {
   prefab: Prefab | null;
@@ -23,13 +26,15 @@ interface ComponentEditorProps {
  * コンポーネントエディタ
  *
  * 選択中のプレハブに付与されたコンポーネント一覧を表示し、
- * 各コンポーネントのプロパティパネルを呼び出す。
- * コンポーネントの追加・削除も行う。
- *
- * 追加できるコンポーネントは getAllComponents() で取得するため、
- * カスタムコンポーネントスクリプト（registerComponent() で登録済み）も自動で表示される。
+ * 各コンポーネントのプロパティパネルをスクリプトのフィールド定義から生成する。
+ * コンポーネントの追加・削除・フィールド値編集も行う。
  */
 export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps) {
+  const scripts = useStore((s) => s.scripts);
+  const componentScripts = useMemo(
+    () => scripts.filter((s) => s.type === 'component' && !s.parentId),
+    [scripts]
+  );
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
 
   if (!prefab) {
@@ -52,29 +57,27 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
     });
   };
 
-  const handleComponentChange = (index: number, updates: Record<string, unknown>) => {
-    const updatedComponents = prefab.components.map((c, i) => {
-      if (i !== index) return c;
-      const cloned = c.clone();
-      Object.assign(cloned, updates);
-      return cloned;
+  const handleAdd = (scriptId: string) => {
+    const script = componentScripts.find((s) => s.id === scriptId);
+    if (!script) return;
+    const fields = parseComponentFields(script.content) ?? [];
+    const fieldValues = Object.fromEntries(fields.map((f) => [f.name, f.defaultValue]));
+    const newComp: PrefabComponent = { scriptId, fieldValues };
+    onUpdatePrefab(prefab.id, { components: [...prefab.components, newComp] });
+  };
+
+  const handleFieldChange = (compIndex: number, fieldName: string, value: unknown) => {
+    const updated = prefab.components.map((c, i) =>
+      i === compIndex ? { ...c, fieldValues: { ...c.fieldValues, [fieldName]: value } } : c
+    );
+    onUpdatePrefab(prefab.id, { components: updated });
+  };
+
+  const handleDelete = (index: number) => {
+    onUpdatePrefab(prefab.id, {
+      components: prefab.components.filter((_, i) => i !== index),
     });
-    onUpdatePrefab(prefab.id, { components: updatedComponents });
   };
-
-  const handleDeleteComponent = (index: number) => {
-    const updatedComponents = prefab.components.filter((_, i) => i !== index);
-    onUpdatePrefab(prefab.id, { components: updatedComponents });
-  };
-
-  const handleAddComponent = (type: string) => {
-    const Constructor = getComponent(type);
-    if (!Constructor) return;
-    const newComponent = new Constructor();
-    onUpdatePrefab(prefab.id, { components: [...prefab.components, newComponent] });
-  };
-
-  const registeredComponents = getAllComponents();
 
   return (
     <div className="flex h-full flex-col">
@@ -91,43 +94,83 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
             コンポーネントがありません
           </div>
         )}
-        {prefab.components.map((component, index) => {
+        {prefab.components.map((comp, index) => {
+          const script = componentScripts.find((s) => s.id === comp.scriptId);
+          const fields = script ? (parseComponentFields(script.content) ?? []) : [];
           const isCollapsed = collapsed.has(index);
-          const panel = component.renderPropertyPanel({
-            onChange: (updates) => handleComponentChange(index, updates),
-          });
+          const label = script?.name ?? comp.scriptId;
 
           return (
-            <div key={index} className="border-b" data-testid={`component-${component.type}`}>
+            <div
+              key={`${comp.scriptId}-${index}`}
+              className="border-b"
+              data-testid={`component-${comp.scriptId}`}
+            >
               {/* コンポーネントヘッダー */}
               <div className="flex items-center gap-1 px-3 py-2">
                 <button
                   className="flex flex-1 items-center gap-1 text-left text-xs font-medium"
                   onClick={() => toggleCollapsed(index)}
                   aria-label={isCollapsed ? 'コンポーネントを展開' : 'コンポーネントを折り畳み'}
-                  data-testid={`collapse-${component.type}`}
+                  data-testid={`collapse-${comp.scriptId}`}
                 >
                   {isCollapsed ? (
                     <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
                   ) : (
                     <ChevronUp className="h-3 w-3 shrink-0 text-muted-foreground" />
                   )}
-                  {component.label}
+                  {label}
                 </button>
                 <Button
                   size="sm"
                   variant="ghost"
                   className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                  onClick={() => handleDeleteComponent(index)}
-                  aria-label={`${component.label}を削除`}
-                  data-testid={`delete-component-${component.type}`}
+                  onClick={() => handleDelete(index)}
+                  aria-label={`${label}を削除`}
+                  data-testid={`delete-component-${comp.scriptId}`}
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
 
-              {/* プロパティパネル */}
-              {!isCollapsed && panel && <div className="px-3 pb-3">{panel}</div>}
+              {/* フィールドエディタ */}
+              {!isCollapsed && fields.length > 0 && (
+                <div className="space-y-2 px-3 pb-3">
+                  {fields.map((field) => {
+                    const FieldClass = getFieldType(field.fieldType);
+                    const fieldInstance = FieldClass ? new FieldClass() : null;
+                    const currentValue = comp.fieldValues[field.name] ?? field.defaultValue;
+
+                    return (
+                      <div key={field.name} className="space-y-1">
+                        <Label
+                          htmlFor={`field-${index}-${field.name}`}
+                          className="text-xs text-muted-foreground"
+                        >
+                          {field.label}
+                        </Label>
+                        {fieldInstance ? (
+                          fieldInstance.renderEditor({
+                            value: currentValue,
+                            onChange: (v) => handleFieldChange(index, field.name, v),
+                          })
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            未対応の型: {field.fieldType}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* スクリプトが見つからない場合 */}
+              {!isCollapsed && !script && (
+                <div className="px-3 pb-3 text-xs text-muted-foreground">
+                  スクリプトが見つかりません: {comp.scriptId}
+                </div>
+              )}
             </div>
           );
         })}
@@ -135,19 +178,20 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
 
       {/* コンポーネント追加 */}
       <div className="border-t p-3">
-        <Select onValueChange={handleAddComponent} value="">
-          <SelectTrigger className="h-8 text-xs" data-testid="add-component-select">
+        <Select onValueChange={handleAdd} value="">
+          <SelectTrigger
+            className="h-8 text-xs"
+            data-testid="add-component-select"
+            aria-label="コンポーネントを追加"
+          >
             <SelectValue placeholder="コンポーネントを追加..." />
           </SelectTrigger>
           <SelectContent>
-            {registeredComponents.map(([type, Constructor]) => {
-              const instance = new Constructor();
-              return (
-                <SelectItem key={type} value={type} className="text-xs">
-                  {instance.label}
-                </SelectItem>
-              );
-            })}
+            {componentScripts.map((script) => (
+              <SelectItem key={script.id} value={script.id} className="text-xs">
+                {script.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
