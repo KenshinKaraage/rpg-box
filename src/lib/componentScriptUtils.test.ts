@@ -2,6 +2,7 @@ import {
   inferFieldType,
   generateScriptContent,
   componentClassToScript,
+  replaceExportDefault,
 } from './componentScriptUtils';
 import { Component } from '@/types/components/Component';
 import type { ComponentField } from '@/types/script';
@@ -59,13 +60,18 @@ describe('inferFieldType', () => {
 });
 
 describe('generateScriptContent', () => {
-  it('フィールドから export default コードを生成する', () => {
+  it('フィールドから export default コードを生成する（新フォーマット）', () => {
     const fields: ComponentField[] = [
-      { name: 'count', fieldType: 'number', defaultValue: 0, label: 'Count' },
-      { name: 'name', fieldType: 'string', defaultValue: '', label: 'Name' },
+      { name: 'count', fieldType: 'number', defaultValue: 0, label: 'カウント' },
+      { name: 'label', fieldType: 'string', defaultValue: '', label: 'ラベル' },
     ];
     const code = generateScriptContent(fields);
-    expect(code).toBe('export default {\n  count: 0,\n  name: ""\n}');
+    expect(code).toBe(
+      'export default {\n' +
+        '  count: { type: "number", default: 0, label: "カウント" },\n' +
+        '  label: { type: "string", default: "", label: "ラベル" }\n' +
+        '}'
+    );
   });
 
   it('フィールドが空の場合は空オブジェクトを生成する', () => {
@@ -115,5 +121,39 @@ describe('componentClassToScript', () => {
     expect(script.fields).toContainEqual(
       expect.objectContaining({ name: 'items', fieldType: 'array' })
     );
+  });
+});
+
+describe('replaceExportDefault', () => {
+  it('export default ブロックを新しいフィールドで置換する', () => {
+    const content = 'export default {\n  x: { type: "number", default: 0, label: "x" }\n}';
+    const newFields: ComponentField[] = [
+      { name: 'x', fieldType: 'number', defaultValue: 0, label: 'x' },
+      { name: 'y', fieldType: 'number', defaultValue: 0, label: 'y' },
+    ];
+    const result = replaceExportDefault(content, newFields);
+    expect(result).toContain('y: { type: "number"');
+    expect(result).toBe(generateScriptContent(newFields));
+  });
+
+  it('export default ブロック以外のコードを保持する', () => {
+    const content =
+      '// helper\nfunction helper() {}\nexport default {\n  x: { type: "number", default: 0, label: "x" }\n}';
+    const newFields: ComponentField[] = [
+      { name: 'z', fieldType: 'string', defaultValue: '', label: 'z' },
+    ];
+    const result = replaceExportDefault(content, newFields);
+    expect(result).toContain('// helper');
+    expect(result).toContain('function helper()');
+    expect(result).toContain('z: { type: "string"');
+  });
+
+  it('export default がない場合は新しいコンテンツをそのまま返す', () => {
+    const content = '';
+    const newFields: ComponentField[] = [
+      { name: 'x', fieldType: 'number', defaultValue: 0, label: 'x' },
+    ];
+    const result = replaceExportDefault(content, newFields);
+    expect(result).toBe(generateScriptContent(newFields));
   });
 });
