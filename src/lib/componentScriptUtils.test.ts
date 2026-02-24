@@ -212,4 +212,28 @@ describe('parseComponentFields', () => {
     expect(fields).toHaveLength(1);
     expect(fields![0]).toMatchObject({ name: 'hp', fieldType: 'number' });
   });
+
+  it('shorthand 形式のフィールド（x: 42）はデフォルト値がフォールバックされる', () => {
+    const content = 'export default { x: 42 }';
+    const fields = parseComponentFields(content);
+    expect(fields).toHaveLength(1);
+    expect(fields![0]).toMatchObject({
+      name: 'x',
+      fieldType: 'string',
+      defaultValue: null,
+      label: 'x',
+    });
+  });
+
+  it('デフォルト値に波括弧を含む文字列があっても正しくパースできる', () => {
+    const content = 'export default { x: { type: "string", default: "hello {", label: "x" } }';
+    const fields = parseComponentFields(content);
+    expect(fields).toHaveLength(1);
+    expect(fields![0]).toMatchObject({
+      name: 'x',
+      fieldType: 'string',
+      defaultValue: 'hello {',
+      label: 'x',
+    });
+  });
 });

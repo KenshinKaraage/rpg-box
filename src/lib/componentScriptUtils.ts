@@ -1,6 +1,39 @@
 import type { Component } from '@/types/components/Component';
 import type { ComponentField, Script } from '@/types/script';
 
+/**
+ * content の braceStart 位置の '{' に対応する '}' のインデックスを返す。
+ * 文字列リテラル内の波括弧は無視する。見つからない場合は -1 を返す。
+ */
+function findMatchingBrace(content: string, braceStart: number): number {
+  let depth = 0;
+  let inString = false;
+  let stringChar = '';
+  let i = braceStart;
+  while (i < content.length) {
+    const c = content[i];
+    if (inString) {
+      if (c === '\\') {
+        i++; // skip escaped character
+      } else if (c === stringChar) {
+        inString = false;
+      }
+    } else {
+      if (c === '"' || c === "'" || c === '`') {
+        inString = true;
+        stringChar = c;
+      } else if (c === '{') {
+        depth++;
+      } else if (c === '}') {
+        depth--;
+        if (depth === 0) return i;
+      }
+    }
+    i++;
+  }
+  return -1;
+}
+
 type ComponentConstructor = new () => Component;
 
 /**
@@ -36,35 +69,7 @@ export function replaceExportDefault(content: string, fields: ComponentField[]):
   if (start === -1) return newBlock;
 
   const braceStart = content.indexOf('{', start);
-  let depth = 0;
-  let end = -1;
-  let inString = false;
-  let stringChar = '';
-  let i = braceStart;
-  while (i < content.length) {
-    const c = content[i];
-    if (inString) {
-      if (c === '\\') {
-        i++; // skip escaped character
-      } else if (c === stringChar) {
-        inString = false;
-      }
-    } else {
-      if (c === '"' || c === "'" || c === '`') {
-        inString = true;
-        stringChar = c;
-      } else if (c === '{') {
-        depth++;
-      } else if (c === '}') {
-        depth--;
-        if (depth === 0) {
-          end = i;
-          break;
-        }
-      }
-    }
-    i++;
-  }
+  const end = findMatchingBrace(content, braceStart);
   if (end === -1) return newBlock;
 
   return content.slice(0, start) + newBlock + content.slice(end + 1);
@@ -83,45 +88,18 @@ export function parseComponentFields(content: string): ComponentField[] | null {
   try {
     const start = content.search(/export\s+default\s*\{/);
     const braceStart = content.indexOf('{', start);
-    let depth = 0;
-    let end = -1;
-    let inString = false;
-    let stringChar = '';
-    let i = braceStart;
-    while (i < content.length) {
-      const c = content[i];
-      if (inString) {
-        if (c === '\\') {
-          i++; // skip escaped character
-        } else if (c === stringChar) {
-          inString = false;
-        }
-      } else {
-        if (c === '"' || c === "'" || c === '`') {
-          inString = true;
-          stringChar = c;
-        } else if (c === '{') {
-          depth++;
-        } else if (c === '}') {
-          depth--;
-          if (depth === 0) {
-            end = i;
-            break;
-          }
-        }
-      }
-      i++;
-    }
+    const end = findMatchingBrace(content, braceStart);
     if (end === -1) return null;
 
     const block = content.slice(braceStart, end + 1);
-    // eslint-disable-next-line no-new-func
+    // eslint-disable-next-line no-new-func -- evaluated in local editor context only, not server-side
     const obj = new Function(`return (${block})`)() as Record<string, unknown>;
 
     if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return [];
 
     return Object.entries(obj).map(([name, def]) => {
       const d = def as { type?: unknown; default?: unknown; label?: unknown };
+      // Non-object field values (e.g. shorthand `x: 42`) silently use fallback defaults
       return {
         name,
         fieldType: typeof d?.type === 'string' ? d.type : 'string',
