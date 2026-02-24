@@ -1,4 +1,9 @@
+import type { ReactNode } from 'react';
 import type { GameContext } from '@/engine/runtime/GameContext';
+
+export interface ComponentPanelProps {
+  onChange: (updates: Record<string, unknown>) => void;
+}
 
 /**
  * コンポーネントの基底抽象クラス
@@ -70,6 +75,15 @@ export abstract class Component {
    * @returns 複製されたコンポーネント
    */
   abstract clone(): Component;
+
+  /**
+   * プロパティパネルを描画（エディタ用）
+   * @param props パネルの props（onChange コールバック）
+   * @returns React ノード
+   */
+  renderPropertyPanel(_props: ComponentPanelProps): ReactNode {
+    return null;
+  }
 
   /**
    * コンポーネント生成時に呼ばれるライフサイクルメソッド
