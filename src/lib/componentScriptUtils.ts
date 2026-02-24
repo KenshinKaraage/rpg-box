@@ -38,15 +38,32 @@ export function replaceExportDefault(content: string, fields: ComponentField[]):
   const braceStart = content.indexOf('{', start);
   let depth = 0;
   let end = -1;
-  for (let i = braceStart; i < content.length; i++) {
-    if (content[i] === '{') depth++;
-    else if (content[i] === '}') {
-      depth--;
-      if (depth === 0) {
-        end = i;
-        break;
+  let inString = false;
+  let stringChar = '';
+  let i = braceStart;
+  while (i < content.length) {
+    const c = content[i];
+    if (inString) {
+      if (c === '\\') {
+        i++; // skip escaped character
+      } else if (c === stringChar) {
+        inString = false;
+      }
+    } else {
+      if (c === '"' || c === "'" || c === '`') {
+        inString = true;
+        stringChar = c;
+      } else if (c === '{') {
+        depth++;
+      } else if (c === '}') {
+        depth--;
+        if (depth === 0) {
+          end = i;
+          break;
+        }
       }
     }
+    i++;
   }
   if (end === -1) return newBlock;
 

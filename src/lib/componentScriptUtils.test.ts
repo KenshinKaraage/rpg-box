@@ -132,7 +132,6 @@ describe('replaceExportDefault', () => {
       { name: 'y', fieldType: 'number', defaultValue: 0, label: 'y' },
     ];
     const result = replaceExportDefault(content, newFields);
-    expect(result).toContain('y: { type: "number"');
     expect(result).toBe(generateScriptContent(newFields));
   });
 
@@ -143,6 +142,7 @@ describe('replaceExportDefault', () => {
       { name: 'z', fieldType: 'string', defaultValue: '', label: 'z' },
     ];
     const result = replaceExportDefault(content, newFields);
+    expect(result).toMatch(/\/\/ helper[\s\S]*export default/);
     expect(result).toContain('// helper');
     expect(result).toContain('function helper()');
     expect(result).toContain('z: { type: "string"');
@@ -150,6 +150,16 @@ describe('replaceExportDefault', () => {
 
   it('export default がない場合は新しいコンテンツをそのまま返す', () => {
     const content = '';
+    const newFields: ComponentField[] = [
+      { name: 'x', fieldType: 'number', defaultValue: 0, label: 'x' },
+    ];
+    const result = replaceExportDefault(content, newFields);
+    expect(result).toBe(generateScriptContent(newFields));
+  });
+
+  it('デフォルト値に波括弧を含む文字列があっても正しく置換する', () => {
+    const content =
+      'export default {\n  msg: { type: "string", default: "hello {world", label: "msg" }\n}';
     const newFields: ComponentField[] = [
       { name: 'x', fieldType: 'number', defaultValue: 0, label: 'x' },
     ];
