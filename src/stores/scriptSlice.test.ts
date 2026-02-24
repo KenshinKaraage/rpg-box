@@ -312,6 +312,11 @@ describe('scriptSlice', () => {
     });
   });
 
+  it('component スクリプトは fields を持つ', () => {
+    const script = createScript('comp_001', 'Transform', 'component');
+    expect(script.fields).toEqual([]);
+  });
+
   describe('getInternalScripts', () => {
     it('親スクリプトの内部スクリプトを返す', () => {
       const { result } = renderHook(() => useStore());

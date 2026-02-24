@@ -31,6 +31,7 @@ const testScript: Script = {
   content: 'console.log("hello");',
   args: [],
   returns: [],
+  fields: [],
   isAsync: false,
 };
 

@@ -48,6 +48,21 @@ export interface ScriptReturn {
 }
 
 /**
+ * コンポーネントスクリプトのフィールド定義
+ * コンポーネントスクリプトの右パネルで設定するフィールドのスキーマ
+ */
+export interface ComponentField {
+  /** フィールド名（JS識別子） */
+  name: string;
+  /** FieldType の type 名 ('number', 'string', 'boolean', 'array', 'object') */
+  type: string;
+  /** デフォルト値 */
+  defaultValue: unknown;
+  /** 表示名 */
+  label: string;
+}
+
+/**
  * スクリプト
  */
 export interface Script {
@@ -65,6 +80,8 @@ export interface Script {
   args: ScriptArg[];
   /** 返り値定義（イベントアクションでの変数代入に使用） */
   returns: ScriptReturn[];
+  /** フィールド定義（component スクリプト用） */
+  fields: ComponentField[];
   /** 完了まで待機するか（true: 呼び出し側で await 必須、内部で await 使用可能） */
   isAsync: boolean;
   /** 親スクリプトID（internal のみ） */
@@ -84,6 +101,7 @@ export function createScript(id: string, name: string, type: ScriptType): Script
     content: '',
     args: [],
     returns: [],
+    fields: [],
     isAsync: false,
     description: '',
   };
