@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import {
@@ -26,9 +26,14 @@ export default function ComponentScriptPage() {
   const updateScript = useStore((state) => state.updateScript);
   const deleteScript = useStore((state) => state.deleteScript);
   const selectScript = useStore((state) => state.selectScript);
+  const seedDefaultComponentScripts = useStore((state) => state.seedDefaultComponentScripts);
   const classes = useStore((state) => state.classes);
   const dataTypes = useStore((state) => state.dataTypes);
   const [rightTab, setRightTab] = useState<RightTab>('settings');
+
+  useEffect(() => {
+    seedDefaultComponentScripts();
+  }, [seedDefaultComponentScripts]);
   const editorRef = useRef<ScriptEditorHandle>(null);
 
   // Top-level component scripts
