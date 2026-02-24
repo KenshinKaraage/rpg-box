@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,12 +18,14 @@ import { FieldRow } from '@/features/data-editor/components/FieldRow';
 import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
 import { useStore } from '@/stores';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { ImageMetadata } from '@/types/assets';
 import { ChipPropertyEditor } from './ChipPropertyEditor';
 import type { Chipset } from '@/types/map';
 import type { FieldType } from '@/types/fields/FieldType';
 
-const CHIP_COLUMNS = 8;
-const CHIP_DISPLAY_COUNT = 64;
+const DISPLAY_SIZE = 32;
+const PLACEHOLDER_COLS = 8;
+const PLACEHOLDER_ROWS = 8;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFieldType = FieldType<any>;
@@ -60,14 +62,9 @@ export function ChipsetEditor({
   );
   const [selectedChipIndex, setSelectedChipIndex] = useState<number | null>(null);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
-  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
 
   const chipset = chipsets.find((c) => c.id === selectedChipsetId) ?? null;
   const assets = useStore((state) => state.assets);
-
-  useEffect(() => {
-    setImageSize(null);
-  }, [chipset?.imageId]);
 
   const handleSelectChipset = (id: string) => {
     setSelectedChipsetId(id);
@@ -109,24 +106,37 @@ export function ChipsetEditor({
     return Boolean(value);
   };
 
-  const chipStyles = useMemo<(React.CSSProperties | null)[]>(() => {
-    if (!chipset?.imageId || !imageSize) return Array(CHIP_DISPLAY_COUNT).fill(null);
+  // chipset の画像メタデータを取得（chipCols 計算と chipStyles で共用）
+  const chipImageMeta = useMemo(() => {
+    if (!chipset?.imageId) return null;
     const imgAsset = assets.find((a) => a.id === chipset.imageId);
-    if (!imgAsset) return Array(CHIP_DISPLAY_COUNT).fill(null);
-    const { tileWidth } = chipset;
-    const scale = 32 / tileWidth;
-    const cols = Math.max(1, Math.floor(imageSize.width / tileWidth));
-    return Array.from({ length: CHIP_DISPLAY_COUNT }, (_, i) => ({
+    if (!imgAsset) return null;
+    const metadata = imgAsset.metadata as ImageMetadata | null;
+    if (!metadata?.width || !metadata?.height) return null;
+    return { imgAsset, metadata };
+  }, [chipset, assets]);
+
+  const chipCols = chipImageMeta
+    ? Math.max(1, Math.floor(chipImageMeta.metadata.width / (chipset?.tileWidth ?? 1)))
+    : PLACEHOLDER_COLS;
+
+  const chipStyles = useMemo<(React.CSSProperties | null)[]>(() => {
+    if (!chipImageMeta || !chipset) {
+      // 画像なし: passable などを先に設定できるようプレースホルダーを表示
+      return Array(PLACEHOLDER_COLS * PLACEHOLDER_ROWS).fill(null);
+    }
+    const { imgAsset, metadata } = chipImageMeta;
+    const { tileWidth, tileHeight } = chipset;
+    const scale = DISPLAY_SIZE / tileWidth;
+    const cols = Math.max(1, Math.floor(metadata.width / tileWidth));
+    const rows = Math.max(1, Math.floor(metadata.height / tileHeight));
+    return Array.from({ length: cols * rows }, (_, i) => ({
       backgroundImage: `url(${imgAsset.data})`,
-      backgroundSize: `${imageSize.width * scale}px ${imageSize.height * scale}px`,
-      backgroundPosition: `-${(i % cols) * 32}px -${Math.floor(i / cols) * 32}px`,
+      backgroundSize: `${metadata.width * scale}px ${metadata.height * scale}px`,
+      backgroundPosition: `-${(i % cols) * DISPLAY_SIZE}px -${Math.floor(i / cols) * DISPLAY_SIZE}px`,
       backgroundRepeat: 'no-repeat',
     }));
-  }, [chipset, imageSize, assets]);
-
-  const selectedImageAsset = chipset?.imageId
-    ? (assets.find((a) => a.id === chipset.imageId) ?? null)
-    : null;
+  }, [chipImageMeta, chipset]);
 
   if (chipsets.length === 0) {
     return (
@@ -192,19 +202,6 @@ export function ChipsetEditor({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* 常時表示: 名前・画像・タイルサイズ設定 */}
           <div className="shrink-0 space-y-4 overflow-auto border-b p-3">
-            {selectedImageAsset && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={chipset.imageId}
-                src={selectedImageAsset.data}
-                alt=""
-                className="hidden"
-                onLoad={(e) => {
-                  const img = e.currentTarget;
-                  setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
-                }}
-              />
-            )}
             {/* 名前 */}
             <div className="space-y-1">
               <Label className="text-xs">名前</Label>
@@ -266,27 +263,36 @@ export function ChipsetEditor({
             <TabsContent value="chips" className="min-h-0 flex-1 overflow-auto p-3">
               {/* チップグリッド */}
               <div className="space-y-2">
-                <Label className="text-xs">チップ一覧</Label>
+                <Label className="text-xs">
+                  チップ一覧{chipImageMeta ? `（${chipStyles.length} チップ）` : ''}
+                </Label>
                 <div
                   className="grid gap-0.5"
-                  style={{ gridTemplateColumns: `repeat(${CHIP_COLUMNS}, 1fr)` }}
+                  style={{ gridTemplateColumns: `repeat(${chipCols}, ${DISPLAY_SIZE}px)` }}
                   data-testid="chip-grid"
                 >
-                  {Array.from({ length: CHIP_DISPLAY_COUNT }, (_, i) => {
+                  {chipStyles.map((chipStyle, i) => {
                     const passable = getPassable(i);
                     const isSelected = selectedChipIndex === i;
-                    const chipStyle = chipStyles[i] ?? null;
                     return (
                       <button
                         key={i}
                         className={cn(
-                          'relative h-8 w-full overflow-hidden rounded border',
+                          'relative overflow-hidden rounded border',
                           !chipStyle && 'flex items-center justify-center text-xs',
                           isSelected
                             ? 'border-primary bg-primary/20'
                             : 'border-border bg-muted/30 hover:bg-muted'
                         )}
-                        style={chipStyle ?? undefined}
+                        style={
+                          chipStyle
+                            ? {
+                                ...chipStyle,
+                                width: `${DISPLAY_SIZE}px`,
+                                height: `${DISPLAY_SIZE}px`,
+                              }
+                            : { width: `${DISPLAY_SIZE}px`, height: `${DISPLAY_SIZE}px` }
+                        }
                         onClick={() => setSelectedChipIndex(i)}
                         data-testid={`chip-cell-${i}`}
                         title={`チップ #${i}`}
