@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -32,7 +33,7 @@ type AnyFieldType = FieldType<any>;
 
 interface ChipsetEditorProps {
   chipsets: Chipset[];
-  onAddChipset: () => void;
+  onAddChipset: () => string;
   onUpdateChipset: (id: string, updates: Partial<Chipset>) => void;
   onDeleteChipset: (id: string) => void;
   onUpdateChipProperty: (
@@ -68,6 +69,12 @@ export function ChipsetEditor({
 
   const handleSelectChipset = (id: string) => {
     setSelectedChipsetId(id);
+    setSelectedChipIndex(null);
+  };
+
+  const handleAddChipset = () => {
+    const newId = onAddChipset();
+    setSelectedChipsetId(newId);
     setSelectedChipIndex(null);
   };
 
@@ -146,7 +153,7 @@ export function ChipsetEditor({
           <Button
             size="sm"
             variant="outline"
-            onClick={onAddChipset}
+            onClick={handleAddChipset}
             data-testid="add-chipset-button"
           >
             <Plus className="mr-1 h-4 w-4" />
@@ -180,7 +187,7 @@ export function ChipsetEditor({
           size="sm"
           variant="outline"
           className="h-8 px-2"
-          onClick={onAddChipset}
+          onClick={handleAddChipset}
           data-testid="add-chipset-button"
         >
           <Plus className="h-3.5 w-3.5" />
@@ -245,6 +252,63 @@ export function ChipsetEditor({
                 />
                 <span className="self-center text-xs text-muted-foreground">px</span>
               </div>
+            </div>
+
+            {/* 隣接変形・アニメーション */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={`autotile-${chipset.id}`}
+                  checked={chipset.autotile ?? false}
+                  onCheckedChange={(checked) =>
+                    onUpdateChipset(chipset.id, { autotile: checked === true })
+                  }
+                />
+                <Label htmlFor={`autotile-${chipset.id}`} className="text-xs">
+                  隣接変形（オートタイル）
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={`animated-${chipset.id}`}
+                  checked={chipset.animated ?? false}
+                  onCheckedChange={(checked) =>
+                    onUpdateChipset(chipset.id, { animated: checked === true })
+                  }
+                />
+                <Label htmlFor={`animated-${chipset.id}`} className="text-xs">
+                  アニメーション
+                </Label>
+              </div>
+              {chipset.animated && (
+                <div className="ml-6 flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground">フレーム数</Label>
+                  <Input
+                    type="number"
+                    value={chipset.animFrameCount ?? 3}
+                    min={2}
+                    onChange={(e) =>
+                      onUpdateChipset(chipset.id, {
+                        animFrameCount: parseInt(e.target.value, 10) || 3,
+                      })
+                    }
+                    className="h-7 w-16 text-xs"
+                  />
+                  <Label className="text-xs text-muted-foreground">間隔</Label>
+                  <Input
+                    type="number"
+                    value={chipset.animIntervalMs ?? 200}
+                    min={1}
+                    onChange={(e) =>
+                      onUpdateChipset(chipset.id, {
+                        animIntervalMs: parseInt(e.target.value, 10) || 200,
+                      })
+                    }
+                    className="h-7 w-20 text-xs"
+                  />
+                  <span className="text-xs text-muted-foreground">ms</span>
+                </div>
+              )}
             </div>
           </div>
 

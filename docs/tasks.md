@@ -4276,14 +4276,14 @@ export function useAutoSave() {
 
 #### [T154] [US12] Create PrefabPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/map/prefabs/page.tsx` 作成
-- [ ] ThreeColumnLayout 使用
+- [x] `src/app/(editor)/map/prefabs/page.tsx` 作成
+- [x] ThreeColumnLayout 使用
 
 **関連ファイル:**
 
@@ -4293,16 +4293,16 @@ export function useAutoSave() {
 
 #### [T155] [US12] Create PrefabList
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/PrefabList.tsx` 作成
-- [ ] プレハブ一覧表示
-- [ ] 追加/削除ボタン
-- [ ] テスト追加
+- [x] `src/features/map-editor/components/PrefabList.tsx` 作成
+- [x] プレハブ一覧表示
+- [x] 追加/削除ボタン
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -4313,16 +4313,16 @@ export function useAutoSave() {
 
 #### [T156] [US12] Create PrefabPreview
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了（仮実装 — Phase 13 で Sprite 表示を本実装予定）
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/PrefabPreview.tsx` 作成
-- [ ] プレハブのプレビュー表示
-- [ ] Sprite 表示
-- [ ] テスト追加
+- [x] `src/features/map-editor/components/PrefabPreview.tsx` 作成
+- [x] プレハブのプレビュー表示（仮）
+- [ ] Sprite 表示（Phase 13 で実装）
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -4333,17 +4333,19 @@ export function useAutoSave() {
 
 #### [T157] [US12] Create ComponentEditor
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/ComponentEditor.tsx` 作成
-- [ ] コンポーネント一覧表示
-- [ ] 各コンポーネントの renderPropertyPanel() 呼び出し
-- [ ] コンポーネントの追加/削除
-- [ ] テスト追加
+- [x] `src/features/map-editor/components/ComponentEditor.tsx` 作成
+- [x] コンポーネント一覧表示
+- [x] 各コンポーネントの renderPropertyPanel() 呼び出し
+- [x] コンポーネントの追加/削除
+- [x] テスト追加
+- [x] Component クラスに renderPropertyPanel() を追加（Component.ts）
+- [x] 9種 PropertyPanel ファイル作成（panels/ ディレクトリ）
 
 **関連ファイル:**
 
@@ -4354,22 +4356,20 @@ export function useAutoSave() {
 
 #### [T158] [US12] Create ComponentSelector modal
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了（ComponentEditor に統合）
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/components/ComponentSelector.tsx` 作成
-- [ ] 登録済みコンポーネント一覧
-- [ ] カテゴリ分類
-- [ ] 検索フィルター
-- [ ] テスト追加
+- [x] 登録済みコンポーネント一覧（ComponentEditor の Select に統合）
+- [x] カテゴリ分類（基本/動作/トリガー）
+- [ ] 検索フィルター（省略 — Select ドロップダウンのため不要と判断）
+- [x] テスト追加（ComponentEditor.test.tsx に含む）
 
 **関連ファイル:**
 
-- `src/features/map-editor/components/ComponentSelector.tsx`
-- `src/features/map-editor/components/ComponentSelector.test.tsx`
+- `src/features/map-editor/components/ComponentEditor.tsx`（統合済み）
 
 ---
 
@@ -6406,6 +6406,49 @@ export function useAutoSave() {
 - `src/lib/importDefaultAssets.ts`
 - `src/lib/importDefaultAssets.test.ts`
 - `src/app/test/sprite/page.tsx`
+
+---
+
+#### [T243] ChipsetEditor autotile/animation フィールド & 新規追加時自動選択
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main（直接コミット）
+- **PR:** -
+
+**完了条件:**
+
+- [x] `Chipset` 型に `autotile`, `animated`, `animFrameCount`, `animIntervalMs` を追加
+- [x] ChipsetEditor に隣接変形・アニメーションチェックボックスを追加
+- [x] `animated=true` の時のみフレーム数・間隔の入力欄を表示
+- [x] チップセット追加（+ボタン）時に新規チップセットを自動選択
+
+**関連ファイル:**
+
+- `src/types/map.ts`
+- `src/app/(editor)/map/data/page.tsx`
+- `src/features/map-editor/components/ChipsetEditor.tsx`
+- `src/features/map-editor/components/ChipsetEditor.test.tsx`
+
+---
+
+#### [T244] LayerEditor チップセット割り当て UI
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main（直接コミット）
+- **PR:** -
+
+**完了条件:**
+
+- [x] tile レイヤーに割り当て済みチップセットをバッジで表示
+- [x] バッジの×ボタンでチップセットを除去
+- [x] ドロップダウンで未割り当てチップセットを追加
+- [x] 全チップセット割り当て済みの場合はドロップダウン非表示
+- [x] object レイヤーには表示しない
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/LayerEditor.tsx`
+- `src/features/map-editor/components/LayerEditor.test.tsx`
 
 ---
 

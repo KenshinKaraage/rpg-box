@@ -27,6 +27,10 @@ function makeChipset(override?: Partial<Chipset>): Chipset {
     imageId: '',
     tileWidth: 32,
     tileHeight: 32,
+    autotile: false,
+    animated: false,
+    animFrameCount: 3,
+    animIntervalMs: 200,
     fields: [passableField],
     chips: [{ index: 0, values: { passable: true } }],
     ...override,
@@ -109,5 +113,37 @@ describe('ChipsetEditor', () => {
   it('imageId未設定時は「画像を選択...」ボタンが表示される', () => {
     render(<ChipsetEditor {...defaultProps} />);
     expect(screen.getByRole('button', { name: '画像を選択...' })).toBeInTheDocument();
+  });
+
+  it('隣接変形チェックボックスが表示される', () => {
+    render(<ChipsetEditor {...defaultProps} />);
+    expect(screen.getByLabelText('隣接変形（オートタイル）')).toBeInTheDocument();
+  });
+
+  it('アニメーションチェックボックスが表示される', () => {
+    render(<ChipsetEditor {...defaultProps} />);
+    expect(screen.getByLabelText('アニメーション')).toBeInTheDocument();
+  });
+
+  it('アニメーション=falseの時はフレーム数・間隔が非表示', () => {
+    render(<ChipsetEditor {...defaultProps} />);
+    expect(screen.queryByLabelText('フレーム数')).not.toBeInTheDocument();
+  });
+
+  it('アニメーション=trueの時はフレーム数・間隔が表示される', () => {
+    render(
+      <ChipsetEditor
+        {...defaultProps}
+        chipsets={[makeChipset({ animated: true, animFrameCount: 3, animIntervalMs: 200 })]}
+      />
+    );
+    expect(screen.getByDisplayValue('3')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('200')).toBeInTheDocument();
+  });
+
+  it('隣接変形チェック変更で onUpdateChipset が呼ばれる', () => {
+    render(<ChipsetEditor {...defaultProps} />);
+    fireEvent.click(screen.getByLabelText('隣接変形（オートタイル）'));
+    expect(defaultProps.onUpdateChipset).toHaveBeenCalledWith('cs_001', { autotile: true });
   });
 });

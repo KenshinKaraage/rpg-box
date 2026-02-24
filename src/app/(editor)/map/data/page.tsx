@@ -109,7 +109,7 @@ export default function MapDataPage() {
   };
 
   // チップセットを追加
-  const handleAddChipset = () => {
+  const handleAddChipset = (): string => {
     const id = generateId(
       'cs',
       chipsets.map((c) => c.id)
@@ -120,9 +120,14 @@ export default function MapDataPage() {
       imageId: '',
       tileWidth: 32,
       tileHeight: 32,
+      autotile: false,
+      animated: false,
+      animFrameCount: 3,
+      animIntervalMs: 200,
       fields: createDefaultChipsetFields(),
       chips: [],
     });
+    return id;
   };
 
   // --- レンダリング ---
