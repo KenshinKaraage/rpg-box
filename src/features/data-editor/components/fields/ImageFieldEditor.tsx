@@ -13,13 +13,20 @@ interface ImageFieldEditorProps {
   onChange: (value: string | null) => void;
   /** 初期表示フォルダID */
   initialFolderId?: string;
+  /** 画像プレビューを表示するか（デフォルト: true） */
+  showPreview?: boolean;
 }
 
 /**
  * 画像フィールドエディタ
  * アセットから画像を選択するためのフィールドエディタ
  */
-export function ImageFieldEditor({ value, onChange, initialFolderId }: ImageFieldEditorProps) {
+export function ImageFieldEditor({
+  value,
+  onChange,
+  initialFolderId,
+  showPreview = true,
+}: ImageFieldEditorProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // ストアからアセットとフォルダを取得
@@ -92,17 +99,19 @@ export function ImageFieldEditor({ value, onChange, initialFolderId }: ImageFiel
     <>
       <div className="space-y-2">
         {/* プレビュー */}
-        <div
-          className="flex items-center justify-center overflow-hidden rounded border bg-muted/30 p-2"
-          style={{ maxHeight: '160px' }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={selectedAsset.data}
-            alt={selectedAsset.name}
-            className="h-auto max-h-[144px] w-auto object-contain"
-          />
-        </div>
+        {showPreview && (
+          <div
+            className="flex items-center justify-center overflow-hidden rounded border bg-muted/30 p-2"
+            style={{ maxHeight: '160px' }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={selectedAsset.data}
+              alt={selectedAsset.name}
+              className="h-auto max-h-[144px] w-auto object-contain"
+            />
+          </div>
+        )}
 
         {/* ファイル名 + アクションボタン */}
         <div className="flex items-center gap-2">

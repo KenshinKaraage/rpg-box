@@ -414,7 +414,9 @@ export interface MapLayer {
   id: string;
   name: string;
   type: 'tile' | 'object';
-  tiles?: string[][]; // tiles[y][x] = chipId
+  visible?: boolean; // エディタでの表示/非表示（省略時 = 表示）
+  chipsetIds: string[]; // このレイヤーで使用するチップセットIDの配列
+  tiles?: string[][]; // tiles[y][x] = "chipsetId:chipIndex" 形式
   objects?: MapObject[];
 }
 
@@ -426,19 +428,23 @@ export interface MapObject {
   overrides?: Record<string, unknown>; // プレハブからのオーバーライド
 }
 
+// Chipset はプロジェクト全体で管理するグローバルリソース。
+// 各 MapLayer が chipsetIds[] で複数のチップセットを参照できる。
 export interface Chipset {
   id: string;
   name: string;
-  imageId: string; // チップセット画像
+  imageId: string; // チップセット画像のアセットID
   tileWidth: number; // タイルサイズ（通常32）
   tileHeight: number;
-  chips: ChipProperty[]; // 各チップのプロパティ
+  fields: FieldType<any>[]; // チップが持つプロパティのスキーマ定義（例: 通行設定, 足音）
+  chips: ChipProperty[]; // 各チップのプロパティ値（未設定チップは fields のデフォルト値を使用）
 }
 
+// チップのプロパティ値。FieldType ベースで任意のフィールドを追加可能。
+// デフォルト値を持つチップはストアに保存しなくてよい（スパース保存）。
 export interface ChipProperty {
-  index: number; // チップセット内のインデックス
-  passable: boolean; // 通行可能か
-  footstepType?: string; // 足音タイプ
+  index: number; // チップセット内の0始まりインデックス
+  values: Record<string, unknown>; // fieldId → 値
 }
 
 export interface Prefab {

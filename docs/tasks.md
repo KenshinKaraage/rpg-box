@@ -6357,6 +6357,58 @@ export function useAutoSave() {
 
 ---
 
+#### [T241] デフォルトアセット & チップセット画像表示
+
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T241-default-assets-chipset-image
+- **PR:** -
+
+**完了条件:**
+
+- [x] `assets/images/map_chip/*.png` を `public/assets/images/map_chip/` にコピー
+- [x] `src/lib/defaultAssets.ts`（DEFAULT_ASSET_GROUPS 設定ファイル）作成
+- [x] `src/lib/importDefaultAssets.ts`（fetch → Base64 → AssetReference）+ テスト作成
+- [x] アセット管理ページに「デフォルトをインポート」ボタン追加
+- [x] ChipsetEditor に画像選択 UI（AssetPickerModal）追加
+- [x] チップグリッドに実際の画像タイルを表示（CSS background-image）し、○/× を重ね表示
+
+**関連ファイル:**
+
+- `public/assets/images/map_chip/*.png`
+- `src/lib/defaultAssets.ts`
+- `src/lib/importDefaultAssets.ts`
+- `src/app/(editor)/settings/assets/page.tsx`
+- `src/features/map-editor/components/ChipsetEditor.tsx`
+
+---
+
+#### [T242] ChipsetEditor UI 改善
+
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T242-chipset-editor-ui
+- **PR:** -
+
+**完了条件:**
+
+- [x] ImageFieldEditor に showPreview オプション追加
+- [x] ChipsetEditor の画像セクションを ImageFieldEditor (showPreview=false) に置換
+- [x] ChipsetEditor にタブ（チップ一覧 / フィールド定義）追加
+- [x] importDefaultAssets でアセット保存時に画像寸法（width/height）を metadata に記録
+- [x] ChipsetEditor のチップグリッドを CSS sprite で表示（Tailwind v4 対応: 明示的 px 指定）
+- [x] チップ表示数を画像サイズ÷タイルサイズで動的に計算（固定64→動的）
+- [x] スプライト表示確認用テストページ追加（`/test/sprite`）
+
+**関連ファイル:**
+
+- `src/features/data-editor/components/fields/ImageFieldEditor.tsx`
+- `src/types/fields/ImageFieldType.tsx`
+- `src/features/map-editor/components/ChipsetEditor.tsx`
+- `src/lib/importDefaultAssets.ts`
+- `src/lib/importDefaultAssets.test.ts`
+- `src/app/test/sprite/page.tsx`
+
+---
+
 #### [T240] [US18] Documentation
 
 - **ステータス:** [ ] 未着手
