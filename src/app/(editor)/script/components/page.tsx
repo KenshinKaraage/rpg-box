@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { ScriptList, ScriptEditor, ComponentFieldEditor } from '@/features/script-editor';
-import type { ScriptEditorHandle, DataTypeInfo } from '@/features/script-editor';
+import type { DataTypeInfo } from '@/features/script-editor';
 import { useStore } from '@/stores';
 import { generateId } from '@/lib/utils';
 import { createScript } from '@/types/script';
@@ -23,7 +23,6 @@ export default function ComponentScriptPage() {
   useEffect(() => {
     seedDefaultComponentScripts();
   }, [seedDefaultComponentScripts]);
-  const editorRef = useRef<ScriptEditorHandle>(null);
 
   // Top-level component scripts
   const componentScripts = useMemo(
@@ -104,7 +103,6 @@ export default function ComponentScriptPage() {
       }
       center={
         <ScriptEditor
-          ref={editorRef}
           script={selectedScript}
           scripts={scripts}
           dataTypes={dataTypeInfos}
