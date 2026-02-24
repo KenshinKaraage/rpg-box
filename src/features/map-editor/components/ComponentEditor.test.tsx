@@ -3,6 +3,7 @@ import { ComponentEditor } from './ComponentEditor';
 import type { Prefab } from '@/types/map';
 import { TransformComponent } from '@/types/components/TransformComponent';
 import { MovementComponent } from '@/types/components/MovementComponent';
+import { getComponent } from '@/types/components';
 import '@/types/components/register';
 
 const makePrefab = (overrides?: Partial<Prefab>): Prefab => ({
@@ -74,5 +75,14 @@ describe('ComponentEditor', () => {
     render(<ComponentEditor prefab={makePrefab()} onUpdatePrefab={noop} />);
 
     expect(screen.getByTestId('add-component-select')).toBeInTheDocument();
+  });
+
+  it('register.ts 経由で登録されたコンポーネントを getComponent で取得できる', () => {
+    // ComponentEditor が register.ts をインポートしていることで、
+    // production コードでも getComponent が undefined を返さないことを保証する
+    const Constructor = getComponent('transform');
+    expect(Constructor).toBeDefined();
+    const instance = new Constructor!();
+    expect(instance.type).toBe('transform');
   });
 });

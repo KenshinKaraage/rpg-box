@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getComponent } from '@/types/components';
+import '@/types/components/register';
 import type { Prefab } from '@/types/map';
 
 /** コンポーネントタイプの表示名マッピング */
