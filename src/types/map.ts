@@ -36,6 +36,10 @@ export interface Chipset {
   imageId: string;
   tileWidth: number;
   tileHeight: number;
+  autotile: boolean;
+  animated: boolean;
+  animFrameCount: number; // アニメーションのフレーム数（animated=true の時のみ有効）
+  animIntervalMs: number; // フレーム間隔 ms（animated=true の時のみ有効）
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fields: FieldType<any>[];
   chips: ChipProperty[];
