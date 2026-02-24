@@ -5,6 +5,7 @@ import { Folder, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -115,6 +116,7 @@ export function AssetPickerModal({
       <DialogContent className="flex h-[600px] max-w-4xl flex-col">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription className="sr-only">{title}</DialogDescription>
         </DialogHeader>
 
         {/* 検索バー */}
