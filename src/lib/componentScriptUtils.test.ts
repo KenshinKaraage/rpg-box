@@ -3,6 +3,7 @@ import {
   generateScriptContent,
   componentClassToScript,
   replaceExportDefault,
+  parseComponentFields,
 } from './componentScriptUtils';
 import { Component } from '@/types/components/Component';
 import type { ComponentField } from '@/types/script';
@@ -165,5 +166,50 @@ describe('replaceExportDefault', () => {
     ];
     const result = replaceExportDefault(content, newFields);
     expect(result).toBe(generateScriptContent(newFields));
+  });
+});
+
+describe('parseComponentFields', () => {
+  it('新フォーマットのコードをパースしてフィールドを返す', () => {
+    const content =
+      'export default {\n' +
+      '  x: { type: "number", default: 0, label: "X座標" },\n' +
+      '  name: { type: "string", default: "", label: "名前" }\n' +
+      '}';
+    const fields = parseComponentFields(content);
+    expect(fields).toHaveLength(2);
+    expect(fields).toContainEqual({
+      name: 'x',
+      fieldType: 'number',
+      defaultValue: 0,
+      label: 'X座標',
+    });
+    expect(fields).toContainEqual({
+      name: 'name',
+      fieldType: 'string',
+      defaultValue: '',
+      label: '名前',
+    });
+  });
+
+  it('export default がなければ空配列を返す', () => {
+    expect(parseComponentFields('')).toEqual([]);
+    expect(parseComponentFields('// comment')).toEqual([]);
+  });
+
+  it('空オブジェクトなら空配列を返す', () => {
+    expect(parseComponentFields('export default {}')).toEqual([]);
+  });
+
+  it('シンタックスエラーがあれば null を返す', () => {
+    expect(parseComponentFields('export default { x: { type: ')).toBeNull();
+  });
+
+  it('export default 以外のコードも正しくパースできる', () => {
+    const content =
+      '// helper\nexport default {\n  hp: { type: "number", default: 100, label: "HP" }\n}';
+    const fields = parseComponentFields(content);
+    expect(fields).toHaveLength(1);
+    expect(fields![0]).toMatchObject({ name: 'hp', fieldType: 'number' });
   });
 });

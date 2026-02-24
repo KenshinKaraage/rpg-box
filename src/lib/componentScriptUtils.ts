@@ -71,6 +71,70 @@ export function replaceExportDefault(content: string, fields: ComponentField[]):
 }
 
 /**
+ * コンポーネントスクリプトのコード文字列から ComponentField[] をパースして返す
+ *
+ * @returns ComponentField[] — パース成功（0件の場合は空配列）
+ *          null — シンタックスエラー等でパース不可
+ */
+export function parseComponentFields(content: string): ComponentField[] | null {
+  // export default がなければ空（エラーではない）
+  if (!/export\s+default\s*\{/.test(content)) return [];
+
+  try {
+    const start = content.search(/export\s+default\s*\{/);
+    const braceStart = content.indexOf('{', start);
+    let depth = 0;
+    let end = -1;
+    let inString = false;
+    let stringChar = '';
+    let i = braceStart;
+    while (i < content.length) {
+      const c = content[i];
+      if (inString) {
+        if (c === '\\') {
+          i++; // skip escaped character
+        } else if (c === stringChar) {
+          inString = false;
+        }
+      } else {
+        if (c === '"' || c === "'" || c === '`') {
+          inString = true;
+          stringChar = c;
+        } else if (c === '{') {
+          depth++;
+        } else if (c === '}') {
+          depth--;
+          if (depth === 0) {
+            end = i;
+            break;
+          }
+        }
+      }
+      i++;
+    }
+    if (end === -1) return null;
+
+    const block = content.slice(braceStart, end + 1);
+    // eslint-disable-next-line no-new-func
+    const obj = new Function(`return (${block})`)() as Record<string, unknown>;
+
+    if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return [];
+
+    return Object.entries(obj).map(([name, def]) => {
+      const d = def as { type?: unknown; default?: unknown; label?: unknown };
+      return {
+        name,
+        fieldType: typeof d?.type === 'string' ? d.type : 'string',
+        defaultValue: d?.default ?? null,
+        label: typeof d?.label === 'string' ? d.label : name,
+      };
+    });
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Component クラスを Script (type: 'component') に変換する
  *
  * serialize() から デフォルト値を取得し、型を推論する。
