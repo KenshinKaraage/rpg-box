@@ -6393,12 +6393,19 @@ export function useAutoSave() {
 - [x] ImageFieldEditor に showPreview オプション追加
 - [x] ChipsetEditor の画像セクションを ImageFieldEditor (showPreview=false) に置換
 - [x] ChipsetEditor にタブ（チップ一覧 / フィールド定義）追加
+- [x] importDefaultAssets でアセット保存時に画像寸法（width/height）を metadata に記録
+- [x] ChipsetEditor のチップグリッドを CSS sprite で表示（Tailwind v4 対応: 明示的 px 指定）
+- [x] チップ表示数を画像サイズ÷タイルサイズで動的に計算（固定64→動的）
+- [x] スプライト表示確認用テストページ追加（`/test/sprite`）
 
 **関連ファイル:**
 
 - `src/features/data-editor/components/fields/ImageFieldEditor.tsx`
 - `src/types/fields/ImageFieldType.tsx`
 - `src/features/map-editor/components/ChipsetEditor.tsx`
+- `src/lib/importDefaultAssets.ts`
+- `src/lib/importDefaultAssets.test.ts`
+- `src/app/test/sprite/page.tsx`
 
 ---
 
