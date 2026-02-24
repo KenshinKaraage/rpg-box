@@ -27,6 +27,20 @@ describe('importDefaultAssets', () => {
       } as unknown as FileReader;
       return reader;
     });
+    // new Image() をモック（measureImage で使用）
+    jest.spyOn(global, 'Image').mockImplementation(() => {
+      const img = {
+        naturalWidth: 256,
+        naturalHeight: 192,
+        set src(_: string) {
+          // src セット直後に onload を同期呼び出し
+          setTimeout(() => this.onload?.(), 0);
+        },
+        onload: null as (() => void) | null,
+        onerror: null as (() => void) | null,
+      };
+      return img as unknown as HTMLImageElement;
+    });
   });
   afterEach(() => jest.restoreAllMocks());
 

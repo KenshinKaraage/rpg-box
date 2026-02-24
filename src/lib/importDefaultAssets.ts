@@ -33,19 +33,21 @@ export async function importDefaultAssets(
 
       // fetch → blob → Base64
       let data: string;
+      let blob: Blob;
       try {
         const response = await fetch(entry.path);
         if (!response.ok) {
           skipped++;
           continue;
         }
-        const blob = await response.blob();
+        blob = await response.blob();
         data = await blobToBase64(blob);
       } catch {
         skipped++;
         continue;
       }
 
+      const { width, height } = await measureImage(data);
       const assetId = generateId('asset', allAssetIds);
       allAssetIds.push(assetId);
       addAsset({
@@ -54,13 +56,22 @@ export async function importDefaultAssets(
         type: 'image',
         folderId: folder.id,
         data,
-        metadata: null,
+        metadata: { width, height, fileSize: blob.size },
       });
       imported++;
     }
   }
 
   return { imported, skipped };
+}
+
+function measureImage(dataUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => reject(new Error('画像の寸法取得に失敗しました'));
+    img.src = dataUrl;
+  });
 }
 
 function blobToBase64(blob: Blob): Promise<string> {
