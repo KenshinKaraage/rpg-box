@@ -28,6 +28,8 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
     [content]
   );
 
+  const fieldTypeOptions = useMemo(() => getFieldTypeOptions(), []);
+
   if (content === null || fields === null) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -62,8 +64,6 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
     );
   };
 
-  const fieldTypeOptions = getFieldTypeOptions();
-
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b px-4 py-2">
@@ -82,7 +82,7 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
               const FieldClass = getFieldType(field.fieldType);
               const fieldInstance = FieldClass ? new FieldClass() : null;
               return (
-                <li key={index} className="space-y-2 rounded border p-3">
+                <li key={field.name} className="space-y-2 rounded border p-3">
                   <div className="flex justify-end">
                     <Button
                       size="icon"
@@ -95,23 +95,40 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
                     </Button>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">名前</Label>
+                    <Label
+                      htmlFor={`field-name-${index}`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      名前
+                    </Label>
                     <Input
+                      id={`field-name-${index}`}
                       value={field.name}
                       onChange={(e) => handleUpdate(index, { name: e.target.value })}
                       className="font-mono text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">ラベル</Label>
+                    <Label
+                      htmlFor={`field-label-${index}`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      ラベル
+                    </Label>
                     <Input
+                      id={`field-label-${index}`}
                       value={field.label}
                       onChange={(e) => handleUpdate(index, { label: e.target.value })}
                       className="text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">型</Label>
+                    <Label
+                      htmlFor={`field-type-${index}`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      型
+                    </Label>
                     <Select
                       value={field.fieldType}
                       onValueChange={(v) => {
@@ -120,7 +137,7 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
                         handleUpdate(index, { fieldType: v, defaultValue: newDefault });
                       }}
                     >
-                      <SelectTrigger className="text-sm">
+                      <SelectTrigger id={`field-type-${index}`} className="text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
