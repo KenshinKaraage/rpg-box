@@ -17,6 +17,23 @@ const mockChipsets: Chipset[] = [
     imageId: '',
     tileWidth: 32,
     tileHeight: 32,
+    autotile: false,
+    animated: false,
+    animFrameCount: 3,
+    animIntervalMs: 200,
+    fields: [],
+    chips: [],
+  },
+  {
+    id: 'cs_002',
+    name: '洞窟',
+    imageId: '',
+    tileWidth: 32,
+    tileHeight: 32,
+    autotile: true,
+    animated: false,
+    animFrameCount: 3,
+    animIntervalMs: 200,
     fields: [],
     chips: [],
   },
@@ -93,5 +110,40 @@ describe('LayerEditor', () => {
   it('末尾レイヤーの▼ボタンは disabled', () => {
     render(<LayerEditor {...defaultProps} />);
     expect(screen.getByTestId('move-down-layer_2')).toBeDisabled();
+  });
+
+  it('tile レイヤーにはチップセット追加セレクトが表示される', () => {
+    render(<LayerEditor {...defaultProps} />);
+    expect(screen.getByTestId('add-chipset-select-layer_1')).toBeInTheDocument();
+  });
+
+  it('object レイヤーにはチップセット追加セレクトが表示されない', () => {
+    render(<LayerEditor {...defaultProps} />);
+    expect(screen.queryByTestId('add-chipset-select-layer_2')).not.toBeInTheDocument();
+  });
+
+  it('割り当て済みチップセットがバッジで表示される', () => {
+    const layers: MapLayer[] = [
+      { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: ['cs_001'] },
+    ];
+    render(<LayerEditor {...defaultProps} layers={layers} />);
+    expect(screen.getByText('フィールド')).toBeInTheDocument();
+  });
+
+  it('バッジの×ボタンでチップセットが外れる', () => {
+    const layers: MapLayer[] = [
+      { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: ['cs_001'] },
+    ];
+    render(<LayerEditor {...defaultProps} layers={layers} />);
+    fireEvent.click(screen.getByTestId('remove-chipset-layer_1-cs_001'));
+    expect(defaultProps.onUpdateLayer).toHaveBeenCalledWith('layer_1', { chipsetIds: [] });
+  });
+
+  it('全チップセット割り当て済みの場合はセレクトが非表示', () => {
+    const layers: MapLayer[] = [
+      { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: ['cs_001', 'cs_002'] },
+    ];
+    render(<LayerEditor {...defaultProps} layers={layers} />);
+    expect(screen.queryByTestId('add-chipset-select-layer_1')).not.toBeInTheDocument();
   });
 });
