@@ -1,0 +1,191 @@
+'use client';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useStore } from '@/stores';
+import { MapList, PrefabList } from '@/features/map-editor';
+import { MapCanvas } from '@/features/map-editor/components/MapCanvas';
+import { MapToolbar } from '@/features/map-editor/components/MapToolbar';
+import { LayerTabs } from '@/features/map-editor/components/LayerTabs';
+import { ChipPalette } from '@/features/map-editor/components/ChipPalette';
+import { MapObjectList } from '@/features/map-editor/components/MapObjectList';
+import { MapPropertyPanel } from '@/features/map-editor/components/MapPropertyPanel';
+import { useMapShortcuts } from '@/features/map-editor/hooks/useMapShortcuts';
+import { applyZoom } from '@/features/map-editor/hooks/useMapViewport';
+
+export default function MapEditPage() {
+  const selectedMapId = useStore((s) => s.selectedMapId);
+  const selectedLayerId = useStore((s) => s.selectedLayerId);
+  const selectedObjectId = useStore((s) => s.selectedObjectId);
+  const maps = useStore((s) => s.maps);
+  const chipsets = useStore((s) => s.chipsets);
+  const assets = useStore((s) => s.assets);
+
+  const currentTool = useStore((s) => s.currentTool);
+  const selectedChipId = useStore((s) => s.selectedChipId);
+  const viewport = useStore((s) => s.viewport);
+  const showGrid = useStore((s) => s.showGrid);
+
+  const setTool = useStore((s) => s.setTool);
+  const selectChip = useStore((s) => s.selectChip);
+  const setViewport = useStore((s) => s.setViewport);
+  const toggleGrid = useStore((s) => s.toggleGrid);
+  const selectLayer = useStore((s) => s.selectLayer);
+  const updateLayer = useStore((s) => s.updateLayer);
+  const selectObject = useStore((s) => s.selectObject);
+  const deleteObject = useStore((s) => s.deleteObject);
+  const popUndo = useStore((s) => s.popUndo);
+  const pushRedo = useStore((s) => s.pushRedo);
+  const popRedo = useStore((s) => s.popRedo);
+  const setTile = useStore((s) => s.setTile);
+  const addObject = useStore((s) => s.addObject);
+
+  const selectedMap = maps.find((m) => m.id === selectedMapId) ?? null;
+  const selectedLayer = selectedMap?.layers.find((l) => l.id === selectedLayerId) ?? null;
+
+  const handleUndo = () => {
+    const action = popUndo();
+    if (!action) return;
+    if (action.type === 'setTile') {
+      setTile(action.mapId, action.layerId, action.x, action.y, action.prev);
+      pushRedo(action);
+    } else if (action.type === 'setTileRange') {
+      action.tiles.forEach((t) => setTile(action.mapId, action.layerId, t.x, t.y, t.prev));
+      pushRedo(action);
+    } else if (action.type === 'addObject') {
+      deleteObject(action.mapId, action.layerId, action.object.id);
+      pushRedo(action);
+    } else if (action.type === 'deleteObject') {
+      addObject(action.mapId, action.layerId, action.object);
+      pushRedo(action);
+    }
+  };
+
+  const handleRedo = () => {
+    const action = popRedo();
+    if (!action) return;
+    if (action.type === 'setTile') {
+      setTile(action.mapId, action.layerId, action.x, action.y, action.next);
+    } else if (action.type === 'setTileRange') {
+      action.tiles.forEach((t) => setTile(action.mapId, action.layerId, t.x, t.y, t.next));
+    } else if (action.type === 'addObject') {
+      addObject(action.mapId, action.layerId, action.object);
+    } else if (action.type === 'deleteObject') {
+      deleteObject(action.mapId, action.layerId, action.object.id);
+    }
+  };
+
+  useMapShortcuts({ onSetTool: setTool, onUndo: handleUndo, onRedo: handleRedo });
+
+  // 選択中チップセットの画像データを取得
+  const selectedChipsetId = selectedChipId?.split(':')[0] ?? null;
+  const selectedChipset = chipsets.find((c) => c.id === selectedChipsetId) ?? null;
+  const chipsetAsset = selectedChipset
+    ? (assets.find((a) => a.id === selectedChipset.imageId) ?? null)
+    : null;
+
+  return (
+    <div className="flex h-full w-full overflow-hidden">
+      {/* 左パネル */}
+      <aside className="flex w-sidebar shrink-0 flex-col overflow-hidden border-r bg-muted/20">
+        <Tabs defaultValue="chipset" className="flex h-full flex-col">
+          <TabsList className="w-full shrink-0 rounded-none border-b">
+            <TabsTrigger value="map" className="flex-1">
+              マップ
+            </TabsTrigger>
+            <TabsTrigger value="chipset" className="flex-1">
+              チップセット
+            </TabsTrigger>
+            <TabsTrigger value="object" className="flex-1">
+              オブジェクト
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="map" className="mt-0 flex-1 overflow-auto">
+            <MapList />
+          </TabsContent>
+
+          <TabsContent value="chipset" className="mt-0 flex flex-1 flex-col overflow-hidden">
+            {selectedMap && (
+              <LayerTabs
+                layers={selectedMap.layers}
+                selectedLayerId={selectedLayerId}
+                onSelectLayer={selectLayer}
+                onToggleVisibility={(id) =>
+                  updateLayer(selectedMapId!, id, {
+                    visible: !(selectedMap.layers.find((l) => l.id === id)?.visible ?? true),
+                  })
+                }
+              />
+            )}
+            <div className="min-h-0 flex-1 overflow-auto">
+              <ChipPalette
+                chipset={selectedChipset}
+                imageDataUrl={(chipsetAsset?.data as string) ?? null}
+                selectedChipId={selectedChipId}
+                onSelectChip={selectChip}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="object" className="mt-0 flex flex-1 flex-col overflow-hidden">
+            <div className="border-b p-2 text-xs font-semibold text-muted-foreground">プレハブ</div>
+            <PrefabList />
+            <div className="border-b border-t p-2 text-xs font-semibold text-muted-foreground">
+              配置済み
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <MapObjectList
+                objects={selectedLayer?.objects ?? []}
+                selectedObjectId={selectedObjectId}
+                onSelectObject={selectObject}
+                onDeleteObject={(id) => {
+                  if (!selectedMapId || !selectedLayerId) return;
+                  const obj = selectedLayer?.objects?.find((o) => o.id === id);
+                  if (obj) {
+                    deleteObject(selectedMapId, selectedLayerId, id);
+                    pushRedo({
+                      type: 'deleteObject',
+                      mapId: selectedMapId,
+                      layerId: selectedLayerId,
+                      object: obj,
+                    });
+                  }
+                }}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </aside>
+
+      {/* 中央: キャンバス */}
+      <main className="flex flex-1 flex-col overflow-hidden">
+        <MapToolbar
+          currentTool={currentTool}
+          onSetTool={setTool}
+          showGrid={showGrid}
+          onToggleGrid={toggleGrid}
+          zoom={viewport.zoom}
+          onZoomIn={() => setViewport(applyZoom(viewport, 1, 0, 0))}
+          onZoomOut={() => setViewport(applyZoom(viewport, -1, 0, 0))}
+        />
+        <div className="flex-1 overflow-hidden bg-neutral-800">
+          {selectedMapId ? (
+            <MapCanvas mapId={selectedMapId} />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              マップを選択してください
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* 右パネル */}
+      <aside className="w-inspector shrink-0 overflow-hidden border-l bg-muted/20">
+        <MapPropertyPanel
+          selectedObjectId={selectedObjectId}
+          mapId={selectedMapId ?? ''}
+          layerId={selectedLayerId}
+        />
+      </aside>
+    </div>
+  );
+}
