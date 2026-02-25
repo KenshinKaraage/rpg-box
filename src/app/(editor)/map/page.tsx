@@ -1,5 +1,12 @@
 'use client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useStore } from '@/stores';
 import { MapList, PrefabList } from '@/features/map-editor';
 import { MapCanvas } from '@/features/map-editor/components/MapCanvas';
@@ -219,6 +226,34 @@ export default function MapEditPage() {
                 }
               />
             )}
+            {/* チップセット選択：選択時にレイヤーの chipsetIds に自動登録 */}
+            <div className="shrink-0 border-b px-2 py-1">
+              <Select
+                value={selectedChipsetId ?? ''}
+                onValueChange={(id) => {
+                  if (selectedMapId && selectedLayerId && selectedMap) {
+                    const layer = selectedMap.layers.find((l) => l.id === selectedLayerId);
+                    if (layer && !layer.chipsetIds.includes(id)) {
+                      updateLayer(selectedMapId, selectedLayerId, {
+                        chipsetIds: [...layer.chipsetIds, id],
+                      });
+                    }
+                  }
+                  selectChip(`${id}:0`);
+                }}
+              >
+                <SelectTrigger className="h-7 text-xs" aria-label="チップセットを選択">
+                  <SelectValue placeholder="チップセットを選択" />
+                </SelectTrigger>
+                <SelectContent>
+                  {chipsets.map((cs) => (
+                    <SelectItem key={cs.id} value={cs.id}>
+                      {cs.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="min-h-0 flex-1 overflow-auto">
               <ChipPalette
                 chipset={selectedChipset}
