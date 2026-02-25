@@ -43,7 +43,6 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     const gl = glRef.current;
     const tileProgram = tileProgramRef.current;
     if (!canvas || !gl || !tileProgram) return;
-    console.log('[MapCanvas] render effect triggered', { mapId, viewport });
 
     const map = maps.find((m) => m.id === mapId);
     if (!map) return;
@@ -69,20 +68,11 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     );
 
     const range = getVisibleTileRange(viewport, canvasSize, mapSize, TILE_SIZE);
-    console.log('[MapCanvas] visible range', range, 'canvas', canvasSize);
 
     // レイヤーを順番に描画
     for (const layer of map.layers) {
       if (layer.visible === false) continue;
       if (layer.type !== 'tile') continue;
-      console.log(
-        '[MapCanvas] layer',
-        layer.id,
-        'chipsetIds:',
-        layer.chipsetIds,
-        'hasTiles:',
-        !!layer.tiles
-      );
 
       if (!layer.tiles) continue;
 
@@ -131,7 +121,6 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           map.width,
           map.height
         );
-        console.log('[MapCanvas] batch', { chipsetId, count: batch.count, tilesPerRow });
         if (batch.count === 0) continue;
 
         const bufferInfo = twgl.createBufferInfoFromArrays(gl, {

@@ -58,6 +58,7 @@ export function buildTileBatch(
       const sy = ty * tileSize;
 
       if (isAutotile) {
+        if (mapWidth === 0 || mapHeight === 0) continue;
         const col = chipIndex % tilesPerRow;
         const { tl, tr, bl, br } = getAutotileQuarters(
           tiles,
