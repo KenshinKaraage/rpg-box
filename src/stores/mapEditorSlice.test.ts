@@ -1,14 +1,17 @@
-import { createMapEditorSlice } from './mapEditorSlice';
+/**
+ * mapEditorSlice のテスト
+ */
+import { createMapEditorSlice, MapEditorSlice } from './mapEditorSlice';
 
 // テスト用のスタンドアロンストアを作る
 function makeSlice() {
-  let state = createMapEditorSlice(
+  let state: MapEditorSlice = createMapEditorSlice(
     (fn) => {
-      fn(state);
+      fn(state as MapEditorSlice);
     },
-    () => state
+    () => state as MapEditorSlice
   );
-  const set = (fn: (s: typeof state) => void) => {
+  const set = (fn: (s: MapEditorSlice) => void) => {
     fn(state);
   };
   state = createMapEditorSlice(set, () => state);

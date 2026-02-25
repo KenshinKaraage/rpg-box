@@ -1,5 +1,9 @@
+/**
+ * マップエディタスライス
+ *
+ * ツール選択、チップ選択、ビューポート、グリッド表示、Undo/Redoスタックの状態管理
+ */
 import type { MapObject } from '@/types/map';
-import type { StateCreator } from 'zustand';
 
 export type MapEditTool = 'select' | 'pen' | 'eraser' | 'fill' | 'rect';
 
@@ -48,12 +52,10 @@ export interface MapEditorSlice {
   popRedo: () => MapEditAction | undefined;
 }
 
-export const createMapEditorSlice: StateCreator<
-  MapEditorSlice,
-  [['zustand/immer', never]],
-  [],
-  MapEditorSlice
-> = (set, _get) => ({
+export const createMapEditorSlice = <T extends MapEditorSlice>(
+  set: (fn: (state: T) => void) => void,
+  _get: () => T
+): MapEditorSlice => ({
   currentTool: 'pen',
   selectedChipId: null,
   viewport: { x: 0, y: 0, zoom: 1 },
