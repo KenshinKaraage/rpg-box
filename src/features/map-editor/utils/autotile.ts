@@ -1,114 +1,65 @@
-/**
- * オートタイルのバリアントインデックス
- * チップセット画像の上から順に対応する
- */
-export const AUTOTILE_NONE = 0; // なし: 隣接なし
-export const AUTOTILE_VERTICAL = 1; // 縦:   上または下のみ
-export const AUTOTILE_HORIZONTAL = 2; // 横:   左または右のみ
-export const AUTOTILE_FOUR = 3; // 四隅: 上下左右すべて
-export const AUTOTILE_ALL = 4; // 全:   縦横混在（四隅以外）
+/** 各クォーターのバリアント値 */
+export const AUTOTILE_NONE = 0; // 無: 縦も横も隣接なし
+export const AUTOTILE_VERTICAL = 1; // 縦: 縦のみ隣接
+export const AUTOTILE_HORIZONTAL = 2; // 横: 横のみ隣接
+export const AUTOTILE_CORNER = 3; // 隅: 縦+横あり・斜めなし（内角）
+export const AUTOTILE_ALL = 4; // 全: 縦+横+斜めすべてあり
 
-/**
- * 4方向の隣接状態からオートタイルのバリアントインデックスを返す
- */
-export function getAutotileVariant(
-  hasTop: boolean,
-  hasBottom: boolean,
-  hasLeft: boolean,
-  hasRight: boolean
-): number {
-  const hasV = hasTop || hasBottom;
-  const hasH = hasLeft || hasRight;
-  if (!hasV && !hasH) return AUTOTILE_NONE;
-  if (hasV && !hasH) return AUTOTILE_VERTICAL;
-  if (!hasV && hasH) return AUTOTILE_HORIZONTAL;
-  if (hasTop && hasBottom && hasLeft && hasRight) return AUTOTILE_FOUR;
-  return AUTOTILE_ALL;
+export interface AutotileQuarters {
+  tl: number; // 左上クォーター (0-4)
+  tr: number; // 右上クォーター (0-4)
+  bl: number; // 左下クォーター (0-4)
+  br: number; // 右下クォーター (0-4)
 }
 
 /**
- * オートタイルを配置・消去したときの全タイル変更リストを返す
+ * タイル (x, y) の4クォーターバリアントを計算する
  *
- * - 配置位置と4方向隣接のバリアントを再計算
- * - autotileChipsetIds に含まれないチップセットの隣接タイルは変更しない
+ * 各クォーターは縦・斜め・横の3方向の同チップセット隣接を確認し、
+ * 0=無 / 1=縦 / 2=横 / 3=隅 / 4=全 のいずれかを返す。
  *
- * @param tiles    現在のタイルデータ (変更しない)
- * @param paintX   配置・消去するX座標
- * @param paintY   配置・消去するY座標
- * @param chipsetId 配置するチップセットID。null のとき消去
+ * @param tiles    tiles[y][x] = "chipsetId:N" 形式（空文字は空セル）
+ * @param x        対象タイルのX座標
+ * @param y        対象タイルのY座標
+ * @param chipsetId 対象チップセットID
  * @param mapWidth  マップ幅
  * @param mapHeight マップ高さ
- * @param autotileChipsetIds オートタイルとして扱うチップセットIDセット
  */
-export function calcAutotileChanges(
+export function getAutotileQuarters(
   tiles: string[][],
-  paintX: number,
-  paintY: number,
-  chipsetId: string | null,
+  x: number,
+  y: number,
+  chipsetId: string,
   mapWidth: number,
-  mapHeight: number,
-  autotileChipsetIds: Set<string>
-): Array<{ x: number; y: number; chipId: string }> {
-  // 作業コピー（tiles は変更しない）
-  const work: string[][] = Array.from({ length: mapHeight }, (_, i) =>
-    tiles[i] ? [...tiles[i]!] : Array<string>(mapWidth).fill('')
-  );
+  mapHeight: number
+): AutotileQuarters {
+  const prefix = chipsetId + ':';
+  const isSame = (nx: number, ny: number): boolean => {
+    if (nx < 0 || ny < 0 || nx >= mapWidth || ny >= mapHeight) return false;
+    return (tiles[ny]?.[nx] ?? '').startsWith(prefix);
+  };
 
-  // 配置または消去を作業コピーに先行適用
-  work[paintY]![paintX] = chipsetId ? `${chipsetId}:0` : '';
+  const up = isSame(x, y - 1);
+  const down = isSame(x, y + 1);
+  const left = isSame(x - 1, y);
+  const right = isSame(x + 1, y);
+  const topLeft = isSame(x - 1, y - 1);
+  const topRight = isSame(x + 1, y - 1);
+  const bottomLeft = isSame(x - 1, y + 1);
+  const bottomRight = isSame(x + 1, y + 1);
 
-  const changes: Array<{ x: number; y: number; chipId: string }> = [];
+  return {
+    tl: calcQuarterVariant(up, topLeft, left),
+    tr: calcQuarterVariant(up, topRight, right),
+    bl: calcQuarterVariant(down, bottomLeft, left),
+    br: calcQuarterVariant(down, bottomRight, right),
+  };
+}
 
-  const toCheck = [
-    [paintX, paintY],
-    [paintX, paintY - 1],
-    [paintX, paintY + 1],
-    [paintX - 1, paintY],
-    [paintX + 1, paintY],
-  ] as const;
-
-  for (const [cx, cy] of toCheck) {
-    if (cx < 0 || cy < 0 || cx >= mapWidth || cy >= mapHeight) continue;
-    const isPaintTarget = cx === paintX && cy === paintY;
-    const cell = work[cy]?.[cx] ?? '';
-
-    if (!cell) {
-      // 消去位置: 空になったことを記録
-      if (isPaintTarget && !chipsetId) {
-        const prev = tiles[cy]?.[cx] ?? '';
-        if (prev !== '') changes.push({ x: cx, y: cy, chipId: '' });
-      }
-      continue;
-    }
-
-    const colonIdx = cell.indexOf(':');
-    if (colonIdx === -1) continue;
-    const cellChipset = cell.slice(0, colonIdx);
-
-    // オートタイルでない隣接タイルは変更しない
-    if (!autotileChipsetIds.has(cellChipset)) continue;
-
-    const isSame = (nx: number, ny: number): boolean => {
-      if (nx < 0 || ny < 0 || nx >= mapWidth || ny >= mapHeight) return false;
-      return (work[ny]?.[nx] ?? '').startsWith(cellChipset + ':');
-    };
-
-    const variant = getAutotileVariant(
-      isSame(cx, cy - 1),
-      isSame(cx, cy + 1),
-      isSame(cx - 1, cy),
-      isSame(cx + 1, cy)
-    );
-
-    const newChipId = `${cellChipset}:${variant}`;
-    work[cy]![cx] = newChipId;
-
-    const orig = tiles[cy]?.[cx] ?? '';
-    // 配置位置は必ず記録、隣接は変化があるときのみ記録
-    if (isPaintTarget || newChipId !== orig) {
-      changes.push({ x: cx, y: cy, chipId: newChipId });
-    }
-  }
-
-  return changes;
+function calcQuarterVariant(v: boolean, d: boolean, h: boolean): number {
+  if (!v && !h) return AUTOTILE_NONE;
+  if (v && !h) return AUTOTILE_VERTICAL;
+  if (!v && h) return AUTOTILE_HORIZONTAL;
+  if (!d) return AUTOTILE_CORNER; // v && !d && h
+  return AUTOTILE_ALL; // v && d && h
 }

@@ -1,188 +1,157 @@
-import {
-  getAutotileVariant,
-  calcAutotileChanges,
-  AUTOTILE_NONE,
-  AUTOTILE_VERTICAL,
-  AUTOTILE_HORIZONTAL,
-  AUTOTILE_FOUR,
-  AUTOTILE_ALL,
-} from './autotile';
-
-// ─── getAutotileVariant ───────────────────────────────────────────────────────
-
-describe('getAutotileVariant', () => {
-  it('隣接なし → NONE', () => {
-    expect(getAutotileVariant(false, false, false, false)).toBe(AUTOTILE_NONE);
-  });
-
-  it('上のみ → VERTICAL', () => {
-    expect(getAutotileVariant(true, false, false, false)).toBe(AUTOTILE_VERTICAL);
-  });
-
-  it('下のみ → VERTICAL', () => {
-    expect(getAutotileVariant(false, true, false, false)).toBe(AUTOTILE_VERTICAL);
-  });
-
-  it('上下 → VERTICAL', () => {
-    expect(getAutotileVariant(true, true, false, false)).toBe(AUTOTILE_VERTICAL);
-  });
-
-  it('左のみ → HORIZONTAL', () => {
-    expect(getAutotileVariant(false, false, true, false)).toBe(AUTOTILE_HORIZONTAL);
-  });
-
-  it('右のみ → HORIZONTAL', () => {
-    expect(getAutotileVariant(false, false, false, true)).toBe(AUTOTILE_HORIZONTAL);
-  });
-
-  it('左右 → HORIZONTAL', () => {
-    expect(getAutotileVariant(false, false, true, true)).toBe(AUTOTILE_HORIZONTAL);
-  });
-
-  it('上下左右すべて → FOUR', () => {
-    expect(getAutotileVariant(true, true, true, true)).toBe(AUTOTILE_FOUR);
-  });
-
-  it('上+左（縦横混在、四隅以外）→ ALL', () => {
-    expect(getAutotileVariant(true, false, true, false)).toBe(AUTOTILE_ALL);
-  });
-
-  it('上+右 → ALL', () => {
-    expect(getAutotileVariant(true, false, false, true)).toBe(AUTOTILE_ALL);
-  });
-
-  it('下+左 → ALL', () => {
-    expect(getAutotileVariant(false, true, true, false)).toBe(AUTOTILE_ALL);
-  });
-
-  it('下+右 → ALL', () => {
-    expect(getAutotileVariant(false, true, false, true)).toBe(AUTOTILE_ALL);
-  });
-
-  it('上下+左（右なし）→ ALL', () => {
-    expect(getAutotileVariant(true, true, true, false)).toBe(AUTOTILE_ALL);
-  });
-
-  it('上下+右（左なし）→ ALL', () => {
-    expect(getAutotileVariant(true, true, false, true)).toBe(AUTOTILE_ALL);
-  });
-
-  it('左右+上（下なし）→ ALL', () => {
-    expect(getAutotileVariant(true, false, true, true)).toBe(AUTOTILE_ALL);
-  });
-
-  it('左右+下（上なし）→ ALL', () => {
-    expect(getAutotileVariant(false, true, true, true)).toBe(AUTOTILE_ALL);
-  });
-});
-
-// ─── calcAutotileChanges ──────────────────────────────────────────────────────
+import { getAutotileQuarters } from './autotile';
 
 const W = 5;
 const H = 5;
 const CS = 'cs1';
-const AT_IDS = new Set([CS]);
 
-/** 空の tiles グリッド */
-function emptyTiles(): string[][] {
-  return Array.from({ length: H }, () => Array<string>(W).fill(''));
-}
-
-/** チップ chipsetId:0 を (x,y) に置いた tiles を作成 */
-function tilesWithChip(x: number, y: number, chipsetId = CS): string[][] {
-  const t = emptyTiles();
-  t[y]![x] = `${chipsetId}:0`;
+function makeTiles(chips: Array<[number, number]>, chipsetId = CS): string[][] {
+  const t = Array.from({ length: H }, () => Array<string>(W).fill(''));
+  for (const [x, y] of chips) {
+    t[y]![x] = `${chipsetId}:0`;
+  }
   return t;
 }
 
-describe('calcAutotileChanges', () => {
-  it('空マップにオートタイルを配置 → 配置位置1件（NONE）', () => {
-    const tiles = emptyTiles();
-    const changes = calcAutotileChanges(tiles, 2, 2, CS, W, H, AT_IDS);
-    expect(changes).toHaveLength(1);
-    expect(changes[0]).toEqual({ x: 2, y: 2, chipId: `${CS}:${AUTOTILE_NONE}` });
+describe('getAutotileQuarters', () => {
+  it('孤立タイル（8方向すべて非同一）→ 全クォーター=0（無）', () => {
+    const tiles = makeTiles([[2, 2]]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q).toEqual({ tl: 0, tr: 0, bl: 0, br: 0 });
   });
 
-  it('隣に同チップセットがある状態で配置 → 両方のバリアントが更新される', () => {
-    // (2,2) に既存チップ、(3,2) に新規配置
-    const tiles = tilesWithChip(2, 2);
-    const changes = calcAutotileChanges(tiles, 3, 2, CS, W, H, AT_IDS);
-    // (3,2): 左に隣接 → HORIZONTAL
-    // (2,2): 右に隣接 → HORIZONTAL（元は NONE だったので変更あり）
-    const map = new Map(changes.map((c) => [`${c.x},${c.y}`, c.chipId]));
-    expect(map.get('3,2')).toBe(`${CS}:${AUTOTILE_HORIZONTAL}`);
-    expect(map.get('2,2')).toBe(`${CS}:${AUTOTILE_HORIZONTAL}`);
+  it('上のみ隣接 → TL=1（縦）, TR=1（縦）, BL=0, BR=0', () => {
+    const tiles = makeTiles([
+      [2, 2],
+      [2, 1],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.tl).toBe(1); // 縦
+    expect(q.tr).toBe(1); // 縦
+    expect(q.bl).toBe(0); // 無
+    expect(q.br).toBe(0); // 無
   });
 
-  it('オートタイルを消去 → 隣接タイルのバリアントが再計算される', () => {
-    // (2,2) と (3,2) に既存チップ。(3,2) を消去。
-    const tiles = emptyTiles();
-    tiles[2]![2] = `${CS}:${AUTOTILE_HORIZONTAL}`; // 変更前のバリアント
-    tiles[2]![3] = `${CS}:${AUTOTILE_HORIZONTAL}`;
-    const changes = calcAutotileChanges(tiles, 3, 2, null, W, H, AT_IDS);
-    // (3,2) 消去 → chipId: ''
-    // (2,2) 右が消えた → NONE
-    const map = new Map(changes.map((c) => [`${c.x},${c.y}`, c.chipId]));
-    expect(map.get('3,2')).toBe('');
-    expect(map.get('2,2')).toBe(`${CS}:${AUTOTILE_NONE}`);
+  it('下のみ隣接 → TL=0, TR=0, BL=1（縦）, BR=1（縦）', () => {
+    const tiles = makeTiles([
+      [2, 2],
+      [2, 3],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.tl).toBe(0);
+    expect(q.tr).toBe(0);
+    expect(q.bl).toBe(1);
+    expect(q.br).toBe(1);
   });
 
-  it('バリアントが変わらない隣接タイルは変更リストに含まれない', () => {
-    // (2,2) に cs1:0 のみ。隣接に同チップなし → バリアントは NONE のまま。
-    // 別の位置 (0,0) に配置してもその隣接 (2,2) には届かない
-    const tiles = tilesWithChip(2, 2);
-    // (0,0) に配置: (2,2) は range 外なので影響なし
-    const changes = calcAutotileChanges(tiles, 0, 0, CS, W, H, AT_IDS);
-    // (0,0): 隣接なし → NONE
-    // (2,2) は確認対象外なので含まれない
-    expect(changes.every((c) => !(c.x === 2 && c.y === 2))).toBe(true);
+  it('左のみ隣接 → TL=2（横）, TR=0, BL=2（横）, BR=0', () => {
+    const tiles = makeTiles([
+      [2, 2],
+      [1, 2],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.tl).toBe(2); // 横
+    expect(q.tr).toBe(0); // 無
+    expect(q.bl).toBe(2); // 横
+    expect(q.br).toBe(0); // 無
   });
 
-  it('オートタイルでないチップセットは変更リストに含まれない', () => {
-    // cs2 はオートタイルではない
-    const tiles = emptyTiles();
-    tiles[2]![2] = 'cs2:0';
-    const changes = calcAutotileChanges(tiles, 2, 3, CS, W, H, AT_IDS);
-    // cs2 は autotileChipsetIds に含まれないのでスキップ
-    expect(changes.every((c) => !c.chipId.startsWith('cs2'))).toBe(true);
+  it('右のみ隣接 → TL=0, TR=2（横）, BL=0, BR=2（横）', () => {
+    const tiles = makeTiles([
+      [2, 2],
+      [3, 2],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.tl).toBe(0);
+    expect(q.tr).toBe(2);
+    expect(q.bl).toBe(0);
+    expect(q.br).toBe(2);
   });
 
-  it('マップ端（0,0）への配置でもクラッシュしない', () => {
-    const tiles = emptyTiles();
-    const changes = calcAutotileChanges(tiles, 0, 0, CS, W, H, AT_IDS);
-    expect(changes).toHaveLength(1);
-    expect(changes[0]).toEqual({ x: 0, y: 0, chipId: `${CS}:${AUTOTILE_NONE}` });
+  it('上+左（斜め=なし）→ TL=3（隅）', () => {
+    // 上(2,1), 左(1,2) に隣接。左上斜め(1,1)はなし
+    const tiles = makeTiles([
+      [2, 2],
+      [2, 1],
+      [1, 2],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.tl).toBe(3); // 隅: v=上○, d=左上×, h=左○
   });
 
-  it('マップ端（右下隅）への配置でもクラッシュしない', () => {
-    const tiles = emptyTiles();
-    const changes = calcAutotileChanges(tiles, W - 1, H - 1, CS, W, H, AT_IDS);
-    expect(changes).toHaveLength(1);
+  it('上+左+左上斜め → TL=4（全）', () => {
+    // 上(2,1), 左(1,2), 左上(1,1) すべてあり
+    const tiles = makeTiles([
+      [2, 2],
+      [2, 1],
+      [1, 2],
+      [1, 1],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.tl).toBe(4); // 全: v=上○, d=左上○, h=左○
   });
 
-  it('上下左右すべて同チップで囲まれている場合 → FOUR', () => {
-    const tiles = emptyTiles();
-    tiles[1]![2] = `${CS}:0`; // 上
-    tiles[3]![2] = `${CS}:0`; // 下
-    tiles[2]![1] = `${CS}:0`; // 左
-    tiles[2]![3] = `${CS}:0`; // 右
-    const changes = calcAutotileChanges(tiles, 2, 2, CS, W, H, AT_IDS);
-    const center = changes.find((c) => c.x === 2 && c.y === 2);
-    expect(center?.chipId).toBe(`${CS}:${AUTOTILE_FOUR}`);
+  it('上+右（斜め=なし）→ TR=3（隅）', () => {
+    const tiles = makeTiles([
+      [2, 2],
+      [2, 1],
+      [3, 2],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.tr).toBe(3);
   });
 
-  it('配置位置のチップが変化なしでも配置位置は必ず変更リストに含まれる', () => {
-    // tiles に既に cs1:3 (FOUR) が置いてあって、同じバリアントになる場合でも含まれる
-    const tiles = emptyTiles();
-    // (2,2) を上下左右に囲む
-    tiles[1]![2] = `${CS}:0`;
-    tiles[3]![2] = `${CS}:0`;
-    tiles[2]![1] = `${CS}:0`;
-    tiles[2]![3] = `${CS}:0`;
-    // 元から FOUR が置いてある（変化なし）
-    tiles[2]![2] = `${CS}:${AUTOTILE_FOUR}`;
-    const changes = calcAutotileChanges(tiles, 2, 2, CS, W, H, AT_IDS);
-    // 配置位置は必ず含まれる
-    expect(changes.some((c) => c.x === 2 && c.y === 2)).toBe(true);
+  it('下+左（斜め=なし）→ BL=3（隅）', () => {
+    const tiles = makeTiles([
+      [2, 2],
+      [2, 3],
+      [1, 2],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.bl).toBe(3);
+  });
+
+  it('下+右（斜め=なし）→ BR=3（隅）', () => {
+    const tiles = makeTiles([
+      [2, 2],
+      [2, 3],
+      [3, 2],
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.br).toBe(3);
+  });
+
+  it('4方向+斜めすべてあり → 全クォーター=4（全）', () => {
+    const tiles = makeTiles([
+      [2, 2],
+      [2, 1],
+      [2, 3],
+      [1, 2],
+      [3, 2], // 上下左右
+      [1, 1],
+      [3, 1],
+      [1, 3],
+      [3, 3], // 斜め4方向
+    ]);
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q).toEqual({ tl: 4, tr: 4, bl: 4, br: 4 });
+  });
+
+  it('別チップセットは「同じタイル」と判定しない', () => {
+    const tiles = makeTiles([[2, 2]]);
+    tiles[1]![2] = 'cs2:0'; // 上は別チップセット
+    const q = getAutotileQuarters(tiles, 2, 2, CS, W, H);
+    expect(q.tl).toBe(0); // 上が同チップセットでないので縦なし
+    expect(q.tr).toBe(0);
+  });
+
+  it('マップ端（0,0）でクラッシュしない → 全クォーター=0', () => {
+    const tiles = makeTiles([[0, 0]]);
+    const q = getAutotileQuarters(tiles, 0, 0, CS, W, H);
+    expect(q).toEqual({ tl: 0, tr: 0, bl: 0, br: 0 });
+  });
+
+  it('マップ端（右下隅）でクラッシュしない', () => {
+    const tiles = makeTiles([[W - 1, H - 1]]);
+    expect(() => getAutotileQuarters(tiles, W - 1, H - 1, CS, W, H)).not.toThrow();
   });
 });
