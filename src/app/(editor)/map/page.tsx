@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Select,
@@ -69,6 +70,19 @@ export default function MapEditPage() {
 
   const selectedMap = maps.find((m) => m.id === selectedMapId) ?? null;
   const selectedLayer = selectedMap?.layers.find((l) => l.id === selectedLayerId) ?? null;
+
+  // レイヤー切り替え時: 選択チップが新レイヤーのチップセットに含まれなければリセット
+  useEffect(() => {
+    if (!selectedLayer) {
+      selectChip(null);
+      return;
+    }
+    const currentChipsetId = selectedChipId?.split(':')[0] ?? null;
+    if (currentChipsetId && !selectedLayer.chipsetIds.includes(currentChipsetId)) {
+      const firstChipsetId = selectedLayer.chipsetIds[0] ?? null;
+      selectChip(firstChipsetId ? `${firstChipsetId}:0` : null);
+    }
+  }, [selectedLayerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Map handlers ---
   const handleAddMap = () => {
@@ -258,11 +272,13 @@ export default function MapEditPage() {
                   <SelectValue placeholder="チップセットを選択" />
                 </SelectTrigger>
                 <SelectContent>
-                  {chipsets.map((cs) => (
-                    <SelectItem key={cs.id} value={cs.id}>
-                      {cs.name}
-                    </SelectItem>
-                  ))}
+                  {chipsets
+                    .filter((cs) => selectedLayer?.chipsetIds.includes(cs.id))
+                    .map((cs) => (
+                      <SelectItem key={cs.id} value={cs.id}>
+                        {cs.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
