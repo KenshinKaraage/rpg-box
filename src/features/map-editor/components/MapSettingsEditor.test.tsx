@@ -12,8 +12,8 @@ const mockMap: GameMap = {
   width: 40,
   height: 30,
   layers: [
-    { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: [] },
-    { id: 'layer_2', name: 'レイヤー2', type: 'object', chipsetIds: [] },
+    { id: 'layer_1', name: 'レイヤー1', type: 'tile', visible: true, chipsetIds: [] },
+    { id: 'layer_2', name: 'レイヤー2', type: 'object', visible: true, chipsetIds: [] },
   ],
   fields: [],
   values: {},
@@ -99,6 +99,7 @@ describe('MapSettingsEditor', () => {
       id: 'layer_3',
       name: 'レイヤー3',
       type: 'tile',
+      visible: true,
       chipsetIds: [],
     });
   });

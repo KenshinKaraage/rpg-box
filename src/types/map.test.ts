@@ -16,6 +16,7 @@ describe('Map type definitions', () => {
       id: 'layer-1',
       name: '地面',
       type: 'tile',
+      visible: true,
       chipsetIds: [],
       tiles: [
         ['chip-1', 'chip-2', 'chip-3'],
@@ -39,6 +40,7 @@ describe('Map type definitions', () => {
       id: 'layer-2',
       name: 'オブジェクト',
       type: 'object',
+      visible: true,
       chipsetIds: [],
       objects: [mapObject],
     };

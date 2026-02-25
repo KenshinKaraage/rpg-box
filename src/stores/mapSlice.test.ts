@@ -20,6 +20,7 @@ const createTestLayer = (id: string, name: string, type: 'tile' | 'object'): Map
   id,
   name,
   type,
+  visible: true,
   chipsetIds: [],
   ...(type === 'tile' ? { tiles: [] } : { objects: [] }),
 });
@@ -379,6 +380,7 @@ describe('mapSlice', () => {
         id: 'layer_001',
         name: '地面',
         type: 'tile',
+        visible: true,
         chipsetIds: [],
         tiles: [
           ['', '', ''],
@@ -443,6 +445,7 @@ describe('mapSlice', () => {
         id: 'layer_001',
         name: '地面',
         type: 'tile',
+        visible: true,
         chipsetIds: [],
         tiles: [],
       };

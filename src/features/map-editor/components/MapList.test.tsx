@@ -44,8 +44,8 @@ const mockMaps: GameMap[] = [
     width: 40,
     height: 30,
     layers: [
-      { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: [] },
-      { id: 'layer_2', name: 'レイヤー2', type: 'object', chipsetIds: [] },
+      { id: 'layer_1', name: 'レイヤー1', type: 'tile', visible: true, chipsetIds: [] },
+      { id: 'layer_2', name: 'レイヤー2', type: 'object', visible: true, chipsetIds: [] },
     ],
   },
   {
@@ -53,7 +53,7 @@ const mockMaps: GameMap[] = [
     name: 'ダンジョン',
     width: 20,
     height: 15,
-    layers: [{ id: 'layer_3', name: 'レイヤー1', type: 'tile', chipsetIds: [] }],
+    layers: [{ id: 'layer_3', name: 'レイヤー1', type: 'tile', visible: true, chipsetIds: [] }],
   },
 ];
 

@@ -6,8 +6,8 @@ import { LayerEditor } from './LayerEditor';
 import type { MapLayer, Chipset } from '@/types/map';
 
 const mockLayers: MapLayer[] = [
-  { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: [] },
-  { id: 'layer_2', name: 'レイヤー2', type: 'object', chipsetIds: [] },
+  { id: 'layer_1', name: 'レイヤー1', type: 'tile', visible: true, chipsetIds: [] },
+  { id: 'layer_2', name: 'レイヤー2', type: 'object', visible: true, chipsetIds: [] },
 ];
 
 const mockChipsets: Chipset[] = [
@@ -124,7 +124,7 @@ describe('LayerEditor', () => {
 
   it('割り当て済みチップセットがバッジで表示される', () => {
     const layers: MapLayer[] = [
-      { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: ['cs_001'] },
+      { id: 'layer_1', name: 'レイヤー1', type: 'tile', visible: true, chipsetIds: ['cs_001'] },
     ];
     render(<LayerEditor {...defaultProps} layers={layers} />);
     expect(screen.getByText('フィールド')).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe('LayerEditor', () => {
 
   it('バッジの×ボタンでチップセットが外れる', () => {
     const layers: MapLayer[] = [
-      { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: ['cs_001'] },
+      { id: 'layer_1', name: 'レイヤー1', type: 'tile', visible: true, chipsetIds: ['cs_001'] },
     ];
     render(<LayerEditor {...defaultProps} layers={layers} />);
     fireEvent.click(screen.getByTestId('remove-chipset-layer_1-cs_001'));
@@ -141,7 +141,13 @@ describe('LayerEditor', () => {
 
   it('全チップセット割り当て済みの場合はセレクトが非表示', () => {
     const layers: MapLayer[] = [
-      { id: 'layer_1', name: 'レイヤー1', type: 'tile', chipsetIds: ['cs_001', 'cs_002'] },
+      {
+        id: 'layer_1',
+        name: 'レイヤー1',
+        type: 'tile',
+        visible: true,
+        chipsetIds: ['cs_001', 'cs_002'],
+      },
     ];
     render(<LayerEditor {...defaultProps} layers={layers} />);
     expect(screen.queryByTestId('add-chipset-select-layer_1')).not.toBeInTheDocument();

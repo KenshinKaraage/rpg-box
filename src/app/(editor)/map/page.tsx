@@ -82,7 +82,13 @@ export default function MapEditPage() {
       width: 20,
       height: 15,
       layers: [
-        { id: generateId('layer', []), name: 'レイヤー1', type: 'tile' as const, chipsetIds: [] },
+        {
+          id: generateId('layer', []),
+          name: 'レイヤー1',
+          type: 'tile' as const,
+          visible: true,
+          chipsetIds: [],
+        },
       ],
       fields: createDefaultMapFields(),
       values: {},
