@@ -71,7 +71,7 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
 
     // レイヤーを順番に描画
     for (const layer of map.layers) {
-      if (!layer.visible) continue;
+      if (layer.visible === false) continue;
       if (layer.type !== 'tile') continue;
       console.log(
         '[MapCanvas] layer',
