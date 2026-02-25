@@ -4,6 +4,7 @@ import { useStore } from '@/stores';
 import type { MapEditTool } from '@/stores/mapEditorSlice';
 import { screenToTile } from '../utils/coordTransform';
 import { floodFill } from '../utils/tileFill';
+import { TILE_SIZE } from '../utils/constants';
 
 export interface TilePaintTarget {
   x: number;
@@ -37,7 +38,7 @@ export function useTilePainting(mapId: string, layerId: string) {
 
   const paint = useCallback(
     (screenX: number, screenY: number) => {
-      const { tx, ty } = screenToTile(screenX, screenY, viewport, 32);
+      const { tx, ty } = screenToTile(screenX, screenY, viewport, TILE_SIZE);
       const map = maps.find((m) => m.id === mapId);
       const layer = map?.layers.find((l) => l.id === layerId);
       if (!map || !layer || !layer.tiles) return;

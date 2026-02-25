@@ -54,6 +54,7 @@ export default function MapEditPage() {
   const toggleGrid = useStore((s) => s.toggleGrid);
 
   // Undo/redo
+  const pushUndo = useStore((s) => s.pushUndo);
   const popUndo = useStore((s) => s.popUndo);
   const pushRedo = useStore((s) => s.pushRedo);
   const popRedo = useStore((s) => s.popRedo);
@@ -251,7 +252,7 @@ export default function MapEditPage() {
                   const obj = selectedLayer?.objects?.find((o) => o.id === id);
                   if (obj) {
                     deleteObject(selectedMapId, selectedLayerId, id);
-                    pushRedo({
+                    pushUndo({
                       type: 'deleteObject',
                       mapId: selectedMapId,
                       layerId: selectedLayerId,
