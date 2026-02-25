@@ -126,7 +126,10 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           meta.height,
           chipset.tileWidth,
           chipset.tileHeight,
-          tilesPerRow
+          tilesPerRow,
+          chipset.autotile,
+          map.width,
+          map.height
         );
         console.log('[MapCanvas] batch', { chipsetId, count: batch.count, tilesPerRow });
         if (batch.count === 0) continue;
