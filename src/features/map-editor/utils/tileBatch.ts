@@ -10,6 +10,7 @@ export interface TileBatch {
  * 可視タイル範囲の頂点バッファデータを生成する
  * @param tiles tiles[y][x] = "chipsetId:chipIndex" 形式
  * @param range 可視タイル範囲
+ * @param chipsetId このバッチで描画するチップセットID（他のチップセットのタイルは除外）
  * @param tileSize 表示タイルサイズ（スクリーンピクセル）
  * @param imgW チップセット画像の幅
  * @param imgH チップセット画像の高さ
@@ -20,6 +21,7 @@ export interface TileBatch {
 export function buildTileBatch(
   tiles: string[][],
   range: TileRange,
+  chipsetId: string,
   tileSize: number,
   imgW: number,
   imgH: number,
@@ -40,6 +42,8 @@ export function buildTileBatch(
 
       const colonIdx = chipId.indexOf(':');
       if (colonIdx === -1) continue;
+      // このチップセット以外のタイルは別パスで描画するためスキップ
+      if (chipId.slice(0, colonIdx) !== chipsetId) continue;
       const chipIndex = parseInt(chipId.slice(colonIdx + 1), 10);
       if (isNaN(chipIndex)) continue;
 

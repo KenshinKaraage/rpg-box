@@ -120,6 +120,7 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         const batch = buildTileBatch(
           layer.tiles,
           range,
+          chipsetId,
           TILE_SIZE,
           meta.width,
           meta.height,

@@ -5,6 +5,7 @@ describe('buildTileBatch', () => {
     const result = buildTileBatch(
       [],
       { minX: 0, minY: 0, maxX: 2, maxY: 2 },
+      'cs1',
       32,
       128,
       128,
@@ -22,6 +23,7 @@ describe('buildTileBatch', () => {
     const result = buildTileBatch(
       tiles,
       { minX: 0, minY: 0, maxX: 1, maxY: 1 },
+      'cs1',
       32,
       64,
       64,
@@ -41,6 +43,7 @@ describe('buildTileBatch', () => {
     const result = buildTileBatch(
       tiles,
       { minX: 0, minY: 0, maxX: 1, maxY: 1 },
+      'cs1',
       32,
       128,
       64,
@@ -51,5 +54,23 @@ describe('buildTileBatch', () => {
     // texcoords[0,1] = 左上 = (0.25, 0.5)
     expect(result.texcoords[0]).toBeCloseTo(0.25);
     expect(result.texcoords[1]).toBeCloseTo(0.5);
+  });
+
+  it('別チップセットのタイルは除外される', () => {
+    // cs1 と cs2 が混在するレイヤー。cs1 でビルドすると cs2 のタイルは含まない
+    const tiles = [['cs1:0', 'cs2:3']];
+    const result = buildTileBatch(
+      tiles,
+      { minX: 0, minY: 0, maxX: 2, maxY: 1 },
+      'cs1',
+      32,
+      64,
+      64,
+      32,
+      32,
+      2
+    );
+    // cs1:0 だけが対象 → 1タイル = 12 floats
+    expect(result.positions).toHaveLength(12);
   });
 });
