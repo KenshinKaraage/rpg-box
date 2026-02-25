@@ -30,6 +30,7 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     const gl = canvas.getContext('webgl');
     if (!gl) return;
     glRef.current = gl;
+    gl.clearColor(0, 0, 0, 1); // 未描画エリアを黒に
     tileProgramRef.current = twgl.createProgramInfo(gl, [TILE_VERT, TILE_FRAG]);
     gridProgramRef.current = twgl.createProgramInfo(gl, [GRID_VERT, GRID_FRAG]);
   }, [canvasRef]);
@@ -40,6 +41,7 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     const gl = glRef.current;
     const tileProgram = tileProgramRef.current;
     if (!canvas || !gl || !tileProgram) return;
+    console.log('[MapCanvas] render effect triggered', { mapId, viewport });
 
     const map = maps.find((m) => m.id === mapId);
     if (!map) return;

@@ -41,7 +41,10 @@ export function ChipPalette({
             <button
               key={i}
               aria-label={`チップ ${i}`}
-              onClick={() => onSelectChip(chipId)}
+              onClick={() => {
+                console.log('[ChipPalette] chip selected:', chipId);
+                onSelectChip(chipId);
+              }}
               className={`cursor-pointer border-0 p-0 ${isSelected ? 'ring-2 ring-primary' : ''}`}
               style={{
                 width: chipset.tileWidth,
