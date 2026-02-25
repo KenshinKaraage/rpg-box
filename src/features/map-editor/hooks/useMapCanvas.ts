@@ -53,23 +53,36 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     const canvasSize = { w: canvas.width, h: canvas.height };
     const mapSize = { w: map.width, h: map.height };
 
-    // 投影行列（スクリーン座標 → クリップ座標）
-    const proj = twgl.m4.ortho(
-      viewport.x,
-      viewport.x + canvas.width,
-      viewport.y + canvas.height,
-      viewport.y,
+    // 投影行列: ワールド座標 → クリップ座標
+    // screen_x = world_x * zoom - viewport.x  なので
+    // ortho の範囲を [viewport.x/zoom, (viewport.x + canvas.width)/zoom] にする
+    const z = viewport.zoom;
+    const matrix = twgl.m4.ortho(
+      viewport.x / z,
+      (viewport.x + canvas.width) / z,
+      (viewport.y + canvas.height) / z,
+      viewport.y / z,
       -1,
       1
     );
-    const matrix = twgl.m4.scale(proj, [viewport.zoom, viewport.zoom, 1]);
 
     const range = getVisibleTileRange(viewport, canvasSize, mapSize, TILE_SIZE);
+    console.log('[MapCanvas] visible range', range, 'canvas', canvasSize);
 
     // レイヤーを順番に描画
     for (const layer of map.layers) {
       if (!layer.visible) continue;
-      if (layer.type !== 'tile' || !layer.tiles) continue;
+      if (layer.type !== 'tile') continue;
+      console.log(
+        '[MapCanvas] layer',
+        layer.id,
+        'chipsetIds:',
+        layer.chipsetIds,
+        'hasTiles:',
+        !!layer.tiles
+      );
+
+      if (!layer.tiles) continue;
 
       for (const chipsetId of layer.chipsetIds) {
         const chipset = chipsets.find((c) => c.id === chipsetId);
@@ -97,7 +110,10 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
 
         const asset = assets.find((a) => a.id === chipset.imageId);
         const meta = asset?.metadata as ImageMetadata | null;
-        if (!meta?.width || !meta?.height) continue;
+        if (!meta?.width || !meta?.height) {
+          console.warn('[MapCanvas] no image metadata for chipset', chipsetId);
+          continue;
+        }
         const tilesPerRow = Math.max(1, Math.floor(meta.width / chipset.tileWidth));
         const batch = buildTileBatch(
           layer.tiles,
@@ -107,6 +123,7 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           chipset.tileHeight,
           tilesPerRow
         );
+        console.log('[MapCanvas] batch', { chipsetId, count: batch.count, tilesPerRow });
         if (batch.count === 0) continue;
 
         const bufferInfo = twgl.createBufferInfoFromArrays(gl, {

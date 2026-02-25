@@ -123,7 +123,9 @@ export const createMapSlice = <T extends MapSlice>(
   selectMap: (id: string | null) =>
     set((state) => {
       state.selectedMapId = id;
-      state.selectedLayerId = null;
+      // 最初の tile レイヤーを自動選択
+      const map = id ? state.maps.find((m) => m.id === id) : null;
+      state.selectedLayerId = map?.layers.find((l) => l.type === 'tile')?.id ?? null;
       state.selectedObjectId = null;
     }),
 
