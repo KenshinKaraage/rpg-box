@@ -90,7 +90,8 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
   popUndo: () => {
     let popped: MapEditAction | undefined;
     set((s) => {
-      popped = s.undoStack.pop();
+      const item = s.undoStack.pop();
+      if (item) popped = structuredClone(item);
     });
     return popped;
   },
@@ -103,7 +104,8 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
   popRedo: () => {
     let popped: MapEditAction | undefined;
     set((s) => {
-      popped = s.redoStack.pop();
+      const item = s.redoStack.pop();
+      if (item) popped = structuredClone(item);
     });
     return popped;
   },
