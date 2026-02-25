@@ -21,6 +21,7 @@ describe('ChipPalette', () => {
       <ChipPalette
         chipset={null}
         imageDataUrl={null}
+        imageSize={null}
         onSelectChip={jest.fn()}
         selectedChipId={null}
       />
@@ -34,6 +35,7 @@ describe('ChipPalette', () => {
       <ChipPalette
         chipset={mockChipset}
         imageDataUrl="data:image/png;base64,test"
+        imageSize={{ w: 64, h: 64 }}
         onSelectChip={onSelect}
         selectedChipId={null}
       />

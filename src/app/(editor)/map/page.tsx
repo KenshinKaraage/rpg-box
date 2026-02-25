@@ -20,6 +20,7 @@ import { applyZoom } from '@/features/map-editor/hooks/useMapViewport';
 import { generateId } from '@/lib/utils';
 import { createDefaultMapFields } from '@/lib/defaultMapFields';
 import type { GameMap, Prefab } from '@/types/map';
+import type { ImageMetadata } from '@/types/assets';
 
 export default function MapEditPage() {
   // Map state
@@ -178,12 +179,17 @@ export default function MapEditPage() {
 
   useMapShortcuts({ onSetTool: setTool, onUndo: handleUndo, onRedo: handleRedo });
 
-  // 選択中チップセットの画像データを取得
+  // 選択中チップセットの画像データとサイズを取得
   const selectedChipsetId = selectedChipId?.split(':')[0] ?? null;
   const selectedChipset = chipsets.find((c) => c.id === selectedChipsetId) ?? null;
   const chipsetAsset = selectedChipset
     ? (assets.find((a) => a.id === selectedChipset.imageId) ?? null)
     : null;
+  const chipsetImageMeta = chipsetAsset?.metadata as ImageMetadata | null;
+  const chipsetImageSize =
+    chipsetImageMeta?.width && chipsetImageMeta?.height
+      ? { w: chipsetImageMeta.width, h: chipsetImageMeta.height }
+      : null;
 
   return (
     <div className="flex h-full w-full overflow-hidden">
@@ -258,6 +264,7 @@ export default function MapEditPage() {
               <ChipPalette
                 chipset={selectedChipset}
                 imageDataUrl={(chipsetAsset?.data as string) ?? null}
+                imageSize={chipsetImageSize}
                 selectedChipId={selectedChipId}
                 onSelectChip={selectChip}
               />

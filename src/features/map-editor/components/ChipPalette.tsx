@@ -4,6 +4,8 @@ import type { Chipset } from '@/types/map';
 interface ChipPaletteProps {
   chipset: Chipset | null;
   imageDataUrl: string | null;
+  /** アセットの ImageMetadata から取得した画像サイズ */
+  imageSize: { w: number; h: number } | null;
   selectedChipId: string | null;
   onSelectChip: (chipId: string) => void;
 }
@@ -11,6 +13,7 @@ interface ChipPaletteProps {
 export function ChipPalette({
   chipset,
   imageDataUrl,
+  imageSize,
   selectedChipId,
   onSelectChip,
 }: ChipPaletteProps) {
@@ -18,8 +21,10 @@ export function ChipPalette({
     return <div className="p-4 text-sm text-muted-foreground">チップセットを選択してください</div>;
   }
 
-  const tilesPerRow = Math.floor(128 / chipset.tileWidth) || 4;
-  const totalTiles = 64; // TODO: 画像サイズから動的計算
+  const tilesPerRow = imageSize ? Math.max(1, Math.floor(imageSize.w / chipset.tileWidth)) : 0;
+  const totalTiles = imageSize
+    ? tilesPerRow * Math.max(1, Math.floor(imageSize.h / chipset.tileHeight))
+    : 0;
 
   return (
     <div className="overflow-auto p-2">

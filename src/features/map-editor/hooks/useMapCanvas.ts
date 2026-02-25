@@ -6,6 +6,7 @@ import { TILE_VERT, TILE_FRAG, GRID_VERT, GRID_FRAG } from '../utils/shaders';
 import { getVisibleTileRange } from '../utils/visibleTiles';
 import { buildTileBatch } from '../utils/tileBatch';
 import { TILE_SIZE } from '../utils/constants';
+import type { ImageMetadata } from '@/types/assets';
 
 export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>, mapId: string) {
   const maps = useStore((s) => s.maps);
@@ -92,16 +93,15 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           continue;
         }
 
-        // TODO: チップセット画像幅は暫定128px。実際の幅はアセットメタデータから取得する必要がある
-        const tilesPerRow = Math.max(
-          1,
-          Math.floor(chipset.tileWidth > 0 ? 128 / chipset.tileWidth : 4)
-        );
+        const asset = assets.find((a) => a.id === chipset.imageId);
+        const meta = asset?.metadata as ImageMetadata | null;
+        if (!meta?.width || !meta?.height) continue;
+        const tilesPerRow = Math.max(1, Math.floor(meta.width / chipset.tileWidth));
         const batch = buildTileBatch(
           layer.tiles,
           range,
           TILE_SIZE,
-          chipset.tileWidth * tilesPerRow,
+          meta.width,
           chipset.tileHeight,
           tilesPerRow
         );
