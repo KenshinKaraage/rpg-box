@@ -10,37 +10,132 @@ import { MapObjectList } from '@/features/map-editor/components/MapObjectList';
 import { MapPropertyPanel } from '@/features/map-editor/components/MapPropertyPanel';
 import { useMapShortcuts } from '@/features/map-editor/hooks/useMapShortcuts';
 import { applyZoom } from '@/features/map-editor/hooks/useMapViewport';
+import { generateId } from '@/lib/utils';
+import { createDefaultMapFields } from '@/lib/defaultMapFields';
+import type { GameMap, Prefab } from '@/types/map';
 
 export default function MapEditPage() {
+  // Map state
+  const maps = useStore((s) => s.maps);
   const selectedMapId = useStore((s) => s.selectedMapId);
+  const selectMap = useStore((s) => s.selectMap);
+  const addMap = useStore((s) => s.addMap);
+  const deleteMap = useStore((s) => s.deleteMap);
+
+  // Layer / object state
   const selectedLayerId = useStore((s) => s.selectedLayerId);
   const selectedObjectId = useStore((s) => s.selectedObjectId);
-  const maps = useStore((s) => s.maps);
-  const chipsets = useStore((s) => s.chipsets);
-  const assets = useStore((s) => s.assets);
-
-  const currentTool = useStore((s) => s.currentTool);
-  const selectedChipId = useStore((s) => s.selectedChipId);
-  const viewport = useStore((s) => s.viewport);
-  const showGrid = useStore((s) => s.showGrid);
-
-  const setTool = useStore((s) => s.setTool);
-  const selectChip = useStore((s) => s.selectChip);
-  const setViewport = useStore((s) => s.setViewport);
-  const toggleGrid = useStore((s) => s.toggleGrid);
   const selectLayer = useStore((s) => s.selectLayer);
   const updateLayer = useStore((s) => s.updateLayer);
   const selectObject = useStore((s) => s.selectObject);
   const deleteObject = useStore((s) => s.deleteObject);
+  const addObject = useStore((s) => s.addObject);
+  const setTile = useStore((s) => s.setTile);
+
+  // Prefab state
+  const prefabs = useStore((s) => s.prefabs);
+  const selectedPrefabId = useStore((s) => s.selectedPrefabId);
+  const selectPrefab = useStore((s) => s.selectPrefab);
+  const addPrefab = useStore((s) => s.addPrefab);
+  const deletePrefab = useStore((s) => s.deletePrefab);
+
+  // Chipset / asset state
+  const chipsets = useStore((s) => s.chipsets);
+  const assets = useStore((s) => s.assets);
+
+  // Editor UI state
+  const currentTool = useStore((s) => s.currentTool);
+  const selectedChipId = useStore((s) => s.selectedChipId);
+  const viewport = useStore((s) => s.viewport);
+  const showGrid = useStore((s) => s.showGrid);
+  const setTool = useStore((s) => s.setTool);
+  const selectChip = useStore((s) => s.selectChip);
+  const setViewport = useStore((s) => s.setViewport);
+  const toggleGrid = useStore((s) => s.toggleGrid);
+
+  // Undo/redo
   const popUndo = useStore((s) => s.popUndo);
   const pushRedo = useStore((s) => s.pushRedo);
   const popRedo = useStore((s) => s.popRedo);
-  const setTile = useStore((s) => s.setTile);
-  const addObject = useStore((s) => s.addObject);
 
   const selectedMap = maps.find((m) => m.id === selectedMapId) ?? null;
   const selectedLayer = selectedMap?.layers.find((l) => l.id === selectedLayerId) ?? null;
 
+  // --- Map handlers ---
+  const handleAddMap = () => {
+    const id = generateId(
+      'map',
+      maps.map((m) => m.id)
+    );
+    const newMap: GameMap = {
+      id,
+      name: '新しいマップ',
+      width: 20,
+      height: 15,
+      layers: [
+        { id: generateId('layer', []), name: 'レイヤー1', type: 'tile' as const, chipsetIds: [] },
+      ],
+      fields: createDefaultMapFields(),
+      values: {},
+    };
+    addMap(newMap);
+    selectMap(id);
+  };
+
+  const handleDuplicateMap = (id: string) => {
+    const original = maps.find((m) => m.id === id);
+    if (!original) return;
+    const newId = generateId(
+      'map',
+      maps.map((m) => m.id)
+    );
+    const allLayerIds = maps.flatMap((m) => m.layers.map((l) => l.id));
+    const clonedLayers = original.layers.map((layer) => {
+      const layerId = generateId('layer', allLayerIds);
+      allLayerIds.push(layerId);
+      return { ...layer, id: layerId };
+    });
+    const duplicated: GameMap = {
+      ...original,
+      id: newId,
+      name: `${original.name} のコピー`,
+      layers: clonedLayers,
+      fields: original.fields.map((f) => Object.assign(Object.create(Object.getPrototypeOf(f)), f)),
+      values: { ...original.values },
+    };
+    addMap(duplicated);
+    selectMap(newId);
+  };
+
+  // --- Prefab handlers ---
+  const handleAddPrefab = () => {
+    const id = generateId(
+      'prefab',
+      prefabs.map((p) => p.id)
+    );
+    const newPrefab: Prefab = { id, name: '新しいプレハブ', components: [] };
+    addPrefab(newPrefab);
+    selectPrefab(id);
+  };
+
+  const handleDuplicatePrefab = (id: string) => {
+    const original = prefabs.find((p) => p.id === id);
+    if (!original) return;
+    const newId = generateId(
+      'prefab',
+      prefabs.map((p) => p.id)
+    );
+    const duplicated: Prefab = {
+      ...original,
+      id: newId,
+      name: `${original.name} のコピー`,
+      components: original.components.map((c) => ({ ...c })),
+    };
+    addPrefab(duplicated);
+    selectPrefab(newId);
+  };
+
+  // --- Undo/redo handlers ---
   const handleUndo = () => {
     const action = popUndo();
     if (!action) return;
@@ -100,7 +195,14 @@ export default function MapEditPage() {
           </TabsList>
 
           <TabsContent value="map" className="mt-0 flex-1 overflow-auto">
-            <MapList />
+            <MapList
+              maps={maps}
+              selectedId={selectedMapId}
+              onSelect={selectMap}
+              onAdd={handleAddMap}
+              onDelete={deleteMap}
+              onDuplicate={handleDuplicateMap}
+            />
           </TabsContent>
 
           <TabsContent value="chipset" className="mt-0 flex flex-1 flex-col overflow-hidden">
@@ -128,7 +230,14 @@ export default function MapEditPage() {
 
           <TabsContent value="object" className="mt-0 flex flex-1 flex-col overflow-hidden">
             <div className="border-b p-2 text-xs font-semibold text-muted-foreground">プレハブ</div>
-            <PrefabList />
+            <PrefabList
+              prefabs={prefabs}
+              selectedId={selectedPrefabId}
+              onSelect={selectPrefab}
+              onAdd={handleAddPrefab}
+              onDelete={deletePrefab}
+              onDuplicate={handleDuplicatePrefab}
+            />
             <div className="border-b border-t p-2 text-xs font-semibold text-muted-foreground">
               配置済み
             </div>
