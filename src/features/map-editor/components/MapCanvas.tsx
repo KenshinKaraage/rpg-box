@@ -25,7 +25,7 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     TILE_SIZE
   );
 
-  const { paint } = useTilePainting(mapId, selectedLayerId ?? '');
+  const { paint, commitRect } = useTilePainting(mapId, selectedLayerId ?? '');
 
   // ホイールイベントは passive:false で登録する必要があるため useEffect で直接アタッチ
   useEffect(() => {
@@ -58,7 +58,11 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
       className="block h-full w-full"
       onMouseDown={handleCanvasMouseDown}
       onMouseMove={handleCanvasMouseMove}
-      onMouseUp={() => handleMouseUp()}
+      onMouseUp={(e) => {
+        handleMouseUp();
+        const domRect = e.currentTarget.getBoundingClientRect();
+        commitRect(e.clientX - domRect.left, e.clientY - domRect.top);
+      }}
     />
   );
 }

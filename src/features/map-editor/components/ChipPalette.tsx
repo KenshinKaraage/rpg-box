@@ -26,21 +26,31 @@ export function ChipPalette({
     ? tilesPerRow * Math.max(1, Math.floor(imageSize.h / chipset.tileHeight))
     : 0;
 
+  // オートタイル: 5バリアントを1チップとして扱い、先頭バリアント（行0）のみ表示
+  const chips: Array<{ chipId: string; col: number; row: number }> = chipset.autotile
+    ? Array.from({ length: tilesPerRow }, (_, col) => ({
+        chipId: `${chipset.id}:${col}`,
+        col,
+        row: 0,
+      }))
+    : Array.from({ length: totalTiles }, (_, i) => ({
+        chipId: `${chipset.id}:${i}`,
+        col: i % tilesPerRow,
+        row: Math.floor(i / tilesPerRow),
+      }));
+
   return (
     <div className="overflow-auto p-2">
       <div
         className="grid gap-0"
         style={{ gridTemplateColumns: `repeat(${tilesPerRow}, ${chipset.tileWidth}px)` }}
       >
-        {Array.from({ length: totalTiles }, (_, i) => {
-          const chipId = `${chipset.id}:${i}`;
-          const col = i % tilesPerRow;
-          const row = Math.floor(i / tilesPerRow);
+        {chips.map(({ chipId, col, row }) => {
           const isSelected = selectedChipId === chipId;
           return (
             <button
-              key={i}
-              aria-label={`チップ ${i}`}
+              key={chipId}
+              aria-label={`チップ ${chipId}`}
               onClick={() => {
                 console.log('[ChipPalette] chip selected:', chipId);
                 onSelectChip(chipId);
