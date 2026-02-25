@@ -120,6 +120,8 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           range,
           TILE_SIZE,
           meta.width,
+          meta.height,
+          chipset.tileWidth,
           chipset.tileHeight,
           tilesPerRow
         );

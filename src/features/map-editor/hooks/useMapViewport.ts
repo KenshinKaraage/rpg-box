@@ -7,17 +7,22 @@ const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 4;
 const ZOOM_STEP = 0.1;
 
+// マップ外へのパンをキャンバスの50%まで許可
+const PAN_OVERFLOW = 0.5;
+
 export function clampViewport(
   v: Viewport,
   canvas: { w: number; h: number },
   map: { w: number; h: number },
   tileSize: number
 ): Viewport {
-  const maxX = Math.max(0, map.w * tileSize * v.zoom - canvas.w);
-  const maxY = Math.max(0, map.h * tileSize * v.zoom - canvas.h);
+  const marginX = canvas.w * PAN_OVERFLOW;
+  const marginY = canvas.h * PAN_OVERFLOW;
+  const maxX = Math.max(0, map.w * tileSize * v.zoom - canvas.w) + marginX;
+  const maxY = Math.max(0, map.h * tileSize * v.zoom - canvas.h) + marginY;
   return {
-    x: Math.max(0, Math.min(v.x, maxX)),
-    y: Math.max(0, Math.min(v.y, maxY)),
+    x: Math.max(-marginX, Math.min(v.x, maxX)),
+    y: Math.max(-marginY, Math.min(v.y, maxY)),
     zoom: v.zoom,
   };
 }

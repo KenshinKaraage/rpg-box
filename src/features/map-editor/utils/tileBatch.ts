@@ -10,9 +10,11 @@ export interface TileBatch {
  * 可視タイル範囲の頂点バッファデータを生成する
  * @param tiles tiles[y][x] = "chipsetId:chipIndex" 形式
  * @param range 可視タイル範囲
- * @param tileSize タイルのピクセルサイズ（正方形想定）
+ * @param tileSize 表示タイルサイズ（スクリーンピクセル）
  * @param imgW チップセット画像の幅
  * @param imgH チップセット画像の高さ
+ * @param srcTileW チップセット内のネイティブタイル幅
+ * @param srcTileH チップセット内のネイティブタイル高さ
  * @param tilesPerRow チップセット1行あたりのタイル数
  */
 export function buildTileBatch(
@@ -21,13 +23,15 @@ export function buildTileBatch(
   tileSize: number,
   imgW: number,
   imgH: number,
+  srcTileW: number,
+  srcTileH: number,
   tilesPerRow: number
 ): TileBatch {
   const positions: number[] = [];
   const texcoords: number[] = [];
 
-  const uvW = tileSize / imgW;
-  const uvH = tileSize / imgH;
+  const uvW = srcTileW / imgW;
+  const uvH = srcTileH / imgH;
 
   for (let ty = range.minY; ty < range.maxY; ty++) {
     for (let tx = range.minX; tx < range.maxX; tx++) {

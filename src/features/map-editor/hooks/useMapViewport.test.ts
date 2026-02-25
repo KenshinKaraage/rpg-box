@@ -1,15 +1,28 @@
 import { clampViewport, applyZoom } from './useMapViewport';
 
 describe('clampViewport', () => {
-  it('マップ範囲外にパンしない', () => {
+  it('マップ外へのパンはキャンバス幅の50%まで許可する', () => {
+    // canvas=200x200 → margin=100
     const result = clampViewport(
-      { x: -100, y: -100, zoom: 1 },
-      { w: 200, h: 200 }, // canvas
-      { w: 10, h: 10 }, // map tiles
+      { x: -9999, y: -9999, zoom: 1 },
+      { w: 200, h: 200 },
+      { w: 10, h: 10 },
       32
     );
-    expect(result.x).toBeGreaterThanOrEqual(0);
-    expect(result.y).toBeGreaterThanOrEqual(0);
+    expect(result.x).toBeGreaterThanOrEqual(-100);
+    expect(result.y).toBeGreaterThanOrEqual(-100);
+  });
+
+  it('マップ外への超過パンは制限される', () => {
+    // canvas=200x200 → margin=100。x=-101 は -100 にクランプされる
+    const result = clampViewport(
+      { x: -9999, y: -9999, zoom: 1 },
+      { w: 200, h: 200 },
+      { w: 10, h: 10 },
+      32
+    );
+    expect(result.x).toBe(-100);
+    expect(result.y).toBe(-100);
   });
 });
 
