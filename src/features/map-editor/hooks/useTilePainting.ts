@@ -4,6 +4,7 @@ import { useStore } from '@/stores';
 import type { MapEditTool } from '@/stores/mapEditorSlice';
 import { screenToTile } from '../utils/coordTransform';
 import { floodFill } from '../utils/tileFill';
+import { calcAutotileChanges } from '../utils/autotile';
 import { TILE_SIZE } from '../utils/constants';
 
 export interface TilePaintTarget {
@@ -33,6 +34,7 @@ export function useTilePainting(mapId: string, layerId: string) {
   const selectedChipId = useStore((s) => s.selectedChipId);
   const viewport = useStore((s) => s.viewport);
   const maps = useStore((s) => s.maps);
+  const chipsets = useStore((s) => s.chipsets);
   const setTile = useStore((s) => s.setTile);
   const pushUndo = useStore((s) => s.pushUndo);
 
@@ -56,6 +58,11 @@ export function useTilePainting(mapId: string, layerId: string) {
       }
       if (tx < 0 || tx >= map.width || ty < 0 || ty >= map.height) return;
 
+      // このレイヤーで使用されているオートタイルチップセットのIDセット
+      const autotileChipsetIds = new Set(
+        layer.chipsetIds.filter((id) => chipsets.find((c) => c.id === id)?.autotile)
+      );
+
       if (currentTool === 'fill') {
         if (!selectedChipId) return;
         // tiles が未初期化の場合は空グリッドとして扱う
@@ -67,6 +74,36 @@ export function useTilePainting(mapId: string, layerId: string) {
         return;
       }
 
+      // ペン・消しゴム: オートタイルチップセットがあれば自動バリアント計算を使う
+      if (autotileChipsetIds.size > 0 && (currentTool === 'pen' || currentTool === 'eraser')) {
+        const tiles = layer.tiles ?? [];
+        const paintChipsetId =
+          currentTool === 'pen' && selectedChipId ? (selectedChipId.split(':')[0] ?? null) : null;
+        const changes = calcAutotileChanges(
+          tiles,
+          tx,
+          ty,
+          paintChipsetId,
+          map.width,
+          map.height,
+          autotileChipsetIds
+        );
+        if (changes.length === 0) return;
+        changes.forEach(({ x, y, chipId }) => setTile(mapId, layerId, x, y, chipId));
+        pushUndo({
+          type: 'setTileRange',
+          mapId,
+          layerId,
+          tiles: changes.map(({ x, y, chipId }) => ({
+            x,
+            y,
+            prev: layer.tiles?.[y]?.[x] ?? '',
+            next: chipId,
+          })),
+        });
+        return;
+      }
+
       const targets = getTilesToPaint(currentTool, { tx, ty }, null, selectedChipId);
       targets.forEach(({ x, y, chipId }) => {
         const prev = layer.tiles?.[y]?.[x] ?? '';
@@ -75,7 +112,7 @@ export function useTilePainting(mapId: string, layerId: string) {
         pushUndo({ type: 'setTile', mapId, layerId, x, y, prev, next: chipId });
       });
     },
-    [currentTool, selectedChipId, viewport, maps, mapId, layerId, setTile, pushUndo]
+    [currentTool, selectedChipId, viewport, maps, chipsets, mapId, layerId, setTile, pushUndo]
   );
 
   return { paint };
