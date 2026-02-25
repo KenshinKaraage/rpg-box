@@ -41,12 +41,14 @@ export function useTilePainting(mapId: string, layerId: string) {
       const { tx, ty } = screenToTile(screenX, screenY, viewport, TILE_SIZE);
       const map = maps.find((m) => m.id === mapId);
       const layer = map?.layers.find((l) => l.id === layerId);
-      if (!map || !layer || !layer.tiles) return;
+      if (!map || !layer) return;
       if (tx < 0 || tx >= map.width || ty < 0 || ty >= map.height) return;
 
       if (currentTool === 'fill') {
         if (!selectedChipId) return;
-        const changes = floodFill(layer.tiles, tx, ty, selectedChipId, map.width, map.height);
+        // tiles が未初期化の場合は空グリッドとして扱う
+        const tiles = layer.tiles ?? [];
+        const changes = floodFill(tiles, tx, ty, selectedChipId, map.width, map.height);
         if (changes.length === 0) return;
         changes.forEach((c) => setTile(mapId, layerId, c.x, c.y, c.next));
         pushUndo({ type: 'setTileRange', mapId, layerId, tiles: changes });

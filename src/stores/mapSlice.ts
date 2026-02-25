@@ -191,15 +191,17 @@ export const createMapSlice = <T extends MapSlice>(
   setTile: (mapId: string, layerId: string, x: number, y: number, chipId: string) =>
     set((state) => {
       const map = state.maps.find((m) => m.id === mapId);
-      if (map) {
-        const layer = map.layers.find((l) => l.id === layerId);
-        if (layer && layer.tiles) {
-          const row = layer.tiles[y];
-          if (row) {
-            row[x] = chipId;
-          }
-        }
+      if (!map) return;
+      const layer = map.layers.find((l) => l.id === layerId);
+      if (!layer || layer.type !== 'tile') return;
+      // tiles を遅延初期化
+      if (!layer.tiles) {
+        layer.tiles = Array.from({ length: map.height }, () => Array(map.width).fill(''));
       }
+      if (!layer.tiles[y]) {
+        layer.tiles[y] = Array(map.width).fill('');
+      }
+      layer.tiles[y]![x] = chipId;
     }),
 
   // =========================================================================
