@@ -46,4 +46,13 @@ describe('applyZoom', () => {
     const result = applyZoom({ x: 0, y: 0, zoom: 4 }, 1, 160, 80);
     expect(result.zoom).toBeLessThanOrEqual(4);
   });
+
+  it('カーソル位置を中心にズームする', () => {
+    // zoom=1 で pivot=(160,80) にズームイン → ワールド座標(160,80)がピボット固定
+    // world_x = (vp.x + pivot) / zoom = (0 + 160) / 1 = 160
+    // new_vp.x = 160 * 1.1 - 160 = 16
+    const result = applyZoom({ x: 0, y: 0, zoom: 1 }, 1, 160, 80);
+    expect(result.x).toBeGreaterThan(0); // ズームインで右スクロール
+    expect(result.y).toBeGreaterThan(0);
+  });
 });

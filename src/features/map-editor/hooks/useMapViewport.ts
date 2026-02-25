@@ -29,11 +29,12 @@ export function clampViewport(
 
 export function applyZoom(v: Viewport, delta: number, pivotX: number, pivotY: number): Viewport {
   const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, v.zoom + delta * ZOOM_STEP));
-  // ズームの中心点をピボットに保つ
+  // カーソル位置のワールド座標を固定してズーム
+  // world_x = (v.x + pivotX) / v.zoom → new_v.x = world_x * newZoom - pivotX
   const scale = newZoom / v.zoom;
   return {
-    x: pivotX - (pivotX - v.x) * scale,
-    y: pivotY - (pivotY - v.y) * scale,
+    x: (v.x + pivotX) * scale - pivotX,
+    y: (v.y + pivotY) * scale - pivotY,
     zoom: newZoom,
   };
 }

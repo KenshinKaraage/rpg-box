@@ -31,6 +31,8 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     if (!gl) return;
     glRef.current = gl;
     gl.clearColor(0, 0, 0, 1); // 未描画エリアを黒に
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // 透明部分は背景（黒）を透過
     tileProgramRef.current = twgl.createProgramInfo(gl, [TILE_VERT, TILE_FRAG]);
     gridProgramRef.current = twgl.createProgramInfo(gl, [GRID_VERT, GRID_FRAG]);
   }, [canvasRef]);
