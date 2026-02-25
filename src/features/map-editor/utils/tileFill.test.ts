@@ -32,4 +32,12 @@ describe('floodFill', () => {
     const changes = floodFill(grid, 0, 0, 'B', 1, 1);
     expect(changes).toHaveLength(1);
   });
+
+  it('未初期化グリッド（空配列）でも全セルを塗りつぶせる', () => {
+    // 新規マップは layer.tiles が undefined → [] として渡される
+    const changes = floodFill([], 0, 0, 'cs1:0', 3, 2);
+    expect(changes).toHaveLength(6); // 3×2 全セル
+    expect(changes.every((c) => c.next === 'cs1:0')).toBe(true);
+    expect(changes.every((c) => c.prev === '')).toBe(true);
+  });
 });

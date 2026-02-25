@@ -25,7 +25,7 @@ export function floodFill(
     const key = `${cell.x},${cell.y}`;
     if (visited.has(key)) continue;
     if (cell.x < 0 || cell.x >= mapW || cell.y < 0 || cell.y >= mapH) continue;
-    if (grid[cell.y]?.[cell.x] !== targetChip) continue;
+    if ((grid[cell.y]?.[cell.x] ?? '') !== targetChip) continue;
 
     visited.add(key);
     changes.push({ x: cell.x, y: cell.y, prev: targetChip, next: newChip });
