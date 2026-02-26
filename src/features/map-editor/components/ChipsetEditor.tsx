@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,12 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { createFieldTypeInstance } from '@/types/fields';
 import { FieldRow } from '@/features/data-editor/components/FieldRow';
 import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
 import { useStore } from '@/stores';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { dataUrlToBlob } from '@/hooks/useBlobUrl';
 import type { ImageMetadata } from '@/types/assets';
 import { ChipPropertyEditor } from './ChipPropertyEditor';
 import type { Chipset } from '@/types/map';
@@ -104,16 +104,7 @@ export function ChipsetEditor({
     onReplaceChipsetField(chipset.id, fieldId, newField);
   };
 
-  const getPassable = (index: number): boolean | null => {
-    if (!chipset) return null;
-    const passableField = chipset.fields.find((f) => f.id === 'passable');
-    if (!passableField) return null;
-    const chip = chipset.chips.find((c) => c.index === index);
-    const value = chip?.values['passable'] ?? passableField.getDefaultValue();
-    return Boolean(value);
-  };
-
-  // chipset の画像メタデータを取得（chipCols 計算と chipStyles で共用）
+  // chipset の画像メタデータを取得
   const chipImageMeta = useMemo(() => {
     if (!chipset?.imageId) return null;
     const imgAsset = assets.find((a) => a.id === chipset.imageId);
@@ -127,23 +118,21 @@ export function ChipsetEditor({
     ? Math.max(1, Math.floor(chipImageMeta.metadata.width / (chipset?.tileWidth ?? 1)))
     : PLACEHOLDER_COLS;
 
-  const chipStyles = useMemo<(React.CSSProperties | null)[]>(() => {
-    if (!chipImageMeta || !chipset) {
-      // 画像なし: passable などを先に設定できるようプレースホルダーを表示
-      return Array(PLACEHOLDER_COLS * PLACEHOLDER_ROWS).fill(null);
-    }
-    const { imgAsset, metadata } = chipImageMeta;
-    const { tileWidth, tileHeight } = chipset;
-    const scale = DISPLAY_SIZE / tileWidth;
-    const cols = Math.max(1, Math.floor(metadata.width / tileWidth));
-    const rows = Math.max(1, Math.floor(metadata.height / tileHeight));
-    return Array.from({ length: cols * rows }, (_, i) => ({
-      backgroundImage: `url(${imgAsset.data})`,
-      backgroundSize: `${metadata.width * scale}px ${metadata.height * scale}px`,
-      backgroundPosition: `-${(i % cols) * DISPLAY_SIZE}px -${Math.floor(i / cols) * DISPLAY_SIZE}px`,
-      backgroundRepeat: 'no-repeat',
-    }));
-  }, [chipImageMeta, chipset]);
+  const chipCount = chipImageMeta
+    ? chipCols * Math.max(1, Math.floor(chipImageMeta.metadata.height / (chipset?.tileHeight ?? 1)))
+    : PLACEHOLDER_COLS * PLACEHOLDER_ROWS;
+
+  // passable 状態を配列に事前計算（チップ数分）
+  const passableMap = useMemo<ReadonlyArray<boolean | null>>(() => {
+    if (!chipset) return [];
+    const passableField = chipset.fields.find((f) => f.id === 'passable');
+    if (!passableField) return Array(chipCount).fill(null);
+    return Array.from({ length: chipCount }, (_, i) => {
+      const chip = chipset.chips.find((c) => c.index === i);
+      const value = chip?.values['passable'] ?? passableField.getDefaultValue();
+      return Boolean(value);
+    });
+  }, [chipset, chipCount]);
 
   if (chipsets.length === 0) {
     return (
@@ -325,65 +314,28 @@ export function ChipsetEditor({
 
             {/* チップ一覧タブ */}
             <TabsContent value="chips" className="min-h-0 flex-1 overflow-auto p-3">
-              {/* チップグリッド */}
               <div className="space-y-2">
                 <Label className="text-xs">
-                  チップ一覧{chipImageMeta ? `（${chipStyles.length} チップ）` : ''}
+                  チップ一覧{chipImageMeta ? `（${chipCount} チップ）` : ''}
                 </Label>
-                <div
-                  className="grid gap-0.5"
-                  style={{ gridTemplateColumns: `repeat(${chipCols}, ${DISPLAY_SIZE}px)` }}
-                  data-testid="chip-grid"
-                >
-                  {chipStyles.map((chipStyle, i) => {
-                    const passable = getPassable(i);
-                    const isSelected = selectedChipIndex === i;
-                    return (
-                      <button
-                        key={i}
-                        className={cn(
-                          'relative overflow-hidden rounded border',
-                          !chipStyle && 'flex items-center justify-center text-xs',
-                          isSelected
-                            ? 'border-primary bg-primary/20'
-                            : 'border-border bg-muted/30 hover:bg-muted'
-                        )}
-                        style={
-                          chipStyle
-                            ? {
-                                ...chipStyle,
-                                width: `${DISPLAY_SIZE}px`,
-                                height: `${DISPLAY_SIZE}px`,
-                              }
-                            : { width: `${DISPLAY_SIZE}px`, height: `${DISPLAY_SIZE}px` }
+                <ChipGridCanvas
+                  imageDataUrl={chipImageMeta ? (chipImageMeta.imgAsset.data as string) : null}
+                  imageSize={
+                    chipImageMeta
+                      ? {
+                          w: chipImageMeta.metadata.width,
+                          h: chipImageMeta.metadata.height,
                         }
-                        onClick={() => setSelectedChipIndex(i)}
-                        data-testid={`chip-cell-${i}`}
-                        title={`チップ #${i}`}
-                      >
-                        {chipStyle ? (
-                          passable !== null && (
-                            <span
-                              className={cn(
-                                'absolute inset-0 flex items-center justify-center text-sm font-bold',
-                                passable ? 'text-green-600' : 'text-red-500'
-                              )}
-                              style={{ textShadow: '0 0 3px white, 0 0 3px white' }}
-                            >
-                              {passable ? '○' : '×'}
-                            </span>
-                          )
-                        ) : passable === true ? (
-                          <span className="text-green-600">○</span>
-                        ) : passable === false ? (
-                          <span className="text-red-500">×</span>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground/50">{i}</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                      : null
+                  }
+                  tileWidth={chipset.tileWidth}
+                  tileHeight={chipset.tileHeight}
+                  chipCount={chipCount}
+                  chipCols={chipCols}
+                  selectedChipIndex={selectedChipIndex}
+                  passableMap={passableMap}
+                  onSelect={setSelectedChipIndex}
+                />
               </div>
 
               {/* 選択チップのプロパティ */}
@@ -396,7 +348,6 @@ export function ChipsetEditor({
 
             {/* フィールド定義タブ */}
             <TabsContent value="fields" className="min-h-0 flex-1 overflow-auto p-3">
-              {/* フィールドスキーマ */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">フィールド定義</Label>
@@ -442,5 +393,173 @@ export function ChipsetEditor({
         </div>
       )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ChipGridCanvas: チップグリッドを canvas 1 枚で描画するサブコンポーネント
+// ---------------------------------------------------------------------------
+
+interface ChipGridCanvasProps {
+  imageDataUrl: string | null;
+  imageSize: { w: number; h: number } | null;
+  tileWidth: number;
+  tileHeight: number;
+  chipCount: number;
+  chipCols: number;
+  selectedChipIndex: number | null;
+  passableMap: ReadonlyArray<boolean | null>;
+  onSelect: (index: number) => void;
+}
+
+function ChipGridCanvas({
+  imageDataUrl,
+  imageSize,
+  tileWidth,
+  tileHeight,
+  chipCount,
+  chipCols,
+  selectedChipIndex,
+  passableMap,
+  onSelect,
+}: ChipGridCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const blobUrlRef = useRef<{ dataUrl: string; blobUrl: string } | null>(null);
+
+  const chipRows = Math.ceil(chipCount / chipCols);
+  const canvasW = chipCols * DISPLAY_SIZE;
+  const canvasH = chipRows * DISPLAY_SIZE;
+
+  const drawGrid = useCallback(
+    (canvas: HTMLCanvasElement, img: HTMLImageElement | null) => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < chipCount; i++) {
+        const col = i % chipCols;
+        const row = Math.floor(i / chipCols);
+        const x = col * DISPLAY_SIZE;
+        const y = row * DISPLAY_SIZE;
+
+        if (img && imageSize) {
+          // 実画像: タイルを切り出して DISPLAY_SIZE にスケール描画
+          const srcX = col * tileWidth;
+          const srcY = row * tileHeight;
+          ctx.drawImage(img, srcX, srcY, tileWidth, tileHeight, x, y, DISPLAY_SIZE, DISPLAY_SIZE);
+        } else {
+          // プレースホルダー: 薄い背景 + インデックス番号
+          ctx.fillStyle = 'rgba(100,100,100,0.15)';
+          ctx.fillRect(x + 0.5, y + 0.5, DISPLAY_SIZE - 1, DISPLAY_SIZE - 1);
+          ctx.strokeStyle = 'rgba(100,100,100,0.3)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + 0.5, y + 0.5, DISPLAY_SIZE - 1, DISPLAY_SIZE - 1);
+          ctx.fillStyle = 'rgba(150,150,150,0.6)';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(i), x + DISPLAY_SIZE / 2, y + DISPLAY_SIZE / 2);
+        }
+
+        // 通行可能インジケーター（○/×）
+        const passable = passableMap[i] ?? null;
+        if (passable !== null) {
+          ctx.font = 'bold 14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.shadowColor = 'white';
+          ctx.shadowBlur = 3;
+          ctx.fillStyle = passable ? '#16a34a' : '#ef4444'; // green-600 / red-500
+          ctx.fillText(passable ? '○' : '×', x + DISPLAY_SIZE / 2, y + DISPLAY_SIZE / 2);
+          ctx.shadowBlur = 0;
+        }
+
+        // 選択ハイライト
+        if (i === selectedChipIndex) {
+          ctx.strokeStyle = '#f97316'; // orange-500
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x + 1, y + 1, DISPLAY_SIZE - 2, DISPLAY_SIZE - 2);
+        }
+      }
+    },
+    [chipCount, chipCols, tileWidth, tileHeight, imageSize, passableMap, selectedChipIndex]
+  );
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (!imageDataUrl) {
+      // 画像なし: Blob URL を解放してプレースホルダー描画
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current.blobUrl);
+        blobUrlRef.current = null;
+      }
+      imgRef.current = null;
+      drawGrid(canvas, null);
+      return;
+    }
+
+    // 同じ data URL: 画像は再ロードせず再描画のみ（選択/passable 変化に対応）
+    if (blobUrlRef.current?.dataUrl === imageDataUrl) {
+      if (imgRef.current) drawGrid(canvas, imgRef.current);
+      return;
+    }
+
+    // 新しい data URL: Blob URL を作成して画像をロード
+    if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current.blobUrl);
+    const blobUrl = URL.createObjectURL(dataUrlToBlob(imageDataUrl));
+    blobUrlRef.current = { dataUrl: imageDataUrl, blobUrl };
+    imgRef.current = null;
+
+    const img = new Image();
+    img.onload = () => {
+      imgRef.current = img;
+      if (canvasRef.current) drawGrid(canvasRef.current, img);
+    };
+    img.src = blobUrl;
+    return () => {
+      img.onload = null;
+    };
+  }, [imageDataUrl, drawGrid]);
+
+  // アンマウント時に Blob URL を解放
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current.blobUrl);
+    };
+  }, []);
+
+  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
+    const col = Math.floor(x / DISPLAY_SIZE);
+    const row = Math.floor(y / DISPLAY_SIZE);
+    const chipIndex = row * chipCols + col;
+
+    if (chipIndex >= 0 && chipIndex < chipCount) {
+      onSelect(chipIndex);
+    }
+  };
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={canvasW}
+      height={canvasH}
+      onClick={handleClick}
+      style={{ cursor: 'pointer', display: 'block' }}
+      aria-label="チップグリッド"
+      data-testid="chip-grid"
+    />
   );
 }
