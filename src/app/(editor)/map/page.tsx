@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { useStore } from '@/stores';
 import { MapList, PrefabList } from '@/features/map-editor';
 import { MapCanvas } from '@/features/map-editor/components/MapCanvas';
@@ -222,10 +223,9 @@ export default function MapEditPage() {
   const chipsetBlobUrl = useBlobUrl((chipsetAsset?.data as string) ?? null);
 
   return (
-    <div className="flex h-full w-full overflow-hidden">
-      {/* 左パネル */}
-      <aside className="flex w-sidebar shrink-0 flex-col overflow-hidden border-r bg-muted/20">
-        <Tabs defaultValue="chipset" className="flex h-full flex-col">
+    <ThreeColumnLayout
+      left={
+        <Tabs defaultValue="chipset" className="flex h-full flex-col bg-muted/20">
           <TabsList className="w-full shrink-0 rounded-none border-b">
             <TabsTrigger value="map" className="flex-1">
               マップ
@@ -249,7 +249,7 @@ export default function MapEditPage() {
             />
           </TabsContent>
 
-          <TabsContent value="chipset" className="mt-0 flex flex-1 flex-col overflow-hidden">
+          <TabsContent value="chipset" className="mt-0 flex min-h-0 flex-1 flex-col">
             {selectedMap && (
               <LayerTabs
                 layers={selectedMap.layers}
@@ -292,6 +292,7 @@ export default function MapEditPage() {
                 </SelectContent>
               </Select>
             </div>
+            {/* 縦スクロール・横スクロール両対応: キャンバスは固有サイズで表示 */}
             <div className="min-h-0 flex-1 overflow-auto">
               <ChipPalette
                 chipset={selectedChipset}
@@ -303,7 +304,7 @@ export default function MapEditPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="object" className="mt-0 flex flex-1 flex-col overflow-hidden">
+          <TabsContent value="object" className="mt-0 flex min-h-0 flex-1 flex-col">
             <div className="border-b p-2 text-xs font-semibold text-muted-foreground">プレハブ</div>
             <PrefabList
               prefabs={prefabs}
@@ -338,51 +339,57 @@ export default function MapEditPage() {
             </div>
           </TabsContent>
         </Tabs>
-      </aside>
-
-      {/* 中央: キャンバス */}
-      <main className="flex flex-1 flex-col overflow-hidden">
-        <MapToolbar
-          currentTool={currentTool}
-          onSetTool={setTool}
-          showGrid={showGrid}
-          onToggleGrid={toggleGrid}
-          zoom={viewport.zoom}
-          onZoomIn={() => setViewport(applyZoom(viewport, 1, 0, 0))}
-          onZoomOut={() => setViewport(applyZoom(viewport, -1, 0, 0))}
-        />
-        <div className="flex-1 overflow-hidden bg-neutral-800">
-          {selectedMapId ? (
-            <MapCanvas mapId={selectedMapId} />
+      }
+      center={
+        <div className="flex h-full flex-col">
+          <MapToolbar
+            currentTool={currentTool}
+            onSetTool={setTool}
+            showGrid={showGrid}
+            onToggleGrid={toggleGrid}
+            zoom={viewport.zoom}
+            onZoomIn={() => setViewport(applyZoom(viewport, 1, 0, 0))}
+            onZoomOut={() => setViewport(applyZoom(viewport, -1, 0, 0))}
+          />
+          <div className="flex-1 overflow-hidden bg-neutral-800">
+            {selectedMapId ? (
+              <MapCanvas mapId={selectedMapId} />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                マップを選択してください
+              </div>
+            )}
+          </div>
+        </div>
+      }
+      right={
+        <div className="h-full bg-muted/20">
+          {selectedObjectId ? (
+            <MapPropertyPanel
+              selectedObjectId={selectedObjectId}
+              mapId={selectedMapId ?? ''}
+              layerId={selectedLayerId}
+            />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              マップを選択してください
-            </div>
+            <MapSettingsEditor
+              map={selectedMap}
+              chipsets={chipsets}
+              onUpdateMap={updateMap}
+              onUpdateMapValues={updateMapValues}
+              onAddLayer={addLayer}
+              onUpdateLayer={updateLayer}
+              onDeleteLayer={deleteLayer}
+              onReorderLayers={reorderLayers}
+            />
           )}
         </div>
-      </main>
-
-      {/* 右パネル */}
-      <aside className="w-inspector shrink-0 overflow-hidden border-l bg-muted/20">
-        {selectedObjectId ? (
-          <MapPropertyPanel
-            selectedObjectId={selectedObjectId}
-            mapId={selectedMapId ?? ''}
-            layerId={selectedLayerId}
-          />
-        ) : (
-          <MapSettingsEditor
-            map={selectedMap}
-            chipsets={chipsets}
-            onUpdateMap={updateMap}
-            onUpdateMapValues={updateMapValues}
-            onAddLayer={addLayer}
-            onUpdateLayer={updateLayer}
-            onDeleteLayer={deleteLayer}
-            onReorderLayers={reorderLayers}
-          />
-        )}
-      </aside>
-    </div>
+      }
+      leftDefaultWidth={240}
+      rightDefaultWidth={300}
+      leftMinWidth={160}
+      leftMaxWidth={500}
+      rightMinWidth={200}
+      rightMaxWidth={450}
+    />
   );
 }
