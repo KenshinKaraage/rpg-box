@@ -83,7 +83,7 @@ export function ThreeColumnLayout({
     <div ref={containerRef} className={cn('flex h-full w-full', className)}>
       {/* Left column */}
       <div
-        className="flex-shrink-0 overflow-auto border-r bg-background"
+        className="flex flex-col flex-shrink-0 overflow-auto border-r bg-background"
         style={{ width: leftWidth }}
         data-testid="left-column"
       >
@@ -98,7 +98,10 @@ export function ThreeColumnLayout({
       />
 
       {/* Center column */}
-      <div className="flex-1 overflow-auto bg-background" data-testid="center-column">
+      <div
+        className="flex flex-col flex-1 overflow-hidden bg-background"
+        data-testid="center-column"
+      >
         {center}
       </div>
 
@@ -111,7 +114,7 @@ export function ThreeColumnLayout({
 
       {/* Right column */}
       <div
-        className="flex-shrink-0 overflow-auto border-l bg-background"
+        className="flex flex-col flex-shrink-0 overflow-auto border-l bg-background"
         style={{ width: rightWidth }}
         data-testid="right-column"
       >
