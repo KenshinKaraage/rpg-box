@@ -16,8 +16,10 @@ import { LayerTabs } from '@/features/map-editor/components/LayerTabs';
 import { ChipPalette } from '@/features/map-editor/components/ChipPalette';
 import { MapObjectList } from '@/features/map-editor/components/MapObjectList';
 import { MapPropertyPanel } from '@/features/map-editor/components/MapPropertyPanel';
+import { MapSettingsEditor } from '@/features/map-editor/components/MapSettingsEditor';
 import { useMapShortcuts } from '@/features/map-editor/hooks/useMapShortcuts';
 import { applyZoom } from '@/features/map-editor/hooks/useMapViewport';
+import { useBlobUrl } from '@/hooks/useBlobUrl';
 import { generateId } from '@/lib/utils';
 import { createDefaultMapFields } from '@/lib/defaultMapFields';
 import type { GameMap, Prefab } from '@/types/map';
@@ -36,6 +38,11 @@ export default function MapEditPage() {
   const selectedObjectId = useStore((s) => s.selectedObjectId);
   const selectLayer = useStore((s) => s.selectLayer);
   const updateLayer = useStore((s) => s.updateLayer);
+  const updateMap = useStore((s) => s.updateMap);
+  const updateMapValues = useStore((s) => s.updateMapValues);
+  const addLayer = useStore((s) => s.addLayer);
+  const deleteLayer = useStore((s) => s.deleteLayer);
+  const reorderLayers = useStore((s) => s.reorderLayers);
   const selectObject = useStore((s) => s.selectObject);
   const deleteObject = useStore((s) => s.deleteObject);
   const addObject = useStore((s) => s.addObject);
@@ -211,6 +218,9 @@ export default function MapEditPage() {
       ? { w: chipsetImageMeta.width, h: chipsetImageMeta.height }
       : null;
 
+  // data URL を Blob URL に変換（チップセット切り替え時に前の Blob URL を解放）
+  const chipsetBlobUrl = useBlobUrl((chipsetAsset?.data as string) ?? null);
+
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* 左パネル */}
@@ -285,7 +295,7 @@ export default function MapEditPage() {
             <div className="min-h-0 flex-1 overflow-auto">
               <ChipPalette
                 chipset={selectedChipset}
-                imageDataUrl={(chipsetAsset?.data as string) ?? null}
+                imageDataUrl={chipsetBlobUrl}
                 imageSize={chipsetImageSize}
                 selectedChipId={selectedChipId}
                 onSelectChip={selectChip}
@@ -354,11 +364,24 @@ export default function MapEditPage() {
 
       {/* 右パネル */}
       <aside className="w-inspector shrink-0 overflow-hidden border-l bg-muted/20">
-        <MapPropertyPanel
-          selectedObjectId={selectedObjectId}
-          mapId={selectedMapId ?? ''}
-          layerId={selectedLayerId}
-        />
+        {selectedObjectId ? (
+          <MapPropertyPanel
+            selectedObjectId={selectedObjectId}
+            mapId={selectedMapId ?? ''}
+            layerId={selectedLayerId}
+          />
+        ) : (
+          <MapSettingsEditor
+            map={selectedMap}
+            chipsets={chipsets}
+            onUpdateMap={updateMap}
+            onUpdateMapValues={updateMapValues}
+            onAddLayer={addLayer}
+            onUpdateLayer={updateLayer}
+            onDeleteLayer={deleteLayer}
+            onReorderLayers={reorderLayers}
+          />
+        )}
       </aside>
     </div>
   );

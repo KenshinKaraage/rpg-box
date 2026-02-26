@@ -6,6 +6,7 @@ import { TILE_VERT, TILE_FRAG, GRID_VERT, GRID_FRAG } from '../utils/shaders';
 import { getVisibleTileRange } from '../utils/visibleTiles';
 import { buildTileBatch } from '../utils/tileBatch';
 import { TILE_SIZE } from '../utils/constants';
+import { dataUrlToBlob } from '@/hooks/useBlobUrl';
 import type { ImageMetadata } from '@/types/assets';
 
 export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>, mapId: string) {
@@ -19,6 +20,8 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   const tileProgramRef = useRef<twgl.ProgramInfo | null>(null);
   const gridProgramRef = useRef<twgl.ProgramInfo | null>(null);
   const textureCache = useRef<Map<string, WebGLTexture>>(new Map());
+  // assetId → Blob URL のキャッシュ（Base64 デコードを初回のみ実行するため）
+  const blobUrlCache = useRef<Map<string, string>>(new Map());
 
   // テクスチャロード完了時に再レンダーをトリガーするカウンタ
   const [textureGen, setTextureGen] = useState(0);
@@ -85,8 +88,16 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         if (!texture) {
           const asset = assets.find((a) => a.id === chipset.imageId);
           if (!asset?.data) continue;
+
+          // Blob URL キャッシュ: 同一アセットの Base64 デコードを初回のみ実行
+          let blobUrl = blobUrlCache.current.get(asset.id);
+          if (!blobUrl) {
+            blobUrl = URL.createObjectURL(dataUrlToBlob(asset.data as string));
+            blobUrlCache.current.set(asset.id, blobUrl);
+          }
+
           const img = new Image();
-          img.src = asset.data as string;
+          img.src = blobUrl;
           img.onload = () => {
             if (!glRef.current) return;
             const tex = twgl.createTexture(glRef.current, {
