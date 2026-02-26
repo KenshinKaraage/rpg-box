@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ja" className={inter.variable}>
       <body className={`${inter.className} flex min-h-screen flex-col bg-background antialiased`}>
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 min-h-0 overflow-hidden">{children}</main>
       </body>
     </html>
   );
