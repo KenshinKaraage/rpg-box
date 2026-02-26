@@ -24,6 +24,7 @@ function drawPalette(
   if (!ctx) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = false;
 
   if (chipset.autotile) {
     // バリアント0行目（"無"）のみ表示
@@ -143,7 +144,14 @@ export function ChipPalette({
         width={canvasW}
         height={canvasH}
         onClick={handleClick}
-        style={{ cursor: 'crosshair', display: 'block' }}
+        draggable={false}
+        onDragStart={(e) => e.preventDefault()}
+        style={{
+          cursor: 'crosshair',
+          display: 'block',
+          width: `${canvasW}px`,
+          height: `${canvasH}px`,
+        }}
         aria-label="チップパレット"
         role="img"
       />

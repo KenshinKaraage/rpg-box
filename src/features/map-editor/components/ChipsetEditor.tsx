@@ -437,6 +437,23 @@ function ChipGridCanvas({
       if (!ctx) return;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = false;
+
+      // 全チップを一度に描画してサブピクセルの切れ目をなくす
+      if (img && imageSize) {
+        const chipRows = Math.ceil(chipCount / chipCols);
+        ctx.drawImage(
+          img,
+          0,
+          0,
+          chipCols * tileWidth,
+          chipRows * tileHeight,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+      }
 
       for (let i = 0; i < chipCount; i++) {
         const col = i % chipCols;
@@ -444,12 +461,7 @@ function ChipGridCanvas({
         const x = col * DISPLAY_SIZE;
         const y = row * DISPLAY_SIZE;
 
-        if (img && imageSize) {
-          // 実画像: タイルを切り出して DISPLAY_SIZE にスケール描画
-          const srcX = col * tileWidth;
-          const srcY = row * tileHeight;
-          ctx.drawImage(img, srcX, srcY, tileWidth, tileHeight, x, y, DISPLAY_SIZE, DISPLAY_SIZE);
-        } else {
+        if (!img || !imageSize) {
           // プレースホルダー: 薄い背景 + インデックス番号
           ctx.fillStyle = 'rgba(100,100,100,0.15)';
           ctx.fillRect(x + 0.5, y + 0.5, DISPLAY_SIZE - 1, DISPLAY_SIZE - 1);
@@ -557,7 +569,9 @@ function ChipGridCanvas({
       width={canvasW}
       height={canvasH}
       onClick={handleClick}
-      style={{ cursor: 'pointer', display: 'block' }}
+      draggable={false}
+      onDragStart={(e) => e.preventDefault()}
+      style={{ cursor: 'pointer', display: 'block', width: `${canvasW}px`, height: `${canvasH}px` }}
       aria-label="チップグリッド"
       data-testid="chip-grid"
     />
