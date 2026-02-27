@@ -379,6 +379,25 @@ describe('VariableOpActionBlock', () => {
       const trigger = screen.getByTestId('variable-id-select');
       expect(trigger).toHaveTextContent('class(ステータス)');
     });
+
+    it('型エラー時にサブフィールドが非表示になる', () => {
+      // target: effect (class_effect), data field: base_stats (class_status)
+      // class_status has sub-fields but classId mismatch → typeMismatch true → hide subfield
+      const props = createProps({
+        variableId: 'effect',
+        value: {
+          type: 'data',
+          dataTypeId: 'enemies',
+          entryId: 'slime',
+          fieldId: 'base_stats',
+          subFieldId: 'hp',
+        },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      // Type mismatch: target is class(エフェクト), source sub-field is number
+      expect(screen.getByTestId('type-mismatch-error')).toBeInTheDocument();
+      expect(screen.queryByTestId('value-data-subfield-select')).not.toBeInTheDocument();
+    });
   });
 
   describe('配列インデックス', () => {
@@ -434,6 +453,63 @@ describe('VariableOpActionBlock', () => {
       // This test verifies the handler logic — the actual select interaction
       // would require opening the dropdown, so we test the handler directly
       expect(screen.getByTestId('array-index-input')).toHaveValue(2);
+    });
+  });
+
+  describe('空プレースホルダー', () => {
+    it('添字の変数候補がない場合、変数Selectが無効化されプレースホルダーが表示される', () => {
+      // Only array number variables, no non-array number variables for index
+      setupMockStore({
+        variables: [
+          {
+            id: 'scores',
+            name: 'スコア一覧',
+            fieldType: new NumberFieldType(),
+            isArray: true,
+            initialValue: [],
+          },
+          {
+            id: 'playerName',
+            name: '名前',
+            fieldType: new StringFieldType(),
+            isArray: false,
+            initialValue: '',
+          },
+        ],
+      });
+      const props = createProps({
+        variableId: 'scores',
+        arrayIndex: { type: 'variable', variableId: '' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      const trigger = screen.getByTestId('array-index-variable-select');
+      expect(trigger).toBeDisabled();
+      expect(trigger).toHaveTextContent('変数がありません');
+    });
+
+    it('一致する型のフィールドがない場合、フィールドSelectが無効化されプレースホルダーが表示される', () => {
+      // target: name (string), data type: enemies (has string 'ename', number 'attack', class 'base_stats')
+      // string target should only show ename — but if we filter enemies with a type
+      // that has no matching fields, it should show the empty placeholder
+      setupMockStore({
+        dataTypes: [
+          {
+            id: 'skills',
+            name: 'スキル',
+            fields: [{ id: 'power', name: '威力', type: 'number' }],
+          },
+        ],
+        dataEntries: { skills: [{ id: 's1', typeId: 'skills', values: { name: 'ファイア' } }] },
+      });
+      // target: name (string), data fields: only number → no match
+      const props = createProps({
+        variableId: 'name',
+        value: { type: 'data', dataTypeId: 'skills', entryId: 's1', fieldId: '' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      const trigger = screen.getByTestId('value-data-field-select');
+      expect(trigger).toBeDisabled();
+      expect(trigger).toHaveTextContent('一致する型のフィールドがありません');
     });
   });
 });

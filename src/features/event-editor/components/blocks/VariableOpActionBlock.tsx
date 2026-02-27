@@ -464,6 +464,7 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
               onValueChange={handleVariableValueChange}
               testId="value-variable-select"
               classes={classes}
+              emptyPlaceholder="一致する型の変数がありません"
             />
           </div>
         )}
@@ -502,41 +503,61 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
             </div>
             <div className="flex items-center gap-2">
               <Label className="w-20 text-xs text-muted-foreground">フィールド</Label>
-              <Select value={varAction.value.fieldId} onValueChange={handleDataFieldChange}>
-                <SelectTrigger className="flex-1" data-testid="value-data-field-select">
-                  <SelectValue placeholder="フィールドを選択..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredDataFields.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>
-                      <span className="mr-2 text-xs text-muted-foreground">
-                        {formatTypeLabel(f.type, f.classId, classes)}
-                      </span>
-                      {f.name || f.id}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {needsSubField && (
-              <div className="flex items-center gap-2">
-                <Label className="w-20 text-xs text-muted-foreground">サブフィールド</Label>
-                <Select
-                  value={varAction.value.type === 'data' ? (varAction.value.subFieldId ?? '') : ''}
-                  onValueChange={handleSubFieldChange}
-                >
-                  <SelectTrigger className="flex-1" data-testid="value-data-subfield-select">
-                    <SelectValue placeholder="サブフィールドを選択..." />
+              {filteredDataFields.length > 0 ? (
+                <Select value={varAction.value.fieldId} onValueChange={handleDataFieldChange}>
+                  <SelectTrigger className="flex-1" data-testid="value-data-field-select">
+                    <SelectValue placeholder="フィールドを選択..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {filteredSubFields.map((f) => (
+                    {filteredDataFields.map((f) => (
                       <SelectItem key={f.id} value={f.id}>
-                        <span className="mr-2 text-xs text-muted-foreground">{f.type}</span>
+                        <span className="mr-2 text-xs text-muted-foreground">
+                          {formatTypeLabel(f.type, f.classId, classes)}
+                        </span>
                         {f.name || f.id}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              ) : (
+                <Select disabled>
+                  <SelectTrigger className="flex-1" data-testid="value-data-field-select">
+                    <SelectValue placeholder="一致する型のフィールドがありません" />
+                  </SelectTrigger>
+                  <SelectContent />
+                </Select>
+              )}
+            </div>
+            {needsSubField && !typeMismatch && (
+              <div className="flex items-center gap-2">
+                <Label className="w-20 text-xs text-muted-foreground">サブフィールド</Label>
+                {filteredSubFields.length > 0 ? (
+                  <Select
+                    value={
+                      varAction.value.type === 'data' ? (varAction.value.subFieldId ?? '') : ''
+                    }
+                    onValueChange={handleSubFieldChange}
+                  >
+                    <SelectTrigger className="flex-1" data-testid="value-data-subfield-select">
+                      <SelectValue placeholder="サブフィールドを選択..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredSubFields.map((f) => (
+                        <SelectItem key={f.id} value={f.id}>
+                          <span className="mr-2 text-xs text-muted-foreground">{f.type}</span>
+                          {f.name || f.id}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Select disabled>
+                    <SelectTrigger className="flex-1" data-testid="value-data-subfield-select">
+                      <SelectValue placeholder="一致する型のサブフィールドがありません" />
+                    </SelectTrigger>
+                    <SelectContent />
+                  </Select>
+                )}
               </div>
             )}
           </div>
@@ -583,13 +604,16 @@ function VariableSelect({
   onValueChange,
   testId,
   classes = [],
+  emptyPlaceholder,
 }: {
   value: string;
   variables: Variable[];
   onValueChange: (id: string) => void;
   testId: string;
   classes?: CustomClass[];
+  emptyPlaceholder?: string;
 }) {
+  const placeholder = emptyPlaceholder ?? '変数がありません';
   return variables.length > 0 ? (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger className="flex-1" data-testid={testId}>
@@ -610,7 +634,7 @@ function VariableSelect({
   ) : (
     <Select disabled>
       <SelectTrigger className="flex-1" data-testid={testId}>
-        <SelectValue placeholder="変数がありません" />
+        <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent />
     </Select>
