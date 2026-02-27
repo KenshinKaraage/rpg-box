@@ -17,13 +17,13 @@ describe('TwoColumnLayout', () => {
     expect(screen.getByTestId('resize-handle')).toBeInTheDocument();
   });
 
-  it('applies default width', () => {
+  it('applies default width via grid template', () => {
     render(
       <TwoColumnLayout left={<div>Left</div>} right={<div>Right</div>} leftDefaultWidth={300} />
     );
 
-    const leftColumn = screen.getByTestId('left-column');
-    expect(leftColumn).toHaveStyle({ width: '300px' });
+    const container = screen.getByTestId('left-column').parentElement!;
+    expect(container).toHaveStyle({ gridTemplateColumns: '300px 4px 1fr' });
   });
 
   it('has cursor style on resize handle', () => {

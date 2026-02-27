@@ -53,25 +53,28 @@ export function TwoColumnLayout({
   }, [handleMouseMove, handleMouseUp]);
 
   return (
-    <div ref={containerRef} className={cn('flex h-full w-full', className)}>
+    <div
+      ref={containerRef}
+      className={cn('grid h-full w-full', className)}
+      style={{
+        gridTemplateColumns: `${leftWidth}px 4px 1fr`,
+        gridTemplateRows: '100%',
+      }}
+    >
       {/* Left column */}
-      <div
-        className="flex-shrink-0 overflow-auto border-r bg-background"
-        style={{ width: leftWidth }}
-        data-testid="left-column"
-      >
+      <div className="overflow-auto border-r bg-background" data-testid="left-column">
         {left}
       </div>
 
       {/* Resize handle */}
       <div
-        className="w-1 flex-shrink-0 cursor-col-resize bg-border hover:bg-primary/50 active:bg-primary"
+        className="cursor-col-resize bg-border hover:bg-primary/50 active:bg-primary"
         onMouseDown={startDragging}
         data-testid="resize-handle"
       />
 
       {/* Right column */}
-      <div className="flex-1 overflow-auto bg-background" data-testid="right-column">
+      <div className="overflow-auto bg-background" data-testid="right-column">
         {right}
       </div>
     </div>

@@ -13,6 +13,7 @@ import type { AssetReference, AssetFolder } from '@/types/asset';
 import { generateId } from '@/lib/utils';
 import { importDefaultAssets } from '@/lib/importDefaultAssets';
 import { Button } from '@/components/ui/button';
+import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 
 /**
  * アセット管理ページ
@@ -177,51 +178,62 @@ export default function AssetsPage() {
   };
 
   return (
-    <div className="flex h-full">
-      {/* 左: フォルダツリー */}
-      <div className="w-52 shrink-0 border-r">
-        <AssetFolderTree
-          folders={assetFolders}
-          selectedFolderId={selectedFolderId}
-          onSelectFolder={selectFolder}
-          onAddFolder={handleAddFolder}
-          onRenameFolder={handleRenameFolder}
-          onDeleteFolder={handleDeleteFolder}
-        />
-      </div>
-
-      {/* 中央: グリッド */}
-      <div className="flex flex-col flex-1 border-r overflow-hidden">
-        <div className="flex items-center justify-end gap-2 border-b px-3 py-2 shrink-0">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleImportDefaults}
-            disabled={isImporting}
-            data-testid="import-defaults-button"
-          >
-            {isImporting ? 'インポート中...' : 'デフォルトをインポート'}
-          </Button>
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <AssetGrid
-            assets={filteredAssets}
-            selectedAssetId={selectedAssetId}
-            onSelectAsset={selectAsset}
-            onUpload={handleUpload}
+    <>
+      <ThreeColumnLayout
+        left={
+          <AssetFolderTree
+            folders={assetFolders}
+            selectedFolderId={selectedFolderId}
+            onSelectFolder={selectFolder}
+            onAddFolder={handleAddFolder}
+            onRenameFolder={handleRenameFolder}
+            onDeleteFolder={handleDeleteFolder}
           />
-        </div>
-      </div>
-
-      {/* 右: プレビュー（幅固定300px） */}
-      <div className="h-full w-[300px] min-w-[300px] max-w-[300px] shrink-0 overflow-hidden">
-        <AssetPreview
-          asset={selectedAsset}
-          folderName={selectedAssetFolderName}
-          onRename={handleRenameAsset}
-          onDelete={deleteAsset}
-        />
-      </div>
+        }
+        center={
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateRows: 'auto 1fr',
+              height: '100%',
+            }}
+          >
+            <div className="flex items-center justify-end gap-2 border-b px-3 py-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleImportDefaults}
+                disabled={isImporting}
+                data-testid="import-defaults-button"
+              >
+                {isImporting ? 'インポート中...' : 'デフォルトをインポート'}
+              </Button>
+            </div>
+            <div style={{ overflow: 'hidden' }}>
+              <AssetGrid
+                assets={filteredAssets}
+                selectedAssetId={selectedAssetId}
+                onSelectAsset={selectAsset}
+                onUpload={handleUpload}
+              />
+            </div>
+          </div>
+        }
+        right={
+          <AssetPreview
+            asset={selectedAsset}
+            folderName={selectedAssetFolderName}
+            onRename={handleRenameAsset}
+            onDelete={deleteAsset}
+          />
+        }
+        leftDefaultWidth={208}
+        rightDefaultWidth={300}
+        leftMinWidth={160}
+        leftMaxWidth={350}
+        rightMinWidth={200}
+        rightMaxWidth={450}
+      />
 
       {/* フォルダ作成モーダル */}
       <CreateFolderModal
@@ -254,7 +266,7 @@ export default function AssetsPage() {
           folder={deleteFolderTarget}
         />
       )}
-    </div>
+    </>
   );
 }
 
