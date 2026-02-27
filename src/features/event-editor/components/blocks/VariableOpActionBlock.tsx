@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,7 @@ import { useStore } from '@/stores';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { VariableOpAction } from '@/engine/actions/VariableOpAction';
 import type { ValueSource } from '@/engine/values/types';
+import type { Variable } from '@/types/variable';
 
 const OPERATIONS = [
   { value: 'set', label: '代入' },
@@ -48,11 +50,71 @@ function createDefaultValueSource(type: ValueSource['type']): ValueSource {
   }
 }
 
+/** Resolve the field type string of the value source */
+function resolveValueSourceType(
+  value: ValueSource,
+  variables: Variable[],
+  dataTypeFields: { id: string; type: string }[]
+): string | null {
+  switch (value.type) {
+    case 'literal': {
+      const v = value.value;
+      if (typeof v === 'number') return 'number';
+      if (typeof v === 'string') return 'string';
+      if (typeof v === 'boolean') return 'boolean';
+      return null;
+    }
+    case 'variable': {
+      if (!value.variableId) return null;
+      const variable = variables.find((v) => v.id === value.variableId);
+      return variable?.fieldType.type ?? null;
+    }
+    case 'data': {
+      if (!value.fieldId) return null;
+      const field = dataTypeFields.find((f) => f.id === value.fieldId);
+      return field?.type ?? null;
+    }
+    case 'random':
+      return 'number';
+  }
+}
+
 export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const varAction = action as VariableOpAction;
   const variables = useStore((state) => state.variables);
   const dataTypes = useStore((state) => state.dataTypes);
   const dataEntries = useStore((state) => state.dataEntries);
+
+  // Target variable type
+  const targetVariable = variables.find((v) => v.id === varAction.variableId);
+  const targetType = targetVariable?.fieldType.type ?? null;
+
+  // Data source fields (for type resolution)
+  const dataTypeIdForLookup = varAction.value.type === 'data' ? varAction.value.dataTypeId : '';
+  const currentDataType = dataTypes.find((dt) => dt.id === dataTypeIdForLookup);
+  const currentDataEntries = dataTypeIdForLookup ? (dataEntries[dataTypeIdForLookup] ?? []) : [];
+  const dataTypeFields = useMemo(
+    () => (currentDataType?.fields ?? []).map((f) => ({ id: f.id, name: f.name, type: f.type })),
+    [currentDataType]
+  );
+
+  // Value source type
+  const valueSourceType = resolveValueSourceType(varAction.value, variables, dataTypeFields);
+
+  // Type mismatch detection
+  const typeMismatch = targetType && valueSourceType && targetType !== valueSourceType;
+
+  // Filter value-source variables to match target type
+  const filteredVariables = useMemo(() => {
+    if (!targetType) return variables;
+    return variables.filter((v) => v.fieldType.type === targetType);
+  }, [variables, targetType]);
+
+  // Filter data fields to match target type
+  const filteredDataFields = useMemo(() => {
+    if (!targetType) return dataTypeFields;
+    return dataTypeFields.filter((f) => f.type === targetType);
+  }, [dataTypeFields, targetType]);
 
   const handleVariableIdChange = (variableId: string) => {
     const updated = cloneAction(varAction);
@@ -138,11 +200,6 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
   // Get literal value as string for display
   const literalValue = varAction.value.type === 'literal' ? String(varAction.value.value) : '';
 
-  // Get data type fields and entries for the data source sub-editor
-  const dataTypeIdForLookup = varAction.value.type === 'data' ? varAction.value.dataTypeId : '';
-  const currentDataType = dataTypes.find((dt) => dt.id === dataTypeIdForLookup);
-  const currentDataEntries = dataTypeIdForLookup ? (dataEntries[dataTypeIdForLookup] ?? []) : [];
-
   return (
     <div className="rounded-md border p-3">
       <div className="flex items-center justify-between">
@@ -161,27 +218,12 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
         {/* Variable ID Select */}
         <div className="flex items-center gap-2">
           <Label className="w-16 text-xs text-muted-foreground">変数</Label>
-          {variables.length > 0 ? (
-            <Select value={varAction.variableId} onValueChange={handleVariableIdChange}>
-              <SelectTrigger className="flex-1" data-testid="variable-id-select">
-                <SelectValue placeholder="変数を選択..." />
-              </SelectTrigger>
-              <SelectContent>
-                {variables.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
-                    {v.name || v.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Select disabled>
-              <SelectTrigger className="flex-1" data-testid="variable-id-select">
-                <SelectValue placeholder="変数を選択..." />
-              </SelectTrigger>
-              <SelectContent />
-            </Select>
-          )}
+          <VariableSelect
+            value={varAction.variableId}
+            variables={variables}
+            onValueChange={handleVariableIdChange}
+            testId="variable-id-select"
+          />
         </div>
 
         {/* Operation Select */}
@@ -233,27 +275,12 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
 
         {varAction.value.type === 'variable' && (
           <div className="flex items-center gap-2 pl-18">
-            {variables.length > 0 ? (
-              <Select value={varAction.value.variableId} onValueChange={handleVariableValueChange}>
-                <SelectTrigger className="flex-1" data-testid="value-variable-select">
-                  <SelectValue placeholder="変数を選択..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {variables.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {v.name || v.id}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <Select disabled>
-                <SelectTrigger className="flex-1" data-testid="value-variable-select">
-                  <SelectValue placeholder="変数を選択..." />
-                </SelectTrigger>
-                <SelectContent />
-              </Select>
-            )}
+            <VariableSelect
+              value={varAction.value.variableId}
+              variables={filteredVariables}
+              onValueChange={handleVariableValueChange}
+              testId="value-variable-select"
+            />
           </div>
         )}
 
@@ -296,8 +323,9 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
                   <SelectValue placeholder="フィールドを選択..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {currentDataType?.fields.map((f) => (
+                  {filteredDataFields.map((f) => (
                     <SelectItem key={f.id} value={f.id}>
+                      <span className="mr-2 text-xs text-muted-foreground">{f.type}</span>
                       {f.name || f.id}
                     </SelectItem>
                   ))}
@@ -328,6 +356,49 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
           </div>
         )}
       </div>
+
+      {/* Type mismatch error */}
+      {typeMismatch && (
+        <p className="mt-2 text-xs text-destructive" data-testid="type-mismatch-error">
+          型が一致しません（変数: {targetType}、値: {valueSourceType}）
+        </p>
+      )}
     </div>
+  );
+}
+
+/** Inline variable select with type labels */
+function VariableSelect({
+  value,
+  variables,
+  onValueChange,
+  testId,
+}: {
+  value: string;
+  variables: Variable[];
+  onValueChange: (id: string) => void;
+  testId: string;
+}) {
+  return variables.length > 0 ? (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="flex-1" data-testid={testId}>
+        <SelectValue placeholder="変数を選択..." />
+      </SelectTrigger>
+      <SelectContent>
+        {variables.map((v) => (
+          <SelectItem key={v.id} value={v.id}>
+            <span className="mr-2 text-xs text-muted-foreground">{v.fieldType.type}</span>
+            {v.name || v.id}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  ) : (
+    <Select disabled>
+      <SelectTrigger className="flex-1" data-testid={testId}>
+        <SelectValue placeholder="変数がありません" />
+      </SelectTrigger>
+      <SelectContent />
+    </Select>
   );
 }

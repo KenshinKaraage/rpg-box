@@ -2,14 +2,16 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { VariableOpActionBlock } from './VariableOpActionBlock';
 import { VariableOpAction } from '@/engine/actions/VariableOpAction';
 import { useStore } from '@/stores';
+import { NumberFieldType, StringFieldType } from '@/types/fields';
 
 jest.mock('@/stores', () => ({
   useStore: jest.fn(),
 }));
 
 const mockVariables = [
-  { id: 'hp', name: 'HP', fieldType: {}, isArray: false, initialValue: 0 },
-  { id: 'mp', name: 'MP', fieldType: {}, isArray: false, initialValue: 0 },
+  { id: 'hp', name: 'HP', fieldType: new NumberFieldType(), isArray: false, initialValue: 0 },
+  { id: 'mp', name: 'MP', fieldType: new NumberFieldType(), isArray: false, initialValue: 0 },
+  { id: 'name', name: '名前', fieldType: new StringFieldType(), isArray: false, initialValue: '' },
 ];
 
 const mockDataTypes = [
@@ -17,8 +19,8 @@ const mockDataTypes = [
     id: 'enemies',
     name: '敵データ',
     fields: [
-      { id: 'name', name: '名前' },
-      { id: 'attack', name: '攻撃力' },
+      { id: 'ename', name: '名前', type: 'string' },
+      { id: 'attack', name: '攻撃力', type: 'number' },
     ],
   },
 ];
@@ -73,7 +75,6 @@ describe('VariableOpActionBlock', () => {
     render(<VariableOpActionBlock {...createProps()} />);
     const select = screen.getByTestId('variable-id-select');
     expect(select).toBeInTheDocument();
-    // The select trigger should show the variable name
     expect(select).toHaveTextContent('HP');
   });
 
@@ -151,11 +152,6 @@ describe('VariableOpActionBlock', () => {
       value: { type: 'data', dataTypeId: 'enemies', entryId: 'slime', fieldId: 'attack' },
     });
     render(<VariableOpActionBlock {...props} />);
-    // Simulate data type change by calling onChange handler directly via the component
-    // We can verify the handler behavior through the onChange mock
-    // The handleDataTypeChange resets entryId and fieldId to ''
-    // Since we can't easily trigger a Select change in jsdom, test the handler logic via a literal approach:
-    // Instead, we verify the sub-editors are rendered
     expect(screen.getByTestId('value-data-type-select')).toHaveTextContent('敵データ');
     expect(screen.getByTestId('value-data-entry-select')).toHaveTextContent('スライム');
     expect(screen.getByTestId('value-data-field-select')).toHaveTextContent('攻撃力');
@@ -174,5 +170,42 @@ describe('VariableOpActionBlock', () => {
     fireEvent.change(screen.getByTestId('value-input'), { target: { value: '42' } });
     const updated = props.onChange.mock.calls[0]![0] as VariableOpAction;
     expect(updated.type).toBe('variableOp');
+  });
+
+  it('変数ドロップリストに型名が表示される', () => {
+    render(<VariableOpActionBlock {...createProps()} />);
+    const trigger = screen.getByTestId('variable-id-select');
+    expect(trigger).toHaveTextContent('number');
+    expect(trigger).toHaveTextContent('HP');
+  });
+
+  it('型が不一致の場合エラーが表示される', () => {
+    // target: hp (number), value source: name variable (string)
+    const props = createProps({ value: { type: 'variable', variableId: 'name' } });
+    render(<VariableOpActionBlock {...props} />);
+    expect(screen.getByTestId('type-mismatch-error')).toBeInTheDocument();
+    expect(screen.getByTestId('type-mismatch-error')).toHaveTextContent('型が一致しません');
+  });
+
+  it('型が一致する場合エラーが表示されない', () => {
+    // target: hp (number), value source: mp variable (number)
+    const props = createProps({ value: { type: 'variable', variableId: 'mp' } });
+    render(<VariableOpActionBlock {...props} />);
+    expect(screen.queryByTestId('type-mismatch-error')).not.toBeInTheDocument();
+  });
+
+  it('ランダムの場合、number変数に対してエラーが出ない', () => {
+    const props = createProps({ value: { type: 'random', min: 0, max: 100 } });
+    render(<VariableOpActionBlock {...props} />);
+    expect(screen.queryByTestId('type-mismatch-error')).not.toBeInTheDocument();
+  });
+
+  it('ランダムの場合、string変数に対してエラーが出る', () => {
+    const props = createProps({
+      variableId: 'name',
+      value: { type: 'random', min: 0, max: 100 },
+    });
+    render(<VariableOpActionBlock {...props} />);
+    expect(screen.getByTestId('type-mismatch-error')).toBeInTheDocument();
   });
 });
