@@ -165,9 +165,26 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
     return classSubFields.filter((f) => f.type === targetType);
   }, [classSubFields, targetType]);
 
+  // Whether the target variable is an array
+  const isTargetArray = targetVariable?.isArray ?? false;
+
+  // Number variables for array index selection
+  const numberVariables = useMemo(
+    () => variables.filter((v) => v.fieldType.type === 'number' && !v.isArray),
+    [variables]
+  );
+
   const handleVariableIdChange = (variableId: string) => {
     const updated = cloneAction(varAction);
     updated.variableId = variableId;
+    // Reset arrayIndex when switching to a non-array variable
+    const newVar = variables.find((v) => v.id === variableId);
+    if (!newVar?.isArray) {
+      updated.arrayIndex = undefined;
+    } else if (!varAction.arrayIndex) {
+      // Initialize arrayIndex when switching to an array variable
+      updated.arrayIndex = { type: 'literal', value: 0 };
+    }
     onChange(updated);
   };
 
@@ -255,6 +272,28 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
     onChange(updated);
   };
 
+  const handleArrayIndexTypeChange = (indexType: string) => {
+    const updated = cloneAction(varAction);
+    updated.arrayIndex =
+      indexType === 'literal'
+        ? { type: 'literal', value: 0 }
+        : { type: 'variable', variableId: '' };
+    onChange(updated);
+  };
+
+  const handleArrayIndexLiteralChange = (valueStr: string) => {
+    const num = parseInt(valueStr, 10);
+    const updated = cloneAction(varAction);
+    updated.arrayIndex = { type: 'literal', value: isNaN(num) ? 0 : num };
+    onChange(updated);
+  };
+
+  const handleArrayIndexVariableChange = (variableId: string) => {
+    const updated = cloneAction(varAction);
+    updated.arrayIndex = { type: 'variable', variableId };
+    onChange(updated);
+  };
+
   // Get literal value as string for display
   const literalValue = varAction.value.type === 'literal' ? String(varAction.value.value) : '';
 
@@ -283,6 +322,40 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
             testId="variable-id-select"
           />
         </div>
+
+        {/* Array Index (shown only for array variables) */}
+        {isTargetArray && varAction.arrayIndex && (
+          <div className="flex items-center gap-2">
+            <Label className="w-16 text-xs text-muted-foreground">添字</Label>
+            <Select value={varAction.arrayIndex.type} onValueChange={handleArrayIndexTypeChange}>
+              <SelectTrigger className="w-20" data-testid="array-index-type-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="literal">直値</SelectItem>
+                <SelectItem value="variable">変数</SelectItem>
+              </SelectContent>
+            </Select>
+            {varAction.arrayIndex.type === 'literal' && (
+              <Input
+                type="number"
+                value={String(varAction.arrayIndex.value)}
+                onChange={(e) => handleArrayIndexLiteralChange(e.target.value)}
+                className="w-20"
+                min={0}
+                data-testid="array-index-input"
+              />
+            )}
+            {varAction.arrayIndex.type === 'variable' && (
+              <VariableSelect
+                value={varAction.arrayIndex.variableId}
+                variables={numberVariables}
+                onValueChange={handleArrayIndexVariableChange}
+                testId="array-index-variable-select"
+              />
+            )}
+          </div>
+        )}
 
         {/* Operation Select */}
         <div className="flex items-center gap-2">
@@ -466,7 +539,10 @@ function VariableSelect({
       <SelectContent>
         {variables.map((v) => (
           <SelectItem key={v.id} value={v.id}>
-            <span className="mr-2 text-xs text-muted-foreground">{v.fieldType.type}</span>
+            <span className="mr-2 text-xs text-muted-foreground">
+              {v.fieldType.type}
+              {v.isArray && '[]'}
+            </span>
             {v.name || v.id}
           </SelectItem>
         ))}
