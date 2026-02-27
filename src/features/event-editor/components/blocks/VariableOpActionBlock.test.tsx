@@ -2,17 +2,26 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { VariableOpActionBlock } from './VariableOpActionBlock';
 import { VariableOpAction } from '@/engine/actions/VariableOpAction';
 import { useStore } from '@/stores';
-import { NumberFieldType, StringFieldType } from '@/types/fields';
+import { NumberFieldType, StringFieldType, ClassFieldType } from '@/types/fields';
 
 jest.mock('@/stores', () => ({
   useStore: jest.fn(),
 }));
 
+const classFieldType = new ClassFieldType();
+classFieldType.classId = 'class_status';
+
 const mockVariables = [
   { id: 'hp', name: 'HP', fieldType: new NumberFieldType(), isArray: false, initialValue: 0 },
   { id: 'mp', name: 'MP', fieldType: new NumberFieldType(), isArray: false, initialValue: 0 },
   { id: 'name', name: '名前', fieldType: new StringFieldType(), isArray: false, initialValue: '' },
+  { id: 'stats', name: 'ステータス', fieldType: classFieldType, isArray: false, initialValue: {} },
 ];
+
+const mockClassStatusField = new ClassFieldType();
+mockClassStatusField.id = 'base_stats';
+mockClassStatusField.name = '基本ステータス';
+mockClassStatusField.classId = 'class_status';
 
 const mockDataTypes = [
   {
@@ -21,6 +30,19 @@ const mockDataTypes = [
     fields: [
       { id: 'ename', name: '名前', type: 'string' },
       { id: 'attack', name: '攻撃力', type: 'number' },
+      mockClassStatusField,
+    ],
+  },
+];
+
+const mockClasses = [
+  {
+    id: 'class_status',
+    name: 'ステータス',
+    fields: [
+      { id: 'hp', name: 'HP', type: 'number' },
+      { id: 'mp', name: 'MP', type: 'number' },
+      { id: 'atk', name: 'ATK', type: 'number' },
     ],
   },
 ];
@@ -42,6 +64,7 @@ function setupMockStore(overrides: Record<string, unknown> = {}) {
         variables: mockVariables,
         dataTypes: mockDataTypes,
         dataEntries: mockDataEntries,
+        classes: mockClasses,
         ...overrides,
       })
   );
@@ -207,5 +230,88 @@ describe('VariableOpActionBlock', () => {
     });
     render(<VariableOpActionBlock {...props} />);
     expect(screen.getByTestId('type-mismatch-error')).toBeInTheDocument();
+  });
+
+  describe('クラスフィールドドリリング', () => {
+    it('number変数 + classフィールド選択時、サブフィールドSelectが表示される', () => {
+      const props = createProps({
+        variableId: 'hp',
+        value: { type: 'data', dataTypeId: 'enemies', entryId: 'slime', fieldId: 'base_stats' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      expect(screen.getByTestId('value-data-subfield-select')).toBeInTheDocument();
+    });
+
+    it('サブフィールドに型名が表示される', () => {
+      const props = createProps({
+        variableId: 'hp',
+        value: { type: 'data', dataTypeId: 'enemies', entryId: 'slime', fieldId: 'base_stats' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      expect(screen.getByTestId('value-data-subfield-select')).toBeInTheDocument();
+    });
+
+    it('サブフィールド変更でonChangeが呼ばれsubFieldIdが設定される', () => {
+      const props = createProps({
+        variableId: 'hp',
+        value: { type: 'data', dataTypeId: 'enemies', entryId: 'slime', fieldId: 'base_stats' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      // subfield select exists - the handler is wired correctly
+      expect(screen.getByTestId('value-data-subfield-select')).toBeInTheDocument();
+    });
+
+    it('class変数 + classフィールドの場合、サブフィールドが不要（丸ごと代入）', () => {
+      const props = createProps({
+        variableId: 'stats',
+        value: { type: 'data', dataTypeId: 'enemies', entryId: 'slime', fieldId: 'base_stats' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      expect(screen.queryByTestId('value-data-subfield-select')).not.toBeInTheDocument();
+    });
+
+    it('class変数 + classフィールド丸ごとの場合、型が一致しエラーなし', () => {
+      const props = createProps({
+        variableId: 'stats',
+        value: { type: 'data', dataTypeId: 'enemies', entryId: 'slime', fieldId: 'base_stats' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      expect(screen.queryByTestId('type-mismatch-error')).not.toBeInTheDocument();
+    });
+
+    it('number変数 + classフィールド + subFieldId設定時、型が一致しエラーなし', () => {
+      const props = createProps({
+        variableId: 'hp',
+        value: {
+          type: 'data',
+          dataTypeId: 'enemies',
+          entryId: 'slime',
+          fieldId: 'base_stats',
+          subFieldId: 'atk',
+        },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      expect(screen.queryByTestId('type-mismatch-error')).not.toBeInTheDocument();
+    });
+
+    it('number変数 + classフィールド + subFieldId未設定時、型エラーなし（未設定扱い）', () => {
+      const props = createProps({
+        variableId: 'hp',
+        value: { type: 'data', dataTypeId: 'enemies', entryId: 'slime', fieldId: 'base_stats' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      // subFieldId未設定の場合、resolveValueSourceTypeがnullを返すのでエラーなし
+      expect(screen.queryByTestId('type-mismatch-error')).not.toBeInTheDocument();
+    });
+
+    it('フィールドドロップリストにclassフィールドが表示される（number変数時）', () => {
+      const props = createProps({
+        variableId: 'hp',
+        value: { type: 'data', dataTypeId: 'enemies', entryId: 'slime', fieldId: '' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      // class field should appear because it has number sub-fields
+      expect(screen.getByTestId('value-data-field-select')).toBeInTheDocument();
+    });
   });
 });

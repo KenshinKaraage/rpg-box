@@ -2,12 +2,15 @@
  * デフォルトデータタイプ
  *
  * RPG開発でよく使用されるデータタイプのプリセット
+ * デフォルトクラスを最大限活用した構成
  */
 import { createFieldTypeInstance } from '@/types/fields';
 import type { FieldType } from '@/types/fields';
 import { createDataType, type DataType } from '@/types/data';
 import {
   STATUS_CLASS_ID,
+  EFFECT_CLASS_ID,
+  BATTLE_SKILL_RESULT_CLASS_ID,
   LEARN_SKILL_CLASS_ID,
   DROP_ITEM_CLASS_ID,
   ENEMY_MEMBER_CLASS_ID,
@@ -62,14 +65,7 @@ function createCharacterType(): DataType {
     f('image', { id: 'walk_graphic', name: '歩行グラフィック' }),
     f('dataSelect', { id: 'job', name: 'ジョブ', referenceTypeId: 'job' }),
     f('number', { id: 'initial_level', name: '初期レベル', min: 1, max: 99 }),
-    f('number', { id: 'hp', name: 'HP', min: 0, max: 99999 }),
-    f('number', { id: 'mp', name: 'MP', min: 0, max: 9999 }),
-    f('number', { id: 'atk', name: 'ATK', min: 0, max: 9999 }),
-    f('number', { id: 'def', name: 'DEF', min: 0, max: 9999 }),
-    f('number', { id: 'matk', name: 'MATK', min: 0, max: 9999 }),
-    f('number', { id: 'mdef', name: 'MDEF', min: 0, max: 9999 }),
-    f('number', { id: 'spd', name: 'SPD', min: 0, max: 999 }),
-    f('number', { id: 'luk', name: 'LUK', min: 0, max: 999 }),
+    f('class', { id: 'base_stats', name: '基本ステータス', classId: STATUS_CLASS_ID }),
     f('dataList', { id: 'element_resistance', name: '属性耐性', referenceTypeId: 'element' }),
     f('dataList', { id: 'status_resistance', name: '状態異常耐性', referenceTypeId: 'status' }),
     f('dataSelect', { id: 'initial_equipment', name: '初期装備', referenceTypeId: 'item' }),
@@ -80,14 +76,7 @@ function createJobType(): DataType {
   return dt('job', 'ジョブ', 'キャラクターの職業', [
     f('textarea', { id: 'description', name: '説明' }),
     f('image', { id: 'icon', name: 'アイコン' }),
-    f('number', { id: 'hp_growth', name: 'HP成長率', min: 0, max: 999 }),
-    f('number', { id: 'mp_growth', name: 'MP成長率', min: 0, max: 999 }),
-    f('number', { id: 'atk_growth', name: 'ATK成長率', min: 0, max: 999 }),
-    f('number', { id: 'def_growth', name: 'DEF成長率', min: 0, max: 999 }),
-    f('number', { id: 'matk_growth', name: 'MATK成長率', min: 0, max: 999 }),
-    f('number', { id: 'mdef_growth', name: 'MDEF成長率', min: 0, max: 999 }),
-    f('number', { id: 'spd_growth', name: 'SPD成長率', min: 0, max: 999 }),
-    f('number', { id: 'luk_growth', name: 'LUK成長率', min: 0, max: 999 }),
+    f('class', { id: 'growth_rates', name: '成長率', classId: STATUS_CLASS_ID }),
     f('classList', { id: 'learn_skills', name: '習得スキル', classId: LEARN_SKILL_CLASS_ID }),
     f('dataList', { id: 'equippable_types', name: '装備可能タイプ', referenceTypeId: 'item' }),
   ]);
@@ -107,8 +96,6 @@ function createSkillType(): DataType {
       ],
     }),
     f('number', { id: 'mp_cost', name: 'MP消費', min: 0, max: 9999 }),
-    f('number', { id: 'power', name: '威力', min: 0, max: 9999 }),
-    f('number', { id: 'hit_rate', name: '命中率(%)', min: 0, max: 100 }),
     f('select', {
       id: 'target_scope',
       name: '対象範囲',
@@ -127,6 +114,12 @@ function createSkillType(): DataType {
         { value: 'self', label: '自分' },
       ],
     }),
+    f('class', {
+      id: 'battle_result',
+      name: 'バトル結果',
+      classId: BATTLE_SKILL_RESULT_CLASS_ID,
+    }),
+    f('classList', { id: 'effects', name: 'エフェクト', classId: EFFECT_CLASS_ID }),
     f('dataSelect', { id: 'element', name: '属性', referenceTypeId: 'element' }),
     f('dataList', { id: 'status_effects', name: '状態異常効果', referenceTypeId: 'status' }),
     f('audio', { id: 'se', name: '効果音' }),
@@ -149,18 +142,7 @@ function createItemType(): DataType {
       ],
     }),
     f('number', { id: 'price', name: '価格', min: 0, max: 999999 }),
-    f('select', {
-      id: 'effect_type',
-      name: '効果種類',
-      options: [
-        { value: 'none', label: 'なし' },
-        { value: 'hp_recover', label: 'HP回復' },
-        { value: 'mp_recover', label: 'MP回復' },
-        { value: 'status_cure', label: '状態異常回復' },
-        { value: 'buff', label: 'バフ' },
-      ],
-    }),
-    f('number', { id: 'effect_value', name: '効果値', min: 0, max: 99999 }),
+    f('classList', { id: 'effects', name: '効果', classId: EFFECT_CLASS_ID }),
     f('select', {
       id: 'target',
       name: '使用対象',
@@ -182,7 +164,7 @@ function createItemType(): DataType {
         { value: 'accessory', label: 'アクセサリ' },
       ],
     }),
-    f('classList', { id: 'status_bonus', name: 'ステータスボーナス', classId: STATUS_CLASS_ID }),
+    f('class', { id: 'status_bonus', name: 'ステータスボーナス', classId: STATUS_CLASS_ID }),
     f('dataSelect', { id: 'element_bonus', name: '属性ボーナス', referenceTypeId: 'element' }),
     f('dataList', { id: 'status_resistance', name: '状態異常耐性', referenceTypeId: 'status' }),
     f('select', {
@@ -203,14 +185,7 @@ function createEnemyType(): DataType {
   return dt('enemy', '敵', '敵キャラクター', [
     f('textarea', { id: 'description', name: '説明' }),
     f('image', { id: 'graphic', name: 'グラフィック' }),
-    f('number', { id: 'hp', name: 'HP', min: 0, max: 99999 }),
-    f('number', { id: 'mp', name: 'MP', min: 0, max: 9999 }),
-    f('number', { id: 'atk', name: 'ATK', min: 0, max: 9999 }),
-    f('number', { id: 'def', name: 'DEF', min: 0, max: 9999 }),
-    f('number', { id: 'matk', name: 'MATK', min: 0, max: 9999 }),
-    f('number', { id: 'mdef', name: 'MDEF', min: 0, max: 9999 }),
-    f('number', { id: 'spd', name: 'SPD', min: 0, max: 999 }),
-    f('number', { id: 'luk', name: 'LUK', min: 0, max: 999 }),
+    f('class', { id: 'base_stats', name: '基本ステータス', classId: STATUS_CLASS_ID }),
     f('number', { id: 'exp', name: '経験値', min: 0, max: 99999 }),
     f('number', { id: 'gold', name: 'ゴールド', min: 0, max: 99999 }),
     f('classList', { id: 'drop_items', name: 'ドロップアイテム', classId: DROP_ITEM_CLASS_ID }),

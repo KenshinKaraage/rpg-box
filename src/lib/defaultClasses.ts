@@ -61,6 +61,8 @@ function createStatusClass(): CustomClass {
       f('number', { id: 'mp', name: 'MP', min: 0, max: 9999 }),
       f('number', { id: 'atk', name: 'ATK', min: 0, max: 9999 }),
       f('number', { id: 'def', name: 'DEF', min: 0, max: 9999 }),
+      f('number', { id: 'matk', name: 'MATK', min: 0, max: 9999 }),
+      f('number', { id: 'mdef', name: 'MDEF', min: 0, max: 9999 }),
       f('number', { id: 'spd', name: 'SPD', min: 0, max: 999 }),
       f('number', { id: 'luk', name: 'LUK', min: 0, max: 999 }),
     ],

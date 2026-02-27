@@ -19,6 +19,7 @@ export interface DataValueSource {
   dataTypeId: string;
   entryId: string;
   fieldId: string;
+  subFieldId?: string;
 }
 
 export interface RandomValueSource {

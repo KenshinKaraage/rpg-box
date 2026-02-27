@@ -29,7 +29,11 @@ export const dataHandler: ValueSourceHandler<DataValueSource> = {
     if (!entries) return undefined;
     const entry = entries[source.entryId];
     if (!entry) return undefined;
-    return entry[source.fieldId];
+    const fieldValue = entry[source.fieldId];
+    if (source.subFieldId && typeof fieldValue === 'object' && fieldValue !== null) {
+      return (fieldValue as Record<string, unknown>)[source.subFieldId];
+    }
+    return fieldValue;
   },
 };
 

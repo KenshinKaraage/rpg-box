@@ -17,6 +17,7 @@ import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { VariableOpAction } from '@/engine/actions/VariableOpAction';
 import type { ValueSource } from '@/engine/values/types';
 import type { Variable } from '@/types/variable';
+import type { CustomClass } from '@/types/customClass';
 
 const OPERATIONS = [
   { value: 'set', label: '代入' },
@@ -54,7 +55,8 @@ function createDefaultValueSource(type: ValueSource['type']): ValueSource {
 function resolveValueSourceType(
   value: ValueSource,
   variables: Variable[],
-  dataTypeFields: { id: string; type: string }[]
+  dataTypeFields: { id: string; type: string; classId?: string }[],
+  classSubFields: { id: string; type: string }[]
 ): string | null {
   switch (value.type) {
     case 'literal': {
@@ -72,7 +74,14 @@ function resolveValueSourceType(
     case 'data': {
       if (!value.fieldId) return null;
       const field = dataTypeFields.find((f) => f.id === value.fieldId);
-      return field?.type ?? null;
+      if (!field) return null;
+      // For class fields, resolve through sub-field if set; otherwise null (incomplete)
+      if (field.type === 'class') {
+        if (!value.subFieldId) return field.classId ? null : 'class';
+        const subField = classSubFields.find((sf) => sf.id === value.subFieldId);
+        return subField?.type ?? null;
+      }
+      return field.type;
     }
     case 'random':
       return 'number';
@@ -84,22 +93,48 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
   const variables = useStore((state) => state.variables);
   const dataTypes = useStore((state) => state.dataTypes);
   const dataEntries = useStore((state) => state.dataEntries);
+  const classes = useStore((state) => state.classes);
 
   // Target variable type
   const targetVariable = variables.find((v) => v.id === varAction.variableId);
   const targetType = targetVariable?.fieldType.type ?? null;
 
-  // Data source fields (for type resolution)
+  // Data source fields (for type resolution) — include classId for class fields
   const dataTypeIdForLookup = varAction.value.type === 'data' ? varAction.value.dataTypeId : '';
   const currentDataType = dataTypes.find((dt) => dt.id === dataTypeIdForLookup);
   const currentDataEntries = dataTypeIdForLookup ? (dataEntries[dataTypeIdForLookup] ?? []) : [];
   const dataTypeFields = useMemo(
-    () => (currentDataType?.fields ?? []).map((f) => ({ id: f.id, name: f.name, type: f.type })),
+    () =>
+      (currentDataType?.fields ?? []).map((f) => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        classId: 'classId' in f ? (f as { classId: string }).classId : undefined,
+      })),
     [currentDataType]
   );
 
+  // Selected data field & class sub-fields
+  const selectedDataFieldId = varAction.value.type === 'data' ? varAction.value.fieldId : '';
+  const selectedDataField = dataTypeFields.find((f) => f.id === selectedDataFieldId);
+  const selectedClass: CustomClass | undefined = selectedDataField?.classId
+    ? classes.find((c) => c.id === selectedDataField.classId)
+    : undefined;
+  const classSubFields = useMemo(
+    () => (selectedClass?.fields ?? []).map((f) => ({ id: f.id, name: f.name, type: f.type })),
+    [selectedClass]
+  );
+
+  // Whether to show sub-field selector: class field selected AND target is NOT class
+  const needsSubField = !!selectedClass && targetType !== 'class';
+
   // Value source type
-  const valueSourceType = resolveValueSourceType(varAction.value, variables, dataTypeFields);
+  const valueSourceType = resolveValueSourceType(
+    varAction.value,
+    variables,
+    dataTypeFields,
+    classSubFields
+  );
 
   // Type mismatch detection
   const typeMismatch = targetType && valueSourceType && targetType !== valueSourceType;
@@ -113,8 +148,22 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
   // Filter data fields to match target type
   const filteredDataFields = useMemo(() => {
     if (!targetType) return dataTypeFields;
-    return dataTypeFields.filter((f) => f.type === targetType);
-  }, [dataTypeFields, targetType]);
+    return dataTypeFields.filter((f) => {
+      if (f.type === targetType) return true;
+      // Show class fields if they contain sub-fields matching the target type
+      if (f.classId) {
+        const cls = classes.find((c) => c.id === f.classId);
+        return cls?.fields.some((sf) => sf.type === targetType) ?? false;
+      }
+      return false;
+    });
+  }, [dataTypeFields, targetType, classes]);
+
+  // Filter sub-fields to match target type
+  const filteredSubFields = useMemo(() => {
+    if (!targetType) return classSubFields;
+    return classSubFields.filter((f) => f.type === targetType);
+  }, [classSubFields, targetType]);
 
   const handleVariableIdChange = (variableId: string) => {
     const updated = cloneAction(varAction);
@@ -174,7 +223,16 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
         dataTypeId: varAction.value.dataTypeId,
         entryId: varAction.value.entryId,
         fieldId,
+        // Reset subFieldId when field changes
       };
+    }
+    onChange(updated);
+  };
+
+  const handleSubFieldChange = (subFieldId: string) => {
+    const updated = cloneAction(varAction);
+    if (varAction.value.type === 'data') {
+      updated.value = { ...varAction.value, subFieldId };
     }
     onChange(updated);
   };
@@ -332,6 +390,27 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
                 </SelectContent>
               </Select>
             </div>
+            {needsSubField && (
+              <div className="flex items-center gap-2">
+                <Label className="w-20 text-xs text-muted-foreground">サブフィールド</Label>
+                <Select
+                  value={varAction.value.type === 'data' ? (varAction.value.subFieldId ?? '') : ''}
+                  onValueChange={handleSubFieldChange}
+                >
+                  <SelectTrigger className="flex-1" data-testid="value-data-subfield-select">
+                    <SelectValue placeholder="サブフィールドを選択..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredSubFields.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>
+                        <span className="mr-2 text-xs text-muted-foreground">{f.type}</span>
+                        {f.name || f.id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         )}
 
