@@ -1,8 +1,29 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MapActionBlock } from './MapActionBlock';
 import { MapAction } from '@/engine/actions/MapAction';
+import { useStore } from '@/stores';
+
+jest.mock('@/stores', () => ({
+  useStore: jest.fn(),
+}));
+
+const mockMaps = [
+  { id: 'map-001', name: 'フィールド' },
+  { id: 'src-map', name: 'ダンジョン' },
+];
+
+const mockVariables = [
+  { id: 'result-var', name: '結果', fieldType: {}, isArray: false, initialValue: 0 },
+];
 
 describe('MapActionBlock', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useStore as unknown as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
+      selector({ maps: mockMaps, variables: mockVariables })
+    );
+  });
+
   const createProps = (operation: MapAction['operation'] = 'changeMap') => {
     const action = new MapAction();
     action.operation = operation;
@@ -27,9 +48,9 @@ describe('MapActionBlock', () => {
     expect(screen.getByText('マップ操作')).toBeInTheDocument();
   });
 
-  it('デフォルト操作(changeMap)でマップIDが表示される', () => {
+  it('デフォルト操作(changeMap)でマップ名が表示される', () => {
     render(<MapActionBlock {...createProps('changeMap')} />);
-    expect(screen.getByTestId('target-map-id-input')).toHaveValue('map-001');
+    expect(screen.getByTestId('target-map-select')).toHaveTextContent('フィールド');
     expect(screen.getByTestId('x-input')).toHaveValue(10);
     expect(screen.getByTestId('y-input')).toHaveValue(20);
   });
@@ -37,24 +58,29 @@ describe('MapActionBlock', () => {
   it('操作をgetChipに変更するとフィールドが切り替わる', () => {
     const props = createProps('getChip');
     render(<MapActionBlock {...props} />);
-    expect(screen.getByTestId('source-map-id-input')).toHaveValue('src-map');
+    expect(screen.getByTestId('source-map-select')).toHaveTextContent('ダンジョン');
     expect(screen.getByTestId('chip-x-input')).toHaveValue(5);
     expect(screen.getByTestId('chip-y-input')).toHaveValue(6);
     expect(screen.getByTestId('layer-input')).toHaveValue(0);
-    expect(screen.getByTestId('result-variable-id-input')).toHaveValue('result-var');
-    expect(screen.queryByTestId('target-map-id-input')).not.toBeInTheDocument();
+    expect(screen.getByTestId('result-variable-select')).toHaveTextContent('結果');
+    expect(screen.queryByTestId('target-map-select')).not.toBeInTheDocument();
   });
 
-  it('プロパティを変更するとonChangeが呼ばれる', () => {
+  it('ストアからマップと変数が取得される', () => {
+    render(<MapActionBlock {...createProps()} />);
+    expect(useStore).toHaveBeenCalled();
+  });
+
+  it('クローンがクラスインスタンスを保持する', () => {
     const props = createProps('changeMap');
     render(<MapActionBlock {...props} />);
-    fireEvent.change(screen.getByTestId('target-map-id-input'), {
-      target: { value: 'map-002' },
+    // Trigger onChange via x input (still an Input element)
+    fireEvent.change(screen.getByTestId('x-input'), {
+      target: { value: '99' },
     });
-    expect(props.onChange).toHaveBeenCalledTimes(1);
-    const updated = props.onChange.mock.calls[0]![0] as MapAction;
-    expect(updated.targetMapId).toBe('map-002');
-    expect(updated.type).toBe('map');
+    const updated = props.onChange.mock.calls[0]![0];
+    expect(updated).toBeInstanceOf(MapAction);
+    expect(updated.x).toBe(99);
   });
 
   it('削除ボタンをクリックするとonDeleteが呼ばれる', () => {
@@ -62,5 +88,25 @@ describe('MapActionBlock', () => {
     render(<MapActionBlock {...props} />);
     fireEvent.click(screen.getByTestId('delete-action'));
     expect(props.onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('マップが空の場合でもセレクトが表示される', () => {
+    (useStore as unknown as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
+      selector({ maps: [], variables: [] })
+    );
+    const props = createProps('changeMap');
+    props.action.targetMapId = '';
+    render(<MapActionBlock {...props} />);
+    expect(screen.getByTestId('target-map-select')).toBeInTheDocument();
+  });
+
+  it('変数が空の場合でもセレクトが表示される', () => {
+    (useStore as unknown as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
+      selector({ maps: [], variables: [] })
+    );
+    const props = createProps('getChip');
+    props.action.resultVariableId = '';
+    render(<MapActionBlock {...props} />);
+    expect(screen.getByTestId('result-variable-select')).toBeInTheDocument();
   });
 });

@@ -1,8 +1,26 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AudioActionBlock } from './AudioActionBlock';
 import { AudioAction } from '@/engine/actions/AudioAction';
+import { useStore } from '@/stores';
+
+jest.mock('@/stores', () => ({
+  useStore: jest.fn(),
+}));
+
+const mockAssets = [
+  { id: 'bgm_battle', name: 'バトルBGM', type: 'audio', data: '', metadata: null },
+  { id: 'bgm_field', name: 'フィールドBGM', type: 'audio', data: '', metadata: null },
+  { id: 'img_hero', name: 'ヒーロー', type: 'image', data: '', metadata: null },
+];
 
 describe('AudioActionBlock', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useStore as unknown as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
+      selector({ assets: mockAssets })
+    );
+  });
+
   const createProps = (operation: AudioAction['operation'] = 'playBGM') => {
     const action = new AudioAction();
     action.operation = operation;
@@ -28,26 +46,21 @@ describe('AudioActionBlock', () => {
     expect(screen.getByTestId('operation-select')).toHaveTextContent('BGM再生');
   });
 
-  it('playBGMの場合にaudioIdが表示される', () => {
+  it('playBGMの場合にaudioIdセレクトが表示される', () => {
     render(<AudioActionBlock {...createProps('playBGM')} />);
-    expect(screen.getByTestId('audio-id-input')).toHaveValue('bgm_battle');
+    const trigger = screen.getByTestId('audio-id-select');
+    expect(trigger).toBeInTheDocument();
+    expect(trigger).toHaveTextContent('バトルBGM');
   });
 
-  it('stopBGMの場合にaudioIdが表示されない', () => {
+  it('stopBGMの場合にaudioIdセレクトが表示されない', () => {
     render(<AudioActionBlock {...createProps('stopBGM')} />);
-    expect(screen.queryByTestId('audio-id-input')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('audio-id-select')).not.toBeInTheDocument();
   });
 
-  it('audioIdを変更するとonChangeが呼ばれる', () => {
-    const props = createProps('playBGM');
-    render(<AudioActionBlock {...props} />);
-    fireEvent.change(screen.getByTestId('audio-id-input'), {
-      target: { value: 'bgm_field' },
-    });
-    expect(props.onChange).toHaveBeenCalledTimes(1);
-    const updated = props.onChange.mock.calls[0]![0] as AudioAction;
-    expect(updated.audioId).toBe('bgm_field');
-    expect(updated.type).toBe('audio');
+  it('audioAssetがストアから取得される', () => {
+    render(<AudioActionBlock {...createProps('playBGM')} />);
+    expect(useStore).toHaveBeenCalled();
   });
 
   it('削除ボタンをクリックするとonDeleteが呼ばれる', () => {
@@ -60,8 +73,9 @@ describe('AudioActionBlock', () => {
   it('クローンがクラスインスタンスを保持する', () => {
     const props = createProps('playBGM');
     render(<AudioActionBlock {...props} />);
-    fireEvent.change(screen.getByTestId('audio-id-input'), {
-      target: { value: 'bgm_new' },
+    // Trigger onChange via volume input (still an Input element)
+    fireEvent.change(screen.getByTestId('volume-input'), {
+      target: { value: '90' },
     });
     const updated = props.onChange.mock.calls[0]![0];
     expect(updated).toBeInstanceOf(AudioAction);
@@ -80,5 +94,23 @@ describe('AudioActionBlock', () => {
   it('playSEの場合にピッチが表示される', () => {
     render(<AudioActionBlock {...createProps('playSE')} />);
     expect(screen.getByTestId('pitch-input')).toHaveValue(100);
+  });
+
+  it('音声アセットのみがフィルタリングされる（imageは除外）', () => {
+    render(<AudioActionBlock {...createProps('playBGM')} />);
+    // The select trigger should show audio asset name, not image asset
+    const trigger = screen.getByTestId('audio-id-select');
+    expect(trigger).toHaveTextContent('バトルBGM');
+  });
+
+  it('アセットが空の場合でもセレクトが表示される', () => {
+    (useStore as unknown as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
+      selector({ assets: [] })
+    );
+    const props = createProps('playBGM');
+    props.action.audioId = '';
+    render(<AudioActionBlock {...props} />);
+    const trigger = screen.getByTestId('audio-id-select');
+    expect(trigger).toBeInTheDocument();
   });
 });

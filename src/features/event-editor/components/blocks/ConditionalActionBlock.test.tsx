@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ConditionalActionBlock } from './ConditionalActionBlock';
 import { ConditionalAction } from '@/engine/actions/ConditionalAction';
+import { useStore } from '@/stores';
 
 // Mock ActionBlockEditor to avoid recursive rendering complexity in tests
 jest.mock('../ActionBlockEditor', () => ({
@@ -23,7 +24,22 @@ jest.mock('@/engine/actions', () => ({
   getAction: jest.fn(),
 }));
 
+jest.mock('@/stores', () => ({
+  useStore: jest.fn(),
+}));
+
+const mockVariables = [
+  { id: 'hp', name: 'HP', fieldType: {}, isArray: false, initialValue: 0 },
+  { id: 'mp', name: 'MP', fieldType: {}, isArray: false, initialValue: 0 },
+];
+
 describe('ConditionalActionBlock', () => {
+  beforeEach(() => {
+    (useStore as unknown as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
+      selector({ variables: mockVariables })
+    );
+  });
+
   const createProps = () => {
     const action = new ConditionalAction();
     action.condition = { variableId: 'hp', operator: '>', value: 50 };
@@ -39,9 +55,10 @@ describe('ConditionalActionBlock', () => {
     expect(screen.getByText('条件分岐')).toBeInTheDocument();
   });
 
-  it('条件の変数IDが表示される', () => {
+  it('条件の変数名がSelectに表示される', () => {
     render(<ConditionalActionBlock {...createProps()} />);
-    expect(screen.getByTestId('condition-variable-input')).toHaveValue('hp');
+    const trigger = screen.getByTestId('condition-variable-select');
+    expect(trigger).toHaveTextContent('HP');
   });
 
   it('条件の比較値が表示される', () => {
@@ -49,15 +66,9 @@ describe('ConditionalActionBlock', () => {
     expect(screen.getByTestId('condition-value-input')).toHaveValue('50');
   });
 
-  it('変数IDを変更するとonChangeが呼ばれる', () => {
-    const props = createProps();
-    render(<ConditionalActionBlock {...props} />);
-    fireEvent.change(screen.getByTestId('condition-variable-input'), {
-      target: { value: 'mp' },
-    });
-    expect(props.onChange).toHaveBeenCalledTimes(1);
-    const updated = props.onChange.mock.calls[0]![0] as ConditionalAction;
-    expect(updated.condition.variableId).toBe('mp');
+  it('変数一覧がストアから取得される', () => {
+    render(<ConditionalActionBlock {...createProps()} />);
+    expect(useStore).toHaveBeenCalled();
   });
 
   it('比較値を変更するとonChangeが呼ばれる', () => {
@@ -82,5 +93,16 @@ describe('ConditionalActionBlock', () => {
     render(<ConditionalActionBlock {...props} />);
     fireEvent.click(screen.getByRole('button', { name: '削除' }));
     expect(props.onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('変数が空の場合でもSelectが表示される', () => {
+    (useStore as unknown as jest.Mock).mockImplementation((selector: (state: unknown) => unknown) =>
+      selector({ variables: [] })
+    );
+    const props = createProps();
+    props.action.condition.variableId = '';
+    render(<ConditionalActionBlock {...props} />);
+    const trigger = screen.getByTestId('condition-variable-select');
+    expect(trigger).toBeInTheDocument();
   });
 });

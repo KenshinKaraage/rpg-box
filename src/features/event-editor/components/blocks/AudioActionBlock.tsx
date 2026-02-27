@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useStore } from '@/stores';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { AudioAction } from '@/engine/actions/AudioAction';
 
@@ -27,6 +29,9 @@ function cloneAction(action: AudioAction): AudioAction {
 export function AudioActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const audioAction = action as AudioAction;
   const { operation } = audioAction;
+
+  const assets = useStore((state) => state.assets);
+  const audioAssets = useMemo(() => assets.filter((a) => a.type === 'audio'), [assets]);
 
   const showAudioId = operation === 'playBGM' || operation === 'playSE';
   const showVolume = operation === 'playBGM' || operation === 'playSE';
@@ -88,13 +93,18 @@ export function AudioActionBlock({ action, onChange, onDelete }: ActionBlockProp
         {showAudioId && (
           <div className="flex items-center gap-2">
             <Label className="w-20 text-xs text-muted-foreground">オーディオID</Label>
-            <Input
-              value={audioAction.audioId ?? ''}
-              onChange={(e) => handleAudioIdChange(e.target.value)}
-              placeholder="オーディオID"
-              className="flex-1"
-              data-testid="audio-id-input"
-            />
+            <Select value={audioAction.audioId ?? ''} onValueChange={handleAudioIdChange}>
+              <SelectTrigger className="flex-1" data-testid="audio-id-select">
+                <SelectValue placeholder="音声アセットを選択..." />
+              </SelectTrigger>
+              <SelectContent>
+                {audioAssets.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name || a.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 

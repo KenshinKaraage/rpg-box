@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useStore } from '@/stores';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { ConditionalAction, Condition } from '@/engine/actions/ConditionalAction';
 import type { EventAction } from '@/engine/actions/EventAction';
@@ -35,6 +36,7 @@ function cloneAction(action: ConditionalAction): ConditionalAction {
 
 export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const condAction = action as ConditionalAction;
+  const variables = useStore((state) => state.variables);
 
   const handleConditionChange = (updates: Partial<Condition>) => {
     const updated = cloneAction(condAction);
@@ -70,13 +72,21 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
 
       {/* Condition row */}
       <div className="mt-2 flex items-center gap-2">
-        <Input
+        <Select
           value={condAction.condition.variableId}
-          onChange={(e) => handleConditionChange({ variableId: e.target.value })}
-          placeholder="変数ID"
-          className="flex-1"
-          data-testid="condition-variable-input"
-        />
+          onValueChange={(val) => handleConditionChange({ variableId: val })}
+        >
+          <SelectTrigger className="flex-1" data-testid="condition-variable-select">
+            <SelectValue placeholder="変数を選択..." />
+          </SelectTrigger>
+          <SelectContent>
+            {variables.map((v) => (
+              <SelectItem key={v.id} value={v.id}>
+                {v.name || v.id}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select
           value={condAction.condition.operator}
           onValueChange={(val) => handleConditionChange({ operator: val as Condition['operator'] })}

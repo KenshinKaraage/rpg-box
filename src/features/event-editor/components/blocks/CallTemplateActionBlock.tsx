@@ -1,9 +1,16 @@
 'use client';
 
 import { Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { useStore } from '@/stores';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { CallTemplateAction } from '@/engine/actions/CallTemplateAction';
 
@@ -13,6 +20,7 @@ function cloneAction(action: CallTemplateAction): CallTemplateAction {
 
 export function CallTemplateActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const callAction = action as CallTemplateAction;
+  const eventTemplates = useStore((state) => state.eventTemplates);
 
   const handleTemplateIdChange = (templateId: string) => {
     const updated = cloneAction(callAction);
@@ -36,14 +44,19 @@ export function CallTemplateActionBlock({ action, onChange, onDelete }: ActionBl
       </div>
       <div className="mt-2 space-y-2">
         <div className="flex items-center gap-2">
-          <Label className="w-24 text-xs text-muted-foreground">テンプレートID</Label>
-          <Input
-            value={callAction.templateId}
-            onChange={(e) => handleTemplateIdChange(e.target.value)}
-            placeholder="テンプレートID"
-            className="flex-1"
-            data-testid="template-id-input"
-          />
+          <Label className="w-24 text-xs text-muted-foreground">テンプレート</Label>
+          <Select value={callAction.templateId} onValueChange={handleTemplateIdChange}>
+            <SelectTrigger className="flex-1" data-testid="template-select">
+              <SelectValue placeholder="テンプレートを選択..." />
+            </SelectTrigger>
+            <SelectContent>
+              {eventTemplates.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name || t.id}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <p className="text-xs text-muted-foreground">引数設定は今後実装予定</p>
       </div>

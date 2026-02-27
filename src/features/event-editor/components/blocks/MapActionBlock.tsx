@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useStore } from '@/stores';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { MapAction } from '@/engine/actions/MapAction';
 
@@ -30,6 +31,8 @@ function cloneAction(action: MapAction): MapAction {
 
 export function MapActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const mapAction = action as MapAction;
+  const maps = useStore((state) => state.maps);
+  const variables = useStore((state) => state.variables);
 
   const handleOperationChange = (operation: string) => {
     const updated = cloneAction(mapAction);
@@ -91,14 +94,22 @@ export function MapActionBlock({ action, onChange, onDelete }: ActionBlockProps)
         {mapAction.operation === 'changeMap' && (
           <>
             <div className="flex items-center gap-2">
-              <Label className="w-24 text-xs text-muted-foreground">マップID</Label>
-              <Input
+              <Label className="w-24 text-xs text-muted-foreground">マップ</Label>
+              <Select
                 value={mapAction.targetMapId ?? ''}
-                onChange={(e) => handleStringChange('targetMapId', e.target.value)}
-                placeholder="マップID"
-                className="flex-1"
-                data-testid="target-map-id-input"
-              />
+                onValueChange={(val) => handleStringChange('targetMapId', val)}
+              >
+                <SelectTrigger className="flex-1" data-testid="target-map-select">
+                  <SelectValue placeholder="マップを選択..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {maps.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name || m.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center gap-2">
               <Label className="w-24 text-xs text-muted-foreground">X</Label>
@@ -141,14 +152,22 @@ export function MapActionBlock({ action, onChange, onDelete }: ActionBlockProps)
         {mapAction.operation === 'getChip' && (
           <>
             <div className="flex items-center gap-2">
-              <Label className="w-24 text-xs text-muted-foreground">ソースマップID</Label>
-              <Input
+              <Label className="w-24 text-xs text-muted-foreground">ソースマップ</Label>
+              <Select
                 value={mapAction.sourceMapId ?? ''}
-                onChange={(e) => handleStringChange('sourceMapId', e.target.value)}
-                placeholder="ソースマップID"
-                className="flex-1"
-                data-testid="source-map-id-input"
-              />
+                onValueChange={(val) => handleStringChange('sourceMapId', val)}
+              >
+                <SelectTrigger className="flex-1" data-testid="source-map-select">
+                  <SelectValue placeholder="マップを選択..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {maps.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name || m.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center gap-2">
               <Label className="w-24 text-xs text-muted-foreground">チップX</Label>
@@ -181,14 +200,22 @@ export function MapActionBlock({ action, onChange, onDelete }: ActionBlockProps)
               />
             </div>
             <div className="flex items-center gap-2">
-              <Label className="w-24 text-xs text-muted-foreground">結果変数ID</Label>
-              <Input
+              <Label className="w-24 text-xs text-muted-foreground">結果変数</Label>
+              <Select
                 value={mapAction.resultVariableId ?? ''}
-                onChange={(e) => handleStringChange('resultVariableId', e.target.value)}
-                placeholder="結果変数ID"
-                className="flex-1"
-                data-testid="result-variable-id-input"
-              />
+                onValueChange={(val) => handleStringChange('resultVariableId', val)}
+              >
+                <SelectTrigger className="flex-1" data-testid="result-variable-select">
+                  <SelectValue placeholder="変数を選択..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {variables.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>
+                      {v.name || v.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </>
         )}
