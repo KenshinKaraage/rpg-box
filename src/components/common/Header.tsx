@@ -32,7 +32,7 @@ const navigationItems = [
       { href: '/map', label: 'マップ編集' },
       { href: '/map/data', label: 'マップデータ' },
       { href: '/map/prefabs', label: 'オブジェクトプレハブ' },
-      { href: '/map/events', label: 'イベントテンプレート' },
+      { href: '/event/templates', label: 'イベントテンプレート' },
     ],
   },
   {

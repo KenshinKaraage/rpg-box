@@ -3,9 +3,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { EventTemplateList } from '@/features/event-editor/components/EventTemplateList';
-import { EventTemplateEditor } from '@/features/event-editor/components/EventTemplateEditor';
-import { ActionBlockEditor } from '@/features/event-editor/components/ActionBlockEditor';
+import { EventTemplateList, EventTemplateEditor, ActionBlockEditor } from '@/features/event-editor';
 import { useStore } from '@/stores';
 import { createEventTemplate } from '@/types/event';
 import { generateId } from '@/lib/utils';
