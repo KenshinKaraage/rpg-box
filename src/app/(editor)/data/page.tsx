@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { DataTypeList, DataTypeEditor, DataEntryList, FormBuilder } from '@/features/data-editor';
 import { useStore } from '@/stores';
 import { createDataType, createDataEntry } from '@/types/data';
@@ -9,6 +10,10 @@ import { createFieldTypeInstance } from '@/types/fields';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import type { DataEntry } from '@/types/data';
 import { generateId } from '@/lib/utils';
+import {
+  findDataTypeReferences,
+  findDataEntryReferences,
+} from '@/features/data-editor/utils/referenceCheck';
 
 const EMPTY_ENTRIES: DataEntry[] = [];
 
@@ -64,6 +69,14 @@ export default function DataPage() {
     return typeEntries?.find((e) => e.id === state.selectedDataEntryId) ?? null;
   });
 
+  // 削除確認ダイアログの状態
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant: 'danger' | 'warning';
+  } | null>(null);
+
   // 既存のデータ型IDリスト（バリデーション用）
   const existingIds = useMemo(() => dataTypes.map((t) => t.id), [dataTypes]);
 
@@ -117,10 +130,37 @@ export default function DataPage() {
     selectDataType(newId);
   };
 
-  // データ型を削除
-  const handleDeleteDataType = (id: string) => {
-    deleteDataType(id);
-  };
+  // データ型を削除（参照チェック付き）
+  const handleDeleteDataType = useCallback(
+    (id: string) => {
+      const refs = findDataTypeReferences(dataTypes, id);
+      const doDelete = () => deleteDataType(id);
+
+      if (refs.length > 0) {
+        const refMessages = refs.map((r) => r.description).join('\n');
+        setDeleteConfirm({
+          title: 'データ型の削除',
+          message: `このデータ型は他から参照されています:\n${refMessages}\n\n削除すると参照が壊れます。本当に削除しますか？`,
+          variant: 'warning',
+          onConfirm: () => {
+            doDelete();
+            setDeleteConfirm(null);
+          },
+        });
+      } else {
+        setDeleteConfirm({
+          title: 'データ型の削除',
+          message: 'このデータ型を削除しますか？関連するエントリもすべて削除されます。',
+          variant: 'danger',
+          onConfirm: () => {
+            doDelete();
+            setDeleteConfirm(null);
+          },
+        });
+      }
+    },
+    [dataTypes, deleteDataType]
+  );
 
   // エントリを追加
   const handleAddEntry = () => {
@@ -151,11 +191,39 @@ export default function DataPage() {
     selectDataEntry(newId);
   };
 
-  // エントリを削除
-  const handleDeleteEntry = (entryId: string) => {
-    if (!selectedDataType) return;
-    deleteDataEntry(selectedDataType.id, entryId);
-  };
+  // エントリを削除（参照チェック付き）
+  const handleDeleteEntry = useCallback(
+    (entryId: string) => {
+      if (!selectedDataType) return;
+      const typeId = selectedDataType.id;
+      const refs = findDataEntryReferences(dataTypes, dataEntries, typeId, entryId);
+      const doDelete = () => deleteDataEntry(typeId, entryId);
+
+      if (refs.length > 0) {
+        const refMessages = refs.map((r) => r.description).join('\n');
+        setDeleteConfirm({
+          title: 'エントリの削除',
+          message: `このエントリは他から参照されています:\n${refMessages}\n\n削除すると参照が壊れます。本当に削除しますか？`,
+          variant: 'warning',
+          onConfirm: () => {
+            doDelete();
+            setDeleteConfirm(null);
+          },
+        });
+      } else {
+        setDeleteConfirm({
+          title: 'エントリの削除',
+          message: `エントリ「${entryId}」を削除しますか？`,
+          variant: 'danger',
+          onConfirm: () => {
+            doDelete();
+            setDeleteConfirm(null);
+          },
+        });
+      }
+    },
+    [selectedDataType, dataTypes, dataEntries, deleteDataEntry]
+  );
 
   // --- レンダリング ---
 
@@ -185,30 +253,43 @@ export default function DataPage() {
     );
 
   return (
-    <ThreeColumnLayout
-      left={
-        <DataTypeList
-          dataTypes={dataTypes}
-          dataEntries={dataEntries}
-          selectedId={selectedDataTypeId}
-          onSelect={selectDataType}
-          onAdd={handleAddDataType}
-          onDelete={handleDeleteDataType}
-          onDuplicate={handleDuplicateDataType}
+    <>
+      <ThreeColumnLayout
+        left={
+          <DataTypeList
+            dataTypes={dataTypes}
+            dataEntries={dataEntries}
+            selectedId={selectedDataTypeId}
+            onSelect={selectDataType}
+            onAdd={handleAddDataType}
+            onDelete={handleDeleteDataType}
+            onDuplicate={handleDuplicateDataType}
+          />
+        }
+        center={
+          <DataEntryList
+            entries={entries}
+            dataType={selectedDataType}
+            selectedId={selectedDataEntryId}
+            onSelect={selectDataEntry}
+            onAdd={handleAddEntry}
+            onDelete={handleDeleteEntry}
+            onDuplicate={handleDuplicateEntry}
+          />
+        }
+        right={rightPanel}
+      />
+
+      {deleteConfirm && (
+        <ConfirmDialog
+          open={true}
+          title={deleteConfirm.title}
+          message={deleteConfirm.message}
+          variant={deleteConfirm.variant}
+          onConfirm={deleteConfirm.onConfirm}
+          onCancel={() => setDeleteConfirm(null)}
         />
-      }
-      center={
-        <DataEntryList
-          entries={entries}
-          dataType={selectedDataType}
-          selectedId={selectedDataEntryId}
-          onSelect={selectDataEntry}
-          onAdd={handleAddEntry}
-          onDelete={handleDeleteEntry}
-          onDuplicate={handleDuplicateEntry}
-        />
-      }
-      right={rightPanel}
-    />
+      )}
+    </>
   );
 }

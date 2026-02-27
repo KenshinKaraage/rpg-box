@@ -15,6 +15,7 @@ import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { createFieldTypeInstance } from '@/types/fields';
 import { generateId } from '@/lib/utils';
 import { FieldRow } from './FieldRow';
+import { FieldTypeSelector } from './FieldTypeSelector';
 
 const dataTypeSchema = z.object({
   name: z.string().min(1, 'データ型名は必須です').max(50, '50文字以内で入力してください'),
@@ -46,6 +47,7 @@ export function DataTypeEditor({
   configContext,
 }: DataTypeEditorProps) {
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
+  const [fieldSelectorOpen, setFieldSelectorOpen] = useState(false);
 
   const defaultValues: DataTypeFormData = dataType
     ? {
@@ -73,8 +75,8 @@ export function DataTypeEditor({
     );
   }
 
-  const handleAddField = () => {
-    const newField = createFieldTypeInstance('number');
+  const handleAddField = (type: string) => {
+    const newField = createFieldTypeInstance(type);
     if (!newField) return;
     newField.id = generateId(
       'field',
@@ -187,7 +189,7 @@ export function DataTypeEditor({
       <div className="flex-1 overflow-auto p-4">
         <div className="mb-3 flex items-center justify-between">
           <Label>フィールド一覧</Label>
-          <Button size="sm" variant="outline" onClick={handleAddField}>
+          <Button size="sm" variant="outline" onClick={() => setFieldSelectorOpen(true)}>
             <Plus className="mr-1 h-4 w-4" />
             フィールド追加
           </Button>
@@ -217,6 +219,12 @@ export function DataTypeEditor({
           </div>
         )}
       </div>
+
+      <FieldTypeSelector
+        open={fieldSelectorOpen}
+        onOpenChange={setFieldSelectorOpen}
+        onSelect={handleAddField}
+      />
     </div>
   );
 }

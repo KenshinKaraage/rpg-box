@@ -3,8 +3,28 @@
  *
  * ゲーム開発でよく使用されるクラスのプリセット
  */
-import { NumberFieldType, StringFieldType, SelectFieldType } from '@/types/fields';
+import { createFieldTypeInstance } from '@/types/fields';
+import type { FieldType } from '@/types/fields';
 import type { CustomClass } from '@/types/customClass';
+
+// =============================================================================
+// ヘルパー
+// =============================================================================
+
+/**
+ * フィールドインスタンスを生成するヘルパー
+ * レジストリ経由で型を解決し、propsをObject.assignで設定
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function f(type: string, props: Record<string, unknown>): FieldType<any> {
+  const instance = createFieldTypeInstance(type);
+  if (!instance) throw new Error(`Unknown field type: ${type}`);
+  return Object.assign(instance, props);
+}
+
+// =============================================================================
+// ID定数
+// =============================================================================
 
 /** ステータスクラスID */
 export const STATUS_CLASS_ID = 'class_status';
@@ -15,147 +35,161 @@ export const EFFECT_CLASS_ID = 'class_effect';
 /** バトルスキル結果クラスID */
 export const BATTLE_SKILL_RESULT_CLASS_ID = 'class_battle_skill_result';
 
-/**
- * ステータスクラスを作成
- */
+/** 習得スキルクラスID */
+export const LEARN_SKILL_CLASS_ID = 'class_learn_skill';
+
+/** ドロップアイテムクラスID */
+export const DROP_ITEM_CLASS_ID = 'class_drop_item';
+
+/** 敵グループ構成クラスID */
+export const ENEMY_MEMBER_CLASS_ID = 'class_enemy_member';
+
+/** 行動パターンクラスID */
+export const ACTION_PATTERN_CLASS_ID = 'class_action_pattern';
+
+// =============================================================================
+// ファクトリ関数（既存クラス）
+// =============================================================================
+
 function createStatusClass(): CustomClass {
-  const hpField = new NumberFieldType();
-  hpField.id = 'hp';
-  hpField.name = 'HP';
-  hpField.min = 0;
-  hpField.max = 99999;
-
-  const mpField = new NumberFieldType();
-  mpField.id = 'mp';
-  mpField.name = 'MP';
-  mpField.min = 0;
-  mpField.max = 9999;
-
-  const atkField = new NumberFieldType();
-  atkField.id = 'atk';
-  atkField.name = 'ATK';
-  atkField.min = 0;
-  atkField.max = 9999;
-
-  const defField = new NumberFieldType();
-  defField.id = 'def';
-  defField.name = 'DEF';
-  defField.min = 0;
-  defField.max = 9999;
-
-  const spdField = new NumberFieldType();
-  spdField.id = 'spd';
-  spdField.name = 'SPD';
-  spdField.min = 0;
-  spdField.max = 999;
-
-  const lukField = new NumberFieldType();
-  lukField.id = 'luk';
-  lukField.name = 'LUK';
-  lukField.min = 0;
-  lukField.max = 999;
-
   return {
     id: STATUS_CLASS_ID,
     name: 'ステータス',
     description: 'キャラクターの基本ステータス',
-    fields: [hpField, mpField, atkField, defField, spdField, lukField],
+    fields: [
+      f('number', { id: 'hp', name: 'HP', min: 0, max: 99999 }),
+      f('number', { id: 'mp', name: 'MP', min: 0, max: 9999 }),
+      f('number', { id: 'atk', name: 'ATK', min: 0, max: 9999 }),
+      f('number', { id: 'def', name: 'DEF', min: 0, max: 9999 }),
+      f('number', { id: 'spd', name: 'SPD', min: 0, max: 999 }),
+      f('number', { id: 'luk', name: 'LUK', min: 0, max: 999 }),
+    ],
   };
 }
 
-/**
- * エフェクトクラスを作成
- */
 function createEffectClass(): CustomClass {
-  const effectTypeField = new SelectFieldType();
-  effectTypeField.id = 'effect_type';
-  effectTypeField.name = 'エフェクト種類';
-  effectTypeField.options = [
-    { value: 'damage', label: 'ダメージ' },
-    { value: 'heal', label: '回復' },
-    { value: 'buff', label: 'バフ' },
-    { value: 'debuff', label: 'デバフ' },
-    { value: 'status', label: '状態異常' },
-  ];
-
-  const targetField = new SelectFieldType();
-  targetField.id = 'target';
-  targetField.name = '対象';
-  targetField.options = [
-    { value: 'self', label: '自分' },
-    { value: 'single_enemy', label: '敵単体' },
-    { value: 'all_enemies', label: '敵全体' },
-    { value: 'single_ally', label: '味方単体' },
-    { value: 'all_allies', label: '味方全体' },
-    { value: 'all', label: '全体' },
-  ];
-
-  const valueField = new NumberFieldType();
-  valueField.id = 'value';
-  valueField.name = '効果値';
-  valueField.min = 0;
-  valueField.max = 99999;
-
-  const durationField = new NumberFieldType();
-  durationField.id = 'duration';
-  durationField.name = '持続ターン';
-  durationField.min = 0;
-  durationField.max = 99;
-
   return {
     id: EFFECT_CLASS_ID,
     name: 'エフェクト',
     description: 'スキル・アイテムの効果定義',
-    fields: [effectTypeField, targetField, valueField, durationField],
+    fields: [
+      f('select', {
+        id: 'effect_type',
+        name: 'エフェクト種類',
+        options: [
+          { value: 'damage', label: 'ダメージ' },
+          { value: 'heal', label: '回復' },
+          { value: 'buff', label: 'バフ' },
+          { value: 'debuff', label: 'デバフ' },
+          { value: 'status', label: '状態異常' },
+        ],
+      }),
+      f('select', {
+        id: 'target',
+        name: '対象',
+        options: [
+          { value: 'self', label: '自分' },
+          { value: 'single_enemy', label: '敵単体' },
+          { value: 'all_enemies', label: '敵全体' },
+          { value: 'single_ally', label: '味方単体' },
+          { value: 'all_allies', label: '味方全体' },
+          { value: 'all', label: '全体' },
+        ],
+      }),
+      f('number', { id: 'value', name: '効果値', min: 0, max: 99999 }),
+      f('number', { id: 'duration', name: '持続ターン', min: 0, max: 99 }),
+    ],
   };
 }
 
-/**
- * バトルスキル結果クラスを作成
- */
 function createBattleSkillResultClass(): CustomClass {
-  const damageField = new NumberFieldType();
-  damageField.id = 'damage';
-  damageField.name = 'ダメージ量';
-  damageField.min = 0;
-  damageField.max = 99999;
-
-  const hitRateField = new NumberFieldType();
-  hitRateField.id = 'hit_rate';
-  hitRateField.name = '命中率(%)';
-  hitRateField.min = 0;
-  hitRateField.max = 100;
-
-  const critRateField = new NumberFieldType();
-  critRateField.id = 'crit_rate';
-  critRateField.name = 'クリティカル率(%)';
-  critRateField.min = 0;
-  critRateField.max = 100;
-
-  const critMultiplierField = new NumberFieldType();
-  critMultiplierField.id = 'crit_multiplier';
-  critMultiplierField.name = 'クリティカル倍率';
-  critMultiplierField.min = 1;
-  critMultiplierField.max = 10;
-  critMultiplierField.step = 0.1;
-
-  const formulaField = new StringFieldType();
-  formulaField.id = 'formula';
-  formulaField.name = 'ダメージ計算式';
-
   return {
     id: BATTLE_SKILL_RESULT_CLASS_ID,
     name: 'バトルスキル結果',
     description: 'スキル使用時の結果計算パラメータ',
-    fields: [damageField, hitRateField, critRateField, critMultiplierField, formulaField],
+    fields: [
+      f('number', { id: 'damage', name: 'ダメージ量', min: 0, max: 99999 }),
+      f('number', { id: 'hit_rate', name: '命中率(%)', min: 0, max: 100 }),
+      f('number', { id: 'crit_rate', name: 'クリティカル率(%)', min: 0, max: 100 }),
+      f('number', { id: 'crit_multiplier', name: 'クリティカル倍率', min: 1, max: 10, step: 0.1 }),
+      f('string', { id: 'formula', name: 'ダメージ計算式' }),
+    ],
   };
 }
 
-/**
- * デフォルトクラス一覧
- */
+// =============================================================================
+// ファクトリ関数（サポートクラス）
+// =============================================================================
+
+function createLearnSkillClass(): CustomClass {
+  return {
+    id: LEARN_SKILL_CLASS_ID,
+    name: '習得スキル',
+    description: 'レベルごとに習得するスキルの定義',
+    fields: [
+      f('number', { id: 'level', name: '習得レベル', min: 1, max: 99 }),
+      f('dataSelect', { id: 'skill', name: 'スキル', referenceTypeId: 'skill' }),
+    ],
+  };
+}
+
+function createDropItemClass(): CustomClass {
+  return {
+    id: DROP_ITEM_CLASS_ID,
+    name: 'ドロップアイテム',
+    description: '敵がドロップするアイテムと確率',
+    fields: [
+      f('dataSelect', { id: 'item', name: 'アイテム', referenceTypeId: 'item' }),
+      f('number', { id: 'rate', name: 'ドロップ率(%)', min: 0, max: 100 }),
+    ],
+  };
+}
+
+function createEnemyMemberClass(): CustomClass {
+  return {
+    id: ENEMY_MEMBER_CLASS_ID,
+    name: '敵グループ構成',
+    description: '敵グループに含まれる敵とその数',
+    fields: [
+      f('dataSelect', { id: 'enemy', name: '敵', referenceTypeId: 'enemy' }),
+      f('number', { id: 'count', name: '数', min: 1, max: 99 }),
+    ],
+  };
+}
+
+function createActionPatternClass(): CustomClass {
+  return {
+    id: ACTION_PATTERN_CLASS_ID,
+    name: '行動パターン',
+    description: '敵の行動パターン定義',
+    fields: [
+      f('dataSelect', { id: 'skill', name: 'スキル', referenceTypeId: 'skill' }),
+      f('select', {
+        id: 'condition',
+        name: '発動条件',
+        options: [
+          { value: 'always', label: '常時' },
+          { value: 'hp_low', label: 'HP低下時' },
+          { value: 'hp_high', label: 'HP高い時' },
+          { value: 'turn', label: '特定ターン' },
+          { value: 'alone', label: '単独時' },
+        ],
+      }),
+      f('number', { id: 'priority', name: '優先度', min: 1, max: 10 }),
+    ],
+  };
+}
+
+// =============================================================================
+// デフォルトクラス一覧
+// =============================================================================
+
 export const defaultClasses: CustomClass[] = [
   createStatusClass(),
   createEffectClass(),
   createBattleSkillResultClass(),
+  createLearnSkillClass(),
+  createDropItemClass(),
+  createEnemyMemberClass(),
+  createActionPatternClass(),
 ];

@@ -6,6 +6,10 @@ import {
   STATUS_CLASS_ID,
   EFFECT_CLASS_ID,
   BATTLE_SKILL_RESULT_CLASS_ID,
+  LEARN_SKILL_CLASS_ID,
+  DROP_ITEM_CLASS_ID,
+  ENEMY_MEMBER_CLASS_ID,
+  ACTION_PATTERN_CLASS_ID,
 } from './defaultClasses';
 
 describe('defaultClasses', () => {
@@ -67,6 +71,72 @@ describe('defaultClasses', () => {
       const result = defaultClasses.find((c) => c.id === BATTLE_SKILL_RESULT_CLASS_ID);
       expect(result?.fields.some((f) => f.id === 'damage')).toBe(true);
       expect(result?.fields.some((f) => f.id === 'hit_rate')).toBe(true);
+    });
+  });
+
+  describe('習得スキルクラス', () => {
+    it('定義されている', () => {
+      const cls = defaultClasses.find((c) => c.id === LEARN_SKILL_CLASS_ID);
+      expect(cls).toBeDefined();
+      expect(cls?.name).toBe('習得スキル');
+    });
+
+    it('level(number)とskill(dataSelect)フィールドを持つ', () => {
+      const cls = defaultClasses.find((c) => c.id === LEARN_SKILL_CLASS_ID)!;
+      const level = cls.fields.find((f) => f.id === 'level');
+      const skill = cls.fields.find((f) => f.id === 'skill');
+      expect(level?.type).toBe('number');
+      expect(skill?.type).toBe('dataSelect');
+    });
+  });
+
+  describe('ドロップアイテムクラス', () => {
+    it('定義されている', () => {
+      const cls = defaultClasses.find((c) => c.id === DROP_ITEM_CLASS_ID);
+      expect(cls).toBeDefined();
+      expect(cls?.name).toBe('ドロップアイテム');
+    });
+
+    it('item(dataSelect)とrate(number)フィールドを持つ', () => {
+      const cls = defaultClasses.find((c) => c.id === DROP_ITEM_CLASS_ID)!;
+      const item = cls.fields.find((f) => f.id === 'item');
+      const rate = cls.fields.find((f) => f.id === 'rate');
+      expect(item?.type).toBe('dataSelect');
+      expect(rate?.type).toBe('number');
+    });
+  });
+
+  describe('敵グループ構成クラス', () => {
+    it('定義されている', () => {
+      const cls = defaultClasses.find((c) => c.id === ENEMY_MEMBER_CLASS_ID);
+      expect(cls).toBeDefined();
+      expect(cls?.name).toBe('敵グループ構成');
+    });
+
+    it('enemy(dataSelect)とcount(number)フィールドを持つ', () => {
+      const cls = defaultClasses.find((c) => c.id === ENEMY_MEMBER_CLASS_ID)!;
+      const enemy = cls.fields.find((f) => f.id === 'enemy');
+      const count = cls.fields.find((f) => f.id === 'count');
+      expect(enemy?.type).toBe('dataSelect');
+      expect(count?.type).toBe('number');
+    });
+  });
+
+  describe('行動パターンクラス', () => {
+    it('定義されている', () => {
+      const cls = defaultClasses.find((c) => c.id === ACTION_PATTERN_CLASS_ID);
+      expect(cls).toBeDefined();
+      expect(cls?.name).toBe('行動パターン');
+    });
+
+    it('skill(dataSelect), condition(select), priority(number)フィールドを持つ', () => {
+      const cls = defaultClasses.find((c) => c.id === ACTION_PATTERN_CLASS_ID)!;
+      const skill = cls.fields.find((f) => f.id === 'skill');
+      const condition = cls.fields.find((f) => f.id === 'condition');
+      const priority = cls.fields.find((f) => f.id === 'priority');
+      expect(skill?.type).toBe('dataSelect');
+      expect(condition?.type).toBe('select');
+      expect(priority?.type).toBe('number');
     });
   });
 });

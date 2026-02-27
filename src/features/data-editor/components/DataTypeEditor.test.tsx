@@ -88,11 +88,15 @@ describe('DataTypeEditor', () => {
     });
   });
 
-  it('フィールド追加ボタンをクリックするとonAddFieldが呼ばれる', () => {
+  it('フィールド追加ボタンをクリックするとFieldTypeSelectorが開き、タイプ選択でonAddFieldが呼ばれる', () => {
     render(<DataTypeEditor {...defaultProps} />);
 
+    // フィールド追加ボタンでモーダルが開く
     fireEvent.click(screen.getByText('フィールド追加'));
+    expect(screen.getByText('フィールドタイプを選択')).toBeInTheDocument();
 
+    // タイプを選択するとonAddFieldが呼ばれる
+    fireEvent.click(screen.getByRole('button', { name: '数値' }));
     expect(defaultProps.onAddField).toHaveBeenCalledWith('monsters', expect.any(Object));
   });
 

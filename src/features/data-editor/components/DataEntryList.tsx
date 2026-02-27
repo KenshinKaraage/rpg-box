@@ -1,7 +1,9 @@
 'use client';
 
-import { Plus, Trash2, Copy } from 'lucide-react';
+import { Plus, Trash2, Copy, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useDataFilter } from '../hooks/useDataFilter';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -34,6 +36,8 @@ export function DataEntryList({
   onDelete,
   onDuplicate,
 }: DataEntryListProps) {
+  const { query, setQuery, filteredEntries } = useDataFilter(entries);
+
   // dataType のフィールドから最初の string タイプを見つける
   const firstStringField = dataType?.fields.find((field) => field.type === 'string') ?? null;
 
@@ -59,17 +63,35 @@ export function DataEntryList({
         </Button>
       </div>
 
+      {/* 検索 */}
+      {dataType && entries.length > 0 && (
+        <div className="border-b px-3 py-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="検索..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-8"
+              data-testid="entry-search"
+            />
+          </div>
+        </div>
+      )}
+
       {/* リスト */}
-      <div className="flex-1 overflow-auto">
+      <div className="min-h-0 flex-1 overflow-auto">
         {!dataType ? (
           <div className="p-4 text-center text-sm text-muted-foreground">
             データ型を選択してください
           </div>
-        ) : entries.length === 0 ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">エントリがありません</div>
+        ) : filteredEntries.length === 0 ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            {entries.length === 0 ? 'エントリがありません' : '一致するエントリがありません'}
+          </div>
         ) : (
           <ul className="divide-y" data-testid="entry-list">
-            {entries.map((entry) => (
+            {filteredEntries.map((entry) => (
               <ContextMenu key={entry.id}>
                 <ContextMenuTrigger asChild>
                   <li

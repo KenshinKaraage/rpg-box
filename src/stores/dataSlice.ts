@@ -5,6 +5,7 @@
  */
 import { NAME_FIELD_ID, type DataType, type DataEntry } from '@/types/data';
 import type { FieldType } from '@/types/fields/FieldType';
+import { syncDataTypeIdChange, syncDataEntryIdChange } from '@/features/data-editor/utils/idSync';
 
 export interface DataSlice {
   /** データタイプ一覧 */
@@ -79,6 +80,8 @@ export const createDataSlice = <T extends DataSlice>(
           if (state.selectedDataTypeId === id) {
             state.selectedDataTypeId = newId;
           }
+          // 他DataTypeの referenceTypeId を同期
+          syncDataTypeIdChange(state.dataTypes, id, newId);
         }
       }
     }),
@@ -184,6 +187,8 @@ export const createDataSlice = <T extends DataSlice>(
           if (state.selectedDataEntryId === oldId) {
             state.selectedDataEntryId = newId;
           }
+          // 他エントリの参照フィールド値を同期
+          syncDataEntryIdChange(state.dataTypes, state.dataEntries, typeId, oldId, newId);
         }
       }
     }),
