@@ -2,6 +2,7 @@ import { Component } from './Component';
 
 export class TransformComponent extends Component {
   readonly type = 'transform';
+  readonly label = 'Transform';
 
   x = 0;
   y = 0;

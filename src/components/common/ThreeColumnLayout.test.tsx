@@ -31,7 +31,7 @@ describe('ThreeColumnLayout', () => {
     expect(screen.getByTestId('right-resize-handle')).toBeInTheDocument();
   });
 
-  it('applies default widths', () => {
+  it('applies default widths via grid template', () => {
     render(
       <ThreeColumnLayout
         left={<div>Left</div>}
@@ -42,11 +42,8 @@ describe('ThreeColumnLayout', () => {
       />
     );
 
-    const leftColumn = screen.getByTestId('left-column');
-    const rightColumn = screen.getByTestId('right-column');
-
-    expect(leftColumn).toHaveStyle({ width: '200px' });
-    expect(rightColumn).toHaveStyle({ width: '300px' });
+    const container = screen.getByTestId('left-column').parentElement!;
+    expect(container).toHaveStyle({ gridTemplateColumns: '200px 4px 1fr 4px 300px' });
   });
 
   it('has cursor style on resize handles', () => {

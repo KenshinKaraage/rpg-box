@@ -2,6 +2,7 @@ import { Component } from './Component';
 
 export class ControllerComponent extends Component {
   readonly type = 'controller';
+  readonly label = 'Controller';
 
   moveSpeed = 1;
   dashEnabled = true;

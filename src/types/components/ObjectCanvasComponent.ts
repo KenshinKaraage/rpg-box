@@ -8,6 +8,7 @@ export interface CanvasElement {
 
 export class ObjectCanvasComponent extends Component {
   readonly type = 'objectCanvas';
+  readonly label = 'Object Canvas';
 
   offsetX = 0;
   offsetY = 0;

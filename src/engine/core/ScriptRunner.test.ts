@@ -55,6 +55,7 @@ describe('ScriptRunner', () => {
       content: 'return 42;',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(script);
@@ -72,6 +73,7 @@ describe('ScriptRunner', () => {
       content: 'await scriptAPI.showMessage("hello"); return "done";',
       args: [],
       returns: [],
+      fields: [],
       isAsync: true,
     };
     allScripts.push(script);
@@ -90,6 +92,7 @@ describe('ScriptRunner', () => {
       content: 'Variable.set("hp", 100); return Variable.get("hp");',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(script);
@@ -109,6 +112,7 @@ describe('ScriptRunner', () => {
       content: 'return await _calcDamage(10, 3);',
       args: [],
       returns: [],
+      fields: [],
       isAsync: true,
     };
     const child: Script = {
@@ -119,6 +123,7 @@ describe('ScriptRunner', () => {
       parentId: 'parent-1',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(parent, child);
@@ -136,6 +141,7 @@ describe('ScriptRunner', () => {
       content: 'return await _helper();',
       args: [],
       returns: [],
+      fields: [],
       isAsync: true,
     };
     const child: Script = {
@@ -146,6 +152,7 @@ describe('ScriptRunner', () => {
       parentId: 'p',
       args: [],
       returns: [],
+      fields: [],
       isAsync: true,
     };
     const grandchild: Script = {
@@ -156,6 +163,7 @@ describe('ScriptRunner', () => {
       parentId: 'c',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(parent, child, grandchild);
@@ -173,6 +181,7 @@ describe('ScriptRunner', () => {
       content: 'return {{{;',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(script);
@@ -189,6 +198,7 @@ describe('ScriptRunner', () => {
       content: 'throw new Error("boom");',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(script);
@@ -208,6 +218,7 @@ describe('ScriptRunner', () => {
         { id: 'multiplier', name: '倍率', fieldType: 'number', required: true },
       ],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(script);
@@ -229,6 +240,7 @@ describe('ScriptRunner', () => {
         { id: 'def', name: '防御力', fieldType: 'number', required: true },
       ],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     const mainScript: Script = {
@@ -238,6 +250,7 @@ describe('ScriptRunner', () => {
       content: 'const dmg = Script.calc_damage({ atk: 50, def: 20 }); return dmg;',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(calcScript, mainScript);
@@ -257,6 +270,7 @@ describe('ScriptRunner', () => {
       parentId: 'main',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     const mainScript: Script = {
@@ -266,6 +280,7 @@ describe('ScriptRunner', () => {
       content: 'return typeof Script.should_not_appear;',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(internalScript, mainScript);
@@ -287,6 +302,7 @@ describe('ScriptRunner', () => {
         { id: 'def', name: '防御力', fieldType: 'number', required: true },
       ],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     const mainScript: Script = {
@@ -296,6 +312,7 @@ describe('ScriptRunner', () => {
       content: 'const dmg = Script.calc_damage(50, 20); return dmg;',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(calcScript, mainScript);
@@ -314,6 +331,7 @@ describe('ScriptRunner', () => {
       content: 'return "Hello " + name;',
       args: [{ id: 'name', name: '名前', fieldType: 'string', required: true }],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     const mainScript: Script = {
@@ -323,6 +341,7 @@ describe('ScriptRunner', () => {
       content: 'return Script.greet("World");',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(script, mainScript);
@@ -340,6 +359,7 @@ describe('ScriptRunner', () => {
       content: 'return 1;',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     const mainScript: Script = {
@@ -349,6 +369,7 @@ describe('ScriptRunner', () => {
       content: 'return Object.keys(Script).length;',
       args: [],
       returns: [],
+      fields: [],
       isAsync: false,
     };
     allScripts.push(noCallId, mainScript);

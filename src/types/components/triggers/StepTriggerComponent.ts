@@ -2,6 +2,7 @@ import { Component } from '../Component';
 
 export class StepTriggerComponent extends Component {
   readonly type = 'stepTrigger';
+  readonly label = 'Step Trigger';
 
   eventId = '';
 

@@ -2,6 +2,7 @@ import { Component } from './Component';
 
 export class ColliderComponent extends Component {
   readonly type = 'collider';
+  readonly label = 'Collider';
 
   width = 1;
   height = 1;

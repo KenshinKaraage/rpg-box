@@ -101,7 +101,14 @@ describe('ChipsetEditor', () => {
 
   it('チップをクリックすると ChipPropertyEditor が表示される', () => {
     render(<ChipsetEditor {...defaultProps} />);
-    fireEvent.click(screen.getByTestId('chip-cell-0'));
+    const canvas = screen.getByTestId('chip-grid') as HTMLCanvasElement;
+    // canvas 座標をモック (PLACEHOLDER_COLS=8, DISPLAY_SIZE=32 → width=256)
+    Object.defineProperty(canvas, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, right: 256, bottom: 256, width: 256, height: 256 }),
+      configurable: true,
+    });
+    // (16, 16) → col=0, row=0 → chipIndex=0
+    fireEvent.click(canvas, { clientX: 16, clientY: 16 });
     expect(screen.getByTestId('chip-property-editor')).toBeInTheDocument();
   });
 

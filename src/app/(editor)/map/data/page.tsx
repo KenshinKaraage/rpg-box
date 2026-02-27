@@ -66,6 +66,7 @@ export default function MapDataPage() {
           id: generateId('layer', []),
           name: 'レイヤー1',
           type: 'tile' as const,
+          visible: true,
           chipsetIds: [],
         },
       ],

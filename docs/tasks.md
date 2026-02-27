@@ -6474,6 +6474,145 @@ export function useAutoSave() {
 
 ---
 
+## Phase 21: Lite / Full テンプレートシステム
+
+詳細設計: `docs/lite-full-concept.md`
+
+### US21: テンプレートファースト設計
+
+#### [T245] [P] TemplatePackage / ProjectMeta 型定義
+
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T242-chipset-editor-ui（一時的に同ブランチで作業）
+- **PR:** -
+
+**完了条件:**
+
+- [x] `src/types/template.ts` 作成（TemplateMetadata / TemplatePackage）
+- [x] `src/types/project/projectMeta.ts` 作成（ProjectMeta / ProjectMode / isEntityLocked）
+- [x] `src/types/project/index.ts` 作成（公開API）
+- [ ] 各エンティティに `templateId?` 追加（T246 で実施）
+
+**関連ファイル:**
+
+- `src/types/template.ts`
+- `src/types/project/projectMeta.ts`
+- `src/types/project/index.ts`
+- `docs/lite-full-concept.md`
+
+---
+
+#### [T246] ~~既存エンティティ型に templateId? 追加~~
+
+- **ステータス:** [-] 不要（設計変更により廃止）
+
+**廃止理由:**
+
+テンプレート由来の管理を各エンティティへの `templateId?` 埋め込みではなく、
+`ProjectMeta.templateRegistry`（`TemplateRegistry`）で一元管理する設計に変更。
+エンティティ型の変更は不要となった。
+
+---
+
+#### [T247] RPGクラシックパック（テンプレートパッケージ）作成
+
+- **ステータス:** ⬜ 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `src/lib/templates/rpg-classic/` ディレクトリ作成
+- [ ] CustomClass: ステータス・エフェクト・バトルスキル結果
+- [ ] Variable: gold / party_hp / party_mp / game_flags
+- [ ] DataType: モンスター / アイテム / 武器 / スキル
+- [ ] Script: バトルロジック・移動・イベント基本セット
+- [ ] Prefab: NPC / 宝箱 / サイン / 敵シンボル
+- [ ] Chipset: デフォルト素材セット
+- [ ] UI: タイトル / バトル / メニュー / ステータス画面
+
+**関連ファイル:**
+
+- `src/lib/templates/rpg-classic/index.ts`
+
+---
+
+#### [T248] プロジェクト管理基盤（ProjectMeta ストア）
+
+- **ステータス:** ⬜ 未着手（プロジェクト作成・ロード・ユーザーDB が未実装のため後回し）
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `src/stores/projectSlice.ts` 作成（ProjectMeta 状態管理）
+- [ ] 新規プロジェクト作成（Lite / Full モード選択）
+- [ ] プロジェクトロード
+- [ ] プロジェクト一覧（ローカルストレージ or IndexedDB）
+
+**関連ファイル:**
+
+- `src/stores/projectSlice.ts`
+
+---
+
+#### [T249] テンプレートインポートUI
+
+- **ステータス:** ⬜ 未着手（T248 完了後）
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] テンプレート選択画面
+- [ ] 部分インポート対応（classes だけ、scripts だけ等）
+- [ ] インポート済みエンティティへの `templateId` 付与
+
+**関連ファイル:**
+
+- `src/features/template/components/TemplateImportModal.tsx`
+
+---
+
+#### [T250] Lite UI（制限モード）
+
+- **ステータス:** ⬜ 未着手（T248・T249 完了後）
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `isEntityLocked()` を使ったロック表示（グレーアウト・編集不可）
+- [ ] Lite モードでのナビゲーション制限（スクリプトエディタ非表示など）
+- [ ] テンプレート提供変数への「テンプレートから」ラベル表示
+
+**関連ファイル:**
+
+- `src/hooks/useEntityLock.ts`
+
+---
+
+#### [T251] GameEngine テンプレート対応
+
+- **ステータス:** ⬜ 未着手（設計未確定）
+- **ブランチ:** -
+- **PR:** -
+
+**備考:**
+
+`src/engine/` 以下のゲームエンジン（GameEngine / EventRunner / actions 等）の
+Lite/Full テンプレート対応。
+Lite ではエンジン全体が固定・Full では自由に改造可能とする予定だが、
+「エンジンをどう編集するか・どうコードで実装するか」が未設計のため着手不可。
+設計確定後にタスクを更新する。
+
+**関連ファイル:**
+
+- `src/engine/core/GameEngine.ts`
+- `docs/lite-full-concept.md`
+
+---
+
 ## 進捗トラッキング
 
 ### フェーズ別サマリー
@@ -6501,6 +6640,7 @@ export function useAutoSave() {
 | 18    | Game Engine                    | ⬜ 未着手 |
 | 19    | Test Play                      | ⬜ 未着手 |
 | 20    | Polish                         | ⬜ 未着手 |
+| 21    | Lite/Full テンプレートシステム | 🚧 進行中 |
 
 ### 優先度凡例
 

@@ -1,10 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PrefabList } from './PrefabList';
 import type { Prefab } from '@/types/map';
-import { TransformComponent } from '@/types/components/TransformComponent';
 
 const prefabs: Prefab[] = [
-  { id: 'p1', name: 'スライム', components: [new TransformComponent()] },
+  { id: 'p1', name: 'スライム', components: [{ scriptId: 'transform', fieldValues: {} }] },
   { id: 'p2', name: 'ドラゴン', components: [] },
 ];
 

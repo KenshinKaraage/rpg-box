@@ -7,6 +7,7 @@ export interface RoutePoint {
 
 export class MovementComponent extends Component {
   readonly type = 'movement';
+  readonly label = 'Movement';
 
   pattern: 'fixed' | 'random' | 'route' = 'fixed';
   speed = 1;

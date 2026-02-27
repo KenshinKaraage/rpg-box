@@ -50,6 +50,7 @@ describe('GameEngine', () => {
         content: 'return 42;',
         args: [],
         returns: [],
+        fields: [],
         isAsync: false,
       },
     ];
@@ -69,6 +70,7 @@ describe('GameEngine', () => {
         content: 'throw new Error("boom");',
         args: [],
         returns: [],
+        fields: [],
         isAsync: false,
       },
     ];
@@ -104,6 +106,7 @@ describe('GameEngine', () => {
         content: 'return Variable.get("hp");',
         args: [],
         returns: [],
+        fields: [],
         isAsync: false,
       },
     ];
@@ -128,6 +131,7 @@ describe('GameEngine', () => {
         content: 'console.log("debug info"); return 1;',
         args: [],
         returns: [],
+        fields: [],
         isAsync: false,
       },
     ];
@@ -150,6 +154,7 @@ describe('GameEngine', () => {
         content: 'Variable.set("hp", 50); return 1;',
         args: [],
         returns: [],
+        fields: [],
         isAsync: false,
       },
     ];
@@ -191,6 +196,7 @@ describe('GameEngine', () => {
         content: 'return "not a number";',
         args: [],
         returns: [{ id: 'damage', name: 'ダメージ', fieldType: 'number', isArray: false }],
+        fields: [],
         isAsync: false,
       },
     ];
@@ -213,6 +219,7 @@ describe('GameEngine', () => {
         content: 'return 42;',
         args: [],
         returns: [{ id: 'damage', name: 'ダメージ', fieldType: 'number', isArray: false }],
+        fields: [],
         isAsync: false,
       },
     ];
@@ -235,6 +242,7 @@ describe('GameEngine', () => {
         content: 'throw new Error("boom");',
         args: [],
         returns: [],
+        fields: [],
         isAsync: false,
       },
     ];

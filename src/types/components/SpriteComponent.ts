@@ -2,6 +2,7 @@ import { Component } from './Component';
 
 export class SpriteComponent extends Component {
   readonly type = 'sprite';
+  readonly label = 'Sprite';
 
   imageId?: string;
   animationId?: string;

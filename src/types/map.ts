@@ -1,6 +1,17 @@
 import type { Component } from './components/Component';
 import type { FieldType } from './fields/FieldType';
 
+/**
+ * プレハブに付与されたコンポーネントのインスタンス
+ * スクリプトID とフィールドの現在値を保持する
+ */
+export interface PrefabComponent {
+  /** コンポーネントスクリプトの ID（Script.id） */
+  scriptId: string;
+  /** フィールド名 → 現在値 のマップ */
+  fieldValues: Record<string, unknown>;
+}
+
 export interface GameMap {
   id: string;
   name: string;
@@ -16,7 +27,7 @@ export interface MapLayer {
   id: string;
   name: string;
   type: 'tile' | 'object';
-  visible?: boolean; // エディタでの表示/非表示（省略時 = 表示）
+  visible: boolean;
   chipsetIds: string[]; // このレイヤーで使用するチップセットIDの配列
   tiles?: string[][]; // tiles[y][x] = "chipsetId:chipIndex" 形式
   objects?: MapObject[];
@@ -53,5 +64,5 @@ export interface ChipProperty {
 export interface Prefab {
   id: string;
   name: string;
-  components: Component[];
+  components: PrefabComponent[];
 }
