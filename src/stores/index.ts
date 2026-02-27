@@ -16,6 +16,7 @@ import { createScriptSlice, ScriptSlice } from './scriptSlice';
 import { createMapSlice, MapSlice } from './mapSlice';
 import { createPrefabSlice, PrefabSlice } from './prefabSlice';
 import { createMapEditorSlice, MapEditorSlice } from './mapEditorSlice';
+import { createEventSlice, EventSlice } from './eventSlice';
 
 // 全スライスを統合した型
 type StoreState = UISlice &
@@ -27,7 +28,8 @@ type StoreState = UISlice &
   ScriptSlice &
   MapSlice &
   PrefabSlice &
-  MapEditorSlice;
+  MapEditorSlice &
+  EventSlice;
 
 // ストア作成
 export const useStore = create<StoreState>()(
@@ -42,5 +44,6 @@ export const useStore = create<StoreState>()(
     ...createMapSlice(set, get),
     ...createPrefabSlice(set, get),
     ...createMapEditorSlice(set, get),
+    ...createEventSlice(set),
   }))
 );
