@@ -14,6 +14,7 @@ import {
   findDataTypeReferences,
   findDataEntryReferences,
 } from '@/features/data-editor/utils/referenceCheck';
+import { importDefaultDataTypes } from '@/lib/importDefaultDataTypes';
 
 const EMPTY_ENTRIES: DataEntry[] = [];
 
@@ -32,6 +33,8 @@ export default function DataPage() {
   const dataEntries = useStore((state) => state.dataEntries);
   const selectedDataTypeId = useStore((state) => state.selectedDataTypeId);
   const selectedDataEntryId = useStore((state) => state.selectedDataEntryId);
+
+  const addClass = useStore((state) => state.addClass);
 
   const addDataType = useStore((state) => state.addDataType);
   const updateDataType = useStore((state) => state.updateDataType);
@@ -68,6 +71,9 @@ export default function DataPage() {
     const typeEntries = state.dataEntries[state.selectedDataTypeId];
     return typeEntries?.find((e) => e.id === state.selectedDataEntryId) ?? null;
   });
+
+  // インポート状態
+  const [isImporting, setIsImporting] = useState(false);
 
   // 削除確認ダイアログの状態
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -225,6 +231,19 @@ export default function DataPage() {
     [selectedDataType, dataTypes, dataEntries, deleteDataEntry]
   );
 
+  // デフォルトデータタイプをインポート
+  const handleImportDefaults = () => {
+    setIsImporting(true);
+    try {
+      const result = importDefaultDataTypes(dataTypes, classes, addDataType, addClass);
+      console.info(
+        `インポート完了: データ型 ${result.importedTypes}件（${result.skippedTypes}件スキップ）、クラス ${result.importedClasses}件（${result.skippedClasses}件スキップ）`
+      );
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   // --- レンダリング ---
 
   // 右パネル: エントリ選択時 → FormBuilder / 未選択時 → DataTypeEditor
@@ -264,6 +283,8 @@ export default function DataPage() {
             onAdd={handleAddDataType}
             onDelete={handleDeleteDataType}
             onDuplicate={handleDuplicateDataType}
+            onImportDefaults={handleImportDefaults}
+            isImporting={isImporting}
           />
         }
         center={

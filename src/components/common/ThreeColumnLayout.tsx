@@ -80,44 +80,40 @@ export function ThreeColumnLayout({
   }, [handleMouseMove, handleMouseUp]);
 
   return (
-    <div ref={containerRef} className={cn('flex h-full w-full', className)}>
+    <div
+      ref={containerRef}
+      className={cn('grid h-full w-full', className)}
+      style={{
+        gridTemplateColumns: `${leftWidth}px 4px 1fr 4px ${rightWidth}px`,
+        gridTemplateRows: '100%',
+      }}
+    >
       {/* Left column */}
-      <div
-        className="flex flex-col flex-shrink-0 overflow-auto border-r bg-background"
-        style={{ width: leftWidth }}
-        data-testid="left-column"
-      >
+      <div className="overflow-auto border-r bg-background" data-testid="left-column">
         {left}
       </div>
 
       {/* Left resize handle */}
       <div
-        className="w-1 flex-shrink-0 cursor-col-resize bg-border hover:bg-primary/50 active:bg-primary"
+        className="cursor-col-resize bg-border hover:bg-primary/50 active:bg-primary"
         onMouseDown={startDraggingLeft}
         data-testid="left-resize-handle"
       />
 
       {/* Center column */}
-      <div
-        className="flex flex-col flex-1 overflow-hidden bg-background"
-        data-testid="center-column"
-      >
+      <div className="overflow-hidden bg-background" data-testid="center-column">
         {center}
       </div>
 
       {/* Right resize handle */}
       <div
-        className="w-1 flex-shrink-0 cursor-col-resize bg-border hover:bg-primary/50 active:bg-primary"
+        className="cursor-col-resize bg-border hover:bg-primary/50 active:bg-primary"
         onMouseDown={startDraggingRight}
         data-testid="right-resize-handle"
       />
 
       {/* Right column */}
-      <div
-        className="flex flex-col flex-shrink-0 overflow-auto border-l bg-background"
-        style={{ width: rightWidth }}
-        data-testid="right-column"
-      >
+      <div className="overflow-auto border-l bg-background" data-testid="right-column">
         {right}
       </div>
     </div>

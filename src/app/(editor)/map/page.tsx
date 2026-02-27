@@ -225,7 +225,7 @@ export default function MapEditPage() {
   return (
     <ThreeColumnLayout
       left={
-        <Tabs defaultValue="chipset" className="flex-1 min-h-0 flex flex-col bg-muted/20">
+        <Tabs defaultValue="chipset" className="flex h-full flex-col bg-muted/20">
           <TabsList className="w-full shrink-0 rounded-none border-b">
             <TabsTrigger value="map" className="flex-1">
               マップ
@@ -341,7 +341,7 @@ export default function MapEditPage() {
         </Tabs>
       }
       center={
-        <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex h-full flex-col">
           <MapToolbar
             currentTool={currentTool}
             onSetTool={setTool}
@@ -363,7 +363,7 @@ export default function MapEditPage() {
         </div>
       }
       right={
-        <div className="flex-1 min-h-0 overflow-auto bg-muted/20">
+        <div className="h-full overflow-auto bg-muted/20">
           {selectedObjectId ? (
             <MapPropertyPanel
               selectedObjectId={selectedObjectId}
