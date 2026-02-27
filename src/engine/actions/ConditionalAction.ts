@@ -2,15 +2,23 @@ import type { GameContext } from '../runtime/GameContext';
 
 import { EventAction } from './EventAction';
 
+export type ConditionOperand =
+  | { type: 'literal'; value: number | string | boolean }
+  | { type: 'variable'; variableId: string };
+
 export interface Condition {
-  variableId: string;
+  left: ConditionOperand;
   operator: '==' | '!=' | '>' | '<' | '>=' | '<=';
-  value: unknown;
+  right: ConditionOperand;
 }
 
 export class ConditionalAction extends EventAction {
   readonly type = 'conditional';
-  condition: Condition = { variableId: '', operator: '==', value: 0 };
+  condition: Condition = {
+    left: { type: 'variable', variableId: '' },
+    operator: '==',
+    right: { type: 'literal', value: 0 },
+  };
   thenActions: EventAction[] = [];
   elseActions: EventAction[] = [];
 
@@ -18,13 +26,22 @@ export class ConditionalAction extends EventAction {
     context: GameContext,
     run: (actions: EventAction[]) => Promise<void>
   ): Promise<void> {
-    const actual = context.variable.get(this.condition.variableId);
-    const expected = this.condition.value;
+    const actual = this.resolveOperand(this.condition.left, context);
+    const expected = this.resolveOperand(this.condition.right, context);
     const result = this.evaluate(actual, expected);
     if (result) {
       await run(this.thenActions);
     } else {
       await run(this.elseActions);
+    }
+  }
+
+  private resolveOperand(operand: ConditionOperand, context: GameContext): unknown {
+    switch (operand.type) {
+      case 'literal':
+        return operand.value;
+      case 'variable':
+        return context.variable.get(operand.variableId);
     }
   }
 
@@ -54,6 +71,16 @@ export class ConditionalAction extends EventAction {
   }
 
   fromJSON(data: Record<string, unknown>): void {
-    this.condition = data.condition as Condition;
+    const cond = data.condition as Record<string, unknown>;
+    // Legacy format: { variableId, operator, value }
+    if ('variableId' in cond) {
+      this.condition = {
+        left: { type: 'variable', variableId: cond.variableId as string },
+        operator: cond.operator as Condition['operator'],
+        right: { type: 'literal', value: cond.value as number | string | boolean },
+      };
+    } else {
+      this.condition = cond as unknown as Condition;
+    }
   }
 }
