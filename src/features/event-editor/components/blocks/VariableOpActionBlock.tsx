@@ -51,41 +51,76 @@ function createDefaultValueSource(type: ValueSource['type']): ValueSource {
   }
 }
 
-/** Resolve the field type string of the value source */
+interface ResolvedType {
+  type: string;
+  classId?: string;
+}
+
+/** Extract classId from a variable's fieldType */
+function getClassId(variable: Variable): string | undefined {
+  return 'classId' in variable.fieldType
+    ? (variable.fieldType as { classId: string }).classId
+    : undefined;
+}
+
+/** Resolve the field type and optional classId of the value source */
 function resolveValueSourceType(
   value: ValueSource,
   variables: Variable[],
   dataTypeFields: { id: string; type: string; classId?: string }[],
   classSubFields: { id: string; type: string }[]
-): string | null {
+): ResolvedType | null {
   switch (value.type) {
     case 'literal': {
       const v = value.value;
-      if (typeof v === 'number') return 'number';
-      if (typeof v === 'string') return 'string';
-      if (typeof v === 'boolean') return 'boolean';
+      if (typeof v === 'number') return { type: 'number' };
+      if (typeof v === 'string') return { type: 'string' };
+      if (typeof v === 'boolean') return { type: 'boolean' };
       return null;
     }
     case 'variable': {
       if (!value.variableId) return null;
       const variable = variables.find((v) => v.id === value.variableId);
-      return variable?.fieldType.type ?? null;
+      if (!variable) return null;
+      return { type: variable.fieldType.type, classId: getClassId(variable) };
     }
     case 'data': {
       if (!value.fieldId) return null;
       const field = dataTypeFields.find((f) => f.id === value.fieldId);
       if (!field) return null;
-      // For class fields, resolve through sub-field if set; otherwise null (incomplete)
       if (field.type === 'class') {
-        if (!value.subFieldId) return field.classId ? null : 'class';
+        if (!value.subFieldId) return field.classId ? null : { type: 'class' };
         const subField = classSubFields.find((sf) => sf.id === value.subFieldId);
-        return subField?.type ?? null;
+        return subField ? { type: subField.type } : null;
       }
-      return field.type;
+      return { type: field.type, classId: field.classId };
     }
     case 'random':
-      return 'number';
+      return { type: 'number' };
   }
+}
+
+/** Check type mismatch including classId for class types */
+function isTypeMismatch(target: ResolvedType | null, source: ResolvedType | null): boolean {
+  if (!target || !source) return false;
+  if (target.type !== source.type) return true;
+  if (target.type === 'class' && target.classId && source.classId) {
+    return target.classId !== source.classId;
+  }
+  return false;
+}
+
+/** Format type label for display (e.g. "class(ステータス)") */
+function formatTypeLabel(
+  type: string,
+  classId: string | undefined,
+  classes: CustomClass[]
+): string {
+  if (type === 'class' && classId) {
+    const cls = classes.find((c) => c.id === classId);
+    return cls ? `class(${cls.name})` : `class(${classId})`;
+  }
+  return type;
 }
 
 export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
@@ -95,9 +130,13 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
   const dataEntries = useStore((state) => state.dataEntries);
   const classes = useStore((state) => state.classes);
 
-  // Target variable type
+  // Target variable type (with classId)
   const targetVariable = variables.find((v) => v.id === varAction.variableId);
   const targetType = targetVariable?.fieldType.type ?? null;
+  const targetClassId = targetVariable ? getClassId(targetVariable) : undefined;
+  const targetResolved: ResolvedType | null = targetType
+    ? { type: targetType, classId: targetClassId }
+    : null;
 
   // Data source fields (for type resolution) — include classId for class fields
   const dataTypeIdForLookup = varAction.value.type === 'data' ? varAction.value.dataTypeId : '';
@@ -136,20 +175,32 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
     classSubFields
   );
 
-  // Type mismatch detection
-  const typeMismatch = targetType && valueSourceType && targetType !== valueSourceType;
+  // Type mismatch detection (including classId comparison)
+  const typeMismatch = isTypeMismatch(targetResolved, valueSourceType);
 
-  // Filter value-source variables to match target type
+  // Filter value-source variables to match target type (and classId for class types)
   const filteredVariables = useMemo(() => {
     if (!targetType) return variables;
-    return variables.filter((v) => v.fieldType.type === targetType);
-  }, [variables, targetType]);
+    return variables.filter((v) => {
+      if (v.fieldType.type !== targetType) return false;
+      if (targetType === 'class' && targetClassId) {
+        return getClassId(v) === targetClassId;
+      }
+      return true;
+    });
+  }, [variables, targetType, targetClassId]);
 
-  // Filter data fields to match target type
+  // Filter data fields to match target type (and classId for class types)
   const filteredDataFields = useMemo(() => {
     if (!targetType) return dataTypeFields;
     return dataTypeFields.filter((f) => {
-      if (f.type === targetType) return true;
+      if (f.type === targetType) {
+        // For class types, also match classId
+        if (targetType === 'class' && targetClassId && f.classId) {
+          return f.classId === targetClassId;
+        }
+        return true;
+      }
       // Show class fields if they contain sub-fields matching the target type
       if (f.classId) {
         const cls = classes.find((c) => c.id === f.classId);
@@ -157,7 +208,7 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
       }
       return false;
     });
-  }, [dataTypeFields, targetType, classes]);
+  }, [dataTypeFields, targetType, targetClassId, classes]);
 
   // Filter sub-fields to match target type
   const filteredSubFields = useMemo(() => {
@@ -320,6 +371,7 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
             variables={variables}
             onValueChange={handleVariableIdChange}
             testId="variable-id-select"
+            classes={classes}
           />
         </div>
 
@@ -411,6 +463,7 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
               variables={filteredVariables}
               onValueChange={handleVariableValueChange}
               testId="value-variable-select"
+              classes={classes}
             />
           </div>
         )}
@@ -456,7 +509,9 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
                 <SelectContent>
                   {filteredDataFields.map((f) => (
                     <SelectItem key={f.id} value={f.id}>
-                      <span className="mr-2 text-xs text-muted-foreground">{f.type}</span>
+                      <span className="mr-2 text-xs text-muted-foreground">
+                        {formatTypeLabel(f.type, f.classId, classes)}
+                      </span>
                       {f.name || f.id}
                     </SelectItem>
                   ))}
@@ -512,7 +567,9 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
       {/* Type mismatch error */}
       {typeMismatch && (
         <p className="mt-2 text-xs text-destructive" data-testid="type-mismatch-error">
-          型が一致しません（変数: {targetType}、値: {valueSourceType}）
+          型が一致しません（変数:{' '}
+          {formatTypeLabel(targetResolved!.type, targetResolved!.classId, classes)}
+          、値: {formatTypeLabel(valueSourceType!.type, valueSourceType!.classId, classes)}）
         </p>
       )}
     </div>
@@ -525,11 +582,13 @@ function VariableSelect({
   variables,
   onValueChange,
   testId,
+  classes = [],
 }: {
   value: string;
   variables: Variable[];
   onValueChange: (id: string) => void;
   testId: string;
+  classes?: CustomClass[];
 }) {
   return variables.length > 0 ? (
     <Select value={value} onValueChange={onValueChange}>
@@ -540,7 +599,7 @@ function VariableSelect({
         {variables.map((v) => (
           <SelectItem key={v.id} value={v.id}>
             <span className="mr-2 text-xs text-muted-foreground">
-              {v.fieldType.type}
+              {formatTypeLabel(v.fieldType.type, getClassId(v), classes)}
               {v.isArray && '[]'}
             </span>
             {v.name || v.id}

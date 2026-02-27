@@ -8,14 +8,30 @@ jest.mock('@/stores', () => ({
   useStore: jest.fn(),
 }));
 
-const classFieldType = new ClassFieldType();
-classFieldType.classId = 'class_status';
+const classFieldStatus = new ClassFieldType();
+classFieldStatus.classId = 'class_status';
+
+const classFieldEffect = new ClassFieldType();
+classFieldEffect.classId = 'class_effect';
 
 const mockVariables = [
   { id: 'hp', name: 'HP', fieldType: new NumberFieldType(), isArray: false, initialValue: 0 },
   { id: 'mp', name: 'MP', fieldType: new NumberFieldType(), isArray: false, initialValue: 0 },
   { id: 'name', name: '名前', fieldType: new StringFieldType(), isArray: false, initialValue: '' },
-  { id: 'stats', name: 'ステータス', fieldType: classFieldType, isArray: false, initialValue: {} },
+  {
+    id: 'stats',
+    name: 'ステータス',
+    fieldType: classFieldStatus,
+    isArray: false,
+    initialValue: {},
+  },
+  {
+    id: 'effect',
+    name: 'エフェクト',
+    fieldType: classFieldEffect,
+    isArray: false,
+    initialValue: {},
+  },
   {
     id: 'scores',
     name: 'スコア一覧',
@@ -57,6 +73,14 @@ const mockClasses = [
       { id: 'hp', name: 'HP', type: 'number' },
       { id: 'mp', name: 'MP', type: 'number' },
       { id: 'atk', name: 'ATK', type: 'number' },
+    ],
+  },
+  {
+    id: 'class_effect',
+    name: 'エフェクト',
+    fields: [
+      { id: 'value', name: '効果値', type: 'number' },
+      { id: 'duration', name: '持続ターン', type: 'number' },
     ],
   },
 ];
@@ -326,6 +350,34 @@ describe('VariableOpActionBlock', () => {
       render(<VariableOpActionBlock {...props} />);
       // class field should appear because it has number sub-fields
       expect(screen.getByTestId('value-data-field-select')).toBeInTheDocument();
+    });
+
+    it('異なるclassId同士の場合、型エラーが表示される', () => {
+      // target: effect (class_effect), value: variable stats (class_status)
+      const props = createProps({
+        variableId: 'effect',
+        value: { type: 'variable', variableId: 'stats' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      expect(screen.getByTestId('type-mismatch-error')).toBeInTheDocument();
+      expect(screen.getByTestId('type-mismatch-error')).toHaveTextContent('ステータス');
+      expect(screen.getByTestId('type-mismatch-error')).toHaveTextContent('エフェクト');
+    });
+
+    it('同じclassIdの場合、型エラーが表示されない', () => {
+      // target: stats (class_status), value: variable stats (class_status)
+      const props = createProps({
+        variableId: 'stats',
+        value: { type: 'variable', variableId: 'stats' },
+      });
+      render(<VariableOpActionBlock {...props} />);
+      expect(screen.queryByTestId('type-mismatch-error')).not.toBeInTheDocument();
+    });
+
+    it('変数ドロップリストにクラス名が表示される', () => {
+      render(<VariableOpActionBlock {...createProps({ variableId: 'stats' })} />);
+      const trigger = screen.getByTestId('variable-id-select');
+      expect(trigger).toHaveTextContent('class(ステータス)');
     });
   });
 
