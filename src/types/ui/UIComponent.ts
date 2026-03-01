@@ -56,6 +56,7 @@ export interface UIObject {
  * ```typescript
  * class ImageUIComponent extends UIComponent {
  *   readonly type = 'image';
+ *   readonly label = 'Image';
  *   imageId?: string;
  *   color: string = '#ffffff';
  *
@@ -75,10 +76,6 @@ export interface UIObject {
  *     c.color = this.color;
  *     return c;
  *   }
- *
- *   renderPropertyPanel(): ReactNode {
- *     // プロパティパネルのUI
- *   }
  * }
  * ```
  */
@@ -88,6 +85,11 @@ export abstract class UIComponent {
    * 各サブクラスで固有の値を定義する
    */
   abstract readonly type: string;
+
+  /**
+   * UI 表示用ラベル（エディタのコンポーネント一覧に表示される名前）
+   */
+  abstract readonly label: string;
 
   /**
    * コンポーネントをシリアライズ（保存用の形式に変換）
@@ -112,7 +114,9 @@ export abstract class UIComponent {
    * エディタでコンポーネントのプロパティを編集するためのUI
    * @returns Reactノード
    */
-  abstract renderPropertyPanel(): ReactNode;
+  renderPropertyPanel(): ReactNode {
+    return null;
+  }
 }
 
 /**
