@@ -1,0 +1,24 @@
+import { registerUIComponent } from './index';
+import { ImageComponent } from './components/ImageComponent';
+import { TextComponent } from './components/TextComponent';
+import { ShapeComponent } from './components/ShapeComponent';
+import { FillMaskComponent } from './components/FillMaskComponent';
+import { ColorMaskComponent } from './components/ColorMaskComponent';
+import { LayoutGroupComponent } from './components/LayoutGroupComponent';
+import { GridLayoutComponent } from './components/GridLayoutComponent';
+import { NavigationComponent } from './components/NavigationComponent';
+import { NavigationItemComponent } from './components/NavigationItemComponent';
+import { NavigationCursorComponent } from './components/NavigationCursorComponent';
+import { AnimationComponent } from './components/AnimationComponent';
+
+registerUIComponent('image', ImageComponent);
+registerUIComponent('text', TextComponent);
+registerUIComponent('shape', ShapeComponent);
+registerUIComponent('fillMask', FillMaskComponent);
+registerUIComponent('colorMask', ColorMaskComponent);
+registerUIComponent('layoutGroup', LayoutGroupComponent);
+registerUIComponent('gridLayout', GridLayoutComponent);
+registerUIComponent('navigation', NavigationComponent);
+registerUIComponent('navigationItem', NavigationItemComponent);
+registerUIComponent('navigationCursor', NavigationCursorComponent);
+registerUIComponent('animation', AnimationComponent);

@@ -72,3 +72,18 @@ export function getUIComponentNames(): string[] {
 export function clearUIComponentRegistry(): void {
   uiComponentRegistry.clear();
 }
+
+// Concrete UIComponent classes
+export { ImageComponent } from './components/ImageComponent';
+export { TextComponent } from './components/TextComponent';
+export { ShapeComponent } from './components/ShapeComponent';
+export { FillMaskComponent } from './components/FillMaskComponent';
+export { ColorMaskComponent } from './components/ColorMaskComponent';
+export { LayoutGroupComponent } from './components/LayoutGroupComponent';
+export { GridLayoutComponent } from './components/GridLayoutComponent';
+export { NavigationComponent } from './components/NavigationComponent';
+export { NavigationItemComponent } from './components/NavigationItemComponent';
+export type { SerializedAction } from './components/NavigationItemComponent';
+export { NavigationCursorComponent } from './components/NavigationCursorComponent';
+export { AnimationComponent } from './components/AnimationComponent';
+export type { TweenTrack, InlineTimeline } from './components/AnimationComponent';
