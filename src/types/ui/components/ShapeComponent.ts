@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export class ShapeComponent extends UIComponent {
   readonly type = 'shape';
@@ -9,6 +9,25 @@ export class ShapeComponent extends UIComponent {
   strokeColor?: string;
   strokeWidth = 1;
   cornerRadius = 0;
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      {
+        key: 'shapeType',
+        label: '種類',
+        type: 'select',
+        options: [
+          { value: 'rectangle', label: '矩形' },
+          { value: 'ellipse', label: '楕円' },
+          { value: 'polygon', label: 'ポリゴン' },
+        ],
+      },
+      { key: 'fillColor', label: '塗り', type: 'color' },
+      { key: 'strokeColor', label: '線色', type: 'color' },
+      { key: 'strokeWidth', label: '線幅', type: 'number', min: 0 },
+      { key: 'cornerRadius', label: '角丸', type: 'number', min: 0 },
+    ];
+  }
 
   serialize(): unknown {
     return {

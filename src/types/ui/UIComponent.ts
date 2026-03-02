@@ -1,5 +1,27 @@
 import type { ReactNode } from 'react';
 
+// ──────────────────────────────────────────────
+// Property Definition (for editor introspection)
+// ──────────────────────────────────────────────
+
+/**
+ * コンポーネントの編集可能プロパティ定義
+ *
+ * 各 UIComponent は getPropertyDefs() でこの配列を返し、
+ * エディタ UI はこれを使ってフォームを動的に生成する。
+ */
+export type PropertyDef = {
+  key: string;
+  label: string;
+} & (
+  | { type: 'number'; min?: number; max?: number; step?: number }
+  | { type: 'boolean' }
+  | { type: 'select'; options: { value: string; label: string }[] }
+  | { type: 'color' }
+  | { type: 'text'; placeholder?: string }
+  | { type: 'textarea'; placeholder?: string }
+);
+
 /**
  * UIオブジェクトの矩形変換情報
  * 位置、サイズ、アンカー、ピボット、回転、スケールを定義
@@ -110,6 +132,15 @@ export abstract class UIComponent {
   abstract clone(): UIComponent;
 
   /**
+   * 編集可能なプロパティの定義一覧を返す。
+   * エディタがこのコンポーネントのプロパティフォームを動的に生成するために使用する。
+   * カスタムエディタを持つコンポーネント（Action, TemplateController等）は空配列を返す。
+   */
+  getPropertyDefs(): PropertyDef[] {
+    return [];
+  }
+
+  /**
    * プロパティパネルUIをレンダリング
    * エディタでコンポーネントのプロパティを編集するためのUI
    * @returns Reactノード
@@ -117,6 +148,24 @@ export abstract class UIComponent {
   renderPropertyPanel(): ReactNode {
     return null;
   }
+}
+
+/**
+ * RectTransform の編集可能プロパティ定義を返す。
+ * Transform はコンポーネントではなく UIObject の一部なので独立した関数として提供する。
+ */
+export function getRectTransformPropertyDefs(): PropertyDef[] {
+  return [
+    { key: 'x', label: '位置X', type: 'number' },
+    { key: 'y', label: '位置Y', type: 'number' },
+    { key: 'width', label: '幅', type: 'number', min: 0 },
+    { key: 'height', label: '高さ', type: 'number', min: 0 },
+    { key: 'rotation', label: '回転', type: 'number' },
+    { key: 'scaleX', label: 'スケールX', type: 'number', step: 0.1 },
+    { key: 'scaleY', label: 'スケールY', type: 'number', step: 0.1 },
+    { key: 'pivotX', label: 'ピボットX', type: 'number', min: 0, max: 1, step: 0.1 },
+    { key: 'pivotY', label: 'ピボットY', type: 'number', min: 0, max: 1, step: 0.1 },
+  ];
 }
 
 /**

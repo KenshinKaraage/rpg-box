@@ -22,7 +22,7 @@ import { useStore } from '@/stores';
 import { getUIComponent, getAllUIComponents } from '@/types/ui';
 import { AnchorPresets } from './AnchorPresets';
 import { ActionComponentEditor } from './ActionComponentEditor';
-import { ComponentPropertyEditor, hasPropertySchema } from './ComponentPropertyEditor';
+import { ComponentPropertyEditor } from './ComponentPropertyEditor';
 import type { RectTransform } from '@/types/ui/UIComponent';
 import type { UIActionEntry } from '@/types/ui/components/ActionComponent';
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
@@ -218,10 +218,11 @@ function ComponentListItem({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  // Get label from registry
+  // Get label and property defs from registry
   const Ctor = getUIComponent(component.type);
-  const label = Ctor ? new Ctor().label : component.type;
-  const hasEditor = component.type === 'action' || hasPropertySchema(component.type);
+  const instance = Ctor ? new Ctor() : null;
+  const label = instance ? instance.label : component.type;
+  const hasEditor = component.type === 'action' || (instance != null && instance.getPropertyDefs().length > 0);
 
   const compData = (component.data ?? {}) as Record<string, unknown>;
 
@@ -264,7 +265,7 @@ function ComponentListItem({
           />
         </div>
       )}
-      {expanded && component.type !== 'action' && hasPropertySchema(component.type) && (
+      {expanded && component.type !== 'action' && instance != null && instance.getPropertyDefs().length > 0 && (
         <ComponentPropertyEditor
           componentType={component.type}
           data={compData}

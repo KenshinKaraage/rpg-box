@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export class ImageComponent extends UIComponent {
   readonly type = 'image';
@@ -8,6 +8,22 @@ export class ImageComponent extends UIComponent {
   tint?: string;
   opacity = 1;
   sliceMode: 'none' | 'nine-slice' = 'none';
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      { key: 'opacity', label: '不透明度', type: 'number', min: 0, max: 1, step: 0.1 },
+      { key: 'tint', label: 'ティント', type: 'color' },
+      {
+        key: 'sliceMode',
+        label: 'スライスモード',
+        type: 'select',
+        options: [
+          { value: 'none', label: 'なし' },
+          { value: 'nine-slice', label: 'ナインスライス' },
+        ],
+      },
+    ];
+  }
 
   serialize(): unknown {
     return {

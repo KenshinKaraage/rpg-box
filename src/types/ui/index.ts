@@ -1,7 +1,7 @@
-import { UIComponent, createDefaultRectTransform } from './UIComponent';
+import { UIComponent, createDefaultRectTransform, getRectTransformPropertyDefs } from './UIComponent';
 
-export { UIComponent, createDefaultRectTransform };
-export type { UIObject, RectTransform } from './UIComponent';
+export { UIComponent, createDefaultRectTransform, getRectTransformPropertyDefs };
+export type { UIObject, RectTransform, PropertyDef } from './UIComponent';
 
 type UIComponentConstructor = new () => UIComponent;
 

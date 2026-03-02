@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export class TextComponent extends UIComponent {
   readonly type = 'text';
@@ -11,6 +11,35 @@ export class TextComponent extends UIComponent {
   align: 'left' | 'center' | 'right' = 'left';
   verticalAlign: 'top' | 'middle' | 'bottom' = 'top';
   lineHeight = 1.2;
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      { key: 'content', label: 'テキスト', type: 'textarea', placeholder: 'テキストを入力...' },
+      { key: 'fontSize', label: 'フォントサイズ', type: 'number', min: 1 },
+      { key: 'color', label: '色', type: 'color' },
+      {
+        key: 'align',
+        label: '水平揃え',
+        type: 'select',
+        options: [
+          { value: 'left', label: '左' },
+          { value: 'center', label: '中央' },
+          { value: 'right', label: '右' },
+        ],
+      },
+      {
+        key: 'verticalAlign',
+        label: '垂直揃え',
+        type: 'select',
+        options: [
+          { value: 'top', label: '上' },
+          { value: 'middle', label: '中央' },
+          { value: 'bottom', label: '下' },
+        ],
+      },
+      { key: 'lineHeight', label: '行間', type: 'number', min: 0.5, max: 5, step: 0.1 },
+    ];
+  }
 
   serialize(): unknown {
     return {

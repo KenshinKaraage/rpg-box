@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export class NavigationCursorComponent extends UIComponent {
   readonly type = 'navigationCursor';
@@ -6,6 +6,13 @@ export class NavigationCursorComponent extends UIComponent {
 
   offsetX = 0;
   offsetY = 0;
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      { key: 'offsetX', label: 'オフセットX', type: 'number' },
+      { key: 'offsetY', label: 'オフセットY', type: 'number' },
+    ];
+  }
 
   serialize(): unknown {
     return {

@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export class LayoutGroupComponent extends UIComponent {
   readonly type = 'layoutGroup';
@@ -8,6 +8,32 @@ export class LayoutGroupComponent extends UIComponent {
   spacing = 0;
   alignment: 'start' | 'center' | 'end' = 'start';
   reverseOrder = false;
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      {
+        key: 'direction',
+        label: '方向',
+        type: 'select',
+        options: [
+          { value: 'vertical', label: '垂直' },
+          { value: 'horizontal', label: '水平' },
+        ],
+      },
+      { key: 'spacing', label: '間隔', type: 'number', min: 0 },
+      {
+        key: 'alignment',
+        label: '配置',
+        type: 'select',
+        options: [
+          { value: 'start', label: '先頭' },
+          { value: 'center', label: '中央' },
+          { value: 'end', label: '末尾' },
+        ],
+      },
+      { key: 'reverseOrder', label: '逆順', type: 'boolean' },
+    ];
+  }
 
   serialize(): Record<string, unknown> {
     return {

@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export class FillMaskComponent extends UIComponent {
   readonly type = 'fillMask';
@@ -7,6 +7,22 @@ export class FillMaskComponent extends UIComponent {
   direction: 'horizontal' | 'vertical' = 'horizontal';
   fillAmount = 1;
   reverse = false;
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      {
+        key: 'direction',
+        label: '方向',
+        type: 'select',
+        options: [
+          { value: 'horizontal', label: '水平' },
+          { value: 'vertical', label: '垂直' },
+        ],
+      },
+      { key: 'fillAmount', label: '充填量', type: 'number', min: 0, max: 1, step: 0.01 },
+      { key: 'reverse', label: '反転', type: 'boolean' },
+    ];
+  }
 
   serialize(): unknown {
     return {

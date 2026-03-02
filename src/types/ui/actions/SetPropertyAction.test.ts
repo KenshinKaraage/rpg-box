@@ -9,6 +9,7 @@ describe('SetPropertyAction', () => {
   it('has correct default values', () => {
     const a = new SetPropertyAction();
     expect(a.targetId).toBe('');
+    expect(a.component).toBe('transform');
     expect(a.property).toBe('');
     expect(a.value).toBe(0);
   });
@@ -16,16 +17,18 @@ describe('SetPropertyAction', () => {
   it('round-trips serialize and deserialize', () => {
     const a = new SetPropertyAction();
     a.targetId = 'obj-1';
-    a.property = 'transform.x';
-    a.value = 42;
+    a.component = 'shape';
+    a.property = 'fillColor';
+    a.value = '#ff0000';
 
     const json = a.toJSON();
     const b = new SetPropertyAction();
     b.fromJSON(json);
 
     expect(b.targetId).toBe('obj-1');
-    expect(b.property).toBe('transform.x');
-    expect(b.value).toBe(42);
+    expect(b.component).toBe('shape');
+    expect(b.property).toBe('fillColor');
+    expect(b.value).toBe('#ff0000');
   });
 
   it('handles string value', () => {
@@ -41,6 +44,7 @@ describe('SetPropertyAction', () => {
     const a = new SetPropertyAction();
     a.fromJSON({});
     expect(a.targetId).toBe('');
+    expect(a.component).toBe('transform');
     expect(a.property).toBe('');
     expect(a.value).toBe(0);
   });

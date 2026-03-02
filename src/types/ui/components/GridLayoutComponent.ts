@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export class GridLayoutComponent extends UIComponent {
   readonly type = 'gridLayout';
@@ -9,6 +9,16 @@ export class GridLayoutComponent extends UIComponent {
   spacingY = 0;
   cellWidth?: number;
   cellHeight?: number;
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      { key: 'columns', label: '列数', type: 'number', min: 1 },
+      { key: 'spacingX', label: '水平間隔', type: 'number', min: 0 },
+      { key: 'spacingY', label: '垂直間隔', type: 'number', min: 0 },
+      { key: 'cellWidth', label: 'セル幅', type: 'number', min: 0 },
+      { key: 'cellHeight', label: 'セル高', type: 'number', min: 0 },
+    ];
+  }
 
   serialize(): Record<string, unknown> {
     return {

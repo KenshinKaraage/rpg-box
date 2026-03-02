@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export interface TweenTrack {
   /** Property path to animate (e.g. 'transform.x', 'opacity') */
@@ -30,6 +30,22 @@ export class AnimationComponent extends UIComponent {
   inlineTimeline?: InlineTimeline;
   autoPlay = false;
   loop = false;
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      {
+        key: 'mode',
+        label: 'モード',
+        type: 'select',
+        options: [
+          { value: 'inline', label: 'インライン' },
+          { value: 'reference', label: '参照' },
+        ],
+      },
+      { key: 'autoPlay', label: '自動再生', type: 'boolean' },
+      { key: 'loop', label: 'ループ', type: 'boolean' },
+    ];
+  }
 
   serialize(): unknown {
     return {

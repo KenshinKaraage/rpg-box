@@ -1,4 +1,4 @@
-import { UIComponent } from '../UIComponent';
+import { UIComponent, type PropertyDef } from '../UIComponent';
 
 export class ColorMaskComponent extends UIComponent {
   readonly type = 'colorMask';
@@ -7,6 +7,23 @@ export class ColorMaskComponent extends UIComponent {
   color = '#ffffff';
   blendMode: 'multiply' | 'add' | 'overlay' = 'multiply';
   opacity = 1;
+
+  getPropertyDefs(): PropertyDef[] {
+    return [
+      { key: 'color', label: '色', type: 'color' },
+      {
+        key: 'blendMode',
+        label: 'ブレンドモード',
+        type: 'select',
+        options: [
+          { value: 'multiply', label: '乗算' },
+          { value: 'add', label: '加算' },
+          { value: 'overlay', label: 'オーバーレイ' },
+        ],
+      },
+      { key: 'opacity', label: '不透明度', type: 'number', min: 0, max: 1, step: 0.1 },
+    ];
+  }
 
   serialize(): unknown {
     return {

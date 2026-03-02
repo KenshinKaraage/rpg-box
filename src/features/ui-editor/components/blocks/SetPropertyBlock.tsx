@@ -11,6 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useStore } from '@/stores';
+import { getUIComponent } from '@/types/ui';
+import { getRectTransformPropertyDefs } from '@/types/ui/UIComponent';
+import type { PropertyDef } from '@/types/ui/UIComponent';
 import type { ActionBlockProps } from '@/features/event-editor/registry/actionBlockRegistry';
 import type { SetPropertyAction } from '@/types/ui/actions/SetPropertyAction';
 import { UIObjectSelector } from '../UIObjectSelector';
@@ -19,27 +23,60 @@ function cloneAction(action: SetPropertyAction): SetPropertyAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
 }
 
-const PROPERTY_OPTIONS = [
-  { value: 'transform.x', label: '位置X' },
-  { value: 'transform.y', label: '位置Y' },
-  { value: 'transform.width', label: '幅' },
-  { value: 'transform.height', label: '高さ' },
-  { value: 'transform.rotation', label: '回転' },
-  { value: 'transform.scaleX', label: 'スケールX' },
-  { value: 'transform.scaleY', label: 'スケールY' },
-  { value: 'opacity', label: '不透明度' },
-  { value: 'fillAmount', label: '充填量' },
-  { value: 'fontSize', label: 'フォントサイズ' },
-  { value: 'color', label: '色' },
-  { value: 'visible', label: '表示' },
-];
+/**
+ * 対象オブジェクトが持つコンポーネント一覧を取得する。
+ * transform は常に含む（全オブジェクト共通）。
+ */
+function useTargetComponents(targetId: string): { type: string; label: string }[] {
+  const selectedCanvasId = useStore((s) => s.selectedCanvasId);
+  const uiCanvases = useStore((s) => s.uiCanvases);
+  const canvas = uiCanvases.find((c) => c.id === selectedCanvasId);
+  const obj = canvas?.objects.find((o) => o.id === targetId);
+
+  const result: { type: string; label: string }[] = [{ type: 'transform', label: 'Transform' }];
+  if (!obj) return result;
+
+  for (const comp of obj.components) {
+    const Ctor = getUIComponent(comp.type);
+    if (Ctor) {
+      const instance = new Ctor();
+      if (instance.getPropertyDefs().length > 0) {
+        result.push({ type: comp.type, label: instance.label });
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * コンポーネントタイプに対応するプロパティ定義を取得する。
+ */
+function getPropertyDefsForComponent(componentType: string): PropertyDef[] {
+  if (componentType === 'transform') {
+    return getRectTransformPropertyDefs();
+  }
+  const Ctor = getUIComponent(componentType);
+  if (!Ctor) return [];
+  return new Ctor().getPropertyDefs();
+}
 
 export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const a = action as SetPropertyAction;
 
+  const components = useTargetComponents(a.targetId);
+  const propertyDefs = getPropertyDefsForComponent(a.component);
+
   const handleChange = (field: string, value: unknown) => {
     const updated = cloneAction(a);
     (updated as unknown as Record<string, unknown>)[field] = value;
+    onChange(updated);
+  };
+
+  const handleComponentChange = (comp: string) => {
+    const updated = cloneAction(a);
+    updated.component = comp;
+    updated.property = ''; // reset property when component changes
     onChange(updated);
   };
 
@@ -52,6 +89,7 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
         </Button>
       </div>
       <div className="mt-2 space-y-2">
+        {/* Target object */}
         <div className="flex items-center gap-2">
           <Label className="w-20 shrink-0 text-xs text-muted-foreground">対象</Label>
           <UIObjectSelector
@@ -60,6 +98,28 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
             className="h-7 flex-1 text-xs"
           />
         </div>
+
+        {/* Component selection */}
+        <div className="flex items-center gap-2">
+          <Label className="w-20 shrink-0 text-xs text-muted-foreground">コンポーネント</Label>
+          <Select
+            value={a.component || 'transform'}
+            onValueChange={handleComponentChange}
+          >
+            <SelectTrigger className="h-7 text-xs" data-testid="component-select">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {components.map((c) => (
+                <SelectItem key={c.type} value={c.type}>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Property selection */}
         <div className="flex items-center gap-2">
           <Label className="w-20 shrink-0 text-xs text-muted-foreground">プロパティ</Label>
           <Select
@@ -71,14 +131,16 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">（選択なし）</SelectItem>
-              {PROPERTY_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+              {propertyDefs.map((def) => (
+                <SelectItem key={def.key} value={def.key}>
+                  {def.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+
+        {/* Value input */}
         <div className="flex items-center gap-2">
           <Label className="w-20 shrink-0 text-xs text-muted-foreground">値</Label>
           <Input
