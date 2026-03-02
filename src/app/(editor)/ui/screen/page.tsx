@@ -7,11 +7,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { useStore } from '@/stores';
 import { generateId } from '@/lib/utils';
-import { Plus } from 'lucide-react';
+import { CanvasListPanel } from '@/features/ui-editor/components/CanvasListPanel';
+import { ElementsPanel } from '@/features/ui-editor/components/ElementsPanel';
+import { TemplatesPanel } from '@/features/ui-editor/components/TemplatesPanel';
+import { FunctionsPanel } from '@/features/ui-editor/components/FunctionsPanel';
 import type { LeftPanelMode, EditorUICanvas } from '@/stores/uiEditorSlice';
 
 const LEFT_PANEL_OPTIONS: { value: LeftPanelMode; label: string }[] = [
@@ -132,123 +134,5 @@ export default function UIScreenDesignPage() {
       rightMinWidth={200}
       rightMaxWidth={450}
     />
-  );
-}
-
-// ──────────────────────────────────────────────
-// Sub-panels (will be extracted to features/ in later tasks)
-// ──────────────────────────────────────────────
-
-interface CanvasListPanelProps {
-  canvases: EditorUICanvas[];
-  selectedId: string | null;
-  onSelect: (id: string | null) => void;
-  onAdd: () => void;
-  onDelete: (id: string) => void;
-}
-
-function CanvasListPanel({ canvases, selectedId, onSelect, onAdd, onDelete }: CanvasListPanelProps) {
-  return (
-    <div className="flex flex-col">
-      <div className="flex items-center justify-between border-b px-2 py-1">
-        <span className="text-xs font-semibold text-muted-foreground">画面一覧</span>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onAdd} aria-label="画面を追加">
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-      {canvases.length === 0 ? (
-        <div className="p-4 text-center text-xs text-muted-foreground">
-          画面がありません
-        </div>
-      ) : (
-        <ul role="listbox" aria-label="画面一覧">
-          {canvases.map((canvas) => (
-            <li
-              key={canvas.id}
-              role="option"
-              aria-selected={canvas.id === selectedId}
-              className={`flex cursor-pointer items-center justify-between px-3 py-1.5 text-sm hover:bg-accent ${
-                canvas.id === selectedId ? 'bg-accent font-medium' : ''
-              }`}
-              onClick={() => onSelect(canvas.id)}
-            >
-              <span className="truncate">{canvas.name}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 shrink-0 opacity-0 hover:opacity-100 group-hover:opacity-100 [li:hover_&]:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(canvas.id);
-                }}
-                aria-label={`${canvas.name} を削除`}
-              >
-                <span className="text-xs text-destructive">×</span>
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function ElementsPanel({ objects }: { objects: { id: string; name: string }[] }) {
-  return (
-    <div className="p-2 text-xs text-muted-foreground">
-      {objects.length === 0 ? (
-        <div className="text-center">エレメントなし</div>
-      ) : (
-        <ul>
-          {objects.map((obj) => (
-            <li key={obj.id} className="px-2 py-1">
-              {obj.name}
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="mt-2 text-center text-muted-foreground">
-        UIObjectTree (T190 で実装)
-      </div>
-    </div>
-  );
-}
-
-function TemplatesPanel({ templates }: { templates: { id: string; name: string }[] }) {
-  return (
-    <div className="p-2 text-xs text-muted-foreground">
-      {templates.length === 0 ? (
-        <div className="text-center">テンプレートなし</div>
-      ) : (
-        <ul>
-          {templates.map((tmpl) => (
-            <li key={tmpl.id} className="px-2 py-1">
-              {tmpl.name}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function FunctionsPanel({ functions }: { functions: { id: string; name: string }[] }) {
-  return (
-    <div className="p-2 text-xs text-muted-foreground">
-      {functions.length === 0 ? (
-        <div className="text-center">ファンクションなし</div>
-      ) : (
-        <ul>
-          {functions.map((fn) => (
-            <li key={fn.id} className="px-2 py-1">
-              {fn.name}
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="mt-2 text-center text-muted-foreground">
-        UIFunctionEditor (T197a で実装)
-      </div>
-    </div>
   );
 }
