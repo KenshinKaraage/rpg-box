@@ -75,6 +75,8 @@ describe('TransformHandles', () => {
         selectedObjectIds={[]}
         viewport={defaultViewport}
         canvasId="canvas1"
+        canvasWidth={800}
+        canvasHeight={600}
       />
     );
     expect(container.innerHTML).toBe('');
@@ -88,6 +90,8 @@ describe('TransformHandles', () => {
         selectedObjectIds={['a']}
         viewport={defaultViewport}
         canvasId={null}
+        canvasWidth={800}
+        canvasHeight={600}
       />
     );
     expect(container.innerHTML).toBe('');
@@ -101,6 +105,8 @@ describe('TransformHandles', () => {
         selectedObjectIds={['a']}
         viewport={defaultViewport}
         canvasId="canvas1"
+        canvasWidth={800}
+        canvasHeight={600}
       />
     );
 
@@ -125,6 +131,8 @@ describe('TransformHandles', () => {
         selectedObjectIds={['a', 'b']}
         viewport={defaultViewport}
         canvasId="canvas1"
+        canvasWidth={800}
+        canvasHeight={600}
       />
     );
     expect(container.innerHTML).toBe('');
@@ -138,11 +146,15 @@ describe('TransformHandles', () => {
         selectedObjectIds={['a']}
         viewport={defaultViewport}
         canvasId="canvas1"
+        canvasWidth={800}
+        canvasHeight={600}
       />
     );
 
     const handles = screen.getByTestId('transform-handles');
-    // absX=10 is pivot position. topLeft = (10 - 100*0.5, 20 - 80*0.5) = (-40, -20)
+    // resolveAllTransforms: root center=(400,300), default anchor=left/top → anchorWorld=(0,0)
+    // pivot = (0+10, 0+20) = (10, 20)
+    // topLeft = (10 - 100*0.5, 20 - 80*0.5) = (-40, -20)
     // worldToScreen(-40, -20, {x:0, y:0, zoom:1}) = (-40, -20)
     expect(handles.style.left).toBe('-40px');
     expect(handles.style.top).toBe('-20px');
@@ -159,11 +171,13 @@ describe('TransformHandles', () => {
         selectedObjectIds={['a']}
         viewport={viewport}
         canvasId="canvas1"
+        canvasWidth={800}
+        canvasHeight={600}
       />
     );
 
     const handles = screen.getByTestId('transform-handles');
-    // absX=10 is pivot position. topLeft = (10 - 100*0.5, 20 - 80*0.5) = (-40, -20)
+    // pivot = (10, 20), topLeft = (-40, -20)
     // worldToScreen(-40, -20, {x:0, y:0, zoom:2}) = (-80, -40)
     expect(handles.style.left).toBe('-80px');
     expect(handles.style.top).toBe('-40px');

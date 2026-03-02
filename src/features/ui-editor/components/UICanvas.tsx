@@ -264,6 +264,8 @@ export function UICanvas() {
           selectedObjectIds={selectedObjectIds}
           viewport={viewport}
           canvasId={selectedCanvasId}
+          canvasWidth={resolution.width}
+          canvasHeight={resolution.height}
         />
       </div>
     </div>

@@ -85,23 +85,23 @@ describe('UIObjectTree', () => {
     expect(screen.getByText('Root B')).toBeInTheDocument();
   });
 
-  it('renders child objects nested under parent when expanded', () => {
+  it('renders child objects visible under parent (auto-expanded)', () => {
     const objects = [
       makeObject('p', 'Parent'),
       makeObject('c', 'Child', 'p'),
     ];
     renderTree({ objects });
 
-    // Child should not be visible initially
-    expect(screen.queryByText('Child')).not.toBeInTheDocument();
-
-    // Click expand toggle on parent
-    const parentNode = screen.getByTestId('tree-node-p');
-    const expandBtn = parentNode.querySelector('button');
-    fireEvent.click(expandBtn!);
-
-    // Child should now be visible
+    // DraggableTree auto-expands parents, so child is visible immediately
     expect(screen.getByText('Child')).toBeInTheDocument();
+
+    // Clicking collapse toggle hides the child
+    const parentText = screen.getByText('Parent');
+    const parentRow = parentText.closest('.flex.cursor-grab')!;
+    const collapseBtn = parentRow.querySelector('button')!;
+    fireEvent.click(collapseBtn);
+
+    expect(screen.queryByText('Child')).not.toBeInTheDocument();
   });
 
   it('selects object on click', () => {
@@ -150,10 +150,10 @@ describe('UIObjectTree', () => {
     const objects = [makeObject('a', 'Root A'), makeObject('b', 'Root B')];
     renderTree({ objects, selectedObjectIds: ['a'] });
 
-    const nodeA = screen.getByTestId('tree-node-a');
-    const nodeB = screen.getByTestId('tree-node-b');
-    expect(nodeA.className).toContain('font-medium');
-    expect(nodeB.className).not.toContain('font-medium');
+    const rowA = screen.getByText('Root A').closest('.flex.cursor-grab')!;
+    const rowB = screen.getByText('Root B').closest('.flex.cursor-grab')!;
+    expect(rowA.className).toContain('font-medium');
+    expect(rowB.className).not.toContain('font-medium');
   });
 
   it('shows tree structure indicator', () => {
@@ -166,9 +166,10 @@ describe('UIObjectTree', () => {
     const objects = [makeObject('a', 'Root A')];
     renderTree({ objects, onDeleteObject });
 
-    // Right-click to open context menu
-    const node = screen.getByTestId('tree-node-a');
-    fireEvent.contextMenu(node);
+    // Right-click on the context menu trigger (the flex div wrapping the icon + name)
+    const nodeText = screen.getByText('Root A');
+    const trigger = nodeText.closest('[data-state]')!;
+    fireEvent.contextMenu(trigger);
 
     // Click delete option
     const deleteItem = screen.getByText('削除');

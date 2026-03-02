@@ -39,6 +39,7 @@ import { generateId } from '@/lib/utils';
 import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import { DraggableTree } from '@/components/common/DraggableTree';
 import type { TreeNode } from '@/components/common/DraggableTree';
+
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
 
 // ──────────────────────────────────────────────

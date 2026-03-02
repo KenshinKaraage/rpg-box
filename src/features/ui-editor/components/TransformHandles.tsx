@@ -2,10 +2,10 @@
 
 import { useRef } from 'react';
 import {
-  computeAbsolutePositions,
   worldToScreen,
   screenToWorld,
 } from '../hooks/useUISelection';
+import { resolveAllTransforms } from '../renderer/transformResolver';
 import { useStore } from '@/stores';
 import type { UIEditorViewport, EditorUIObject } from '@/stores/uiEditorSlice';
 
@@ -23,6 +23,8 @@ interface TransformHandlesProps {
   selectedObjectIds: string[];
   viewport: UIEditorViewport;
   canvasId: string | null;
+  canvasWidth: number;
+  canvasHeight: number;
 }
 
 const HANDLE_SIZE = 8;
@@ -52,6 +54,8 @@ export function TransformHandles({
   selectedObjectIds,
   viewport,
   canvasId,
+  canvasWidth,
+  canvasHeight,
 }: TransformHandlesProps) {
   const updateUIObject = useStore((s) => s.updateUIObject);
   const snapToGrid = useStore((s) => s.snapToGrid);
@@ -72,28 +76,26 @@ export function TransformHandles({
     centerY: number;
   } | null>(null);
 
-  // Get single selected object data
-  const objMap = new Map(objects.map((o) => [o.id, o]));
-  const positions = computeAbsolutePositions(objects);
+  // Use resolveAllTransforms for correct anchor/rotation/scale handling
+  const worldRects = resolveAllTransforms(objects, canvasWidth, canvasHeight);
 
-  const selectedObject = selectedObjectIds.length === 1 ? objMap.get(selectedObjectIds[0]!) : null;
+  const selectedObject = selectedObjectIds.length === 1
+    ? objects.find((o) => o.id === selectedObjectIds[0])
+    : null;
   if (!selectedObject || !canvasId) return null;
 
-  const pos = positions.get(selectedObject.id);
-  if (!pos) return null;
+  const worldRect = worldRects.get(selectedObject.id);
+  if (!worldRect) return null;
 
-  const { absX, absY } = pos;
+  const { x: absX, y: absY } = worldRect;
   const w = selectedObject.transform.width;
   const h = selectedObject.transform.height;
-  const scaleX = selectedObject.transform.scaleX;
-  const scaleY = selectedObject.transform.scaleY;
-  const rotation = selectedObject.transform.rotation;
-  const scaledW = w * scaleX;
-  const scaledH = h * scaleY;
+  const rotation = worldRect.rotation;
+  const scaledW = worldRect.w * worldRect.scaleX;
+  const scaledH = worldRect.h * worldRect.scaleY;
 
-  const pivotX = selectedObject.transform.pivotX;
-  const pivotY = selectedObject.transform.pivotY;
-  // absX/absY はピボット座標なので左上に変換
+  const pivotX = worldRect.pivotX;
+  const pivotY = worldRect.pivotY;
   const topLeft = worldToScreen(absX - scaledW * pivotX, absY - scaledH * pivotY, viewport);
   const screenW = scaledW * viewport.zoom;
   const screenH = scaledH * viewport.zoom;
@@ -216,7 +218,6 @@ export function TransformHandles({
     const container = (e.currentTarget as HTMLElement).closest('[data-testid="ui-canvas-container"]');
     if (!container) return;
     const rect = container.getBoundingClientRect();
-    // absX/absY は既にピボット（中心）座標
     const cx = absX;
     const cy = absY;
 

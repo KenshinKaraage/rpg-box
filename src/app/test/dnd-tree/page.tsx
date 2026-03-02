@@ -10,8 +10,8 @@ import {
   MessageSquare,
   ArrowRight,
 } from 'lucide-react';
-import { DraggableTree } from '@/components/common/DraggableTree';
-import type { TreeNode } from '@/components/common/DraggableTree';
+import { DraggableTree } from './components';
+import type { TreeNode } from './components';
 
 // ──────────────────────────────────────────────
 // Sample data
