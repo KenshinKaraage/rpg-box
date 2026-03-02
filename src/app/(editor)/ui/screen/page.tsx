@@ -14,6 +14,7 @@ import { CanvasListPanel } from '@/features/ui-editor/components/CanvasListPanel
 import { ElementsPanel } from '@/features/ui-editor/components/ElementsPanel';
 import { TemplatesPanel } from '@/features/ui-editor/components/TemplatesPanel';
 import { FunctionsPanel } from '@/features/ui-editor/components/FunctionsPanel';
+import { UICanvas } from '@/features/ui-editor/components/UICanvas';
 import type { LeftPanelMode, EditorUICanvas } from '@/stores/uiEditorSlice';
 
 const LEFT_PANEL_OPTIONS: { value: LeftPanelMode; label: string }[] = [
@@ -106,12 +107,7 @@ export default function UIScreenDesignPage() {
         <div className="flex h-full flex-col">
           <div className="flex-1 overflow-hidden bg-neutral-800">
             {selectedCanvasId ? (
-              <div
-                className="flex h-full items-center justify-center text-sm text-muted-foreground"
-                data-testid="ui-canvas-placeholder"
-              >
-                UICanvas (T189c で実装)
-              </div>
+              <UICanvas />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                 画面を選択してください

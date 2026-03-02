@@ -37,12 +37,12 @@ describe('UIScreenDesignPage', () => {
     expect(option).toHaveTextContent('新しい画面');
   });
 
-  it('shows canvas placeholder when a canvas is selected', async () => {
+  it('shows UICanvas when a canvas is selected', async () => {
     const user = userEvent.setup();
     render(<UIScreenDesignPage />);
 
     await user.click(screen.getByRole('button', { name: '画面を追加' }));
 
-    expect(screen.getByTestId('ui-canvas-placeholder')).toBeInTheDocument();
+    expect(screen.getByTestId('ui-canvas-container')).toBeInTheDocument();
   });
 });
