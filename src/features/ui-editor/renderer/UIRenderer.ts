@@ -271,7 +271,8 @@ function renderShape(
 }
 
 /**
- * 矩形の枠線を quads で描画する（strokeWidth を正しく反映）
+ * 矩形の枠線をフレーム（外側矩形 - 内側矩形）で描画する。
+ * 各角で miter join を使い、角の隙間をなくす。
  */
 function renderStrokeQuads(
   ctx: UIRendererContext,
@@ -280,34 +281,60 @@ function renderStrokeQuads(
   strokeColor: number[],
   gl: WebGLRenderingContext
 ): void {
-  const positions: number[] = [];
   const hw = strokeWidth / 2;
+  const outer: [number, number][] = [];
+  const inner: [number, number][] = [];
 
   for (let i = 0; i < 4; i++) {
-    const a = corners[i]!;
-    const b = corners[(i + 1) % 4]!;
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len === 0) continue;
+    const prev = corners[(i + 3) % 4]!;
+    const curr = corners[i]!;
+    const next = corners[(i + 1) % 4]!;
 
-    // Perpendicular direction
-    const nx = (dy / len) * hw;
-    const ny = (-dx / len) * hw;
+    // Edge directions
+    const d1x = curr[0] - prev[0], d1y = curr[1] - prev[1];
+    const d2x = next[0] - curr[0], d2y = next[1] - curr[1];
+    const len1 = Math.sqrt(d1x * d1x + d1y * d1y);
+    const len2 = Math.sqrt(d2x * d2x + d2y * d2y);
+    if (len1 === 0 || len2 === 0) {
+      outer.push([curr[0], curr[1]]);
+      inner.push([curr[0], curr[1]]);
+      continue;
+    }
 
-    // Quad: inner → outer
-    const a0x = a[0] - nx, a0y = a[1] - ny;
-    const a1x = a[0] + nx, a1y = a[1] + ny;
-    const b0x = b[0] - nx, b0y = b[1] - ny;
-    const b1x = b[0] + nx, b1y = b[1] + ny;
+    // Outward normals (CW winding: rotate edge direction +90°)
+    const n1x = d1y / len1, n1y = -d1x / len1;
+    const n2x = d2y / len2, n2y = -d2x / len2;
 
-    positions.push(
-      a0x, a0y, b0x, b0y, b1x, b1y,
-      b1x, b1y, a1x, a1y, a0x, a0y
-    );
+    // Miter direction = average of two normals
+    let mx = n1x + n2x, my = n1y + n2y;
+    const mlen = Math.sqrt(mx * mx + my * my);
+    if (mlen < 0.001) {
+      // Degenerate — parallel edges, use single normal
+      mx = n1x; my = n1y;
+    } else {
+      mx /= mlen; my /= mlen;
+    }
+
+    // Miter length: hw / dot(miter, normal)
+    const dot = mx * n1x + my * n1y;
+    const miterLen = dot > 0.1 ? hw / dot : hw;
+
+    outer.push([curr[0] + mx * miterLen, curr[1] + my * miterLen]);
+    inner.push([curr[0] - mx * miterLen, curr[1] - my * miterLen]);
   }
 
-  if (positions.length === 0) return;
+  // 8 triangles forming the frame: for each edge, 2 triangles between outer/inner
+  const positions: number[] = [];
+  for (let i = 0; i < 4; i++) {
+    const j = (i + 1) % 4;
+    const o0 = outer[i]!, o1 = outer[j]!;
+    const i0 = inner[i]!, i1 = inner[j]!;
+
+    // Triangle 1: o0, o1, i0
+    positions.push(o0[0], o0[1], o1[0], o1[1], i0[0], i0[1]);
+    // Triangle 2: i0, o1, i1
+    positions.push(i0[0], i0[1], o1[0], o1[1], i1[0], i1[1]);
+  }
 
   gl.useProgram(ctx.solidProgram.program);
   const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
