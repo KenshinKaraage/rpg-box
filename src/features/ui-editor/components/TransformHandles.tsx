@@ -343,21 +343,34 @@ export function TransformHandles({
       {/* Pivot crosshair */}
       <div
         data-testid="pivot-crosshair"
-        className="absolute pointer-events-none"
         style={{
+          position: 'absolute',
+          pointerEvents: 'none',
           left: `${screenW * pivotX}px`,
           top: `${screenH * pivotY}px`,
         }}
       >
         {/* Horizontal line */}
         <div
-          className="absolute bg-blue-500"
-          style={{ left: -5, top: 0, width: 10, height: 1 }}
+          style={{
+            position: 'absolute',
+            left: -6,
+            top: -1,
+            width: 12,
+            height: 2,
+            backgroundColor: '#3b82f6',
+          }}
         />
         {/* Vertical line */}
         <div
-          className="absolute bg-blue-500"
-          style={{ left: 0, top: -5, width: 1, height: 10 }}
+          style={{
+            position: 'absolute',
+            left: -1,
+            top: -6,
+            width: 2,
+            height: 12,
+            backgroundColor: '#3b82f6',
+          }}
         />
       </div>
     </div>

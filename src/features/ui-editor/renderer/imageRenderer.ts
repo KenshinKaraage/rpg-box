@@ -17,13 +17,85 @@ export interface ImageData {
   sliceFill?: 'stretch' | 'repeat';
 }
 
+const PLACEHOLDER_KEY = '__placeholder__';
+
+/**
+ * プレースホルダーテクスチャを生成（チェッカーボード + アイコン）
+ */
+function getOrCreatePlaceholder(
+  ctx: UIRendererContext,
+  gl: WebGLRenderingContext
+): WebGLTexture {
+  const cached = ctx.textureCache.get(PLACEHOLDER_KEY);
+  if (cached) return cached;
+
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const c2d = canvas.getContext('2d')!;
+
+  // Checkerboard
+  const tileSize = 8;
+  for (let y = 0; y < size; y += tileSize) {
+    for (let x = 0; x < size; x += tileSize) {
+      c2d.fillStyle = ((x + y) / tileSize) % 2 === 0 ? '#e0e0e0' : '#c0c0c0';
+      c2d.fillRect(x, y, tileSize, tileSize);
+    }
+  }
+
+  // Mountain icon (simple)
+  const cx = size / 2;
+  const cy = size / 2;
+  c2d.strokeStyle = '#888888';
+  c2d.lineWidth = 2;
+  c2d.beginPath();
+  c2d.moveTo(cx - 16, cy + 10);
+  c2d.lineTo(cx - 6, cy - 8);
+  c2d.lineTo(cx, cy);
+  c2d.lineTo(cx + 8, cy - 12);
+  c2d.lineTo(cx + 16, cy + 10);
+  c2d.closePath();
+  c2d.stroke();
+
+  // Sun circle
+  c2d.beginPath();
+  c2d.arc(cx + 10, cy - 10, 4, 0, Math.PI * 2);
+  c2d.stroke();
+
+  const tex = twgl.createTexture(gl, { src: canvas, minMag: gl.LINEAR });
+  ctx.textureCache.set(PLACEHOLDER_KEY, tex);
+  return tex;
+}
+
 export function renderImage(
   ctx: UIRendererContext,
   data: ImageData,
   rect: WorldRect,
   gl: WebGLRenderingContext
 ): void {
-  if (!data.imageId) return;
+  if (!data.imageId) {
+    // Render placeholder
+    const placeholderTex = getOrCreatePlaceholder(ctx, gl);
+    const corners = getWorldCorners(rect);
+    const positions = cornersToTriangles(corners);
+    const texCoords = new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]);
+    const tint = [1, 1, 1, 0.6];
+
+    gl.useProgram(ctx.texturedProgram.program);
+    const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
+      a_position: { numComponents: 2, data: positions },
+      a_texcoord: { numComponents: 2, data: texCoords },
+    });
+    twgl.setBuffersAndAttributes(gl, ctx.texturedProgram, bufferInfo);
+    twgl.setUniforms(ctx.texturedProgram, {
+      u_matrix: ctx.matrix,
+      u_texture: placeholderTex,
+      u_tint: tint,
+    });
+    twgl.drawBufferInfo(gl, bufferInfo);
+    return;
+  }
 
   const texture = ctx.textureCache.get(data.imageId);
   if (!texture) {

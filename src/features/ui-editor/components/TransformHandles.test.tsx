@@ -142,9 +142,10 @@ describe('TransformHandles', () => {
     );
 
     const handles = screen.getByTestId('transform-handles');
-    // worldToScreen(10, 20, {x:0, y:0, zoom:1}) = (10, 20)
-    expect(handles.style.left).toBe('10px');
-    expect(handles.style.top).toBe('20px');
+    // absX=10 is pivot position. topLeft = (10 - 100*0.5, 20 - 80*0.5) = (-40, -20)
+    // worldToScreen(-40, -20, {x:0, y:0, zoom:1}) = (-40, -20)
+    expect(handles.style.left).toBe('-40px');
+    expect(handles.style.top).toBe('-20px');
     expect(handles.style.width).toBe('100px');
     expect(handles.style.height).toBe('80px');
   });
@@ -162,9 +163,10 @@ describe('TransformHandles', () => {
     );
 
     const handles = screen.getByTestId('transform-handles');
-    // worldToScreen(10, 20, {x:0, y:0, zoom:2}) = (20, 40)
-    expect(handles.style.left).toBe('20px');
-    expect(handles.style.top).toBe('40px');
+    // absX=10 is pivot position. topLeft = (10 - 100*0.5, 20 - 80*0.5) = (-40, -20)
+    // worldToScreen(-40, -20, {x:0, y:0, zoom:2}) = (-80, -40)
+    expect(handles.style.left).toBe('-80px');
+    expect(handles.style.top).toBe('-40px');
     // screenW = 100 * 1 * 2 = 200, screenH = 80 * 1 * 2 = 160
     expect(handles.style.width).toBe('200px');
     expect(handles.style.height).toBe('160px');

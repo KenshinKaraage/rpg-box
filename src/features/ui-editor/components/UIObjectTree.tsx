@@ -12,6 +12,9 @@ import {
   ImageIcon,
   Type,
   Pentagon,
+  Circle,
+  Minus,
+  Hexagon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,12 +22,18 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -34,37 +43,98 @@ import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
 
 // ──────────────────────────────────────────────
-// Element type presets
+// Element type presets (declarative)
 // ──────────────────────────────────────────────
 
-type ElementPreset = 'empty' | 'shape' | 'image' | 'text';
-
-function getPresetComponents(preset: ElementPreset): SerializedUIComponent[] {
-  switch (preset) {
-    case 'empty':
-      return [];
-    case 'shape':
-      return [{ type: 'shape', data: { shapeType: 'rect', fillColor: '#cccccc' } }];
-    case 'image':
-      return [{ type: 'image', data: {} }];
-    case 'text':
-      return [
-        { type: 'text', data: { content: 'テキスト', fontSize: 16, color: '#000000' } },
-      ];
-  }
+interface ElementPresetDef {
+  key: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  components: SerializedUIComponent[];
 }
 
-function getPresetName(preset: ElementPreset): string {
-  switch (preset) {
-    case 'empty':
-      return '新しいオブジェクト';
-    case 'shape':
-      return '図形';
-    case 'image':
-      return '画像';
-    case 'text':
-      return 'テキスト';
+interface ElementPresetGroup {
+  key: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: ElementPresetDef[];
+}
+
+type ElementPresetEntry = ElementPresetDef | ElementPresetGroup;
+
+function isGroup(entry: ElementPresetEntry): entry is ElementPresetGroup {
+  return 'children' in entry;
+}
+
+const ELEMENT_PRESETS: ElementPresetEntry[] = [
+  {
+    key: 'empty',
+    label: '空オブジェクト',
+    icon: Square,
+    components: [],
+  },
+  {
+    key: 'shape',
+    label: '図形',
+    icon: Pentagon,
+    children: [
+      {
+        key: 'shape_rect',
+        label: '矩形',
+        icon: Square,
+        components: [{ type: 'shape', data: { shapeType: 'rectangle', fillColor: '#cccccc' } }],
+      },
+      {
+        key: 'shape_ellipse',
+        label: '楕円',
+        icon: Circle,
+        components: [{ type: 'shape', data: { shapeType: 'ellipse', fillColor: '#cccccc' } }],
+      },
+      {
+        key: 'shape_polygon',
+        label: 'ポリゴン',
+        icon: Pentagon,
+        components: [{ type: 'shape', data: { shapeType: 'polygon', fillColor: '#cccccc', vertices: [{ x: 0.5, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }] } }],
+      },
+      {
+        key: 'shape_polygon_regular',
+        label: '正多角形',
+        icon: Hexagon,
+        components: [{ type: 'shape', data: { shapeType: 'polygon_regular', fillColor: '#cccccc', sides: 6 } }],
+      },
+      {
+        key: 'shape_line',
+        label: '線',
+        icon: Minus,
+        components: [{ type: 'shape', data: { shapeType: 'line', strokeColor: '#000000', strokeWidth: 2 } }],
+      },
+    ],
+  },
+  {
+    key: 'image',
+    label: '画像',
+    icon: ImageIcon,
+    components: [{ type: 'image', data: {} }],
+  },
+  {
+    key: 'text',
+    label: 'テキスト',
+    icon: Type,
+    components: [{ type: 'text', data: { content: 'テキスト', fontSize: 16, color: '#000000' } }],
+  },
+];
+
+/** プリセットを key で検索（グループ内も探索） */
+function findPreset(key: string): ElementPresetDef | undefined {
+  for (const entry of ELEMENT_PRESETS) {
+    if (isGroup(entry)) {
+      const found = entry.children.find((c) => c.key === key);
+      if (found) return found;
+    } else if (entry.key === key) {
+      return entry;
+    }
   }
+  return undefined;
 }
 
 // ──────────────────────────────────────────────
@@ -99,7 +169,7 @@ interface TreeNodeProps {
   onStartRename: (id: string) => void;
   onFinishRename: (id: string, newName: string) => void;
   onCancelRename: () => void;
-  onAddChild: (parentId: string, preset: ElementPreset) => void;
+  onAddChild: (parentId: string, presetKey: string) => void;
   onDuplicate: (objectId: string) => void;
   onDelete: (objectId: string) => void;
   onDragStart: (id: string) => void;
@@ -205,22 +275,29 @@ function TreeNode({
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={() => onAddChild(object.id, 'empty')}>
-            <Square className="mr-2 h-4 w-4" />
-            空オブジェクトを追加
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => onAddChild(object.id, 'shape')}>
-            <Pentagon className="mr-2 h-4 w-4" />
-            図形を追加
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => onAddChild(object.id, 'image')}>
-            <ImageIcon className="mr-2 h-4 w-4" />
-            画像を追加
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => onAddChild(object.id, 'text')}>
-            <Type className="mr-2 h-4 w-4" />
-            テキストを追加
-          </ContextMenuItem>
+          {ELEMENT_PRESETS.map((entry) =>
+            isGroup(entry) ? (
+              <ContextMenuSub key={entry.key}>
+                <ContextMenuSubTrigger>
+                  <entry.icon className="mr-2 h-4 w-4" />
+                  {entry.label}を追加
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent>
+                  {entry.children.map((child) => (
+                    <ContextMenuItem key={child.key} onClick={() => onAddChild(object.id, child.key)}>
+                      <child.icon className="mr-2 h-4 w-4" />
+                      {child.label}
+                    </ContextMenuItem>
+                  ))}
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+            ) : (
+              <ContextMenuItem key={entry.key} onClick={() => onAddChild(object.id, entry.key)}>
+                <entry.icon className="mr-2 h-4 w-4" />
+                {entry.label}を追加
+              </ContextMenuItem>
+            )
+          )}
           <ContextMenuItem onClick={() => onDuplicate(object.id)}>
             <Copy className="mr-2 h-4 w-4" />
             複製
@@ -341,36 +418,39 @@ export function UIObjectTree({
   }, []);
 
   const handleAddChild = useCallback(
-    (parentId: string, preset: ElementPreset = 'empty') => {
+    (parentId: string, presetKey: string) => {
       if (!canvasId) return;
+      const preset = findPreset(presetKey);
+      if (!preset) return;
       const newObj: EditorUIObject = {
         id: generateId(
           'ui_obj',
           objects.map((o) => o.id)
         ),
-        name: getPresetName(preset),
+        name: preset.label,
         parentId,
         transform: createDefaultRectTransform(),
-        components: getPresetComponents(preset),
+        components: preset.components,
       };
       onAddObject(canvasId, newObj);
-      // Expand parent to show new child
       setExpandedIds((prev) => new Set(prev).add(parentId));
     },
     [canvasId, objects, onAddObject]
   );
 
   const handleAddRoot = useCallback(
-    (preset: ElementPreset = 'empty') => {
+    (presetKey: string) => {
       if (!canvasId) return;
+      const preset = findPreset(presetKey);
+      if (!preset) return;
       const newObj: EditorUIObject = {
         id: generateId(
           'ui_obj',
           objects.map((o) => o.id)
         ),
-        name: getPresetName(preset),
+        name: preset.label,
         transform: createDefaultRectTransform(),
-        components: getPresetComponents(preset),
+        components: preset.components,
       };
       onAddObject(canvasId, newObj);
       onSelectObjects([newObj.id]);
@@ -487,22 +567,29 @@ export function UIObjectTree({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleAddRoot('empty')}>
-              <Square className="mr-2 h-4 w-4" />
-              空オブジェクト
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddRoot('shape')}>
-              <Pentagon className="mr-2 h-4 w-4" />
-              図形
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddRoot('image')}>
-              <ImageIcon className="mr-2 h-4 w-4" />
-              画像
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleAddRoot('text')}>
-              <Type className="mr-2 h-4 w-4" />
-              テキスト
-            </DropdownMenuItem>
+            {ELEMENT_PRESETS.map((entry) =>
+              isGroup(entry) ? (
+                <DropdownMenuSub key={entry.key}>
+                  <DropdownMenuSubTrigger>
+                    <entry.icon className="mr-2 h-4 w-4" />
+                    {entry.label}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {entry.children.map((child) => (
+                      <DropdownMenuItem key={child.key} onClick={() => handleAddRoot(child.key)}>
+                        <child.icon className="mr-2 h-4 w-4" />
+                        {child.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              ) : (
+                <DropdownMenuItem key={entry.key} onClick={() => handleAddRoot(entry.key)}>
+                  <entry.icon className="mr-2 h-4 w-4" />
+                  {entry.label}
+                </DropdownMenuItem>
+              )
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

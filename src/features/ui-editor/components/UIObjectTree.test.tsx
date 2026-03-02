@@ -30,7 +30,7 @@ if (typeof DOMRect === 'undefined') {
 }
 
 import { render, screen, fireEvent } from '@testing-library/react';
-// import userEvent from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { UIObjectTree } from './UIObjectTree';
 import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';
@@ -122,19 +122,25 @@ describe('UIObjectTree', () => {
     expect(onSelectObjects).toHaveBeenCalledWith(['a', 'b']);
   });
 
-  it('adds root object via header button', () => {
+  it('adds root object via header button', async () => {
+    const user = userEvent.setup();
     const onAddObject = jest.fn();
     const onSelectObjects = jest.fn();
     renderTree({ onAddObject, onSelectObjects });
 
+    // Open dropdown menu (Radix DropdownMenu requires full pointer event sequence)
     const addBtn = screen.getByRole('button', { name: 'オブジェクト追加' });
-    fireEvent.click(addBtn);
+    await user.click(addBtn);
+
+    // Click "空オブジェクト" menu item
+    const menuItem = await screen.findByText('空オブジェクト');
+    await user.click(menuItem);
 
     expect(onAddObject).toHaveBeenCalledTimes(1);
     const args = onAddObject.mock.calls[0];
     expect(args[0]).toBe('canvas1');
     expect(args[1]).toMatchObject({
-      name: '新しいオブジェクト',
+      name: '空オブジェクト',
       components: [],
     });
     expect(args[1].parentId).toBeUndefined();

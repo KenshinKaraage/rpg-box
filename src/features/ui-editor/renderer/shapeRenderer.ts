@@ -8,11 +8,45 @@ import type { UIRendererContext } from './UIRenderer';
 import { parseColor, cornersToTriangles } from './renderUtils';
 
 export interface ShapeData {
-  shapeType?: 'rectangle' | 'ellipse' | 'polygon';
+  shapeType?: 'rectangle' | 'ellipse' | 'polygon' | 'polygon_regular' | 'line';
   fillColor?: string;
   strokeColor?: string;
   strokeWidth?: number;
   cornerRadius?: number;
+  vertices?: { x: number; y: number }[];
+  sides?: number;
+}
+
+/**
+ * 正規化頂点 (0-1) をワールド座標に変換
+ */
+function verticesToWorld(
+  vertices: { x: number; y: number }[],
+  rect: WorldRect
+): [number, number][] {
+  const sw = rect.w * rect.scaleX;
+  const sh = rect.h * rect.scaleY;
+  const rad = (rect.rotation * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+
+  return vertices.map((v) => {
+    const lx = (v.x - rect.pivotX) * sw;
+    const ly = (v.y - rect.pivotY) * sh;
+    return [rect.x + lx * cos - ly * sin, rect.y + lx * sin + ly * cos] as [number, number];
+  });
+}
+
+/**
+ * 正多角形の頂点を生成 (0-1 正規化)
+ */
+function generateRegularPolygonVertices(sides: number): { x: number; y: number }[] {
+  const verts: { x: number; y: number }[] = [];
+  for (let i = 0; i < sides; i++) {
+    const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
+    verts.push({ x: 0.5 + Math.cos(angle) * 0.5, y: 0.5 + Math.sin(angle) * 0.5 });
+  }
+  return verts;
 }
 
 export function renderShape(
@@ -25,7 +59,7 @@ export function renderShape(
   const shapeType = data.shapeType ?? 'rectangle';
   const cornerRadius = data.cornerRadius ?? 0;
 
-  if (shapeType === 'rectangle' || shapeType === 'polygon') {
+  if (shapeType === 'rectangle') {
     const corners = getWorldCorners(rect);
 
     if (cornerRadius > 0) {
@@ -59,6 +93,28 @@ export function renderShape(
       const strokeColor = parseColor(data.strokeColor);
       const sw = data.strokeWidth ?? 1;
       renderEllipseStroke(ctx, strokeColor, sw, rect, gl);
+    }
+  } else if (shapeType === 'polygon' || shapeType === 'polygon_regular') {
+    const verts =
+      shapeType === 'polygon_regular'
+        ? generateRegularPolygonVertices(data.sides ?? 6)
+        : data.vertices ?? [{ x: 0.5, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }];
+
+    if (verts.length < 3) return;
+    const worldVerts = verticesToWorld(verts, rect);
+
+    renderPolygonFill(ctx, worldVerts, fillColor, gl);
+    if (data.strokeColor) {
+      const strokeColor = parseColor(data.strokeColor);
+      const sw = data.strokeWidth ?? 1;
+      renderPolylineStroke(ctx, worldVerts, sw, strokeColor, gl);
+    }
+  } else if (shapeType === 'line') {
+    if (data.strokeColor) {
+      const corners = getWorldCorners(rect);
+      const strokeColor = parseColor(data.strokeColor);
+      const sw = data.strokeWidth ?? 1;
+      renderPolylineStroke(ctx, [corners[0]!, corners[2]!], sw, strokeColor, gl, false);
     }
   }
 }
@@ -201,18 +257,37 @@ function renderPolylineStroke(
   outline: [number, number][],
   strokeWidth: number,
   strokeColor: number[],
-  gl: WebGLRenderingContext
+  gl: WebGLRenderingContext,
+  closed = true
 ): void {
   const n = outline.length;
-  if (n < 3) return;
+  if (n < 2) return;
   const hw = strokeWidth / 2;
 
   const outer: [number, number][] = [];
   const inner: [number, number][] = [];
 
   for (let i = 0; i < n; i++) {
-    const prev = outline[(i - 1 + n) % n]!;
     const curr = outline[i]!;
+
+    if (!closed && (i === 0 || i === n - 1)) {
+      // Open path: use edge normal only at endpoints
+      const neighbor = i === 0 ? outline[1]! : outline[n - 2]!;
+      const dx = i === 0 ? outline[1]![0] - curr[0] : curr[0] - neighbor[0];
+      const dy = i === 0 ? outline[1]![1] - curr[1] : curr[1] - neighbor[1];
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len === 0) {
+        outer.push([curr[0], curr[1]]);
+        inner.push([curr[0], curr[1]]);
+        continue;
+      }
+      const nx = dy / len, ny = -dx / len;
+      outer.push([curr[0] + nx * hw, curr[1] + ny * hw]);
+      inner.push([curr[0] - nx * hw, curr[1] - ny * hw]);
+      continue;
+    }
+
+    const prev = outline[(i - 1 + n) % n]!;
     const next = outline[(i + 1) % n]!;
 
     const d1x = curr[0] - prev[0], d1y = curr[1] - prev[1];
@@ -243,8 +318,9 @@ function renderPolylineStroke(
     inner.push([curr[0] - mx * miterLen, curr[1] - my * miterLen]);
   }
 
+  const segCount = closed ? n : n - 1;
   const positions: number[] = [];
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < segCount; i++) {
     const j = (i + 1) % n;
     const o0 = outer[i]!, o1 = outer[j]!;
     const i0 = inner[i]!, i1 = inner[j]!;
