@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useStore } from '@/stores';
 import { getUIComponent, getAllUIComponents } from '@/types/ui';
+import { AnchorPresets } from './AnchorPresets';
 import type { RectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
 
@@ -105,38 +106,45 @@ function TransformEditor({
       {/* Anchor */}
       <fieldset>
         <legend className="mb-1 text-xs font-medium">アンカー</legend>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-1">
-            <Label className="w-8 shrink-0 text-xs text-muted-foreground">X</Label>
-            <Select
-              value={transform.anchorX}
-              onValueChange={(v) => onUpdate({ anchorX: v as RectTransform['anchorX'] })}
-            >
-              <SelectTrigger className="h-7 text-xs" aria-label="アンカーX">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="left">左</SelectItem>
-                <SelectItem value="center">中央</SelectItem>
-                <SelectItem value="right">右</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-1">
-            <Label className="w-8 shrink-0 text-xs text-muted-foreground">Y</Label>
-            <Select
-              value={transform.anchorY}
-              onValueChange={(v) => onUpdate({ anchorY: v as RectTransform['anchorY'] })}
-            >
-              <SelectTrigger className="h-7 text-xs" aria-label="アンカーY">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="top">上</SelectItem>
-                <SelectItem value="center">中央</SelectItem>
-                <SelectItem value="bottom">下</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="flex items-start gap-3">
+          <AnchorPresets
+            anchorX={transform.anchorX}
+            anchorY={transform.anchorY}
+            onUpdate={onUpdate}
+          />
+          <div className="grid flex-1 grid-cols-1 gap-2">
+            <div className="flex items-center gap-1">
+              <Label className="w-8 shrink-0 text-xs text-muted-foreground">X</Label>
+              <Select
+                value={transform.anchorX}
+                onValueChange={(v) => onUpdate({ anchorX: v as RectTransform['anchorX'] })}
+              >
+                <SelectTrigger className="h-7 text-xs" aria-label="アンカーX">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">左</SelectItem>
+                  <SelectItem value="center">中央</SelectItem>
+                  <SelectItem value="right">右</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-1">
+              <Label className="w-8 shrink-0 text-xs text-muted-foreground">Y</Label>
+              <Select
+                value={transform.anchorY}
+                onValueChange={(v) => onUpdate({ anchorY: v as RectTransform['anchorY'] })}
+              >
+                <SelectTrigger className="h-7 text-xs" aria-label="アンカーY">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="top">上</SelectItem>
+                  <SelectItem value="center">中央</SelectItem>
+                  <SelectItem value="bottom">下</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </fieldset>
