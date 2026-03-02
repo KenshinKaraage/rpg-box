@@ -88,3 +88,5 @@ export { AnimationComponent } from './components/AnimationComponent';
 export type { TweenTrack, InlineTimeline } from './components/AnimationComponent';
 export { ActionComponent } from './components/ActionComponent';
 export type { SerializedAction, UIActionEntry } from './components/ActionComponent';
+export { TemplateControllerComponent } from './components/TemplateControllerComponent';
+export type { TemplateArg } from './components/TemplateControllerComponent';

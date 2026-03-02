@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { useStore } from '@/stores';
 import { generateId } from '@/lib/utils';
+import { TemplateControllerComponent } from '@/types/ui/components/TemplateControllerComponent';
 import type { EditorUIObject, EditorUITemplate } from '@/stores/uiEditorSlice';
 
 /**
@@ -38,6 +39,18 @@ export function collectObjectTree(
 }
 
 /**
+ * ルートオブジェクトに TemplateControllerComponent がなければ自動追加する。
+ * 既にあれば何もしない。引数の objects は in-place で変更される。
+ */
+export function ensureTemplateController(objects: EditorUIObject[], rootId: string): void {
+  const root = objects.find((o) => o.id === rootId);
+  if (!root) return;
+  if (root.components.some((c) => c.type === 'templateController')) return;
+  const tc = new TemplateControllerComponent();
+  root.components.push({ type: tc.type, data: tc.serialize() });
+}
+
+/**
  * テンプレート保存フック
  *
  * 選択中のオブジェクト（と子孫）をテンプレートとして保存する。
@@ -60,6 +73,7 @@ export function useTemplateSave() {
 
       const objectId = selectedObjectIds[0]!;
       const objects = collectObjectTree(objectId, selectedCanvas.objects);
+      ensureTemplateController(objects, objectId);
       const root = objects.find((o) => o.id === objectId);
 
       const id = generateId(

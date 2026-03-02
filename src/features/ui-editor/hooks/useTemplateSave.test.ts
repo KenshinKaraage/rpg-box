@@ -1,4 +1,4 @@
-import { collectObjectTree } from './useTemplateSave';
+import { collectObjectTree, ensureTemplateController } from './useTemplateSave';
 import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';
 
@@ -95,5 +95,42 @@ describe('collectObjectTree', () => {
     const objects = [makeObject('a')];
     const result = collectObjectTree('nonexistent', objects);
     expect(result).toHaveLength(0);
+  });
+});
+
+describe('ensureTemplateController', () => {
+  it('adds templateController to root if not present', () => {
+    const objects = [makeObject('root')];
+    ensureTemplateController(objects, 'root');
+
+    const root = objects[0]!;
+    const tc = root.components.find((c) => c.type === 'templateController');
+    expect(tc).toBeDefined();
+    expect(tc!.data).toEqual({ args: [], onSpawnActions: [] });
+  });
+
+  it('does not duplicate if templateController already exists', () => {
+    const objects = [makeObject('root', undefined, ['templateController'])];
+    ensureTemplateController(objects, 'root');
+
+    const tcCount = objects[0]!.components.filter((c) => c.type === 'templateController').length;
+    expect(tcCount).toBe(1);
+  });
+
+  it('does nothing for non-existent root', () => {
+    const objects = [makeObject('a')];
+    ensureTemplateController(objects, 'nonexistent');
+    // No error thrown, objects unchanged
+    expect(objects[0]!.components).toHaveLength(0);
+  });
+
+  it('preserves existing components when adding', () => {
+    const objects = [makeObject('root', undefined, ['image', 'text'])];
+    ensureTemplateController(objects, 'root');
+
+    expect(objects[0]!.components).toHaveLength(3);
+    expect(objects[0]!.components[0]!.type).toBe('image');
+    expect(objects[0]!.components[1]!.type).toBe('text');
+    expect(objects[0]!.components[2]!.type).toBe('templateController');
   });
 });
