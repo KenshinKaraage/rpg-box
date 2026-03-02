@@ -1,20 +1,31 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as twgl from 'twgl.js';
 import { useStore } from '@/stores';
 import { useUIViewport } from '../hooks/useUIViewport';
 import { SOLID_VERT, SOLID_FRAG } from '../utils/shaders';
+import { createRendererPrograms, renderUIObjects } from '../renderer/UIRenderer';
+import type { UIRendererContext } from '../renderer/UIRenderer';
 
 export function UICanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const solidProgramRef = useRef<twgl.ProgramInfo | null>(null);
+  const rendererCtxRef = useRef<UIRendererContext | null>(null);
 
   const resolution = useStore((s) => s.gameSettings.resolution);
   const showGrid = useStore((s) => s.showUIGrid);
   const gridSize = useStore((s) => s.uiGridSize);
+  const selectedCanvasId = useStore((s) => s.selectedCanvasId);
+  const uiCanvases = useStore((s) => s.uiCanvases);
+  const assets = useStore((s) => s.assets);
+
+  const selectedCanvas = uiCanvases.find((c) => c.id === selectedCanvasId) ?? null;
+
+  // テクスチャロード完了時に再レンダーをトリガー
+  const [textureGen, setTextureGen] = useState(0);
 
   const { viewport, handleWheel, handleMouseDown, handleMouseMove, handleMouseUp } =
     useUIViewport(canvasRef);
@@ -30,6 +41,16 @@ export function UICanvas() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     solidProgramRef.current = twgl.createProgramInfo(gl, [SOLID_VERT, SOLID_FRAG]);
+
+    const programs = createRendererPrograms(gl);
+    rendererCtxRef.current = {
+      gl,
+      ...programs,
+      matrix: twgl.m4.identity(),
+      textureCache: new Map(),
+      getAssetData: () => null,
+      onTextureLoaded: () => setTextureGen((t) => t + 1),
+    };
   }, []);
 
   // ホイールイベント（passive:false 必須）
@@ -45,6 +66,7 @@ export function UICanvas() {
     const canvas = canvasRef.current;
     const gl = glRef.current;
     const solidProgram = solidProgramRef.current;
+    const rendererCtx = rendererCtxRef.current;
     if (!canvas || !gl || !solidProgram) return;
 
     twgl.resizeCanvasToDisplaySize(canvas);
@@ -103,7 +125,18 @@ export function UICanvas() {
       }
     }
 
+    // ── UIObject 描画 ──
+    if (rendererCtx && selectedCanvas && selectedCanvas.objects.length > 0) {
+      rendererCtx.matrix = matrix;
+      rendererCtx.getAssetData = (assetId: string) => {
+        const asset = assets.find((a) => a.id === assetId);
+        return (asset?.data as string) ?? null;
+      };
+      renderUIObjects(rendererCtx, selectedCanvas.objects, resW, resH);
+    }
+
     // ── 解像度プレビュー枠（青い外枠） ──
+    gl.useProgram(solidProgram.program);
     const borderPositions = new Float32Array([
       0, 0, resW, 0,
       resW, 0, resW, resH,
@@ -119,9 +152,7 @@ export function UICanvas() {
       u_color: [0.3, 0.5, 1.0, 0.8],
     });
     twgl.drawBufferInfo(gl, borderBuffer, gl.LINES);
-
-    // TODO: UIObject 描画は T189d で実装
-  }, [viewport, resolution, showGrid, gridSize]);
+  }, [viewport, resolution, showGrid, gridSize, selectedCanvas, assets, textureGen]);
 
   return (
     <div className="relative h-full w-full overflow-hidden" data-testid="ui-canvas-container">
