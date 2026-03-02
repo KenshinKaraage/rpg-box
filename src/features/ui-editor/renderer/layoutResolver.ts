@@ -5,7 +5,6 @@
  * transform の x/y を自動計算する。
  */
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
-import type { RectTransform } from '@/types/ui/UIComponent';
 
 interface LayoutGroupData {
   direction?: 'horizontal' | 'vertical';

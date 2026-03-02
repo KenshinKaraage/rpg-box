@@ -84,7 +84,7 @@ describe('Built-in easings', () => {
   });
 
   it('all easings satisfy f(0) === 0 and f(1) === 1', () => {
-    for (const [name, fn] of getAllEasings()) {
+    for (const [, fn] of getAllEasings()) {
       expect(fn(0)).toBe(0);
       expect(fn(1)).toBe(1);
     }

@@ -271,7 +271,7 @@ function renderImage(
 ): void {
   if (!data.imageId) return;
 
-  let texture = ctx.textureCache.get(data.imageId);
+  const texture = ctx.textureCache.get(data.imageId);
   if (!texture) {
     const assetData = ctx.getAssetData(data.imageId);
     if (!assetData) return;

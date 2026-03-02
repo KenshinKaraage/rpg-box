@@ -1,5 +1,4 @@
 import { AnimationComponent } from './AnimationComponent';
-import type { InlineTimeline } from './AnimationComponent';
 
 describe('AnimationComponent', () => {
   it('has type "animation"', () => {

@@ -30,7 +30,7 @@ if (typeof DOMRect === 'undefined') {
 }
 
 import { render, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+// import userEvent from '@testing-library/user-event';
 import { UIObjectTree } from './UIObjectTree';
 import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';

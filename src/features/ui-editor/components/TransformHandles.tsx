@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 import {
   computeAbsolutePositions,
   worldToScreen,
@@ -240,7 +240,7 @@ export function TransformHandles({
       const r = containerEl.getBoundingClientRect();
       const curWorld = screenToWorld(ev.clientX - r.left, ev.clientY - r.top, viewport);
       const curAngle = Math.atan2(curWorld.y - drag.centerY, curWorld.x - drag.centerX);
-      let deltaDeg = ((curAngle - startAngle) * 180) / Math.PI;
+      const deltaDeg = ((curAngle - startAngle) * 180) / Math.PI;
       let newRot = drag.startObjRotation + deltaDeg;
       if (snapToGrid) {
         newRot = Math.round(newRot / 15) * 15;

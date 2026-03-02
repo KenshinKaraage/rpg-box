@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { TransformHandles, snapValue } from './TransformHandles';
 import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject, UIEditorViewport } from '@/stores/uiEditorSlice';
