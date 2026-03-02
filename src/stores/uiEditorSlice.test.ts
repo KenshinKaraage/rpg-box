@@ -52,7 +52,7 @@ function makeTemplate(overrides: Partial<EditorUITemplate> = {}): EditorUITempla
   return {
     id: 'tmpl_1',
     name: 'テストテンプレート',
-    rootObject: makeObject(),
+    objects: [makeObject()],
     ...overrides,
   };
 }

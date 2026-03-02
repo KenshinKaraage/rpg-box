@@ -47,7 +47,8 @@ export interface EditorUICanvas {
 export interface EditorUITemplate {
   id: string;
   name: string;
-  rootObject: EditorUIObject;
+  /** フラットリスト。parentId で階層構造を表現。ルートの parentId は undefined */
+  objects: EditorUIObject[];
 }
 
 export interface UIEditorViewport {
@@ -115,7 +116,7 @@ export interface UIEditorSlice {
   addUITemplate: (template: EditorUITemplate) => void;
   updateUITemplate: (
     id: string,
-    updates: Partial<Pick<EditorUITemplate, 'name' | 'rootObject'>>
+    updates: Partial<Pick<EditorUITemplate, 'name' | 'objects'>>
   ) => void;
   deleteUITemplate: (id: string) => void;
 

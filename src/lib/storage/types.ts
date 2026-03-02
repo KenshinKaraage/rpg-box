@@ -237,7 +237,8 @@ export interface UIFunction {
 export interface UITemplate {
   id: string;
   name: string;
-  rootObject: UIObject;
+  /** フラットリスト。parentId で階層構造を表現。ルートの parentId は undefined */
+  objects: UIObject[];
 }
 
 /**
