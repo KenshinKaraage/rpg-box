@@ -14,11 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { useStore } from '@/stores';
 import { AssetPickerModal } from '@/features/asset-manager/components/AssetPickerModal';
 import { getUIComponent } from '@/types/ui';
 import type { PropertyDef } from '@/types/ui/UIComponent';
+import { splitColorAlpha } from '@/lib/colorUtils';
+import { ColorPickerPopover } from './ColorPickerPopover';
 
 // ──────────────────────────────────────────────
 // Renderer
@@ -135,27 +136,23 @@ function PropertyField({
 
     case 'color':
       return (
-        <div className="flex items-center gap-2">
-          <Label className="w-24 shrink-0 text-xs text-muted-foreground">{def.label}</Label>
-          <div className="flex flex-1 items-center gap-1">
-            <input
-              type="color"
-              className="h-7 w-7 shrink-0 cursor-pointer rounded border"
-              value={(value as string) ?? '#000000'}
-              onChange={(e) => onChange(e.target.value)}
-            />
-            <Input
-              className="h-7 text-xs"
-              value={(value as string) ?? ''}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder="#000000"
-            />
-          </div>
-        </div>
+        <ColorField
+          label={def.label}
+          value={value as string | undefined}
+          onChange={onChange}
+          showAlpha={false}
+        />
       );
 
     case 'colorAlpha':
-      return <ColorAlphaField label={def.label} value={value as string | undefined} onChange={onChange} />;
+      return (
+        <ColorField
+          label={def.label}
+          value={value as string | undefined}
+          onChange={onChange}
+          showAlpha={true}
+        />
+      );
 
     case 'assetImage':
       return <AssetImageField label={def.label} value={value as string | undefined} onChange={onChange} />;
@@ -192,125 +189,55 @@ function PropertyField({
 }
 
 // ──────────────────────────────────────────────
-// Color with Alpha field
+// Color field with ColorPickerPopover
 // ──────────────────────────────────────────────
 
-/**
- * #rrggbb or #rrggbbaa 形式の色文字列から { hex6, alpha } を分離する
- */
-function splitColorAlpha(value: string | undefined): { hex6: string; alpha: number } {
-  if (!value || !value.startsWith('#')) return { hex6: '#ffffff', alpha: 1 };
-  const h = value.slice(1);
-  if (h.length === 8) {
-    return {
-      hex6: '#' + h.slice(0, 6),
-      alpha: parseInt(h.slice(6, 8), 16) / 255,
-    };
-  }
-  if (h.length === 6) {
-    return { hex6: value, alpha: 1 };
-  }
-  if (h.length === 3) {
-    return { hex6: '#' + h[0] + h[0] + h[1] + h[1] + h[2] + h[2], alpha: 1 };
-  }
-  return { hex6: '#ffffff', alpha: 1 };
-}
-
-/**
- * hex6 (#rrggbb) + alpha (0-1) を #rrggbbaa に結合する
- */
-function mergeColorAlpha(hex6: string, alpha: number): string {
-  const a = Math.round(Math.max(0, Math.min(1, alpha)) * 255);
-  if (a === 255) return hex6;
-  return hex6 + a.toString(16).padStart(2, '0');
-}
-
-function ColorAlphaField({
+function ColorField({
   label,
   value,
   onChange,
+  showAlpha,
 }: {
   label: string;
   value: string | undefined;
   onChange: (v: unknown) => void;
+  showAlpha: boolean;
 }) {
   const { hex6, alpha } = splitColorAlpha(value);
-  const alphaPercent = Math.round(alpha * 100);
-
-  const handleColorChange = useCallback(
-    (newHex: string) => {
-      onChange(mergeColorAlpha(newHex, alpha));
-    },
-    [alpha, onChange]
-  );
-
-  const handleAlphaChange = useCallback(
-    (values: number[]) => {
-      const newAlpha = (values[0] ?? 100) / 100;
-      onChange(mergeColorAlpha(hex6, newAlpha));
-    },
-    [hex6, onChange]
-  );
-
-  const handleHexInput = useCallback(
-    (input: string) => {
-      // Accept raw hex input; pass through as-is
-      if (input.startsWith('#') && (input.length === 7 || input.length === 9)) {
-        onChange(input);
-      }
-    },
-    [onChange]
-  );
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <Label className="w-24 shrink-0 text-xs text-muted-foreground">{label}</Label>
-        <div className="flex flex-1 items-center gap-1">
-          <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded border">
-            {/* Checkerboard background for transparency */}
+    <div className="flex items-center gap-2">
+      <Label className="w-24 shrink-0 text-xs text-muted-foreground">{label}</Label>
+      <ColorPickerPopover
+        value={value}
+        onChange={(v) => onChange(v)}
+        showAlpha={showAlpha}
+      >
+        <button
+          type="button"
+          className="relative h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded border"
+        >
+          {/* Checkerboard for alpha */}
+          {showAlpha && (
             <div
               className="absolute inset-0"
               style={{
                 backgroundImage:
                   'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
-                backgroundSize: '8px 8px',
-                backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
+                backgroundSize: '6px 6px',
+                backgroundPosition: '0 0, 0 3px, 3px -3px, -3px 0px',
               }}
             />
-            <input
-              type="color"
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              value={hex6}
-              onChange={(e) => handleColorChange(e.target.value)}
-            />
-            <div
-              className="absolute inset-0"
-              style={{ backgroundColor: hex6, opacity: alpha }}
-            />
-          </div>
-          <Input
-            className="h-7 text-xs"
-            value={value ?? ''}
-            onChange={(e) => handleHexInput(e.target.value)}
-            placeholder="#rrggbbaa"
+          )}
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: hex6, opacity: showAlpha ? alpha : 1 }}
           />
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <Label className="w-24 shrink-0 text-xs text-muted-foreground">不透明度</Label>
-        <div className="flex flex-1 items-center gap-2">
-          <Slider
-            min={0}
-            max={100}
-            step={1}
-            value={[alphaPercent]}
-            onValueChange={handleAlphaChange}
-            className="flex-1"
-          />
-          <span className="w-8 text-right text-xs text-muted-foreground">{alphaPercent}%</span>
-        </div>
-      </div>
+        </button>
+      </ColorPickerPopover>
+      <span className="flex-1 truncate text-xs text-muted-foreground">
+        {value ?? (showAlpha ? '#rrggbbaa' : '#rrggbb')}
+      </span>
     </div>
   );
 }
@@ -352,7 +279,6 @@ function AssetImageField({
         <div className="flex flex-1 items-center gap-1">
           {selectedAsset ? (
             <>
-              {/* Thumbnail */}
               <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded border bg-muted">
                 {selectedAsset.data ? (
                   // eslint-disable-next-line @next/next/no-img-element
