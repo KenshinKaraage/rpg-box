@@ -18,6 +18,8 @@ export type PropertyDef = {
   | { type: 'boolean' }
   | { type: 'select'; options: { value: string; label: string }[] }
   | { type: 'color' }
+  | { type: 'colorAlpha' }
+  | { type: 'assetImage' }
   | { type: 'text'; placeholder?: string }
   | { type: 'textarea'; placeholder?: string }
 );

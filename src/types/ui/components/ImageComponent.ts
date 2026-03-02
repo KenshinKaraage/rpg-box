@@ -11,6 +11,7 @@ export class ImageComponent extends UIComponent {
 
   getPropertyDefs(): PropertyDef[] {
     return [
+      { key: 'imageId', label: '画像', type: 'assetImage' },
       { key: 'opacity', label: '不透明度', type: 'number', min: 0, max: 1, step: 0.1 },
       { key: 'tint', label: 'ティント', type: 'color' },
       {

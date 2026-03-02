@@ -22,8 +22,8 @@ export class ShapeComponent extends UIComponent {
           { value: 'polygon', label: 'ポリゴン' },
         ],
       },
-      { key: 'fillColor', label: '塗り', type: 'color' },
-      { key: 'strokeColor', label: '線色', type: 'color' },
+      { key: 'fillColor', label: '塗り', type: 'colorAlpha' },
+      { key: 'strokeColor', label: '線色', type: 'colorAlpha' },
       { key: 'strokeWidth', label: '線幅', type: 'number', min: 0 },
       { key: 'cornerRadius', label: '角丸', type: 'number', min: 0 },
     ];
