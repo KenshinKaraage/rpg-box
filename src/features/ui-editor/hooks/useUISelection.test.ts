@@ -128,17 +128,18 @@ describe('hitTest', () => {
       makeObject('p', 100, 100, 200, 200),
       makeObject('c', 10, 10, 50, 50, 'p'),
     ];
-    // Child absolute position: (110, 110)-(160, 160)
+    // pivot=0.5: parent bounds centered at (100,100) → (0,0)-(200,200)
+    // child abs=(110,110), bounds centered → (85,85)-(135,135)
     expect(hitTest(objects, 120, 120)).toBe('c');
-    expect(hitTest(objects, 105, 105)).toBe('p'); // In parent but not in child
+    expect(hitTest(objects, 50, 50)).toBe('p'); // In parent but not in child
   });
 
   it('respects scale for hit area', () => {
     const obj = makeObject('a', 10, 10, 100, 100);
     obj.transform.scaleX = 0.5;
     obj.transform.scaleY = 0.5;
-    // Scaled dimensions: 50x50, so bounds are (10,10)-(60,60)
-    expect(hitTest([obj], 55, 55)).toBe('a');
-    expect(hitTest([obj], 65, 65)).toBeNull();
+    // Scaled dimensions: 50x50, pivot=0.5 → bounds centered at (10,10): (-15,-15)-(35,35)
+    expect(hitTest([obj], 30, 30)).toBe('a');
+    expect(hitTest([obj], 40, 40)).toBeNull();
   });
 });

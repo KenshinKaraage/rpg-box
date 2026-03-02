@@ -55,6 +55,8 @@ export function hitTest(
     const { absX, absY } = pos;
     const w = obj.transform.width * obj.transform.scaleX;
     const h = obj.transform.height * obj.transform.scaleY;
+    const pivotX = obj.transform.pivotX;
+    const pivotY = obj.transform.pivotY;
     const rotation = obj.transform.rotation;
 
     // クリック座標をオブジェクトのローカル座標系に逆回転して AABB 判定
@@ -71,10 +73,10 @@ export function hitTest(
     }
 
     if (
-      localX >= -w / 2 &&
-      localX <= w / 2 &&
-      localY >= -h / 2 &&
-      localY <= h / 2
+      localX >= -w * pivotX &&
+      localX <= w * (1 - pivotX) &&
+      localY >= -h * pivotY &&
+      localY <= h * (1 - pivotY)
     ) {
       return obj.id;
     }

@@ -91,8 +91,10 @@ export function TransformHandles({
   const scaledW = w * scaleX;
   const scaledH = h * scaleY;
 
-  // absX/absY はピボット（中心）座標なので左上に変換
-  const topLeft = worldToScreen(absX - scaledW / 2, absY - scaledH / 2, viewport);
+  const pivotX = selectedObject.transform.pivotX;
+  const pivotY = selectedObject.transform.pivotY;
+  // absX/absY はピボット座標なので左上に変換
+  const topLeft = worldToScreen(absX - scaledW * pivotX, absY - scaledH * pivotY, viewport);
   const screenW = scaledW * viewport.zoom;
   const screenH = scaledH * viewport.zoom;
 
@@ -287,7 +289,7 @@ export function TransformHandles({
         width: `${screenW}px`,
         height: `${screenH}px`,
         transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
-        transformOrigin: 'center center',
+        transformOrigin: `${pivotX * 100}% ${pivotY * 100}%`,
       }}
     >
       {/* Move area */}
@@ -337,6 +339,27 @@ export function TransformHandles({
           height: `${ROTATE_OFFSET - hs}px`,
         }}
       />
+
+      {/* Pivot crosshair */}
+      <div
+        data-testid="pivot-crosshair"
+        className="absolute pointer-events-none"
+        style={{
+          left: `${screenW * pivotX}px`,
+          top: `${screenH * pivotY}px`,
+        }}
+      >
+        {/* Horizontal line */}
+        <div
+          className="absolute bg-blue-500"
+          style={{ left: -5, top: 0, width: 10, height: 1 }}
+        />
+        {/* Vertical line */}
+        <div
+          className="absolute bg-blue-500"
+          style={{ left: 0, top: -5, width: 1, height: 10 }}
+        />
+      </div>
     </div>
   );
 }

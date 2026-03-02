@@ -27,6 +27,10 @@ export interface WorldRect {
   scaleX: number;
   /** 累積スケールY */
   scaleY: number;
+  /** ピボットX (0-1) */
+  pivotX: number;
+  /** ピボットY (0-1) */
+  pivotY: number;
 }
 
 /**
@@ -103,6 +107,8 @@ export function resolveTransform(
     rotation: parentRect.rotation + transform.rotation,
     scaleX: parentRect.scaleX * transform.scaleX,
     scaleY: parentRect.scaleY * transform.scaleY,
+    pivotX: transform.pivotX,
+    pivotY: transform.pivotY,
   };
 }
 
@@ -119,6 +125,8 @@ export function createRootRect(canvasWidth: number, canvasHeight: number): World
     rotation: 0,
     scaleX: 1,
     scaleY: 1,
+    pivotX: 0.5,
+    pivotY: 0.5,
   };
 }
 
@@ -127,15 +135,15 @@ export function createRootRect(canvasWidth: number, canvasHeight: number): World
  * 返り値: [topLeft, topRight, bottomRight, bottomLeft] の x,y 座標
  */
 export function getWorldCorners(rect: WorldRect): [number, number][] {
-  const hw = (rect.w * rect.scaleX) / 2;
-  const hh = (rect.h * rect.scaleY) / 2;
+  const sw = rect.w * rect.scaleX;
+  const sh = rect.h * rect.scaleY;
 
-  // ピボット中心のローカル4頂点
+  // ピボットを考慮したローカル4頂点
   const corners: [number, number][] = [
-    [-hw, -hh], // top-left
-    [hw, -hh],  // top-right
-    [hw, hh],   // bottom-right
-    [-hw, hh],  // bottom-left
+    [-sw * rect.pivotX,        -sh * rect.pivotY],         // top-left
+    [ sw * (1 - rect.pivotX),  -sh * rect.pivotY],         // top-right
+    [ sw * (1 - rect.pivotX),   sh * (1 - rect.pivotY)],   // bottom-right
+    [-sw * rect.pivotX,         sh * (1 - rect.pivotY)],   // bottom-left
   ];
 
   if (rect.rotation === 0) {

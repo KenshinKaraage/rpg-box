@@ -9,6 +9,9 @@ import {
   Trash2,
   Edit2,
   Square,
+  ImageIcon,
+  Type,
+  Pentagon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,11 +21,51 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { generateId } from '@/lib/utils';
 import { createDefaultRectTransform } from '@/types/ui/UIComponent';
-import type { EditorUIObject } from '@/stores/uiEditorSlice';
+import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
+
+// ──────────────────────────────────────────────
+// Element type presets
+// ──────────────────────────────────────────────
+
+type ElementPreset = 'empty' | 'shape' | 'image' | 'text';
+
+function getPresetComponents(preset: ElementPreset): SerializedUIComponent[] {
+  switch (preset) {
+    case 'empty':
+      return [];
+    case 'shape':
+      return [{ type: 'shape', data: { shapeType: 'rect', fillColor: '#cccccc' } }];
+    case 'image':
+      return [{ type: 'image', data: {} }];
+    case 'text':
+      return [
+        { type: 'text', data: { content: 'テキスト', fontSize: 16, color: '#000000' } },
+      ];
+  }
+}
+
+function getPresetName(preset: ElementPreset): string {
+  switch (preset) {
+    case 'empty':
+      return '新しいオブジェクト';
+    case 'shape':
+      return '図形';
+    case 'image':
+      return '画像';
+    case 'text':
+      return 'テキスト';
+  }
+}
 
 // ──────────────────────────────────────────────
 // Props
@@ -56,7 +99,7 @@ interface TreeNodeProps {
   onStartRename: (id: string) => void;
   onFinishRename: (id: string, newName: string) => void;
   onCancelRename: () => void;
-  onAddChild: (parentId: string) => void;
+  onAddChild: (parentId: string, preset: ElementPreset) => void;
   onDuplicate: (objectId: string) => void;
   onDelete: (objectId: string) => void;
   onDragStart: (id: string) => void;
@@ -162,9 +205,21 @@ function TreeNode({
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem onClick={() => onAddChild(object.id)}>
-            <Plus className="mr-2 h-4 w-4" />
-            子オブジェクトを追加
+          <ContextMenuItem onClick={() => onAddChild(object.id, 'empty')}>
+            <Square className="mr-2 h-4 w-4" />
+            空オブジェクトを追加
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => onAddChild(object.id, 'shape')}>
+            <Pentagon className="mr-2 h-4 w-4" />
+            図形を追加
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => onAddChild(object.id, 'image')}>
+            <ImageIcon className="mr-2 h-4 w-4" />
+            画像を追加
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => onAddChild(object.id, 'text')}>
+            <Type className="mr-2 h-4 w-4" />
+            テキストを追加
           </ContextMenuItem>
           <ContextMenuItem onClick={() => onDuplicate(object.id)}>
             <Copy className="mr-2 h-4 w-4" />
@@ -286,17 +341,17 @@ export function UIObjectTree({
   }, []);
 
   const handleAddChild = useCallback(
-    (parentId: string) => {
+    (parentId: string, preset: ElementPreset = 'empty') => {
       if (!canvasId) return;
       const newObj: EditorUIObject = {
         id: generateId(
           'ui_obj',
           objects.map((o) => o.id)
         ),
-        name: '新しいオブジェクト',
+        name: getPresetName(preset),
         parentId,
         transform: createDefaultRectTransform(),
-        components: [],
+        components: getPresetComponents(preset),
       };
       onAddObject(canvasId, newObj);
       // Expand parent to show new child
@@ -305,20 +360,23 @@ export function UIObjectTree({
     [canvasId, objects, onAddObject]
   );
 
-  const handleAddRoot = useCallback(() => {
-    if (!canvasId) return;
-    const newObj: EditorUIObject = {
-      id: generateId(
-        'ui_obj',
-        objects.map((o) => o.id)
-      ),
-      name: '新しいオブジェクト',
-      transform: createDefaultRectTransform(),
-      components: [],
-    };
-    onAddObject(canvasId, newObj);
-    onSelectObjects([newObj.id]);
-  }, [canvasId, objects, onAddObject, onSelectObjects]);
+  const handleAddRoot = useCallback(
+    (preset: ElementPreset = 'empty') => {
+      if (!canvasId) return;
+      const newObj: EditorUIObject = {
+        id: generateId(
+          'ui_obj',
+          objects.map((o) => o.id)
+        ),
+        name: getPresetName(preset),
+        transform: createDefaultRectTransform(),
+        components: getPresetComponents(preset),
+      };
+      onAddObject(canvasId, newObj);
+      onSelectObjects([newObj.id]);
+    },
+    [canvasId, objects, onAddObject, onSelectObjects]
+  );
 
   const handleDuplicate = useCallback(
     (objectId: string) => {
@@ -417,15 +475,36 @@ export function UIObjectTree({
       {/* Header */}
       <div className="flex items-center justify-between border-b px-2 py-1">
         <span className="text-xs font-medium">オブジェクト</span>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-6 w-6 p-0"
-          onClick={handleAddRoot}
-          aria-label="オブジェクト追加"
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0"
+              aria-label="オブジェクト追加"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleAddRoot('empty')}>
+              <Square className="mr-2 h-4 w-4" />
+              空オブジェクト
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddRoot('shape')}>
+              <Pentagon className="mr-2 h-4 w-4" />
+              図形
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddRoot('image')}>
+              <ImageIcon className="mr-2 h-4 w-4" />
+              画像
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddRoot('text')}>
+              <Type className="mr-2 h-4 w-4" />
+              テキスト
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Tree */}

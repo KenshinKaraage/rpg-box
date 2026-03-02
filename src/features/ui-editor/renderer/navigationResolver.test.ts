@@ -177,7 +177,7 @@ describe('resolveCursorPosition', () => {
       transform: createDefaultRectTransform(),
       components: [{ type: 'navigationCursor', data: { offsetX: -10, offsetY: 5 } }],
     };
-    const rect: WorldRect = { x: 100, y: 200, w: 50, h: 30, rotation: 0, scaleX: 1, scaleY: 1 };
+    const rect: WorldRect = { x: 100, y: 200, w: 50, h: 30, rotation: 0, scaleX: 1, scaleY: 1, pivotX: 0.5, pivotY: 0.5 };
     const pos = resolveCursorPosition(cursor, rect);
     expect(pos).toEqual({ x: 90, y: 205 });
   });
@@ -189,7 +189,7 @@ describe('resolveCursorPosition', () => {
       transform: createDefaultRectTransform(),
       components: [{ type: 'navigationCursor', data: {} }],
     };
-    const rect: WorldRect = { x: 50, y: 60, w: 40, h: 40, rotation: 0, scaleX: 1, scaleY: 1 };
+    const rect: WorldRect = { x: 50, y: 60, w: 40, h: 40, rotation: 0, scaleX: 1, scaleY: 1, pivotX: 0.5, pivotY: 0.5 };
     const pos = resolveCursorPosition(cursor, rect);
     expect(pos).toEqual({ x: 50, y: 60 });
   });
@@ -201,7 +201,7 @@ describe('resolveCursorPosition', () => {
       transform: createDefaultRectTransform(),
       components: [],
     };
-    const rect: WorldRect = { x: 10, y: 20, w: 30, h: 30, rotation: 0, scaleX: 1, scaleY: 1 };
+    const rect: WorldRect = { x: 10, y: 20, w: 30, h: 30, rotation: 0, scaleX: 1, scaleY: 1, pivotX: 0.5, pivotY: 0.5 };
     const pos = resolveCursorPosition(cursor, rect);
     expect(pos).toEqual({ x: 10, y: 20 });
   });

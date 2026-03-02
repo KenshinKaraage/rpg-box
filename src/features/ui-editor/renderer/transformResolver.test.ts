@@ -110,6 +110,8 @@ describe('resolveTransform', () => {
       rotation: 45,
       scaleX: 1,
       scaleY: 1,
+      pivotX: 0.5,
+      pivotY: 0.5,
     };
     const transform: RectTransform = {
       ...createDefaultRectTransform(),
@@ -130,6 +132,8 @@ describe('resolveTransform', () => {
       rotation: 0,
       scaleX: 2,
       scaleY: 0.5,
+      pivotX: 0.5,
+      pivotY: 0.5,
     };
     const transform: RectTransform = {
       ...createDefaultRectTransform(),
@@ -150,7 +154,7 @@ describe('resolveTransform', () => {
 
 describe('getWorldCorners', () => {
   it('returns 4 corners for an unrotated rect', () => {
-    const rect: WorldRect = { x: 100, y: 50, w: 200, h: 100, rotation: 0, scaleX: 1, scaleY: 1 };
+    const rect: WorldRect = { x: 100, y: 50, w: 200, h: 100, rotation: 0, scaleX: 1, scaleY: 1, pivotX: 0.5, pivotY: 0.5 };
     const corners = getWorldCorners(rect);
     expect(corners).toHaveLength(4);
     // top-left
@@ -168,7 +172,7 @@ describe('getWorldCorners', () => {
   });
 
   it('applies scale to corners', () => {
-    const rect: WorldRect = { x: 100, y: 50, w: 100, h: 100, rotation: 0, scaleX: 2, scaleY: 2 };
+    const rect: WorldRect = { x: 100, y: 50, w: 100, h: 100, rotation: 0, scaleX: 2, scaleY: 2, pivotX: 0.5, pivotY: 0.5 };
     const corners = getWorldCorners(rect);
     // Half width = 100*2/2 = 100
     expect(corners[0]![0]).toBe(0);   // 100 - 100
@@ -176,7 +180,7 @@ describe('getWorldCorners', () => {
   });
 
   it('applies 90-degree rotation', () => {
-    const rect: WorldRect = { x: 0, y: 0, w: 200, h: 100, rotation: 90, scaleX: 1, scaleY: 1 };
+    const rect: WorldRect = { x: 0, y: 0, w: 200, h: 100, rotation: 90, scaleX: 1, scaleY: 1, pivotX: 0.5, pivotY: 0.5 };
     const corners = getWorldCorners(rect);
     // After 90° rotation, top-left (-100, -50) becomes (50, -100)
     expect(corners[0]![0]).toBeCloseTo(50);
