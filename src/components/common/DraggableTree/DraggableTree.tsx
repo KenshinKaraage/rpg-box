@@ -83,8 +83,13 @@ export function DraggableTree({
       const overRect = over.rect;
       const relY = (currentY - overRect.top) / overRect.height;
 
+      const hasChildren = nodes.some((n) => n.parentId === nodeId);
+
       let position: DropPosition;
-      if (relY < 0.3) {
+      if (hasChildren) {
+        // Parent nodes: always drop inside (no sibling bars)
+        position = 'inside';
+      } else if (relY < 0.3) {
         position = 'before';
       } else if (relY > 0.7) {
         position = 'after';
