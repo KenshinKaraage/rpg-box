@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback } from 'react';
-import { Plus, Trash2, ChevronDown } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +21,9 @@ import {
 import { useStore } from '@/stores';
 import { getUIComponent, getAllUIComponents } from '@/types/ui';
 import { AnchorPresets } from './AnchorPresets';
+import { ActionComponentEditor } from './ActionComponentEditor';
 import type { RectTransform } from '@/types/ui/UIComponent';
+import type { UIActionEntry } from '@/types/ui/components/ActionComponent';
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
 
 // ──────────────────────────────────────────────
@@ -204,32 +206,64 @@ function TransformEditor({
 // Component list item
 // ──────────────────────────────────────────────
 
+/** Components that have inline editors */
+const EXPANDABLE_TYPES = new Set(['action']);
+
 function ComponentListItem({
   component,
   onRemove,
+  onUpdateData,
 }: {
   component: SerializedUIComponent;
   onRemove: () => void;
+  onUpdateData: (data: unknown) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+
   // Get label from registry
   const Ctor = getUIComponent(component.type);
   const label = Ctor ? new Ctor().label : component.type;
+  const hasEditor = EXPANDABLE_TYPES.has(component.type);
 
   return (
-    <div
-      className="flex items-center justify-between rounded px-2 py-1 hover:bg-accent"
-      data-testid={`component-item-${component.type}`}
-    >
-      <span className="text-xs">{label}</span>
-      <Button
-        size="sm"
-        variant="ghost"
-        className="h-5 w-5 p-0"
-        onClick={onRemove}
-        aria-label={`${label}を削除`}
-      >
-        <Trash2 className="h-3 w-3" />
-      </Button>
+    <div data-testid={`component-item-${component.type}`}>
+      <div className="flex items-center justify-between rounded px-2 py-1 hover:bg-accent">
+        <div className="flex items-center gap-1">
+          {hasEditor ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-5 w-5 p-0"
+              onClick={() => setExpanded(!expanded)}
+              aria-label={expanded ? '閉じる' : '開く'}
+            >
+              {expanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
+            </Button>
+          ) : null}
+          <span className="text-xs">{label}</span>
+        </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-5 w-5 p-0"
+          onClick={onRemove}
+          aria-label={`${label}を削除`}
+        >
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </div>
+      {expanded && component.type === 'action' && (
+        <div className="px-2 pb-2">
+          <ActionComponentEditor
+            actions={((component.data as Record<string, unknown>)?.actions as UIActionEntry[]) ?? []}
+            onChange={(actions) => onUpdateData({ actions })}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -245,6 +279,7 @@ export function UIPropertyPanel() {
   const updateUIObject = useStore((s) => s.updateUIObject);
   const addUIComponent = useStore((s) => s.addUIComponent);
   const removeUIComponent = useStore((s) => s.removeUIComponent);
+  const updateUIComponent = useStore((s) => s.updateUIComponent);
 
   const selectedCanvas = uiCanvases.find((c) => c.id === selectedCanvasId) ?? null;
 
@@ -282,6 +317,14 @@ export function UIPropertyPanel() {
       removeUIComponent(selectedCanvasId, selectedObject.id, type);
     },
     [selectedCanvasId, selectedObject, removeUIComponent]
+  );
+
+  const handleUpdateComponentData = useCallback(
+    (type: string, data: unknown) => {
+      if (!selectedCanvasId || !selectedObject) return;
+      updateUIComponent(selectedCanvasId, selectedObject.id, type, data);
+    },
+    [selectedCanvasId, selectedObject, updateUIComponent]
   );
 
   // Components available for adding (exclude already attached)
@@ -361,6 +404,7 @@ export function UIPropertyPanel() {
                 key={comp.type}
                 component={comp}
                 onRemove={() => handleRemoveComponent(comp.type)}
+                onUpdateData={(data) => handleUpdateComponentData(comp.type, data)}
               />
             ))}
           </div>
