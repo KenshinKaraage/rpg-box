@@ -173,7 +173,7 @@ export function DraggableTree({
 
       <DragOverlay>
         {activeNode ? (
-          <div className="rounded bg-accent px-3 py-1 text-sm shadow-lg opacity-80">
+          <div className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm text-slate-700 shadow-lg ring-1 ring-slate-200">
             {renderNode(activeNode, 0)}
           </div>
         ) : null}

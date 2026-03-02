@@ -60,7 +60,8 @@ export function TreeNodeWrapper({
       className="relative"
       style={{
         paddingLeft: `${depth * indentPx}px`,
-        opacity: isDragSource ? 0.3 : 1,
+        opacity: isDragSource ? 0.25 : 1,
+        transition: 'opacity 150ms ease',
       }}
       onClick={(e) => onSelect?.(node.id, e)}
       {...attributes}
@@ -68,9 +69,13 @@ export function TreeNodeWrapper({
     >
       <div
         className={[
-          'flex cursor-grab items-center gap-1 rounded px-2 py-1 text-sm',
-          isSelected ? 'bg-accent font-medium' : 'hover:bg-accent/50',
-          dropPosition === 'inside' ? 'ring-2 ring-blue-500 bg-blue-500/10' : '',
+          'flex cursor-grab items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm transition-colors',
+          isSelected
+            ? 'bg-blue-50 font-medium text-blue-700'
+            : 'text-slate-700 hover:bg-slate-100',
+          dropPosition === 'inside'
+            ? 'ring-2 ring-blue-400 bg-blue-50'
+            : '',
         ]
           .filter(Boolean)
           .join(' ')}
@@ -78,7 +83,7 @@ export function TreeNodeWrapper({
         {/* Expand/collapse toggle */}
         <button
           type="button"
-          className="h-4 w-4 shrink-0"
+          className="flex h-4 w-4 shrink-0 items-center justify-center rounded transition-colors hover:bg-slate-200"
           onClick={(e) => {
             e.stopPropagation();
             if (hasChildren) onToggleExpand(node.id);
@@ -87,11 +92,13 @@ export function TreeNodeWrapper({
         >
           {hasChildren ? (
             isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
             ) : (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
             )
-          ) : null}
+          ) : (
+            <span className="h-1 w-1 rounded-full bg-slate-200" />
+          )}
         </button>
         {renderNode(node, depth)}
       </div>

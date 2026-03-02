@@ -1,29 +1,55 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import {
+  GripVertical,
+  RotateCcw,
+  Square,
+  Layout,
+  Layers,
+  MessageSquare,
+  ArrowRight,
+} from 'lucide-react';
 import { DraggableTree } from '@/components/common/DraggableTree';
 import type { TreeNode } from '@/components/common/DraggableTree';
-import { Button } from '@/components/ui/button';
+
+// ──────────────────────────────────────────────
+// Sample data
+// ──────────────────────────────────────────────
 
 const INITIAL_NODES: TreeNode[] = [
-  { id: 'root1', name: 'Window' },
-  { id: 'child1', parentId: 'root1', name: 'Header' },
-  { id: 'child2', parentId: 'root1', name: 'Body' },
-  { id: 'gc1', parentId: 'child2', name: 'Label' },
-  { id: 'gc2', parentId: 'child2', name: 'Button' },
-  { id: 'root2', name: 'HUD' },
-  { id: 'child3', parentId: 'root2', name: 'HP Bar' },
-  { id: 'child4', parentId: 'root2', name: 'MP Bar' },
-  { id: 'child5', parentId: 'root2', name: 'Status Icons' },
-  { id: 'gc3', parentId: 'child5', name: 'Poison' },
-  { id: 'gc4', parentId: 'child5', name: 'Sleep' },
-  { id: 'root3', name: 'Dialog Box' },
+  { id: 'root1', name: 'Window', icon: 'layout' },
+  { id: 'child1', parentId: 'root1', name: 'Header', icon: 'square' },
+  { id: 'child2', parentId: 'root1', name: 'Body', icon: 'square' },
+  { id: 'gc1', parentId: 'child2', name: 'Label', icon: 'square' },
+  { id: 'gc2', parentId: 'child2', name: 'Button', icon: 'square' },
+  { id: 'root2', name: 'HUD', icon: 'layers' },
+  { id: 'child3', parentId: 'root2', name: 'HP Bar', icon: 'square' },
+  { id: 'child4', parentId: 'root2', name: 'MP Bar', icon: 'square' },
+  { id: 'child5', parentId: 'root2', name: 'Status Icons', icon: 'layers' },
+  { id: 'gc3', parentId: 'child5', name: 'Poison', icon: 'square' },
+  { id: 'gc4', parentId: 'child5', name: 'Sleep', icon: 'square' },
+  { id: 'root3', name: 'Dialog Box', icon: 'message' },
 ];
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  layout: Layout,
+  layers: Layers,
+  message: MessageSquare,
+  square: Square,
+};
 
 interface LogEntry {
   time: string;
-  message: string;
+  action: 'move' | 'reset';
+  from: string;
+  to: string;
+  index?: number;
 }
+
+// ──────────────────────────────────────────────
+// Page
+// ──────────────────────────────────────────────
 
 export default function DndTreeTestPage() {
   const [nodes, setNodes] = useState<TreeNode[]>(INITIAL_NODES);
@@ -31,15 +57,14 @@ export default function DndTreeTestPage() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const logContainerRef = useRef<HTMLDivElement>(null);
 
-  const addLog = useCallback((message: string) => {
+  const addLog = useCallback((entry: Omit<LogEntry, 'time'>) => {
     const now = new Date();
     const time = now.toLocaleTimeString('ja-JP', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
     });
-    setLogs((prev) => [...prev, { time, message }]);
-    // Scroll to bottom after state update
+    setLogs((prev) => [...prev, { ...entry, time }]);
     setTimeout(() => {
       if (logContainerRef.current) {
         logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
@@ -49,21 +74,16 @@ export default function DndTreeTestPage() {
 
   const handleMove = useCallback(
     (id: string, newParentId: string | undefined, index: number) => {
-      // 1. Log it
-      const movedName = nodes.find((n) => n.id === id)?.name as string;
+      const movedName = (nodes.find((n) => n.id === id)?.name as string) ?? id;
       const parentName = newParentId
         ? ((nodes.find((n) => n.id === newParentId)?.name as string) ?? newParentId)
-        : '(root)';
-      addLog(`Move "${movedName}" -> parent="${parentName}", index=${index}`);
+        : 'Root';
+      addLog({ action: 'move', from: movedName, to: parentName, index });
 
-      // 2. Update state
       setNodes((prev) => {
-        // Change parentId
         const updated = prev.map((n) =>
           n.id === id ? { ...n, parentId: newParentId } : n
         );
-
-        // Reorder: remove moved node from siblings, re-insert at index
         const movedNode = updated.find((n) => n.id === id);
         if (!movedNode) return prev;
 
@@ -72,7 +92,6 @@ export default function DndTreeTestPage() {
         );
         siblings.splice(index, 0, movedNode);
 
-        // Rebuild: keep non-siblings as-is, replace siblings in order
         const siblingIds = new Set(siblings.map((n) => n.id));
         const result: TreeNode[] = [];
         let siblingsInserted = false;
@@ -83,13 +102,11 @@ export default function DndTreeTestPage() {
               result.push(...siblings);
               siblingsInserted = true;
             }
-            // skip individual siblings (already batch-inserted)
           } else {
             result.push(n);
           }
         }
         if (!siblingsInserted) result.push(...siblings);
-
         return result;
       });
     },
@@ -100,69 +117,174 @@ export default function DndTreeTestPage() {
     setNodes(INITIAL_NODES);
     setSelectedIds([]);
     setLogs([]);
+    addLog({ action: 'reset', from: '', to: '' });
   };
 
-  const nodesJson = nodes.map((n) => ({
-    id: n.id,
-    parentId: n.parentId ?? null,
-    name: n.name,
-  }));
+  // Build a simple tree structure for JSON display
+  const buildTreeJson = (parentId?: string): object[] => {
+    return nodes
+      .filter((n) => n.parentId === parentId)
+      .map((n) => {
+        const children = buildTreeJson(n.id);
+        return children.length > 0
+          ? { id: n.id, name: n.name, children }
+          : { id: n.id, name: n.name };
+      });
+  };
 
   return (
-    <div className="flex h-screen">
-      {/* Left panel: DraggableTree */}
-      <div className="w-80 shrink-0 border-r p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h1 className="text-sm font-bold">DraggableTree Test</h1>
-          <Button variant="outline" size="sm" onClick={handleReset}>
-            Reset
-          </Button>
-        </div>
-        <div className="rounded border p-2">
-          <DraggableTree
-            nodes={nodes}
-            renderNode={(node) => <span>{node.name as string}</span>}
-            onMove={handleMove}
-            onSelect={setSelectedIds}
-            selectedIds={selectedIds}
-          />
-        </div>
-      </div>
-
-      {/* Right panel: JSON + Logs */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top: Current nodes JSON */}
-        <div className="flex-1 overflow-auto border-b p-4">
-          <h2 className="mb-2 text-sm font-semibold">Current Nodes</h2>
-          <pre className="overflow-auto rounded bg-muted p-3 text-xs">
-            {JSON.stringify(nodesJson, null, 2)}
-          </pre>
-        </div>
-
-        {/* Bottom: Move log */}
-        <div className="flex h-64 shrink-0 flex-col p-4">
-          <h2 className="mb-2 text-sm font-semibold">
-            Move Log ({logs.length})
-          </h2>
-          <div
-            ref={logContainerRef}
-            className="flex-1 overflow-auto rounded bg-muted p-3"
-          >
-            {logs.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                Drag nodes to see move operations logged here.
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <nav className="sticky top-0 z-10 border-b border-slate-200 bg-white">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 text-white">
+              <GripVertical className="h-4 w-4" />
+            </div>
+            <div>
+              <h1 className="text-sm font-bold leading-tight">
+                DraggableTree <span className="text-blue-500">Test</span>
+              </h1>
+              <p className="text-[10px] font-medium text-slate-400">
+                @dnd-kit Component Playground
               </p>
-            ) : (
-              logs.map((entry, i) => (
-                <div key={i} className="text-xs">
-                  <span className="text-muted-foreground">[{entry.time}]</span>{' '}
-                  {entry.message}
-                </div>
-              ))
-            )}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-1.5">
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="text-[10px] font-semibold text-slate-500">
+                {nodes.length} nodes
+              </span>
+            </div>
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Reset
+            </button>
           </div>
         </div>
-      </div>
+      </nav>
+
+      {/* Main content */}
+      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-5">
+        {/* Tree Panel */}
+        <div className="lg:col-span-2">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Object Tree
+              </span>
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+            </div>
+            <div className="p-4">
+              <DraggableTree
+                nodes={nodes}
+                renderNode={(node) => {
+                  const iconKey = (node.icon as string) ?? 'square';
+                  const Icon = ICON_MAP[iconKey] ?? Square;
+                  return (
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      <span className="truncate text-[13px]">
+                        {node.name as string}
+                      </span>
+                    </div>
+                  );
+                }}
+                onMove={handleMove}
+                onSelect={setSelectedIds}
+                selectedIds={selectedIds}
+              />
+            </div>
+            <div className="border-t border-slate-100 px-5 py-3">
+              <p className="text-[10px] text-slate-400">
+                Drag nodes to reparent or reorder. Drop on center to nest, edge to insert as sibling.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right panels */}
+        <div className="flex flex-col gap-6 lg:col-span-3">
+          {/* Tree Structure JSON */}
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Tree Structure
+              </span>
+              <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-500">
+                LIVE
+              </span>
+            </div>
+            <div className="max-h-80 overflow-auto p-5">
+              <pre className="text-xs leading-relaxed text-slate-600">
+                {JSON.stringify(buildTreeJson(), null, 2)}
+              </pre>
+            </div>
+          </div>
+
+          {/* Event Log */}
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Event Log
+              </span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+                {logs.length} events
+              </span>
+            </div>
+            <div
+              ref={logContainerRef}
+              className="h-56 overflow-auto p-2"
+            >
+              {logs.length === 0 ? (
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-xs text-slate-300">
+                    Drag nodes to see events here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {logs.map((entry, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs transition-colors hover:bg-slate-50"
+                    >
+                      <span className="shrink-0 text-[10px] text-slate-300">
+                        {entry.time}
+                      </span>
+                      {entry.action === 'move' ? (
+                        <>
+                          <span className="shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-500">
+                            MOVE
+                          </span>
+                          <span className="font-medium text-slate-700">
+                            {entry.from}
+                          </span>
+                          <ArrowRight className="h-3 w-3 shrink-0 text-slate-300" />
+                          <span className="font-medium text-blue-600">
+                            {entry.to}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            [{entry.index}]
+                          </span>
+                        </>
+                      ) : (
+                        <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-500">
+                          RESET
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
