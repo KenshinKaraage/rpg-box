@@ -8,6 +8,9 @@ export class ImageComponent extends UIComponent {
   tint?: string;
   opacity = 1;
   sliceMode: 'none' | 'nine-slice' = 'none';
+  /** 9-slice border size in pixels (uniform for all 4 sides) */
+  sliceBorder = 16;
+  sliceFill: 'stretch' | 'repeat' = 'stretch';
 
   getPropertyDefs(): PropertyDef[] {
     return [
@@ -23,6 +26,16 @@ export class ImageComponent extends UIComponent {
           { value: 'nine-slice', label: 'ナインスライス' },
         ],
       },
+      { key: 'sliceBorder', label: 'スライス幅', type: 'number', min: 1 },
+      {
+        key: 'sliceFill',
+        label: 'スライス補填',
+        type: 'select',
+        options: [
+          { value: 'stretch', label: 'ストレッチ' },
+          { value: 'repeat', label: 'リピート' },
+        ],
+      },
     ];
   }
 
@@ -32,6 +45,8 @@ export class ImageComponent extends UIComponent {
       tint: this.tint,
       opacity: this.opacity,
       sliceMode: this.sliceMode,
+      sliceBorder: this.sliceBorder,
+      sliceFill: this.sliceFill,
     };
   }
 
@@ -41,6 +56,8 @@ export class ImageComponent extends UIComponent {
     this.tint = d.tint as string | undefined;
     this.opacity = (d.opacity as number) ?? 1;
     this.sliceMode = (d.sliceMode as 'none' | 'nine-slice') ?? 'none';
+    this.sliceBorder = (d.sliceBorder as number) ?? 16;
+    this.sliceFill = (d.sliceFill as 'stretch' | 'repeat') ?? 'stretch';
   }
 
   clone(): ImageComponent {
@@ -49,6 +66,8 @@ export class ImageComponent extends UIComponent {
     c.tint = this.tint;
     c.opacity = this.opacity;
     c.sliceMode = this.sliceMode;
+    c.sliceBorder = this.sliceBorder;
+    c.sliceFill = this.sliceFill;
     return c;
   }
 }

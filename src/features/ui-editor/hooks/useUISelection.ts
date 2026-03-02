@@ -55,12 +55,15 @@ export function hitTest(
     const { absX, absY } = pos;
     const w = obj.transform.width * obj.transform.scaleX;
     const h = obj.transform.height * obj.transform.scaleY;
+    // absX/absY はピボット（中心）座標なので左上に変換
+    const left = absX - w / 2;
+    const top = absY - h / 2;
 
     if (
-      worldX >= absX &&
-      worldX <= absX + w &&
-      worldY >= absY &&
-      worldY <= absY + h
+      worldX >= left &&
+      worldX <= left + w &&
+      worldY >= top &&
+      worldY <= top + h
     ) {
       return obj.id;
     }

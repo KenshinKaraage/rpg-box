@@ -90,7 +90,8 @@ export function TransformHandles({
   const scaledW = w * scaleX;
   const scaledH = h * scaleY;
 
-  const topLeft = worldToScreen(absX, absY, viewport);
+  // absX/absY はピボット（中心）座標なので左上に変換
+  const topLeft = worldToScreen(absX - scaledW / 2, absY - scaledH / 2, viewport);
   const screenW = scaledW * viewport.zoom;
   const screenH = scaledH * viewport.zoom;
 
@@ -112,8 +113,8 @@ export function TransformHandles({
       startObjW: w,
       startObjH: h,
       startObjRotation: selectedObject.transform.rotation,
-      centerX: absX + scaledW / 2,
-      centerY: absY + scaledH / 2,
+      centerX: absX,
+      centerY: absY,
     };
 
     const onMouseMove = (ev: MouseEvent) => {
@@ -161,8 +162,8 @@ export function TransformHandles({
       startObjH: h,
       startObjRotation: selectedObject.transform.rotation,
       handle,
-      centerX: absX + scaledW / 2,
-      centerY: absY + scaledH / 2,
+      centerX: absX,
+      centerY: absY,
     };
 
     const onMouseMove = (ev: MouseEvent) => {
@@ -212,8 +213,9 @@ export function TransformHandles({
     const container = (e.currentTarget as HTMLElement).closest('[data-testid="ui-canvas-container"]');
     if (!container) return;
     const rect = container.getBoundingClientRect();
-    const cx = absX + scaledW / 2;
-    const cy = absY + scaledH / 2;
+    // absX/absY は既にピボット（中心）座標
+    const cx = absX;
+    const cy = absY;
 
     dragRef.current = {
       type: 'rotate',

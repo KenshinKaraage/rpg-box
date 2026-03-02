@@ -7,8 +7,13 @@ import { useUIViewport } from '../hooks/useUIViewport';
 import { useUISelection } from '../hooks/useUISelection';
 import { SelectionOverlay } from './SelectionOverlay';
 import { TransformHandles } from './TransformHandles';
+import { UIEditorToolbar } from './UIEditorToolbar';
 import { SOLID_VERT, SOLID_FRAG } from '../utils/shaders';
-import { createRendererPrograms, renderUIObjects } from '../renderer/UIRenderer';
+import {
+  createRendererPrograms,
+  renderUIObjects,
+  renderNineSliceGuides,
+} from '../renderer/UIRenderer';
 import type { UIRendererContext } from '../renderer/UIRenderer';
 
 export function UICanvas() {
@@ -30,8 +35,13 @@ export function UICanvas() {
   // テクスチャロード完了時に再レンダーをトリガー
   const [textureGen, setTextureGen] = useState(0);
 
-  const { viewport, handleWheel, handleMouseDown: viewportMouseDown, handleMouseMove, handleMouseUp } =
-    useUIViewport(canvasRef);
+  const {
+    viewport,
+    handleWheel,
+    handleMouseDown: viewportMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+  } = useUIViewport(canvasRef);
 
   const { handleCanvasClick, selectedObjectIds, objects: selectionObjects } = useUISelection();
 
@@ -96,6 +106,7 @@ export function UICanvas() {
       ...programs,
       matrix: twgl.m4.identity(),
       textureCache: new Map(),
+      imageSizeCache: new Map(),
       getAssetData: () => null,
       onTextureLoaded: () => setTextureGen((t) => t + 1),
     };
@@ -115,7 +126,7 @@ export function UICanvas() {
     const gl = glRef.current;
     const solidProgram = solidProgramRef.current;
     const rendererCtx = rendererCtxRef.current;
-    if (!canvas || !gl || !solidProgram) return;
+    if (!canvas || !gl || !solidProgram || !rendererCtx) return;
 
     twgl.resizeCanvasToDisplaySize(canvas);
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -136,10 +147,7 @@ export function UICanvas() {
     // ── 解像度プレビュー枠の背景（白） ──
     const resW = resolution.width;
     const resH = resolution.height;
-    const bgPositions = new Float32Array([
-      0, 0, resW, 0, 0, resH,
-      0, resH, resW, 0, resW, resH,
-    ]);
+    const bgPositions = new Float32Array([0, 0, resW, 0, 0, resH, 0, resH, resW, 0, resW, resH]);
     const bgBuffer = twgl.createBufferInfoFromArrays(gl, {
       a_position: { numComponents: 2, data: bgPositions },
     });
@@ -181,15 +189,30 @@ export function UICanvas() {
         return (asset?.data as string) ?? null;
       };
       renderUIObjects(rendererCtx, selectedCanvas.objects, resW, resH);
+
+      // ── 9-slice ガイドライン ──
+      renderNineSliceGuides(rendererCtx, selectedCanvas.objects, selectedObjectIds, resW, resH);
     }
 
     // ── 解像度プレビュー枠（青い外枠） ──
     gl.useProgram(solidProgram.program);
     const borderPositions = new Float32Array([
-      0, 0, resW, 0,
-      resW, 0, resW, resH,
-      resW, resH, 0, resH,
-      0, resH, 0, 0,
+      0,
+      0,
+      resW,
+      0,
+      resW,
+      0,
+      resW,
+      resH,
+      resW,
+      resH,
+      0,
+      resH,
+      0,
+      resH,
+      0,
+      0,
     ]);
     const borderBuffer = twgl.createBufferInfoFromArrays(gl, {
       a_position: { numComponents: 2, data: borderPositions },
@@ -200,7 +223,16 @@ export function UICanvas() {
       u_color: [0.3, 0.5, 1.0, 0.8],
     });
     twgl.drawBufferInfo(gl, borderBuffer, gl.LINES);
-  }, [viewport, resolution, showGrid, gridSize, selectedCanvas, assets, textureGen]);
+  }, [
+    viewport,
+    resolution,
+    showGrid,
+    gridSize,
+    selectedCanvas,
+    selectedObjectIds,
+    assets,
+    textureGen,
+  ]);
 
   return (
     <div className="relative h-full w-full overflow-hidden" data-testid="ui-canvas-container">
@@ -212,6 +244,12 @@ export function UICanvas() {
         onMouseMove={(e) => handleMouseMoveWrapped(e.nativeEvent)}
         onMouseUp={handleMouseUpWithSelection}
       />
+      {/* ツールバーオーバーレイ */}
+      <div
+        style={{ position: 'absolute', left: 8, top: 8, zIndex: 10, pointerEvents: 'none' }}
+      >
+        <UIEditorToolbar />
+      </div>
       {/* DOM オーバーレイ（選択枠・ハンドル用） */}
       <div
         ref={overlayRef}

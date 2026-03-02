@@ -1,7 +1,6 @@
 'use client';
 
 import { Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +16,7 @@ import { getRectTransformPropertyDefs } from '@/types/ui/UIComponent';
 import type { PropertyDef } from '@/types/ui/UIComponent';
 import type { ActionBlockProps } from '@/features/event-editor/registry/actionBlockRegistry';
 import type { SetPropertyAction } from '@/types/ui/actions/SetPropertyAction';
+import { PropertyField } from '../ComponentPropertyEditor';
 import { UIObjectSelector } from '../UIObjectSelector';
 
 function cloneAction(action: SetPropertyAction): SetPropertyAction {
@@ -29,9 +29,12 @@ function cloneAction(action: SetPropertyAction): SetPropertyAction {
  */
 function useTargetComponents(targetId: string): { type: string; label: string }[] {
   const selectedCanvasId = useStore((s) => s.selectedCanvasId);
+  const selectedObjectIds = useStore((s) => s.selectedObjectIds);
   const uiCanvases = useStore((s) => s.uiCanvases);
   const canvas = uiCanvases.find((c) => c.id === selectedCanvasId);
-  const obj = canvas?.objects.find((o) => o.id === targetId);
+  // '' = self: resolve to the currently selected object
+  const resolvedId = targetId === '' ? selectedObjectIds[0] : targetId;
+  const obj = resolvedId ? canvas?.objects.find((o) => o.id === resolvedId) : undefined;
 
   const result: { type: string; label: string }[] = [{ type: 'transform', label: 'Transform' }];
   if (!obj) return result;
@@ -66,6 +69,7 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
 
   const components = useTargetComponents(a.targetId);
   const propertyDefs = getPropertyDefsForComponent(a.component);
+  const selectedDef = a.property ? propertyDefs.find((d) => d.key === a.property) : undefined;
 
   const handleChange = (field: string, value: unknown) => {
     const updated = cloneAction(a);
@@ -76,7 +80,15 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
   const handleComponentChange = (comp: string) => {
     const updated = cloneAction(a);
     updated.component = comp;
-    updated.property = ''; // reset property when component changes
+    updated.property = '';
+    updated.value = undefined;
+    onChange(updated);
+  };
+
+  const handlePropertyChange = (prop: string) => {
+    const updated = cloneAction(a);
+    updated.property = prop;
+    updated.value = undefined;
     onChange(updated);
   };
 
@@ -124,7 +136,7 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
           <Label className="w-20 shrink-0 text-xs text-muted-foreground">プロパティ</Label>
           <Select
             value={a.property || '__none__'}
-            onValueChange={(v) => handleChange('property', v === '__none__' ? '' : v)}
+            onValueChange={(v) => handlePropertyChange(v === '__none__' ? '' : v)}
           >
             <SelectTrigger className="h-7 text-xs" data-testid="property-select">
               <SelectValue placeholder="選択..." />
@@ -140,20 +152,14 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
           </Select>
         </div>
 
-        {/* Value input */}
-        <div className="flex items-center gap-2">
-          <Label className="w-20 shrink-0 text-xs text-muted-foreground">値</Label>
-          <Input
-            type="number"
-            value={typeof a.value === 'number' ? a.value : 0}
-            onChange={(e) => {
-              const num = parseFloat(e.target.value);
-              if (!isNaN(num)) handleChange('value', num);
-            }}
-            className="h-7 text-xs"
-            data-testid="value-input"
+        {/* Dynamic value input — reuses PropertyField from ComponentPropertyEditor */}
+        {selectedDef && (
+          <PropertyField
+            def={{ ...selectedDef, label: '値' }}
+            value={a.value}
+            onChange={(v) => handleChange('value', v)}
           />
-        </div>
+        )}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ export class FillMaskComponent extends UIComponent {
   readonly type = 'fillMask';
   readonly label = 'フィルマスク';
 
-  direction: 'horizontal' | 'vertical' = 'horizontal';
+  direction: 'horizontal' | 'vertical' | 'radial' = 'horizontal';
   fillAmount = 1;
   reverse = false;
 
@@ -17,6 +17,7 @@ export class FillMaskComponent extends UIComponent {
         options: [
           { value: 'horizontal', label: '水平' },
           { value: 'vertical', label: '垂直' },
+          { value: 'radial', label: 'ラジアル' },
         ],
       },
       { key: 'fillAmount', label: '充填量', type: 'number', min: 0, max: 1, step: 0.01 },
@@ -34,7 +35,7 @@ export class FillMaskComponent extends UIComponent {
 
   deserialize(data: unknown): void {
     const d = data as Record<string, unknown>;
-    this.direction = (d.direction as 'horizontal' | 'vertical') ?? 'horizontal';
+    this.direction = (d.direction as 'horizontal' | 'vertical' | 'radial') ?? 'horizontal';
     this.fillAmount = (d.fillAmount as number) ?? 1;
     this.reverse = (d.reverse as boolean) ?? false;
   }

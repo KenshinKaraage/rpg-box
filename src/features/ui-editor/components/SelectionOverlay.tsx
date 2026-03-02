@@ -33,11 +33,14 @@ export function SelectionOverlay({
         const pos = positions.get(id);
         if (!obj || !pos) return null;
 
-        const topLeft = worldToScreen(pos.absX, pos.absY, viewport);
-        const w = obj.transform.width * obj.transform.scaleX * viewport.zoom;
-        const h = obj.transform.height * obj.transform.scaleY * viewport.zoom;
+        // absX/absY はピボット（中心）座標なので左上に変換
+        const w = obj.transform.width * obj.transform.scaleX;
+        const h = obj.transform.height * obj.transform.scaleY;
+        const topLeft = worldToScreen(pos.absX - w / 2, pos.absY - h / 2, viewport);
+        const screenW = w * viewport.zoom;
+        const screenH = h * viewport.zoom;
 
-        return { id, x: topLeft.x, y: topLeft.y, w, h };
+        return { id, x: topLeft.x, y: topLeft.y, w: screenW, h: screenH };
       })
       .filter((r): r is NonNullable<typeof r> => r !== null);
   }, [objects, selectedObjectIds, viewport]);

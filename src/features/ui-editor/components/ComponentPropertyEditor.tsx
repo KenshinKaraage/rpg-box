@@ -69,7 +69,7 @@ export function ComponentPropertyEditor({
 // Individual field renderer
 // ──────────────────────────────────────────────
 
-function PropertyField({
+export function PropertyField({
   def,
   value,
   onChange,
