@@ -9,6 +9,7 @@ import { SetVisibilityBlock } from '../components/blocks/SetVisibilityBlock';
 import { PlayAnimationBlock } from '../components/blocks/PlayAnimationBlock';
 import { CallFunctionBlock } from '../components/blocks/CallFunctionBlock';
 import { NavigateBlock } from '../components/blocks/NavigateBlock';
+import { TriggerObjectActionBlock } from '../components/blocks/TriggerObjectActionBlock';
 
 registerActionBlock({
   type: 'uiSetProperty',
@@ -43,4 +44,11 @@ registerActionBlock({
   label: 'キャンバス遷移',
   category: 'ui',
   BlockComponent: NavigateBlock,
+});
+
+registerActionBlock({
+  type: 'uiTriggerObjectAction',
+  label: 'アクション発火',
+  category: 'ui',
+  BlockComponent: TriggerObjectActionBlock,
 });

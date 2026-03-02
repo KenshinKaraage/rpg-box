@@ -1,17 +1,31 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Plus, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useStore } from '@/stores';
 import { generateId } from '@/lib/utils';
+import { getFieldTypeOptions } from '@/types/fields';
+import { ActionBlockEditor } from '@/features/event-editor/components/ActionBlockEditor';
+import { deserializeActions, serializeActions } from '../utils/actionBridge';
 import type { EditorUIFunction, TemplateArg } from '@/stores/uiEditorSlice';
+import type { EditableAction } from '@/types/ui/actions/UIAction';
 
 interface FunctionsPanelProps {
   functions: EditorUIFunction[];
 }
+
+/** ファンクション引数で選択可能なフィールドタイプ */
+const ARG_FIELD_TYPES = ['number', 'string', 'boolean', 'color', 'select'];
 
 export function FunctionsPanel({ functions }: FunctionsPanelProps) {
   const selectedCanvasId = useStore((s) => s.selectedCanvasId);
@@ -20,6 +34,8 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
   const deleteUIFunction = useStore((s) => s.deleteUIFunction);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const fieldTypeOptions = useMemo(() => getFieldTypeOptions(ARG_FIELD_TYPES), []);
 
   const handleAdd = useCallback(() => {
     if (!selectedCanvasId) return;
@@ -89,6 +105,16 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
       if (!selectedCanvasId) return;
       updateUIFunction(selectedCanvasId, fnId, {
         args: currentArgs.filter((a) => a.id !== argId),
+      });
+    },
+    [selectedCanvasId, updateUIFunction]
+  );
+
+  const handleUpdateActions = useCallback(
+    (fnId: string, editableActions: EditableAction[]) => {
+      if (!selectedCanvasId) return;
+      updateUIFunction(selectedCanvasId, fnId, {
+        actions: serializeActions(editableActions),
       });
     },
     [selectedCanvasId, updateUIFunction]
@@ -195,9 +221,23 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                                   handleUpdateArg(fn.id, fn.args, arg.id, { name: e.target.value })
                                 }
                               />
-                              <span className="shrink-0 text-[10px] text-muted-foreground">
-                                {arg.fieldType}
-                              </span>
+                              <Select
+                                value={arg.fieldType}
+                                onValueChange={(v) =>
+                                  handleUpdateArg(fn.id, fn.args, arg.id, { fieldType: v })
+                                }
+                              >
+                                <SelectTrigger className="h-5 w-20 px-1 text-[10px]" data-testid={`arg-type-${arg.id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {fieldTypeOptions.map((opt) => (
+                                    <SelectItem key={opt.type} value={opt.type}>
+                                      {opt.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -213,9 +253,15 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                       )}
                     </div>
 
-                    {/* Actions count */}
-                    <div className="text-[10px] text-muted-foreground">
-                      アクション: {fn.actions.length}個
+                    {/* Actions */}
+                    <div>
+                      <Label className="text-[10px]">アクション</Label>
+                      <div className="mt-1">
+                        <ActionBlockEditor
+                          actions={deserializeActions(fn.actions)}
+                          onChange={(actions) => handleUpdateActions(fn.id, actions)}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
