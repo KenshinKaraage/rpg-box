@@ -82,7 +82,7 @@ export function UICanvas() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext('webgl');
+    const gl = canvas.getContext('webgl', { stencil: true });
     if (!gl) return;
     glRef.current = gl;
     gl.clearColor(0.15, 0.15, 0.15, 1);
@@ -119,7 +119,7 @@ export function UICanvas() {
 
     twgl.resizeCanvasToDisplaySize(canvas);
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
     const z = viewport.zoom;
     const matrix = twgl.m4.ortho(

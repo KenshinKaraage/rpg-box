@@ -2,7 +2,7 @@
  * UIRenderer — WebGL 描画パイプライン
  *
  * UIObject ツリーを走査し、各コンポーネントに応じた描画を行う。
- * T189d: Visual (Image, Text, Shape) + Mask (FillMask, ColorMask) を描画。
+ * FillMask/ColorMask はステンシルバッファによる正確なマスキングを行う。
  */
 import * as twgl from 'twgl.js';
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
@@ -53,9 +53,7 @@ export function renderUIObjects(
     const worldRect = worldRects.get(objectId);
     if (!worldRect) continue;
 
-    for (const comp of obj.components) {
-      renderComponent(ctx, comp, worldRect, gl);
-    }
+    renderObject(ctx, obj, worldRect, gl);
   }
 }
 
@@ -86,35 +84,6 @@ function buildDrawOrder(objects: EditorUIObject[]): string[] {
 
   traverse(undefined);
   return order;
-}
-
-/**
- * 個別コンポーネントの描画ディスパッチ
- */
-function renderComponent(
-  ctx: UIRendererContext,
-  comp: SerializedUIComponent,
-  worldRect: WorldRect,
-  gl: WebGLRenderingContext
-): void {
-  switch (comp.type) {
-    case 'shape':
-      renderShape(ctx, comp.data as ShapeData, worldRect, gl);
-      break;
-    case 'image':
-      renderImage(ctx, comp.data as ImageData, worldRect, gl);
-      break;
-    case 'text':
-      renderText(ctx, comp.data as TextData, worldRect, gl);
-      break;
-    case 'fillMask':
-      renderFillMask(ctx, comp.data as FillMaskData, worldRect, gl);
-      break;
-    case 'colorMask':
-      renderColorMask(ctx, comp.data as ColorMaskData, worldRect, gl);
-      break;
-    // Layout, Navigation, Animation, Action は T189e で実装
-  }
 }
 
 // ──────────────────────────────────────────────
@@ -159,6 +128,105 @@ interface ColorMaskData {
 }
 
 // ──────────────────────────────────────────────
+// Per-object rendering with stencil masking
+// ──────────────────────────────────────────────
+
+/**
+ * 1つの UIObject を描画する。
+ * FillMask/ColorMask がある場合はステンシルバッファを使用して
+ * 正確なマスキングを行う。
+ */
+function renderObject(
+  ctx: UIRendererContext,
+  obj: EditorUIObject,
+  worldRect: WorldRect,
+  gl: WebGLRenderingContext
+): void {
+  const fillMaskComp = obj.components.find((c) => c.type === 'fillMask');
+  const colorMaskComp = obj.components.find((c) => c.type === 'colorMask');
+  const visuals = obj.components.filter(
+    (c) => c.type === 'shape' || c.type === 'image' || c.type === 'text'
+  );
+
+  if (visuals.length === 0) return;
+
+  const fillMaskData = fillMaskComp?.data as FillMaskData | undefined;
+  const colorMaskData = colorMaskComp?.data as ColorMaskData | undefined;
+  const fillAmount = Math.max(0, Math.min(1, fillMaskData?.fillAmount ?? 1));
+  const needsFillMask = !!fillMaskData && fillAmount < 1;
+  const needsColorMask = !!colorMaskData;
+  const needsStencil = needsFillMask || needsColorMask;
+
+  if (needsStencil) {
+    gl.enable(gl.STENCIL_TEST);
+    gl.clearStencil(0);
+    gl.clear(gl.STENCIL_BUFFER_BIT);
+
+    // Step 1: FillMask の充填領域をステンシル bit 0 に書き込む
+    if (needsFillMask) {
+      gl.colorMask(false, false, false, false);
+      gl.stencilFunc(gl.ALWAYS, 0x01, 0xff);
+      gl.stencilMask(0x01);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+      drawFillRegion(ctx, fillMaskData!, worldRect, gl);
+      gl.colorMask(true, true, true, true);
+    }
+
+    // Step 2: ビジュアルコンポーネント描画
+    //   FillMask あり → bit 0 が立っている箇所のみ描画
+    //   描画箇所は bit 1 にマーク（ColorMask 用）
+    if (needsFillMask) {
+      gl.stencilFunc(gl.EQUAL, 0x03, 0x01);
+      gl.stencilMask(0x02);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+    } else {
+      gl.stencilFunc(gl.ALWAYS, 0x02, 0xff);
+      gl.stencilMask(0x02);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+    }
+
+    for (const comp of visuals) {
+      renderVisualComponent(ctx, comp, worldRect, gl);
+    }
+
+    // Step 3: ColorMask はビジュアルが描画された箇所のみに適用
+    if (needsColorMask) {
+      gl.stencilFunc(gl.EQUAL, 0x02, 0x02);
+      gl.stencilMask(0x00);
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+      renderColorMask(ctx, colorMaskData!, worldRect, gl);
+    }
+
+    gl.disable(gl.STENCIL_TEST);
+    gl.stencilMask(0xff);
+  } else {
+    // ステンシル不要 — 直接描画
+    for (const comp of visuals) {
+      renderVisualComponent(ctx, comp, worldRect, gl);
+    }
+  }
+}
+
+function renderVisualComponent(
+  ctx: UIRendererContext,
+  comp: SerializedUIComponent,
+  worldRect: WorldRect,
+  gl: WebGLRenderingContext
+): void {
+  switch (comp.type) {
+    case 'shape':
+      renderShape(ctx, comp.data as ShapeData, worldRect, gl);
+      break;
+    case 'image':
+      renderImage(ctx, comp.data as ImageData, worldRect, gl);
+      break;
+    case 'text':
+      renderText(ctx, comp.data as TextData, worldRect, gl);
+      break;
+  }
+}
+
+// ──────────────────────────────────────────────
 // Shape renderer
 // ──────────────────────────────────────────────
 
@@ -175,15 +243,7 @@ function renderShape(
 
   if (shapeType === 'rectangle' || shapeType === 'polygon') {
     // 塗りつぶし（2三角形）
-    const positions = new Float32Array([
-      corners[0]![0], corners[0]![1],
-      corners[1]![0], corners[1]![1],
-      corners[3]![0], corners[3]![1],
-      corners[3]![0], corners[3]![1],
-      corners[1]![0], corners[1]![1],
-      corners[2]![0], corners[2]![1],
-    ]);
-
+    const positions = cornersToTriangles(corners);
     gl.useProgram(ctx.solidProgram.program);
     const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
       a_position: { numComponents: 2, data: positions },
@@ -192,29 +252,70 @@ function renderShape(
     twgl.setUniforms(ctx.solidProgram, { u_matrix: ctx.matrix, u_color: fillColor });
     twgl.drawBufferInfo(gl, bufferInfo);
 
-    // 枠線
+    // 枠線（quads で strokeWidth を反映）
     if (data.strokeColor) {
       const strokeColor = parseColor(data.strokeColor);
-      const borderPositions = new Float32Array([
-        corners[0]![0], corners[0]![1],
-        corners[1]![0], corners[1]![1],
-        corners[1]![0], corners[1]![1],
-        corners[2]![0], corners[2]![1],
-        corners[2]![0], corners[2]![1],
-        corners[3]![0], corners[3]![1],
-        corners[3]![0], corners[3]![1],
-        corners[0]![0], corners[0]![1],
-      ]);
-      const borderBuffer = twgl.createBufferInfoFromArrays(gl, {
-        a_position: { numComponents: 2, data: borderPositions },
-      });
-      twgl.setBuffersAndAttributes(gl, ctx.solidProgram, borderBuffer);
-      twgl.setUniforms(ctx.solidProgram, { u_matrix: ctx.matrix, u_color: strokeColor });
-      twgl.drawBufferInfo(gl, borderBuffer, gl.LINES);
+      const sw = data.strokeWidth ?? 1;
+      renderStrokeQuads(ctx, corners, sw, strokeColor, gl);
     }
   } else if (shapeType === 'ellipse') {
     renderEllipse(ctx, fillColor, rect, gl);
+
+    // 楕円の枠線
+    if (data.strokeColor) {
+      const strokeColor = parseColor(data.strokeColor);
+      const sw = data.strokeWidth ?? 1;
+      renderEllipseStroke(ctx, strokeColor, sw, rect, gl);
+    }
   }
+}
+
+/**
+ * 矩形の枠線を quads で描画する（strokeWidth を正しく反映）
+ */
+function renderStrokeQuads(
+  ctx: UIRendererContext,
+  corners: [number, number][],
+  strokeWidth: number,
+  strokeColor: number[],
+  gl: WebGLRenderingContext
+): void {
+  const positions: number[] = [];
+  const hw = strokeWidth / 2;
+
+  for (let i = 0; i < 4; i++) {
+    const a = corners[i]!;
+    const b = corners[(i + 1) % 4]!;
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len === 0) continue;
+
+    // Perpendicular direction
+    const nx = (dy / len) * hw;
+    const ny = (-dx / len) * hw;
+
+    // Quad: inner → outer
+    const a0x = a[0] - nx, a0y = a[1] - ny;
+    const a1x = a[0] + nx, a1y = a[1] + ny;
+    const b0x = b[0] - nx, b0y = b[1] - ny;
+    const b1x = b[0] + nx, b1y = b[1] + ny;
+
+    positions.push(
+      a0x, a0y, b0x, b0y, b1x, b1y,
+      b1x, b1y, a1x, a1y, a0x, a0y
+    );
+  }
+
+  if (positions.length === 0) return;
+
+  gl.useProgram(ctx.solidProgram.program);
+  const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
+    a_position: { numComponents: 2, data: new Float32Array(positions) },
+  });
+  twgl.setBuffersAndAttributes(gl, ctx.solidProgram, bufferInfo);
+  twgl.setUniforms(ctx.solidProgram, { u_matrix: ctx.matrix, u_color: strokeColor });
+  twgl.drawBufferInfo(gl, bufferInfo);
 }
 
 function renderEllipse(
@@ -248,6 +349,62 @@ function renderEllipse(
     const lx2 = Math.cos(a2) * hw;
     const ly2 = Math.sin(a2) * hh;
     positions.push(rect.x + lx2 * cos - ly2 * sin, rect.y + lx2 * sin + ly2 * cos);
+  }
+
+  gl.useProgram(ctx.solidProgram.program);
+  const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
+    a_position: { numComponents: 2, data: new Float32Array(positions) },
+  });
+  twgl.setBuffersAndAttributes(gl, ctx.solidProgram, bufferInfo);
+  twgl.setUniforms(ctx.solidProgram, { u_matrix: ctx.matrix, u_color: color });
+  twgl.drawBufferInfo(gl, bufferInfo);
+}
+
+/**
+ * 楕円の枠線を描画する
+ */
+function renderEllipseStroke(
+  ctx: UIRendererContext,
+  color: number[],
+  strokeWidth: number,
+  rect: WorldRect,
+  gl: WebGLRenderingContext
+): void {
+  const segments = 32;
+  const positions: number[] = [];
+  const hwOuter = (rect.w * rect.scaleX) / 2 + strokeWidth / 2;
+  const hhOuter = (rect.h * rect.scaleY) / 2 + strokeWidth / 2;
+  const hwInner = (rect.w * rect.scaleX) / 2 - strokeWidth / 2;
+  const hhInner = (rect.h * rect.scaleY) / 2 - strokeWidth / 2;
+  const rad = (rect.rotation * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+
+  for (let i = 0; i < segments; i++) {
+    const a1 = (i / segments) * Math.PI * 2;
+    const a2 = ((i + 1) / segments) * Math.PI * 2;
+
+    const ox1 = Math.cos(a1) * hwOuter;
+    const oy1 = Math.sin(a1) * hhOuter;
+    const ix1 = Math.cos(a1) * hwInner;
+    const iy1 = Math.sin(a1) * hhInner;
+    const ox2 = Math.cos(a2) * hwOuter;
+    const oy2 = Math.sin(a2) * hhOuter;
+    const ix2 = Math.cos(a2) * hwInner;
+    const iy2 = Math.sin(a2) * hhInner;
+
+    const rotX = (lx: number, ly: number) => rect.x + lx * cos - ly * sin;
+    const rotY = (lx: number, ly: number) => rect.y + lx * sin + ly * cos;
+
+    // Triangle 1: outer1, outer2, inner1
+    positions.push(rotX(ox1, oy1), rotY(ox1, oy1));
+    positions.push(rotX(ox2, oy2), rotY(ox2, oy2));
+    positions.push(rotX(ix1, iy1), rotY(ix1, iy1));
+
+    // Triangle 2: inner1, outer2, inner2
+    positions.push(rotX(ix1, iy1), rotY(ix1, iy1));
+    positions.push(rotX(ox2, oy2), rotY(ox2, oy2));
+    positions.push(rotX(ix2, iy2), rotY(ix2, iy2));
   }
 
   gl.useProgram(ctx.solidProgram.program);
@@ -295,14 +452,7 @@ function renderImage(
   const tint = data.tint ? parseColor(data.tint) : [1, 1, 1, 1];
   tint[3] = opacity;
 
-  const positions = new Float32Array([
-    corners[0]![0], corners[0]![1],
-    corners[1]![0], corners[1]![1],
-    corners[3]![0], corners[3]![1],
-    corners[3]![0], corners[3]![1],
-    corners[1]![0], corners[1]![1],
-    corners[2]![0], corners[2]![1],
-  ]);
+  const positions = cornersToTriangles(corners);
 
   const texcoords = new Float32Array([
     0, 0, 1, 0, 0, 1,
@@ -329,7 +479,7 @@ function renderImage(
 
 /** テキストテクスチャのキャッシュキー生成 */
 function textCacheKey(data: TextData, rect: WorldRect): string {
-  return `text:${data.content}:${data.fontSize}:${data.color}:${data.align}:${data.lineHeight}:${rect.w}:${rect.h}:${rect.scaleX}:${rect.scaleY}`;
+  return `text:${data.content}:${data.fontSize}:${data.color}:${data.align}:${data.verticalAlign}:${data.lineHeight}:${rect.w}:${rect.h}:${rect.scaleX}:${rect.scaleY}`;
 }
 
 function renderText(
@@ -352,14 +502,7 @@ function renderText(
   }
 
   const corners = getWorldCorners(rect);
-  const positions = new Float32Array([
-    corners[0]![0], corners[0]![1],
-    corners[1]![0], corners[1]![1],
-    corners[3]![0], corners[3]![1],
-    corners[3]![0], corners[3]![1],
-    corners[1]![0], corners[1]![1],
-    corners[2]![0], corners[2]![1],
-  ]);
+  const positions = cornersToTriangles(corners);
   const texcoords = new Float32Array([
     0, 0, 1, 0, 0, 1,
     0, 1, 1, 0, 1, 1,
@@ -428,45 +571,48 @@ function createTextTexture(
 }
 
 // ──────────────────────────────────────────────
-// FillMask renderer
+// FillMask — ステンシル書き込み用（充填領域を描画）
 // ──────────────────────────────────────────────
 
-function renderFillMask(
+/**
+ * FillMask の「充填済み」領域をステンシルバッファに書き込む。
+ * カラー出力は行わない（colorMask = false で呼び出される）。
+ */
+function drawFillRegion(
   ctx: UIRendererContext,
   data: FillMaskData,
   rect: WorldRect,
   gl: WebGLRenderingContext
 ): void {
   const fillAmount = Math.max(0, Math.min(1, data.fillAmount ?? 1));
-  if (fillAmount >= 1) return; // No masking needed
-
   const direction = data.direction ?? 'horizontal';
   const reverse = data.reverse ?? false;
-
-  // FillMask は未充填部分を半透明黒でオーバーレイして表現
   const corners = getWorldCorners(rect);
-  const maskColor = [0, 0, 0, 0.5];
 
-  let positions: Float32Array;
+  let filledCorners: [number, number][];
 
   if (direction === 'horizontal') {
-    // 水平: fillAmount の右側（または reverse で左側）をマスク
-    const t = reverse ? fillAmount : 1 - fillAmount;
-    const maskedCorners = interpolateCorners(corners, direction, reverse ? 0 : t, reverse ? t : 1);
-    positions = cornersToTriangles(maskedCorners);
+    if (reverse) {
+      filledCorners = interpolateCorners(corners, direction, 1 - fillAmount, 1);
+    } else {
+      filledCorners = interpolateCorners(corners, direction, 0, fillAmount);
+    }
   } else {
-    // 垂直: fillAmount の下側（または reverse で上側）をマスク
-    const t = reverse ? fillAmount : 1 - fillAmount;
-    const maskedCorners = interpolateCorners(corners, direction, reverse ? 0 : t, reverse ? t : 1);
-    positions = cornersToTriangles(maskedCorners);
+    if (reverse) {
+      filledCorners = interpolateCorners(corners, direction, 1 - fillAmount, 1);
+    } else {
+      filledCorners = interpolateCorners(corners, direction, 0, fillAmount);
+    }
   }
+
+  const positions = cornersToTriangles(filledCorners);
 
   gl.useProgram(ctx.solidProgram.program);
   const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
     a_position: { numComponents: 2, data: positions },
   });
   twgl.setBuffersAndAttributes(gl, ctx.solidProgram, bufferInfo);
-  twgl.setUniforms(ctx.solidProgram, { u_matrix: ctx.matrix, u_color: maskColor });
+  twgl.setUniforms(ctx.solidProgram, { u_matrix: ctx.matrix, u_color: [1, 1, 1, 1] });
   twgl.drawBufferInfo(gl, bufferInfo);
 }
 
