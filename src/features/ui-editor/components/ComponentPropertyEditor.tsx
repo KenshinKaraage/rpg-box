@@ -22,7 +22,36 @@ import { splitColorAlpha } from '@/lib/colorUtils';
 import { ColorPickerPopover } from './ColorPickerPopover';
 
 // ──────────────────────────────────────────────
-// Renderer
+// Field renderer props & registry
+// ──────────────────────────────────────────────
+
+export interface FieldRendererProps {
+  def: PropertyDef;
+  value: unknown;
+  onChange: (v: unknown) => void;
+}
+
+type FieldRenderer = React.FC<FieldRendererProps>;
+
+const FIELD_RENDERERS: Record<string, FieldRenderer> = {
+  number: NumberField,
+  boolean: BooleanField,
+  select: SelectField,
+  color: ({ def, value, onChange }) => (
+    <ColorField label={def.label} value={value as string | undefined} onChange={onChange} showAlpha={false} />
+  ),
+  colorAlpha: ({ def, value, onChange }) => (
+    <ColorField label={def.label} value={value as string | undefined} onChange={onChange} showAlpha={true} />
+  ),
+  assetImage: ({ def, value, onChange }) => (
+    <AssetImageField label={def.label} value={value as string | undefined} onChange={onChange} />
+  ),
+  text: TextField,
+  textarea: TextareaField,
+};
+
+// ──────────────────────────────────────────────
+// ComponentPropertyEditor
 // ──────────────────────────────────────────────
 
 interface ComponentPropertyEditorProps {
@@ -78,126 +107,107 @@ export function ComponentPropertyEditor({
 }
 
 // ──────────────────────────────────────────────
-// Individual field renderer
+// PropertyField — registry lookup
 // ──────────────────────────────────────────────
 
-export function PropertyField({
-  def,
-  value,
-  onChange,
-}: {
-  def: PropertyDef;
-  value: unknown;
-  onChange: (v: unknown) => void;
-}) {
-  switch (def.type) {
-    case 'number':
-      return (
-        <div className="flex items-center gap-2">
-          <Label className="w-24 shrink-0 text-xs text-muted-foreground">{def.label}</Label>
-          <Input
-            type="number"
-            className="h-7 text-xs"
-            value={value as number ?? 0}
-            min={def.min}
-            max={def.max}
-            step={def.step ?? 1}
-            onChange={(e) => {
-              const v = parseFloat(e.target.value);
-              if (!isNaN(v)) onChange(v);
-            }}
-          />
-        </div>
-      );
+export function PropertyField({ def, value, onChange }: FieldRendererProps) {
+  const Renderer = FIELD_RENDERERS[def.type];
+  if (!Renderer) return null;
+  return <Renderer def={def} value={value} onChange={onChange} />;
+}
 
-    case 'boolean':
-      return (
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={`prop-${def.key}`}
-            checked={(value as boolean) ?? false}
-            onCheckedChange={(checked) => onChange(checked === true)}
-          />
-          <Label htmlFor={`prop-${def.key}`} className="text-xs">
-            {def.label}
-          </Label>
-        </div>
-      );
+// ──────────────────────────────────────────────
+// Field renderers
+// ──────────────────────────────────────────────
 
-    case 'select':
-      return (
-        <div className="flex items-center gap-2">
-          <Label className="w-24 shrink-0 text-xs text-muted-foreground">{def.label}</Label>
-          <Select
-            value={(value as string) ?? def.options[0]?.value ?? ''}
-            onValueChange={(v) => onChange(v)}
-          >
-            <SelectTrigger className="h-7 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {def.options.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      );
+function NumberField({ def, value, onChange }: FieldRendererProps) {
+  const d = def as Extract<PropertyDef, { type: 'number' }>;
+  return (
+    <div className="flex items-center gap-2">
+      <Label className="w-24 shrink-0 text-xs text-muted-foreground">{d.label}</Label>
+      <Input
+        type="number"
+        className="h-7 text-xs"
+        value={value as number ?? 0}
+        min={d.min}
+        max={d.max}
+        step={d.step ?? 1}
+        onChange={(e) => {
+          const v = parseFloat(e.target.value);
+          if (!isNaN(v)) onChange(v);
+        }}
+      />
+    </div>
+  );
+}
 
-    case 'color':
-      return (
-        <ColorField
-          label={def.label}
-          value={value as string | undefined}
-          onChange={onChange}
-          showAlpha={false}
-        />
-      );
+function BooleanField({ def, value, onChange }: FieldRendererProps) {
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={`prop-${def.key}`}
+        checked={(value as boolean) ?? false}
+        onCheckedChange={(checked) => onChange(checked === true)}
+      />
+      <Label htmlFor={`prop-${def.key}`} className="text-xs">
+        {def.label}
+      </Label>
+    </div>
+  );
+}
 
-    case 'colorAlpha':
-      return (
-        <ColorField
-          label={def.label}
-          value={value as string | undefined}
-          onChange={onChange}
-          showAlpha={true}
-        />
-      );
+function SelectField({ def, value, onChange }: FieldRendererProps) {
+  const d = def as Extract<PropertyDef, { type: 'select' }>;
+  return (
+    <div className="flex items-center gap-2">
+      <Label className="w-24 shrink-0 text-xs text-muted-foreground">{d.label}</Label>
+      <Select
+        value={(value as string) ?? d.options[0]?.value ?? ''}
+        onValueChange={(v) => onChange(v)}
+      >
+        <SelectTrigger className="h-7 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {d.options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
-    case 'assetImage':
-      return <AssetImageField label={def.label} value={value as string | undefined} onChange={onChange} />;
+function TextField({ def, value, onChange }: FieldRendererProps) {
+  const d = def as Extract<PropertyDef, { type: 'text' }>;
+  return (
+    <div className="flex items-center gap-2">
+      <Label className="w-24 shrink-0 text-xs text-muted-foreground">{d.label}</Label>
+      <Input
+        className="h-7 text-xs"
+        value={(value as string) ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={d.placeholder}
+      />
+    </div>
+  );
+}
 
-    case 'text':
-      return (
-        <div className="flex items-center gap-2">
-          <Label className="w-24 shrink-0 text-xs text-muted-foreground">{def.label}</Label>
-          <Input
-            className="h-7 text-xs"
-            value={(value as string) ?? ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={def.placeholder}
-          />
-        </div>
-      );
-
-    case 'textarea':
-      return (
-        <div>
-          <Label className="mb-1 block text-xs text-muted-foreground">{def.label}</Label>
-          <Textarea
-            className="min-h-[60px] text-xs"
-            value={(value as string) ?? ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={def.placeholder}
-          />
-        </div>
-      );
-
-    default:
-      return null;
-  }
+function TextareaField({ def, value, onChange }: FieldRendererProps) {
+  const d = def as Extract<PropertyDef, { type: 'textarea' }>;
+  return (
+    <div>
+      <Label className="mb-1 block text-xs text-muted-foreground">{d.label}</Label>
+      <Textarea
+        className="min-h-[60px] text-xs"
+        value={(value as string) ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={d.placeholder}
+      />
+    </div>
+  );
 }
 
 // ──────────────────────────────────────────────
@@ -336,7 +346,7 @@ function ColorField({
             />
           </span>
           <span className="truncate text-muted-foreground">
-            {value ?? (showAlpha ? '未設定' : '未設定')}
+            {value ?? '未設定'}
           </span>
         </button>
       </ColorPickerPopover>
