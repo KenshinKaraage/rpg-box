@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { TreeNode, DropPosition } from './types';
 import { DropIndicator } from './DropIndicator';
@@ -25,8 +26,11 @@ export function TreeNodeWrapper({
   depth,
   indentPx,
   isSelected,
+  isExpanded,
+  hasChildren,
   isDragSource,
   dropPosition,
+  onToggleExpand,
   onPointerZone,
   renderNode,
   onSelect,
@@ -80,7 +84,7 @@ export function TreeNodeWrapper({
       className="relative"
       style={{
         paddingLeft: `${depth * indentPx}px`,
-        opacity: isDragging ? 0.3 : 1,
+        opacity: isDragSource ? 0.3 : 1,
       }}
       onPointerMove={isOver ? handlePointerMove : undefined}
       onPointerLeave={isOver ? handlePointerLeave : undefined}
@@ -93,11 +97,28 @@ export function TreeNodeWrapper({
           'flex cursor-grab items-center gap-1 rounded px-2 py-1 text-sm',
           isSelected ? 'bg-accent font-medium' : 'hover:bg-accent/50',
           dropPosition === 'inside' ? 'ring-2 ring-blue-500' : '',
-          isDragSource ? 'opacity-30' : '',
         ]
           .filter(Boolean)
           .join(' ')}
       >
+        {/* Expand/collapse toggle */}
+        <button
+          type="button"
+          className="h-4 w-4 shrink-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasChildren) onToggleExpand(node.id);
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {hasChildren ? (
+            isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )
+          ) : null}
+        </button>
         {renderNode(node, depth)}
       </div>
       {dropPosition && dropPosition !== 'inside' && (

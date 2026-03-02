@@ -60,13 +60,6 @@ export function isDescendant(
 }
 
 /**
- * 指定ノードの子の数を返す。
- */
-export function getChildCount(nodes: TreeNode[], parentId: string): number {
-  return nodes.filter((n) => n.parentId === parentId).length;
-}
-
-/**
  * DropPosition + ターゲットノード情報から、onMove の引数 (newParentId, index) を計算。
  */
 export function resolveDropTarget(
