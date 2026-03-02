@@ -215,29 +215,31 @@ function ColorField({
       >
         <button
           type="button"
-          className="relative h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded border"
+          className="flex h-7 flex-1 cursor-pointer items-center gap-2 rounded-md border border-input bg-transparent px-2 text-xs shadow-sm hover:bg-accent/50"
         >
-          {/* Checkerboard for alpha */}
-          {showAlpha && (
-            <div
+          {/* Color swatch */}
+          <span className="relative h-4 w-4 shrink-0 overflow-hidden rounded-sm border border-input">
+            {showAlpha && (
+              <span
+                className="absolute inset-0"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
+                  backgroundSize: '6px 6px',
+                  backgroundPosition: '0 0, 0 3px, 3px -3px, -3px 0px',
+                }}
+              />
+            )}
+            <span
               className="absolute inset-0"
-              style={{
-                backgroundImage:
-                  'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
-                backgroundSize: '6px 6px',
-                backgroundPosition: '0 0, 0 3px, 3px -3px, -3px 0px',
-              }}
+              style={{ backgroundColor: hex6, opacity: showAlpha ? alpha : 1 }}
             />
-          )}
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: hex6, opacity: showAlpha ? alpha : 1 }}
-          />
+          </span>
+          <span className="truncate text-muted-foreground">
+            {value ?? (showAlpha ? '未設定' : '未設定')}
+          </span>
         </button>
       </ColorPickerPopover>
-      <span className="flex-1 truncate text-xs text-muted-foreground">
-        {value ?? (showAlpha ? '#rrggbbaa' : '#rrggbb')}
-      </span>
     </div>
   );
 }
