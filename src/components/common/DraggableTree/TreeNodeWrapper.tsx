@@ -16,7 +16,6 @@ interface TreeNodeWrapperProps {
   isDragSource: boolean;
   dropPosition: DropPosition | null;
   onToggleExpand: (id: string) => void;
-  onPointerZone: (nodeId: string, position: DropPosition | null) => void;
   renderNode: (node: TreeNode, depth: number) => React.ReactNode;
   onSelect?: (id: string, e: React.MouseEvent) => void;
 }
@@ -31,43 +30,20 @@ export function TreeNodeWrapper({
   isDragSource,
   dropPosition,
   onToggleExpand,
-  onPointerZone,
   renderNode,
   onSelect,
 }: TreeNodeWrapperProps) {
   const nodeRef = useRef<HTMLDivElement | null>(null);
 
-  const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef: setDragRef } = useDraggable({
     id: node.id,
     data: { node },
   });
 
-  const { setNodeRef: setDropRef, isOver } = useDroppable({
+  const { setNodeRef: setDropRef } = useDroppable({
     id: node.id,
     data: { node },
   });
-
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!nodeRef.current) return;
-      const rect = nodeRef.current.getBoundingClientRect();
-      const relY = (e.clientY - rect.top) / rect.height;
-      let position: DropPosition;
-      if (relY < 0.25) {
-        position = 'before';
-      } else if (relY > 0.75) {
-        position = 'after';
-      } else {
-        position = 'inside';
-      }
-      onPointerZone(node.id, position);
-    },
-    [node.id, onPointerZone]
-  );
-
-  const handlePointerLeave = useCallback(() => {
-    onPointerZone(node.id, null);
-  }, [node.id, onPointerZone]);
 
   const setRefs = useCallback(
     (el: HTMLDivElement | null) => {
@@ -86,8 +62,6 @@ export function TreeNodeWrapper({
         paddingLeft: `${depth * indentPx}px`,
         opacity: isDragSource ? 0.3 : 1,
       }}
-      onPointerMove={isOver ? handlePointerMove : undefined}
-      onPointerLeave={isOver ? handlePointerLeave : undefined}
       onClick={(e) => onSelect?.(node.id, e)}
       {...attributes}
       {...listeners}
@@ -96,7 +70,7 @@ export function TreeNodeWrapper({
         className={[
           'flex cursor-grab items-center gap-1 rounded px-2 py-1 text-sm',
           isSelected ? 'bg-accent font-medium' : 'hover:bg-accent/50',
-          dropPosition === 'inside' ? 'ring-2 ring-blue-500' : '',
+          dropPosition === 'inside' ? 'ring-2 ring-blue-500 bg-blue-500/10' : '',
         ]
           .filter(Boolean)
           .join(' ')}

@@ -5,9 +5,11 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragStartEvent,
+  type DragMoveEvent,
   type DragEndEvent,
 } from '@dnd-kit/core';
 import type { DraggableTreeProps, DropPosition, DropTarget } from './types';
@@ -58,31 +60,52 @@ export function DraggableTree({
     setActiveId(String(event.active.id));
   }, []);
 
-  const handlePointerZone = useCallback(
-    (nodeId: string, position: DropPosition | null) => {
-      if (!activeId) return;
-      if (!position) {
+  const handleDragMove = useCallback(
+    (event: DragMoveEvent) => {
+      const { over, activatorEvent, delta } = event;
+      const currentActiveId = String(event.active.id);
+      if (!over) {
         setDropTarget(null);
         return;
       }
-      if (nodeId === activeId || isDescendant(nodes, activeId, nodeId)) {
+
+      const nodeId = String(over.id);
+      if (nodeId === currentActiveId || isDescendant(nodes, currentActiveId, nodeId)) {
         setDropTarget(null);
         return;
       }
+
+      // Compute pointer Y from initial position + delta
+      const startY = (activatorEvent as PointerEvent).clientY;
+      const currentY = startY + delta.y;
+
+      // Get droppable element rect
+      const overRect = over.rect;
+      const relY = (currentY - overRect.top) / overRect.height;
+
+      let position: DropPosition;
+      if (relY < 0.3) {
+        position = 'before';
+      } else if (relY > 0.7) {
+        position = 'after';
+      } else {
+        position = 'inside';
+      }
+
       setDropTarget({ nodeId, position });
     },
-    [activeId, nodes]
+    [nodes]
   );
 
   const handleDragEnd = useCallback(
     (_event: DragEndEvent) => {
-      if (dropTarget) {
+      if (dropTarget && activeId) {
         const { newParentId, index } = resolveDropTarget(
           nodes,
           dropTarget.nodeId,
           dropTarget.position
         );
-        onMove(String(activeId), newParentId, index);
+        onMove(activeId, newParentId, index);
 
         if (dropTarget.position === 'inside') {
           setExpandedIds((prev) => new Set(prev).add(dropTarget.nodeId));
@@ -120,7 +143,9 @@ export function DraggableTree({
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
@@ -139,7 +164,6 @@ export function DraggableTree({
               isDragSource={activeId === node.id}
               dropPosition={dropTarget?.nodeId === node.id ? dropTarget.position : null}
               onToggleExpand={handleToggleExpand}
-              onPointerZone={handlePointerZone}
               renderNode={renderNode}
               onSelect={handleSelect}
             />
