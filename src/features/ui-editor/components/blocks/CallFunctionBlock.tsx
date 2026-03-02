@@ -1,9 +1,16 @@
 'use client';
 
 import { Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useStore } from '@/stores';
 import type { ActionBlockProps } from '@/features/event-editor/registry/actionBlockRegistry';
 import type { CallFunctionAction } from '@/types/ui/actions/CallFunctionAction';
 
@@ -13,6 +20,11 @@ function cloneAction(action: CallFunctionAction): CallFunctionAction {
 
 export function CallFunctionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const a = action as CallFunctionAction;
+
+  const selectedCanvasId = useStore((s) => s.selectedCanvasId);
+  const uiCanvases = useStore((s) => s.uiCanvases);
+  const canvas = uiCanvases.find((c) => c.id === selectedCanvasId);
+  const functions = canvas?.functions ?? [];
 
   return (
     <div className="rounded-md border p-3">
@@ -24,18 +36,27 @@ export function CallFunctionBlock({ action, onChange, onDelete }: ActionBlockPro
       </div>
       <div className="mt-2 space-y-2">
         <div className="flex items-center gap-2">
-          <Label className="w-20 shrink-0 text-xs text-muted-foreground">関数名</Label>
-          <Input
-            value={a.functionName}
-            onChange={(e) => {
+          <Label className="w-20 shrink-0 text-xs text-muted-foreground">関数</Label>
+          <Select
+            value={a.functionName || '__none__'}
+            onValueChange={(v) => {
               const updated = cloneAction(a);
-              updated.functionName = e.target.value;
+              updated.functionName = v === '__none__' ? '' : v;
               onChange(updated);
             }}
-            placeholder="例: openMenu"
-            className="h-8 text-xs"
-            data-testid="function-name-input"
-          />
+          >
+            <SelectTrigger className="h-7 text-xs" data-testid="function-name-select">
+              <SelectValue placeholder="選択..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">（選択なし）</SelectItem>
+              {functions.map((fn) => (
+                <SelectItem key={fn.id} value={fn.name}>
+                  {fn.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

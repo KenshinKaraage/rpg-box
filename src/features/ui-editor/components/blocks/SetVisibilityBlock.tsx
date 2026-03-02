@@ -1,12 +1,12 @@
 'use client';
 
 import { Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { ActionBlockProps } from '@/features/event-editor/registry/actionBlockRegistry';
 import type { SetVisibilityAction } from '@/types/ui/actions/SetVisibilityAction';
+import { UIObjectSelector } from '../UIObjectSelector';
 
 function cloneAction(action: SetVisibilityAction): SetVisibilityAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
@@ -25,17 +25,15 @@ export function SetVisibilityBlock({ action, onChange, onDelete }: ActionBlockPr
       </div>
       <div className="mt-2 space-y-2">
         <div className="flex items-center gap-2">
-          <Label className="w-20 shrink-0 text-xs text-muted-foreground">対象ID</Label>
-          <Input
+          <Label className="w-20 shrink-0 text-xs text-muted-foreground">対象</Label>
+          <UIObjectSelector
             value={a.targetId}
-            onChange={(e) => {
+            onChange={(id) => {
               const updated = cloneAction(a);
-              updated.targetId = e.target.value;
+              updated.targetId = id;
               onChange(updated);
             }}
-            placeholder="空=自身"
-            className="h-8 text-xs"
-            data-testid="target-id-input"
+            className="h-7 flex-1 text-xs"
           />
         </div>
         <div className="flex items-center gap-2">

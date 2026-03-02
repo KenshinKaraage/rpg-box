@@ -22,6 +22,7 @@ import { useStore } from '@/stores';
 import { getUIComponent, getAllUIComponents } from '@/types/ui';
 import { AnchorPresets } from './AnchorPresets';
 import { ActionComponentEditor } from './ActionComponentEditor';
+import { ComponentPropertyEditor, hasPropertySchema } from './ComponentPropertyEditor';
 import type { RectTransform } from '@/types/ui/UIComponent';
 import type { UIActionEntry } from '@/types/ui/components/ActionComponent';
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
@@ -206,9 +207,6 @@ function TransformEditor({
 // Component list item
 // ──────────────────────────────────────────────
 
-/** Components that have inline editors */
-const EXPANDABLE_TYPES = new Set(['action']);
-
 function ComponentListItem({
   component,
   onRemove,
@@ -223,7 +221,9 @@ function ComponentListItem({
   // Get label from registry
   const Ctor = getUIComponent(component.type);
   const label = Ctor ? new Ctor().label : component.type;
-  const hasEditor = EXPANDABLE_TYPES.has(component.type);
+  const hasEditor = component.type === 'action' || hasPropertySchema(component.type);
+
+  const compData = (component.data ?? {}) as Record<string, unknown>;
 
   return (
     <div data-testid={`component-item-${component.type}`}>
@@ -259,10 +259,17 @@ function ComponentListItem({
       {expanded && component.type === 'action' && (
         <div className="px-2 pb-2">
           <ActionComponentEditor
-            actions={((component.data as Record<string, unknown>)?.actions as UIActionEntry[]) ?? []}
+            actions={(compData.actions as UIActionEntry[]) ?? []}
             onChange={(actions) => onUpdateData({ actions })}
           />
         </div>
+      )}
+      {expanded && component.type !== 'action' && hasPropertySchema(component.type) && (
+        <ComponentPropertyEditor
+          componentType={component.type}
+          data={compData}
+          onChange={(updated) => onUpdateData(updated)}
+        />
       )}
     </div>
   );

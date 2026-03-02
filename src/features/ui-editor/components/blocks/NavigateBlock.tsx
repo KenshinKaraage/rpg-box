@@ -1,7 +1,6 @@
 'use client';
 
 import { Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import type { ActionBlockProps } from '@/features/event-editor/registry/actionBlockRegistry';
 import type { NavigateAction } from '@/types/ui/actions/NavigateAction';
+import { UICanvasSelector } from '../UIObjectSelector';
 
 function cloneAction(action: NavigateAction): NavigateAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
@@ -31,17 +31,15 @@ export function NavigateBlock({ action, onChange, onDelete }: ActionBlockProps) 
       </div>
       <div className="mt-2 space-y-2">
         <div className="flex items-center gap-2">
-          <Label className="w-20 shrink-0 text-xs text-muted-foreground">キャンバスID</Label>
-          <Input
+          <Label className="w-20 shrink-0 text-xs text-muted-foreground">キャンバス</Label>
+          <UICanvasSelector
             value={a.canvasId}
-            onChange={(e) => {
+            onChange={(id) => {
               const updated = cloneAction(a);
-              updated.canvasId = e.target.value;
+              updated.canvasId = id;
               onChange(updated);
             }}
-            placeholder="遷移先キャンバスID"
-            className="h-8 text-xs"
-            data-testid="canvas-id-input"
+            className="h-7 flex-1 text-xs"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -54,7 +52,7 @@ export function NavigateBlock({ action, onChange, onDelete }: ActionBlockProps) 
               onChange(updated);
             }}
           >
-            <SelectTrigger className="h-8 text-xs" data-testid="transition-select">
+            <SelectTrigger className="h-7 text-xs" data-testid="transition-select">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
