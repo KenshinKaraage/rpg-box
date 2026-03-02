@@ -1,9 +1,10 @@
 'use client';
 
-import { Trash2, Save } from 'lucide-react';
+import { Trash2, Save, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/stores';
 import { useTemplateSave } from '../hooks/useTemplateSave';
+import { useTemplateInstantiate } from '../hooks/useTemplateInstantiate';
 import type { EditorUITemplate } from '@/stores/uiEditorSlice';
 
 interface TemplatesPanelProps {
@@ -12,7 +13,17 @@ interface TemplatesPanelProps {
 
 export function TemplatesPanel({ templates }: TemplatesPanelProps) {
   const deleteUITemplate = useStore((s) => s.deleteUITemplate);
+  const selectUIObjects = useStore((s) => s.selectUIObjects);
   const { canSave, saveAsTemplate } = useTemplateSave();
+  const { canInstantiate, instantiateTemplate } = useTemplateInstantiate();
+
+  const handleInstantiate = (tmpl: EditorUITemplate) => {
+    const newIds = instantiateTemplate(tmpl);
+    if (newIds.length > 0) {
+      // ルートオブジェクト（parentId なし）を選択
+      selectUIObjects([newIds[0]!]);
+    }
+  };
 
   return (
     <div className="p-2" data-testid="templates-panel">
@@ -49,6 +60,17 @@ export function TemplatesPanel({ templates }: TemplatesPanelProps) {
                 <span className="text-[10px] text-muted-foreground">
                   {tmpl.objects.length}obj
                 </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-5 w-5 p-0"
+                  disabled={!canInstantiate}
+                  onClick={() => handleInstantiate(tmpl)}
+                  aria-label={`${tmpl.name}を配置`}
+                  data-testid={`instantiate-template-${tmpl.id}`}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
                 <Button
                   size="sm"
                   variant="ghost"
