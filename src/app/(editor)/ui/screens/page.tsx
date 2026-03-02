@@ -91,9 +91,7 @@ export default function UIScreenDesignPage() {
                 onDelete={deleteUICanvas}
               />
             )}
-            {leftPanelMode === 'elements' && (
-              <ElementsPanel objects={selectedCanvas?.objects ?? []} />
-            )}
+            {leftPanelMode === 'elements' && <ElementsPanel />}
             {leftPanelMode === 'templates' && (
               <TemplatesPanel templates={uiTemplates} />
             )}
