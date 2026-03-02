@@ -1,6 +1,6 @@
 import { UIComponent, type PropertyDef } from '../UIComponent';
 
-export type ShapeType = 'rectangle' | 'ellipse' | 'polygon' | 'polygon_regular' | 'line';
+export type ShapeType = 'rectangle' | 'ellipse' | 'polygon' | 'polygon_regular';
 
 export const DEFAULT_TRIANGLE_VERTICES = [
   { x: 0.5, y: 0 },
@@ -31,14 +31,11 @@ export class ShapeComponent extends UIComponent {
           { value: 'ellipse', label: '楕円' },
           { value: 'polygon', label: 'ポリゴン' },
           { value: 'polygon_regular', label: '正多角形' },
-          { value: 'line', label: '線' },
         ],
       },
     ];
 
-    if (this.shapeType !== 'line') {
-      defs.push({ key: 'fillColor', label: '塗り', type: 'colorAlpha' });
-    }
+    defs.push({ key: 'fillColor', label: '塗り', type: 'colorAlpha' });
     defs.push({ key: 'strokeColor', label: '線色', type: 'colorAlpha' });
     defs.push({ key: 'strokeWidth', label: '線幅', type: 'number', min: 0 });
 

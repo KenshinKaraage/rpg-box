@@ -2,6 +2,7 @@ import { registerUIComponent } from './index';
 import { ImageComponent } from './components/ImageComponent';
 import { TextComponent } from './components/TextComponent';
 import { ShapeComponent } from './components/ShapeComponent';
+import { LineComponent } from './components/LineComponent';
 import { FillMaskComponent } from './components/FillMaskComponent';
 import { ColorMaskComponent } from './components/ColorMaskComponent';
 import { LayoutGroupComponent } from './components/LayoutGroupComponent';
@@ -16,6 +17,7 @@ import { TemplateControllerComponent } from './components/TemplateControllerComp
 registerUIComponent('image', ImageComponent);
 registerUIComponent('text', TextComponent);
 registerUIComponent('shape', ShapeComponent);
+registerUIComponent('line', LineComponent);
 registerUIComponent('fillMask', FillMaskComponent);
 registerUIComponent('colorMask', ColorMaskComponent);
 registerUIComponent('layoutGroup', LayoutGroupComponent);

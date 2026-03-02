@@ -53,7 +53,8 @@ export function ComponentPropertyEditor({
   };
 
   const showVertexEditor =
-    componentType === 'shape' && (data.shapeType as string) === 'polygon';
+    (componentType === 'shape' && (data.shapeType as string) === 'polygon') ||
+    componentType === 'line';
 
   return (
     <div className="space-y-2 px-2 pb-2" data-testid={`property-editor-${componentType}`}>
@@ -66,9 +67,10 @@ export function ComponentPropertyEditor({
         />
       ))}
       {showVertexEditor && (
-        <PolygonVertexEditor
+        <VertexEditor
           vertices={(data.vertices as { x: number; y: number }[]) ?? []}
           onChange={(v) => handleChange('vertices', v)}
+          minVertices={componentType === 'line' ? 2 : 3}
         />
       )}
     </div>
@@ -199,15 +201,17 @@ export function PropertyField({
 }
 
 // ──────────────────────────────────────────────
-// Polygon vertex editor
+// Vertex editor (polygon / line 共用)
 // ──────────────────────────────────────────────
 
-function PolygonVertexEditor({
+function VertexEditor({
   vertices,
   onChange,
+  minVertices = 3,
 }: {
   vertices: { x: number; y: number }[];
   onChange: (v: { x: number; y: number }[]) => void;
+  minVertices?: number;
 }) {
   const handleVertexChange = (index: number, axis: 'x' | 'y', value: number) => {
     const updated = vertices.map((v, i) => (i === index ? { ...v, [axis]: value } : v));
@@ -215,7 +219,7 @@ function PolygonVertexEditor({
   };
 
   const handleRemove = (index: number) => {
-    if (vertices.length <= 3) return;
+    if (vertices.length <= minVertices) return;
     onChange(vertices.filter((_, i) => i !== index));
   };
 
@@ -263,7 +267,7 @@ function PolygonVertexEditor({
             size="sm"
             variant="ghost"
             className="h-6 w-6 shrink-0 p-0"
-            disabled={vertices.length <= 3}
+            disabled={vertices.length <= minVertices}
             onClick={() => handleRemove(i)}
             aria-label="頂点を削除"
           >

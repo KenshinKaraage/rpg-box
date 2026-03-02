@@ -102,13 +102,13 @@ const ELEMENT_PRESETS: ElementPresetEntry[] = [
         icon: Hexagon,
         components: [{ type: 'shape', data: { shapeType: 'polygon_regular', fillColor: '#cccccc', sides: 6 } }],
       },
-      {
-        key: 'shape_line',
-        label: '線',
-        icon: Minus,
-        components: [{ type: 'shape', data: { shapeType: 'line', strokeColor: '#000000', strokeWidth: 2 } }],
-      },
     ],
+  },
+  {
+    key: 'line',
+    label: '線',
+    icon: Minus,
+    components: [{ type: 'line', data: { strokeColor: '#000000', strokeWidth: 2 } }],
   },
   {
     key: 'image',

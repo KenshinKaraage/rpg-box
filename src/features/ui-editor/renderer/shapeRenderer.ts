@@ -8,7 +8,7 @@ import type { UIRendererContext } from './UIRenderer';
 import { parseColor, cornersToTriangles } from './renderUtils';
 
 export interface ShapeData {
-  shapeType?: 'rectangle' | 'ellipse' | 'polygon' | 'polygon_regular' | 'line';
+  shapeType?: 'rectangle' | 'ellipse' | 'polygon' | 'polygon_regular';
   fillColor?: string;
   strokeColor?: string;
   strokeWidth?: number;
@@ -20,7 +20,7 @@ export interface ShapeData {
 /**
  * 正規化頂点 (0-1) をワールド座標に変換
  */
-function verticesToWorld(
+export function verticesToWorld(
   vertices: { x: number; y: number }[],
   rect: WorldRect
 ): [number, number][] {
@@ -108,13 +108,6 @@ export function renderShape(
       const strokeColor = parseColor(data.strokeColor);
       const sw = data.strokeWidth ?? 1;
       renderPolylineStroke(ctx, worldVerts, sw, strokeColor, gl);
-    }
-  } else if (shapeType === 'line') {
-    if (data.strokeColor) {
-      const corners = getWorldCorners(rect);
-      const strokeColor = parseColor(data.strokeColor);
-      const sw = data.strokeWidth ?? 1;
-      renderPolylineStroke(ctx, [corners[0]!, corners[2]!], sw, strokeColor, gl, false);
     }
   }
 }
@@ -252,7 +245,7 @@ function renderPolygonFill(
   twgl.drawBufferInfo(gl, bufferInfo);
 }
 
-function renderPolylineStroke(
+export function renderPolylineStroke(
   ctx: UIRendererContext,
   outline: [number, number][],
   strokeWidth: number,

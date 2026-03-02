@@ -77,6 +77,7 @@ export function clearUIComponentRegistry(): void {
 export { ImageComponent } from './components/ImageComponent';
 export { TextComponent } from './components/TextComponent';
 export { ShapeComponent } from './components/ShapeComponent';
+export { LineComponent } from './components/LineComponent';
 export { FillMaskComponent } from './components/FillMaskComponent';
 export { ColorMaskComponent } from './components/ColorMaskComponent';
 export { LayoutGroupComponent } from './components/LayoutGroupComponent';

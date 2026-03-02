@@ -14,6 +14,8 @@ import type { WorldRect } from './transformResolver';
 import { SOLID_VERT, SOLID_FRAG, TEXTURED_VERT, TEXTURED_FRAG } from '../utils/shaders';
 import { renderShape } from './shapeRenderer';
 import type { ShapeData } from './shapeRenderer';
+import { renderLine } from './lineRenderer';
+import type { LineData } from './lineRenderer';
 import { renderImage } from './imageRenderer';
 import type { ImageData } from './imageRenderer';
 import { renderText } from './textRenderer';
@@ -186,6 +188,9 @@ function renderVisualComponent(
   switch (comp.type) {
     case 'shape':
       renderShape(ctx, comp.data as ShapeData, worldRect, gl);
+      break;
+    case 'line':
+      renderLine(ctx, comp.data as LineData, worldRect, gl);
       break;
     case 'image':
       renderImage(ctx, comp.data as ImageData, worldRect, gl);
