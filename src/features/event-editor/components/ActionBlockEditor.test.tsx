@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ActionBlockEditor } from './ActionBlockEditor';
 import { registerActionBlock, clearActionBlockRegistry } from '../registry/actionBlockRegistry';
-import type { EventAction } from '@/engine/actions/EventAction';
+import type { EditableAction } from '@/types/ui/actions/UIAction';
 
 // =============================================================================
 // Mock: ActionSelector（Modal内部をポータルに依存するためモック化）
@@ -54,8 +54,8 @@ function MockWaitBlock({
   action,
   onDelete,
 }: {
-  action: EventAction;
-  onChange: (a: EventAction) => void;
+  action: EditableAction;
+  onChange: (a: EditableAction) => void;
   onDelete: () => void;
 }) {
   return (
@@ -74,7 +74,7 @@ function MockWaitBlock({
 
 describe('ActionBlockEditor', () => {
   const defaultProps = {
-    actions: [] as EventAction[],
+    actions: [] as EditableAction[],
     onChange: jest.fn(),
   };
 
@@ -87,8 +87,8 @@ describe('ActionBlockEditor', () => {
       label: 'ウェイト',
       category: 'basic',
       BlockComponent: MockWaitBlock as React.ComponentType<{
-        action: EventAction;
-        onChange: (a: EventAction) => void;
+        action: EditableAction;
+        onChange: (a: EditableAction) => void;
         onDelete: () => void;
       }>,
     });
@@ -104,14 +104,14 @@ describe('ActionBlockEditor', () => {
   });
 
   it('アクションが表示される', () => {
-    const waitAction = new MockWaitAction() as unknown as EventAction;
+    const waitAction = new MockWaitAction() as unknown as EditableAction;
     render(<ActionBlockEditor {...defaultProps} actions={[waitAction]} />);
     expect(screen.getByText('ウェイト: 30フレーム')).toBeInTheDocument();
   });
 
   it('複数アクションが順番に表示される', () => {
-    const action1 = new MockWaitAction() as unknown as EventAction;
-    const action2 = new MockWaitAction() as unknown as EventAction;
+    const action1 = new MockWaitAction() as unknown as EditableAction;
+    const action2 = new MockWaitAction() as unknown as EditableAction;
     (action2 as unknown as MockWaitAction).frames = 60;
     render(<ActionBlockEditor {...defaultProps} actions={[action1, action2]} />);
     expect(screen.getByText('ウェイト: 30フレーム')).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('ActionBlockEditor', () => {
   });
 
   it('未登録タイプは不明表示', () => {
-    const unknownAction = { type: 'unknown_type' } as unknown as EventAction;
+    const unknownAction = { type: 'unknown_type' } as unknown as EditableAction;
     render(<ActionBlockEditor {...defaultProps} actions={[unknownAction]} />);
     expect(screen.getByText('不明なアクション: unknown_type')).toBeInTheDocument();
     expect(screen.getByTestId('unknown-action-0')).toBeInTheDocument();
@@ -147,22 +147,22 @@ describe('ActionBlockEditor', () => {
     expect(capturedOnSelect).not.toBeNull();
     capturedOnSelect!('wait');
     expect(defaultProps.onChange).toHaveBeenCalledTimes(1);
-    const newActions = defaultProps.onChange.mock.calls[0][0] as EventAction[];
+    const newActions = defaultProps.onChange.mock.calls[0][0] as EditableAction[];
     expect(newActions).toHaveLength(1);
     expect(newActions[0]?.type).toBe('wait');
   });
 
   it('削除でonChangeが呼ばれる', () => {
-    const waitAction = new MockWaitAction() as unknown as EventAction;
+    const waitAction = new MockWaitAction() as unknown as EditableAction;
     render(<ActionBlockEditor {...defaultProps} actions={[waitAction]} />);
     fireEvent.click(screen.getByTestId('delete-wait'));
     expect(defaultProps.onChange).toHaveBeenCalledWith([]);
   });
 
   it('中間のアクションを削除すると残りが正しく返される', () => {
-    const action1 = new MockWaitAction() as unknown as EventAction;
-    const action2 = new MockWaitAction() as unknown as EventAction;
-    const action3 = new MockWaitAction() as unknown as EventAction;
+    const action1 = new MockWaitAction() as unknown as EditableAction;
+    const action2 = new MockWaitAction() as unknown as EditableAction;
+    const action3 = new MockWaitAction() as unknown as EditableAction;
     (action2 as unknown as MockWaitAction).frames = 60;
     (action3 as unknown as MockWaitAction).frames = 90;
     render(<ActionBlockEditor {...defaultProps} actions={[action1, action2, action3]} />);
@@ -170,7 +170,7 @@ describe('ActionBlockEditor', () => {
     const deleteButtons = screen.getAllByTestId('delete-wait');
     fireEvent.click(deleteButtons[1]!);
     expect(defaultProps.onChange).toHaveBeenCalledTimes(1);
-    const remaining = defaultProps.onChange.mock.calls[0][0] as EventAction[];
+    const remaining = defaultProps.onChange.mock.calls[0][0] as EditableAction[];
     expect(remaining).toHaveLength(2);
     expect((remaining[0] as unknown as MockWaitAction).frames).toBe(30);
     expect((remaining[1] as unknown as MockWaitAction).frames).toBe(90);

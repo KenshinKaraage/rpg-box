@@ -1,17 +1,17 @@
 import type React from 'react';
 
-import type { EventAction } from '@/engine/actions/EventAction';
+import type { EditableAction } from '@/types/ui/actions/UIAction';
 
 export interface ActionBlockProps {
-  action: EventAction;
-  onChange: (action: EventAction) => void;
+  action: EditableAction;
+  onChange: (action: EditableAction) => void;
   onDelete: () => void;
 }
 
 export interface ActionBlockDefinition {
   type: string;
   label: string;
-  category: 'logic' | 'basic' | 'script' | 'template';
+  category: 'logic' | 'basic' | 'script' | 'template' | 'ui';
   BlockComponent: React.ComponentType<ActionBlockProps>;
 }
 

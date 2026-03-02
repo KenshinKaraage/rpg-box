@@ -20,6 +20,7 @@ import type {
   ConditionOperand,
 } from '@/engine/actions/ConditionalAction';
 import type { EventAction } from '@/engine/actions/EventAction';
+import type { EditableAction } from '@/types/ui/actions/UIAction';
 import type { Variable } from '@/types/variable';
 import { ActionBlockEditor } from '../ActionBlockEditor';
 
@@ -148,15 +149,15 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
     });
   };
 
-  const handleThenChange = (newActions: EventAction[]) => {
+  const handleThenChange = (newActions: EditableAction[]) => {
     const updated = cloneAction(condAction);
-    updated.thenActions = newActions;
+    updated.thenActions = newActions as EventAction[];
     onChange(updated);
   };
 
-  const handleElseChange = (newActions: EventAction[]) => {
+  const handleElseChange = (newActions: EditableAction[]) => {
     const updated = cloneAction(condAction);
-    updated.elseActions = newActions;
+    updated.elseActions = newActions as EventAction[];
     onChange(updated);
   };
 

@@ -8,7 +8,7 @@ import { generateId } from '@/lib/utils';
 import { ActionBlockEditor } from '@/features/event-editor/components/ActionBlockEditor';
 import { deserializeActions, serializeActions } from '../utils/actionBridge';
 import type { UIActionEntry, SerializedAction } from '@/types/ui/components/ActionComponent';
-import type { EventAction } from '@/engine/actions/EventAction';
+import type { EditableAction } from '@/types/ui/actions/UIAction';
 
 // ──────────────────────────────────────────────
 // Types
@@ -35,8 +35,8 @@ function ActionEntryEditor({
   const [expanded, setExpanded] = useState(false);
 
   const handleBlocksChange = useCallback(
-    (eventActions: EventAction[]) => {
-      const blocks: SerializedAction[] = serializeActions(eventActions);
+    (editableActions: EditableAction[]) => {
+      const blocks: SerializedAction[] = serializeActions(editableActions);
       onUpdate({ ...entry, blocks });
     },
     [entry, onUpdate]

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { LoopAction } from '@/engine/actions/LoopAction';
 import type { EventAction } from '@/engine/actions/EventAction';
+import type { EditableAction } from '@/types/ui/actions/UIAction';
 import { ActionBlockEditor } from '../ActionBlockEditor';
 
 function cloneAction(action: LoopAction): LoopAction {
@@ -30,9 +31,9 @@ export function LoopActionBlock({ action, onChange, onDelete }: ActionBlockProps
     onChange(updated);
   };
 
-  const handleActionsChange = (newActions: EventAction[]) => {
+  const handleActionsChange = (newActions: EditableAction[]) => {
     const updated = cloneAction(loopAction);
-    updated.actions = newActions;
+    updated.actions = newActions as EventAction[];
     onChange(updated);
   };
 

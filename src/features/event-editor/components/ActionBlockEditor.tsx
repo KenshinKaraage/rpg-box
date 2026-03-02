@@ -5,16 +5,17 @@ import { Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getActionBlock } from '../registry/actionBlockRegistry';
 import { ActionSelector } from './ActionSelector';
-import type { EventAction } from '@/engine/actions/EventAction';
+import type { EditableAction } from '@/types/ui/actions/UIAction';
 import { getAction } from '@/engine/actions';
+import { getUIAction } from '@/types/ui/actions';
 
 // =============================================================================
 // 型定義
 // =============================================================================
 
 interface ActionBlockEditorProps {
-  actions: EventAction[];
-  onChange: (actions: EventAction[]) => void;
+  actions: EditableAction[];
+  onChange: (actions: EditableAction[]) => void;
 }
 
 // =============================================================================
@@ -25,13 +26,13 @@ export function ActionBlockEditor({ actions, onChange }: ActionBlockEditorProps)
   const [selectorOpen, setSelectorOpen] = useState(false);
 
   const handleAddAction = (type: string) => {
-    const ActionClass = getAction(type);
+    const ActionClass = getAction(type) ?? getUIAction(type);
     if (!ActionClass) return;
     const newAction = new ActionClass();
     onChange([...actions, newAction]);
   };
 
-  const handleChangeAction = (index: number, updatedAction: EventAction) => {
+  const handleChangeAction = (index: number, updatedAction: EditableAction) => {
     const newActions = [...actions];
     newActions[index] = updatedAction;
     onChange(newActions);

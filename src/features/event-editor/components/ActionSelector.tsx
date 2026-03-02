@@ -23,6 +23,7 @@ interface ActionSelectorProps {
 // =============================================================================
 
 const CATEGORY_ORDER: { key: string; label: string }[] = [
+  { key: 'ui', label: 'UI操作' },
   { key: 'logic', label: 'ロジック' },
   { key: 'basic', label: '基礎' },
   { key: 'script', label: 'スクリプト' },

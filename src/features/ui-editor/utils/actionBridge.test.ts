@@ -1,5 +1,7 @@
 import { deserializeActions, serializeActions } from './actionBridge';
 import { registerAction, clearActionRegistry, EventAction } from '@/engine/actions';
+import { registerUIAction, clearUIActionRegistry } from '@/types/ui/actions';
+import { SetVisibilityAction } from '@/types/ui/actions/SetVisibilityAction';
 import type { GameContext } from '@/engine/runtime/GameContext';
 
 // Test action class
@@ -25,11 +27,14 @@ class TestWaitAction extends EventAction {
 
 beforeEach(() => {
   clearActionRegistry();
+  clearUIActionRegistry();
   registerAction('wait', TestWaitAction);
+  registerUIAction('uiSetVisibility', SetVisibilityAction);
 });
 
 afterEach(() => {
   clearActionRegistry();
+  clearUIActionRegistry();
 });
 
 describe('deserializeActions', () => {
@@ -85,5 +90,44 @@ describe('round-trip', () => {
 
     expect(deserialized).toHaveLength(1);
     expect((deserialized[0] as TestWaitAction).frames).toBe(120);
+  });
+});
+
+describe('UIAction support', () => {
+  it('deserializes UIAction types from UIAction registry', () => {
+    const serialized = [{ type: 'uiSetVisibility', data: { targetId: 'panel', visible: false } }];
+    const actions = deserializeActions(serialized);
+
+    expect(actions).toHaveLength(1);
+    expect(actions[0]!.type).toBe('uiSetVisibility');
+    const vis = actions[0] as SetVisibilityAction;
+    expect(vis.targetId).toBe('panel');
+    expect(vis.visible).toBe(false);
+  });
+
+  it('handles mixed EventAction and UIAction', () => {
+    const serialized = [
+      { type: 'wait', data: { frames: 30 } },
+      { type: 'uiSetVisibility', data: { targetId: 'obj1', visible: true } },
+    ];
+    const actions = deserializeActions(serialized);
+
+    expect(actions).toHaveLength(2);
+    expect(actions[0]!.type).toBe('wait');
+    expect(actions[1]!.type).toBe('uiSetVisibility');
+  });
+
+  it('round-trips UIAction through serialize -> deserialize', () => {
+    const action = new SetVisibilityAction();
+    action.targetId = 'menu-panel';
+    action.visible = false;
+
+    const serialized = serializeActions([action]);
+    const deserialized = deserializeActions(serialized);
+
+    expect(deserialized).toHaveLength(1);
+    const restored = deserialized[0] as SetVisibilityAction;
+    expect(restored.targetId).toBe('menu-panel');
+    expect(restored.visible).toBe(false);
   });
 });

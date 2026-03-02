@@ -8,6 +8,7 @@ import { useStore } from '@/stores';
 import { createEventTemplate } from '@/types/event';
 import { generateId } from '@/lib/utils';
 import type { EventAction } from '@/engine/actions/EventAction';
+import type { EditableAction } from '@/types/ui/actions/UIAction';
 
 const EMPTY_ACTIONS: EventAction[] = [];
 
@@ -107,9 +108,9 @@ export default function EventTemplatePage() {
 
   // アクション配列を更新
   const handleActionsChange = useCallback(
-    (newActions: EventAction[]) => {
+    (newActions: EditableAction[]) => {
       if (!selectedTemplateId) return;
-      updateTemplateActions(selectedTemplateId, newActions);
+      updateTemplateActions(selectedTemplateId, newActions as EventAction[]);
     },
     [selectedTemplateId, updateTemplateActions]
   );
