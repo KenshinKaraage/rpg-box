@@ -6,6 +6,7 @@ import { useStore } from '@/stores';
 import { useUIViewport } from '../hooks/useUIViewport';
 import { useUISelection } from '../hooks/useUISelection';
 import { SelectionOverlay } from './SelectionOverlay';
+import { TransformHandles } from './TransformHandles';
 import { SOLID_VERT, SOLID_FRAG } from '../utils/shaders';
 import { createRendererPrograms, renderUIObjects } from '../renderer/UIRenderer';
 import type { UIRendererContext } from '../renderer/UIRenderer';
@@ -221,6 +222,12 @@ export function UICanvas() {
           objects={selectionObjects}
           selectedObjectIds={selectedObjectIds}
           viewport={viewport}
+        />
+        <TransformHandles
+          objects={selectionObjects}
+          selectedObjectIds={selectedObjectIds}
+          viewport={viewport}
+          canvasId={selectedCanvasId}
         />
       </div>
     </div>
