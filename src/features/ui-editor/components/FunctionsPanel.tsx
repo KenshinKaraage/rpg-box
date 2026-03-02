@@ -17,6 +17,7 @@ import { generateId } from '@/lib/utils';
 import { getFieldTypeOptions } from '@/types/fields';
 import { ActionBlockEditor } from '@/features/event-editor/components/ActionBlockEditor';
 import { deserializeActions, serializeActions } from '../utils/actionBridge';
+import { ActionPreviewButton } from './ActionPreviewButton';
 import type { EditorUIFunction, TemplateArg } from '@/stores/uiEditorSlice';
 import type { EditableAction } from '@/types/ui/actions/UIAction';
 
@@ -255,7 +256,15 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
 
                     {/* Actions */}
                     <div>
-                      <Label className="text-[10px]">アクション</Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-[10px]">アクション</Label>
+                        {selectedCanvasId && (
+                          <ActionPreviewButton
+                            actions={deserializeActions(fn.actions)}
+                            canvasId={selectedCanvasId}
+                          />
+                        )}
+                      </div>
                       <div className="mt-1">
                         <ActionBlockEditor
                           actions={deserializeActions(fn.actions)}
