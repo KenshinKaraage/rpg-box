@@ -15,6 +15,7 @@ import { ElementsPanel } from '@/features/ui-editor/components/ElementsPanel';
 import { TemplatesPanel } from '@/features/ui-editor/components/TemplatesPanel';
 import { FunctionsPanel } from '@/features/ui-editor/components/FunctionsPanel';
 import { UICanvas } from '@/features/ui-editor/components/UICanvas';
+import { UIPropertyPanel } from '@/features/ui-editor/components/UIPropertyPanel';
 import type { LeftPanelMode, EditorUICanvas } from '@/stores/uiEditorSlice';
 
 const LEFT_PANEL_OPTIONS: { value: LeftPanelMode; label: string }[] = [
@@ -116,9 +117,7 @@ export default function UIScreenDesignPage() {
       }
       right={
         <div className="h-full overflow-auto bg-muted/20">
-          <div className="p-4 text-sm text-muted-foreground">
-            UIPropertyPanel (T191 で実装)
-          </div>
+          <UIPropertyPanel />
         </div>
       }
       leftDefaultWidth={240}
