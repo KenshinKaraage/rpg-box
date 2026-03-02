@@ -1,5 +1,8 @@
 'use client';
 
+// Side-effect: UIComponent レジストリ登録
+import '@/types/ui/register';
+
 import {
   Select,
   SelectContent,
