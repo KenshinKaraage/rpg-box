@@ -5,7 +5,6 @@ import * as twgl from 'twgl.js';
 import { useStore } from '@/stores';
 import { useUIViewport } from '../hooks/useUIViewport';
 import { useUISelection } from '../hooks/useUISelection';
-import { SelectionOverlay } from './SelectionOverlay';
 import { TransformHandles } from './TransformHandles';
 import { UIEditorToolbar } from './UIEditorToolbar';
 import { SOLID_VERT, SOLID_FRAG } from '../utils/shaders';
@@ -13,6 +12,7 @@ import {
   createRendererPrograms,
   renderUIObjects,
   renderNineSliceGuides,
+  renderSelectionOutlines,
 } from '../renderer/UIRenderer';
 import type { UIRendererContext } from '../renderer/UIRenderer';
 
@@ -175,7 +175,7 @@ export function UICanvas() {
         twgl.setBuffersAndAttributes(gl, solidProgram, gridBuffer);
         twgl.setUniforms(solidProgram, {
           u_matrix: matrix,
-          u_color: [0.85, 0.85, 0.85, 0.5],
+          u_color: [0.3, 0.5, 1.0, 0.3],
         });
         twgl.drawBufferInfo(gl, gridBuffer, gl.LINES);
       }
@@ -192,6 +192,9 @@ export function UICanvas() {
 
       // ── 9-slice ガイドライン ──
       renderNineSliceGuides(rendererCtx, selectedCanvas.objects, selectedObjectIds, resW, resH);
+
+      // ── 選択枠（WebGL） ──
+      renderSelectionOutlines(rendererCtx, selectedCanvas.objects, selectedObjectIds, resW, resH);
     }
 
     // ── 解像度プレビュー枠（青い外枠） ──
@@ -250,17 +253,12 @@ export function UICanvas() {
       >
         <UIEditorToolbar />
       </div>
-      {/* DOM オーバーレイ（選択枠・ハンドル用） */}
+      {/* DOM オーバーレイ（ハンドル用） */}
       <div
         ref={overlayRef}
-        className="pointer-events-none absolute inset-0"
         data-testid="ui-canvas-overlay"
+        style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
       >
-        <SelectionOverlay
-          objects={selectionObjects}
-          selectedObjectIds={selectedObjectIds}
-          viewport={viewport}
-        />
         <TransformHandles
           objects={selectionObjects}
           selectedObjectIds={selectedObjectIds}

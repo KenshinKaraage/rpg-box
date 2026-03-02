@@ -55,15 +55,26 @@ export function hitTest(
     const { absX, absY } = pos;
     const w = obj.transform.width * obj.transform.scaleX;
     const h = obj.transform.height * obj.transform.scaleY;
-    // absX/absY はピボット（中心）座標なので左上に変換
-    const left = absX - w / 2;
-    const top = absY - h / 2;
+    const rotation = obj.transform.rotation;
+
+    // クリック座標をオブジェクトのローカル座標系に逆回転して AABB 判定
+    let localX = worldX - absX;
+    let localY = worldY - absY;
+    if (rotation !== 0) {
+      const rad = (-rotation * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const rx = localX * cos - localY * sin;
+      const ry = localX * sin + localY * cos;
+      localX = rx;
+      localY = ry;
+    }
 
     if (
-      worldX >= left &&
-      worldX <= left + w &&
-      worldY >= top &&
-      worldY <= top + h
+      localX >= -w / 2 &&
+      localX <= w / 2 &&
+      localY >= -h / 2 &&
+      localY <= h / 2
     ) {
       return obj.id;
     }

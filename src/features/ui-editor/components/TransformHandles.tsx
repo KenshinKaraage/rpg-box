@@ -87,6 +87,7 @@ export function TransformHandles({
   const h = selectedObject.transform.height;
   const scaleX = selectedObject.transform.scaleX;
   const scaleY = selectedObject.transform.scaleY;
+  const rotation = selectedObject.transform.rotation;
   const scaledW = w * scaleX;
   const scaledH = h * scaleY;
 
@@ -278,18 +279,21 @@ export function TransformHandles({
   return (
     <div
       data-testid="transform-handles"
-      className="pointer-events-auto absolute"
       style={{
+        position: 'absolute',
+        pointerEvents: 'auto',
         left: `${topLeft.x}px`,
         top: `${topLeft.y}px`,
         width: `${screenW}px`,
         height: `${screenH}px`,
+        transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
+        transformOrigin: 'center center',
       }}
     >
       {/* Move area */}
       <div
-        className="absolute inset-0 cursor-move"
         data-testid="move-handle"
+        style={{ position: 'absolute', inset: 0, cursor: 'move' }}
         onMouseDown={startMove}
       />
 

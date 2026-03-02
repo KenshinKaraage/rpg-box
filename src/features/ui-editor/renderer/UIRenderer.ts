@@ -26,6 +26,7 @@ import type { ColorMaskData } from './colorMaskRenderer';
 // Re-exports for external consumers
 export { parseColor } from './renderUtils';
 export { renderNineSliceGuides } from './imageRenderer';
+export { renderSelectionOutlines } from './selectionRenderer';
 
 export interface UIRendererContext {
   gl: WebGLRenderingContext;

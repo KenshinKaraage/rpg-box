@@ -14,7 +14,19 @@ export function UIEditorToolbar() {
   const setGridSize = useStore((s) => s.setUIGridSize);
 
   return (
-    <div className="pointer-events-auto flex items-center gap-1 rounded border bg-background/90 px-1 py-0.5 shadow-sm backdrop-blur-sm">
+    <div
+      style={{
+        pointerEvents: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        borderRadius: 6,
+        border: '1px solid var(--border)',
+        background: 'rgba(var(--background), 0.9)',
+        padding: '2px 4px',
+        backdropFilter: 'blur(4px)',
+      }}
+    >
       <Button
         variant="ghost"
         size="icon"
