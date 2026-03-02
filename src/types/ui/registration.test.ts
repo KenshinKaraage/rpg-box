@@ -4,11 +4,11 @@ describe('UIComponent registration', () => {
     jest.resetModules();
   });
 
-  it('registers all 11 built-in UIComponents', () => {
+  it('registers all 12 built-in UIComponents', () => {
     const { getUIComponentNames } = require('./index');
     require('./register');
     const names = getUIComponentNames();
-    expect(names).toHaveLength(11);
+    expect(names).toHaveLength(12);
     const expected = [
       'image',
       'text',
@@ -21,6 +21,7 @@ describe('UIComponent registration', () => {
       'navigationItem',
       'navigationCursor',
       'animation',
+      'action',
     ];
     for (const name of expected) {
       expect(names).toContain(name);
