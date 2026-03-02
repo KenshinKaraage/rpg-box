@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as twgl from 'twgl.js';
 import { useStore } from '@/stores';
 import { useUIViewport } from '../hooks/useUIViewport';
+import { useUISelection } from '../hooks/useUISelection';
+import { SelectionOverlay } from './SelectionOverlay';
 import { SOLID_VERT, SOLID_FRAG } from '../utils/shaders';
 import { createRendererPrograms, renderUIObjects } from '../renderer/UIRenderer';
 import type { UIRendererContext } from '../renderer/UIRenderer';
@@ -27,8 +29,53 @@ export function UICanvas() {
   // テクスチャロード完了時に再レンダーをトリガー
   const [textureGen, setTextureGen] = useState(0);
 
-  const { viewport, handleWheel, handleMouseDown, handleMouseMove, handleMouseUp } =
+  const { viewport, handleWheel, handleMouseDown: viewportMouseDown, handleMouseMove, handleMouseUp } =
     useUIViewport(canvasRef);
+
+  const { handleCanvasClick, selectedObjectIds, objects: selectionObjects } = useUISelection();
+
+  // 左クリック: パンでなければ選択処理を行う
+  const isPanningRef = useRef(false);
+  const mouseDownPosRef = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = useCallback(
+    (e: MouseEvent) => {
+      mouseDownPosRef.current = { x: e.clientX, y: e.clientY };
+      isPanningRef.current = false;
+      viewportMouseDown(e);
+    },
+    [viewportMouseDown]
+  );
+
+  const handleMouseUpWithSelection = useCallback(
+    (e: React.MouseEvent) => {
+      handleMouseUp();
+      // 左クリックで移動距離が小さい場合のみ選択処理
+      if (e.button === 0 && !isPanningRef.current) {
+        const dx = e.clientX - mouseDownPosRef.current.x;
+        const dy = e.clientY - mouseDownPosRef.current.y;
+        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) {
+          const canvas = canvasRef.current;
+          if (canvas) {
+            handleCanvasClick(e.nativeEvent, canvas.getBoundingClientRect());
+          }
+        }
+      }
+    },
+    [handleMouseUp, handleCanvasClick, canvasRef]
+  );
+
+  const handleMouseMoveWrapped = useCallback(
+    (e: MouseEvent) => {
+      const dx = e.clientX - mouseDownPosRef.current.x;
+      const dy = e.clientY - mouseDownPosRef.current.y;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        isPanningRef.current = true;
+      }
+      handleMouseMove(e);
+    },
+    [handleMouseMove]
+  );
 
   // WebGL 初期化
   useEffect(() => {
@@ -161,15 +208,21 @@ export function UICanvas() {
         data-testid="ui-canvas"
         className="block h-full w-full"
         onMouseDown={(e) => handleMouseDown(e.nativeEvent)}
-        onMouseMove={(e) => handleMouseMove(e.nativeEvent)}
-        onMouseUp={handleMouseUp}
+        onMouseMove={(e) => handleMouseMoveWrapped(e.nativeEvent)}
+        onMouseUp={handleMouseUpWithSelection}
       />
-      {/* DOM オーバーレイ（選択枠・ハンドル用、T194 で使用） */}
+      {/* DOM オーバーレイ（選択枠・ハンドル用） */}
       <div
         ref={overlayRef}
         className="pointer-events-none absolute inset-0"
         data-testid="ui-canvas-overlay"
-      />
+      >
+        <SelectionOverlay
+          objects={selectionObjects}
+          selectedObjectIds={selectedObjectIds}
+          viewport={viewport}
+        />
+      </div>
     </div>
   );
 }
