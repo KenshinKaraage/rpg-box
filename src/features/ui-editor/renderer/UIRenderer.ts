@@ -120,7 +120,7 @@ function renderObject(
   const fillMaskComp = obj.components.find((c) => c.type === 'fillMask');
   const colorMaskComp = obj.components.find((c) => c.type === 'colorMask');
   const visuals = obj.components.filter(
-    (c) => c.type === 'shape' || c.type === 'image' || c.type === 'text'
+    (c) => c.type === 'shape' || c.type === 'line' || c.type === 'image' || c.type === 'text'
   );
 
   if (visuals.length === 0) return;

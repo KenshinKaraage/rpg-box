@@ -108,7 +108,7 @@ const ELEMENT_PRESETS: ElementPresetEntry[] = [
     key: 'line',
     label: '線',
     icon: Minus,
-    components: [{ type: 'line', data: { strokeColor: '#000000', strokeWidth: 2 } }],
+    components: [{ type: 'line', data: { strokeColor: '#000000', strokeWidth: 2, vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] } }],
   },
   {
     key: 'image',
