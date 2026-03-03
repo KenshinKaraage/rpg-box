@@ -1,4 +1,4 @@
-import { UIComponent, type PropertyDef } from '../UIComponent';
+import { UIComponent, type PropertyDef, type AnimatablePropertyDef } from '../UIComponent';
 
 export class ImageComponent extends UIComponent {
   readonly type = 'image';
@@ -11,6 +11,13 @@ export class ImageComponent extends UIComponent {
   /** 9-slice border size in pixels (uniform for all 4 sides) */
   sliceBorder = 16;
   sliceFill: 'stretch' | 'repeat' = 'stretch';
+
+  getAnimatablePropertyDefs(): AnimatablePropertyDef[] {
+    return [
+      { key: 'opacity', label: '不透明度', valueType: 'number' },
+      { key: 'tint', label: '色', valueType: 'color' },
+    ];
+  }
 
   getPropertyDefs(): PropertyDef[] {
     return [

@@ -4,17 +4,18 @@ describe('UIAction registration', () => {
     jest.resetModules();
   });
 
-  it('registers all 5 built-in UIActions', () => {
+  it('registers all 6 built-in UIActions', () => {
     const { getUIActionNames } = require('./index');
     require('./register');
     const names = getUIActionNames();
-    expect(names).toHaveLength(5);
+    expect(names).toHaveLength(6);
     const expected = [
       'uiSetProperty',
       'uiSetVisibility',
       'uiPlayAnimation',
       'uiCallFunction',
       'uiNavigate',
+      'uiTriggerObjectAction',
     ];
     for (const name of expected) {
       expect(names).toContain(name);

@@ -62,3 +62,58 @@ registerTweenPreset('scaleOut', (duration) => [
   { property: 'transform.scaleX', startTime: 0, duration, from: 1, to: 0, easing: 'easeIn' },
   { property: 'transform.scaleY', startTime: 0, duration, from: 1, to: 0, easing: 'easeIn' },
 ]);
+
+// Color presets
+
+registerTweenPreset('tintRed', (duration) => [
+  {
+    property: 'color',
+    valueType: 'color',
+    startTime: 0,
+    duration,
+    from: 0,
+    to: 0,
+    fromColor: '#ffffff',
+    toColor: '#ff0000',
+    easing: 'easeOut',
+  },
+]);
+
+registerTweenPreset('tintBlue', (duration) => [
+  {
+    property: 'color',
+    valueType: 'color',
+    startTime: 0,
+    duration,
+    from: 0,
+    to: 0,
+    fromColor: '#ffffff',
+    toColor: '#0066ff',
+    easing: 'easeOut',
+  },
+]);
+
+registerTweenPreset('colorFlash', (duration) => [
+  {
+    property: 'color',
+    valueType: 'color',
+    startTime: 0,
+    duration: Math.floor(duration / 2),
+    from: 0,
+    to: 0,
+    fromColor: '#ffffff',
+    toColor: '#ffff00',
+    easing: 'easeOut',
+  },
+  {
+    property: 'color',
+    valueType: 'color',
+    startTime: Math.floor(duration / 2),
+    duration: duration - Math.floor(duration / 2),
+    from: 0,
+    to: 0,
+    fromColor: '#ffff00',
+    toColor: '#ffffff',
+    easing: 'easeIn',
+  },
+]);

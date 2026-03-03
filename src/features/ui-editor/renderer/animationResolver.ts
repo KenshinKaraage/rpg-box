@@ -3,12 +3,65 @@
  *
  * AnimationComponent の InlineTimeline に基づいて
  * 指定時刻におけるプロパティ値を計算する。
+ * 数値プロパティとカラープロパティの両方を補間可能。
  */
-import type { TweenTrack, InlineTimeline } from '@/types/ui/components/AnimationComponent';
+import type {
+  TweenTrack,
+  InlineTimeline,
+  NamedAnimation,
+} from '@/types/ui/components/AnimationComponent';
+import { computeTimelineDuration } from '@/types/ui/components/AnimationComponent';
 import { getEasing } from '@/engine/tween/easings';
 
+// ──────────────────────────────────────────────
+// Color interpolation helpers
+// ──────────────────────────────────────────────
+
+/** Parse hex color (#RRGGBB or #RGB) to [r, g, b] (0-255) */
+export function parseHexColor(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  if (h.length === 3) {
+    return [
+      parseInt(h[0]! + h[0]!, 16),
+      parseInt(h[1]! + h[1]!, 16),
+      parseInt(h[2]! + h[2]!, 16),
+    ];
+  }
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
+}
+
+/** Convert [r, g, b] (0-255) to hex string #RRGGBB */
+export function toHexColor(r: number, g: number, b: number): string {
+  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  return (
+    '#' +
+    clamp(r).toString(16).padStart(2, '0') +
+    clamp(g).toString(16).padStart(2, '0') +
+    clamp(b).toString(16).padStart(2, '0')
+  );
+}
+
+/** Interpolate between two hex colors */
+export function lerpColor(fromHex: string, toHex: string, t: number): string {
+  const [fr, fg, fb] = parseHexColor(fromHex);
+  const [tr, tg, tb] = parseHexColor(toHex);
+  return toHexColor(
+    fr + (tr - fr) * t,
+    fg + (tg - fg) * t,
+    fb + (tb - fb) * t
+  );
+}
+
+// ──────────────────────────────────────────────
+// Track evaluation
+// ──────────────────────────────────────────────
+
 /**
- * 単一 TweenTrack の指定時刻における値を計算
+ * 単一 TweenTrack の指定時刻における数値を計算
  *
  * @param track TweenTrack 定義
  * @param timeMs 現在時刻（ms）
@@ -30,30 +83,58 @@ export function evaluateTrack(track: TweenTrack, timeMs: number): number {
 }
 
 /**
+ * 単一カラー TweenTrack の指定時刻における色を計算
+ */
+export function evaluateColorTrack(track: TweenTrack, timeMs: number): string {
+  const { startTime, duration, fromColor, toColor, easing } = track;
+  const fc = fromColor ?? '#000000';
+  const tc = toColor ?? '#ffffff';
+
+  if (timeMs <= startTime) return fc;
+  if (timeMs >= startTime + duration) return tc;
+
+  const elapsed = timeMs - startTime;
+  const rawT = duration > 0 ? elapsed / duration : 1;
+
+  const easingFn = getEasing(easing);
+  const easedT = easingFn ? easingFn(rawT) : rawT;
+
+  return lerpColor(fc, tc, easedT);
+}
+
+// ──────────────────────────────────────────────
+// Timeline evaluation
+// ──────────────────────────────────────────────
+
+/**
  * InlineTimeline の全トラックを評価し、プロパティごとの値マップを返す
  *
  * @param timeline InlineTimeline 定義
  * @param timeMs 現在時刻（ms）
  * @param loop ループ有効時は duration で折り返す
- * @returns property → value のマップ
+ * @returns property → value (number | string) のマップ
  */
 export function evaluateTimeline(
   timeline: InlineTimeline,
   timeMs: number,
   loop: boolean
-): Map<string, number> {
-  const result = new Map<string, number>();
+): Map<string, number | string> {
+  const result = new Map<string, number | string>();
 
+  const totalDuration = computeTimelineDuration(timeline.tracks);
   let t = timeMs;
-  if (loop && timeline.duration > 0) {
-    t = timeMs % timeline.duration;
+  if (loop && totalDuration > 0) {
+    t = timeMs % totalDuration;
   } else {
-    t = Math.min(timeMs, timeline.duration);
+    t = Math.min(timeMs, totalDuration);
   }
 
   for (const track of timeline.tracks) {
-    const value = evaluateTrack(track, t);
-    result.set(track.property, value);
+    if (track.valueType === 'color') {
+      result.set(track.property, evaluateColorTrack(track, t));
+    } else {
+      result.set(track.property, evaluateTrack(track, t));
+    }
   }
 
   return result;
@@ -65,16 +146,31 @@ export function evaluateTimeline(
  *
  * @param animData AnimationComponent.serialize() の結果
  * @param timeMs 現在時刻（ms）
+ * @param animationName 再生するアニメーション名（省略時は最初のアニメーション）
  * @returns property → value のマップ（空の場合あり）
  */
 export function resolveAnimationValues(
   animData: Record<string, unknown>,
-  timeMs: number
-): Map<string, number> {
+  timeMs: number,
+  animationName?: string
+): Map<string, number | string> {
   const mode = animData.mode as string | undefined;
   const loop = (animData.loop as boolean) ?? false;
 
   if (mode === 'inline') {
+    // New format: animations array
+    const animations = animData.animations as NamedAnimation[] | undefined;
+    if (animations && Array.isArray(animations) && animations.length > 0) {
+      const anim = animationName
+        ? animations.find((a) => a.name === animationName)
+        : animations[0];
+      if (!anim || !anim.timeline.tracks || anim.timeline.tracks.length === 0) {
+        return new Map();
+      }
+      return evaluateTimeline(anim.timeline, timeMs, loop);
+    }
+
+    // Legacy format: single inlineTimeline
     const timeline = animData.inlineTimeline as InlineTimeline | undefined;
     if (!timeline || !timeline.tracks || timeline.tracks.length === 0) {
       return new Map();

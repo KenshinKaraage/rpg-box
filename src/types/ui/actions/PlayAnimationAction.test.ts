@@ -9,6 +9,7 @@ describe('PlayAnimationAction', () => {
   it('has correct default values', () => {
     const a = new PlayAnimationAction();
     expect(a.targetId).toBe('');
+    expect(a.animationName).toBe('');
     expect(a.autoPlay).toBe(true);
     expect(a.loop).toBe(false);
   });
@@ -16,6 +17,7 @@ describe('PlayAnimationAction', () => {
   it('round-trips serialize and deserialize', () => {
     const a = new PlayAnimationAction();
     a.targetId = 'anim-obj';
+    a.animationName = 'fadeIn';
     a.autoPlay = false;
     a.loop = true;
 
@@ -24,6 +26,7 @@ describe('PlayAnimationAction', () => {
     b.fromJSON(json);
 
     expect(b.targetId).toBe('anim-obj');
+    expect(b.animationName).toBe('fadeIn');
     expect(b.autoPlay).toBe(false);
     expect(b.loop).toBe(true);
   });
@@ -32,6 +35,7 @@ describe('PlayAnimationAction', () => {
     const a = new PlayAnimationAction();
     a.fromJSON({});
     expect(a.targetId).toBe('');
+    expect(a.animationName).toBe('');
     expect(a.autoPlay).toBe(true);
     expect(a.loop).toBe(false);
   });

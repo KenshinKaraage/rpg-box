@@ -1,4 +1,4 @@
-import { UIComponent, type PropertyDef } from '../UIComponent';
+import { UIComponent, type PropertyDef, type AnimatablePropertyDef } from '../UIComponent';
 
 export class ColorMaskComponent extends UIComponent {
   readonly type = 'colorMask';
@@ -7,6 +7,13 @@ export class ColorMaskComponent extends UIComponent {
   color = '#ffffff';
   blendMode: 'multiply' | 'add' | 'overlay' = 'multiply';
   opacity = 1;
+
+  getAnimatablePropertyDefs(): AnimatablePropertyDef[] {
+    return [
+      { key: 'opacity', label: '不透明度', valueType: 'number' },
+      { key: 'color', label: '色', valueType: 'color' },
+    ];
+  }
 
   getPropertyDefs(): PropertyDef[] {
     return [

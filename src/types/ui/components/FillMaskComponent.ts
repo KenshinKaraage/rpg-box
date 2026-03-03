@@ -1,4 +1,4 @@
-import { UIComponent, type PropertyDef } from '../UIComponent';
+import { UIComponent, type PropertyDef, type AnimatablePropertyDef } from '../UIComponent';
 
 export class FillMaskComponent extends UIComponent {
   readonly type = 'fillMask';
@@ -7,6 +7,12 @@ export class FillMaskComponent extends UIComponent {
   direction: 'horizontal' | 'vertical' | 'radial' = 'horizontal';
   fillAmount = 1;
   reverse = false;
+
+  getAnimatablePropertyDefs(): AnimatablePropertyDef[] {
+    return [
+      { key: 'fillAmount', label: 'フィル量', valueType: 'number' },
+    ];
+  }
 
   getPropertyDefs(): PropertyDef[] {
     return [

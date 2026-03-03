@@ -4,8 +4,17 @@ import { Trash2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useStore } from '@/stores';
 import type { ActionBlockProps } from '@/features/event-editor/registry/actionBlockRegistry';
 import type { PlayAnimationAction } from '@/types/ui/actions/PlayAnimationAction';
+import type { NamedAnimation } from '@/types/ui/components/AnimationComponent';
 import { UIObjectSelector } from '../UIObjectSelector';
 
 function cloneAction(action: PlayAnimationAction): PlayAnimationAction {
@@ -14,6 +23,27 @@ function cloneAction(action: PlayAnimationAction): PlayAnimationAction {
 
 export function PlayAnimationBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const a = action as PlayAnimationAction;
+
+  const selectedCanvasId = useStore((s) => s.selectedCanvasId);
+  const uiCanvases = useStore((s) => s.uiCanvases);
+  const canvas = uiCanvases.find((c) => c.id === selectedCanvasId);
+  const objects = canvas?.objects ?? [];
+
+  // Find animation names on target object's AnimationComponent
+  const targetObj = objects.find((o) => o.id === a.targetId);
+  const animationNames: string[] = [];
+  if (targetObj) {
+    for (const comp of targetObj.components) {
+      if (comp.type === 'animation') {
+        const data = comp.data as { animations?: NamedAnimation[] } | undefined;
+        if (data?.animations) {
+          for (const anim of data.animations) {
+            animationNames.push(anim.name);
+          }
+        }
+      }
+    }
+  }
 
   return (
     <div className="rounded-md border p-3">
@@ -31,10 +61,34 @@ export function PlayAnimationBlock({ action, onChange, onDelete }: ActionBlockPr
             onChange={(id) => {
               const updated = cloneAction(a);
               updated.targetId = id;
+              updated.animationName = '';
               onChange(updated);
             }}
             className="h-7 flex-1 text-xs"
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label className="w-20 shrink-0 text-xs text-muted-foreground">アニメーション</Label>
+          <Select
+            value={a.animationName || '__none__'}
+            onValueChange={(v) => {
+              const updated = cloneAction(a);
+              updated.animationName = v === '__none__' ? '' : v;
+              onChange(updated);
+            }}
+          >
+            <SelectTrigger className="h-7 flex-1 text-xs" data-testid="animation-name-select">
+              <SelectValue placeholder="選択..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">（選択なし）</SelectItem>
+              {animationNames.map((name) => (
+                <SelectItem key={name} value={name}>
+                  {name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-2">
           <Checkbox

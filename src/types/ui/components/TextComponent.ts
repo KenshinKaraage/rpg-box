@@ -1,4 +1,4 @@
-import { UIComponent, type PropertyDef } from '../UIComponent';
+import { UIComponent, type PropertyDef, type AnimatablePropertyDef } from '../UIComponent';
 
 export class TextComponent extends UIComponent {
   readonly type = 'text';
@@ -11,6 +11,14 @@ export class TextComponent extends UIComponent {
   align: 'left' | 'center' | 'right' = 'left';
   verticalAlign: 'top' | 'middle' | 'bottom' = 'top';
   lineHeight = 1.2;
+
+  getAnimatablePropertyDefs(): AnimatablePropertyDef[] {
+    return [
+      { key: 'color', label: '色', valueType: 'color' },
+      { key: 'fontSize', label: 'フォントサイズ', valueType: 'number' },
+      { key: 'lineHeight', label: '行間', valueType: 'number' },
+    ];
+  }
 
   getPropertyDefs(): PropertyDef[] {
     return [

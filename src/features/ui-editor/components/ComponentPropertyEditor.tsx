@@ -2,8 +2,9 @@
 
 import '@/features/ui-editor/components/property-fields/register';
 import { getUIComponent } from '@/types/ui';
-import { getPropertyField, VertexField } from './property-fields';
+import { getPropertyField, VertexField, InlineAnimationEditor } from './property-fields';
 import type { FieldRendererProps } from './property-fields';
+import type { NamedAnimation } from '@/types/ui/components/AnimationComponent';
 
 // ──────────────────────────────────────────────
 // ComponentPropertyEditor
@@ -40,6 +41,9 @@ export function ComponentPropertyEditor({
     (componentType === 'shape' && (data.shapeType as string) === 'polygon') ||
     componentType === 'line';
 
+  const showAnimationEditor =
+    componentType === 'animation' && (data.mode as string) === 'inline';
+
   return (
     <div className="space-y-2 px-2 pb-2" data-testid={`property-editor-${componentType}`}>
       {defs.map((prop) => (
@@ -55,6 +59,12 @@ export function ComponentPropertyEditor({
           vertices={(data.vertices as { x: number; y: number }[]) ?? []}
           onChange={(v) => handleChange('vertices', v)}
           minVertices={componentType === 'line' ? 2 : 3}
+        />
+      )}
+      {showAnimationEditor && (
+        <InlineAnimationEditor
+          animations={(data.animations as NamedAnimation[]) ?? []}
+          onChange={(v) => handleChange('animations', v)}
         />
       )}
     </div>

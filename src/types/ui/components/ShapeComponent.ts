@@ -1,4 +1,4 @@
-import { UIComponent, type PropertyDef } from '../UIComponent';
+import { UIComponent, type PropertyDef, type AnimatablePropertyDef } from '../UIComponent';
 
 export type ShapeType = 'rectangle' | 'ellipse' | 'polygon' | 'polygon_regular';
 
@@ -19,6 +19,15 @@ export class ShapeComponent extends UIComponent {
   cornerRadius = 0;
   vertices: { x: number; y: number }[] = [...DEFAULT_TRIANGLE_VERTICES];
   sides = 6;
+
+  getAnimatablePropertyDefs(): AnimatablePropertyDef[] {
+    return [
+      { key: 'fillColor', label: '塗り色', valueType: 'color' },
+      { key: 'strokeColor', label: '線色', valueType: 'color' },
+      { key: 'strokeWidth', label: '線幅', valueType: 'number' },
+      { key: 'cornerRadius', label: '角丸', valueType: 'number' },
+    ];
+  }
 
   getPropertyDefs(): PropertyDef[] {
     const defs: PropertyDef[] = [

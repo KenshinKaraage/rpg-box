@@ -1,5 +1,6 @@
 export type { FieldRendererProps, FieldRenderer } from './types';
 export { VertexField } from './VertexField';
+export { InlineAnimationEditor } from './InlineAnimationEditor';
 
 import type { FieldRenderer } from './types';
 

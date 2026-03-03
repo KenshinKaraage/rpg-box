@@ -10,12 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useStore } from '@/stores';
-import { getUIComponent } from '@/types/ui';
-import { getRectTransformPropertyDefs } from '@/types/ui/UIComponent';
-import type { PropertyDef } from '@/types/ui/UIComponent';
 import type { ActionBlockProps } from '@/features/event-editor/registry/actionBlockRegistry';
 import type { SetPropertyAction } from '@/types/ui/actions/SetPropertyAction';
+import {
+  useComponentOptions,
+  getPropertyDefsForComponent,
+} from '@/features/ui-editor/hooks/useComponentProperties';
 import { PropertyField } from '../ComponentPropertyEditor';
 import { UIObjectSelector } from '../UIObjectSelector';
 
@@ -23,51 +23,10 @@ function cloneAction(action: SetPropertyAction): SetPropertyAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
 }
 
-/**
- * 対象オブジェクトが持つコンポーネント一覧を取得する。
- * transform は常に含む（全オブジェクト共通）。
- */
-function useTargetComponents(targetId: string): { type: string; label: string }[] {
-  const selectedCanvasId = useStore((s) => s.selectedCanvasId);
-  const selectedObjectIds = useStore((s) => s.selectedObjectIds);
-  const uiCanvases = useStore((s) => s.uiCanvases);
-  const canvas = uiCanvases.find((c) => c.id === selectedCanvasId);
-  // '' = self: resolve to the currently selected object
-  const resolvedId = targetId === '' ? selectedObjectIds[0] : targetId;
-  const obj = resolvedId ? canvas?.objects.find((o) => o.id === resolvedId) : undefined;
-
-  const result: { type: string; label: string }[] = [{ type: 'transform', label: 'Transform' }];
-  if (!obj) return result;
-
-  for (const comp of obj.components) {
-    const Ctor = getUIComponent(comp.type);
-    if (Ctor) {
-      const instance = new Ctor();
-      if (instance.getPropertyDefs().length > 0) {
-        result.push({ type: comp.type, label: instance.label });
-      }
-    }
-  }
-
-  return result;
-}
-
-/**
- * コンポーネントタイプに対応するプロパティ定義を取得する。
- */
-function getPropertyDefsForComponent(componentType: string): PropertyDef[] {
-  if (componentType === 'transform') {
-    return getRectTransformPropertyDefs();
-  }
-  const Ctor = getUIComponent(componentType);
-  if (!Ctor) return [];
-  return new Ctor().getPropertyDefs();
-}
-
 export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const a = action as SetPropertyAction;
 
-  const components = useTargetComponents(a.targetId);
+  const components = useComponentOptions(a.targetId, 'all');
   const propertyDefs = getPropertyDefsForComponent(a.component);
   const selectedDef = a.property ? propertyDefs.find((d) => d.key === a.property) : undefined;
 

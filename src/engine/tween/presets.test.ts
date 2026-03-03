@@ -36,7 +36,7 @@ describe('Tween Preset Registry', () => {
 
   it('getAllTweenPresets returns all registered presets', () => {
     const all = getAllTweenPresets();
-    expect(all.length).toBeGreaterThanOrEqual(8);
+    expect(all.length).toBeGreaterThanOrEqual(11);
     const names = all.map(([name]) => name);
     expect(names).toContain('fadeIn');
     expect(names).toContain('scaleOut');
@@ -44,9 +44,10 @@ describe('Tween Preset Registry', () => {
 
   it('getTweenPresetNames returns all names', () => {
     const names = getTweenPresetNames();
-    expect(names.length).toBeGreaterThanOrEqual(8);
+    expect(names.length).toBeGreaterThanOrEqual(11);
     expect(names).toContain('slideIn');
     expect(names).toContain('bounce');
+    expect(names).toContain('tintRed');
   });
 
   it('clearTweenPresetRegistry removes all presets', () => {
@@ -71,8 +72,8 @@ describe('Tween Preset Registry', () => {
 });
 
 describe('Built-in presets', () => {
-  it('has 8 built-in presets', () => {
-    expect(getTweenPresetNames()).toHaveLength(8);
+  it('has 11 built-in presets', () => {
+    expect(getTweenPresetNames()).toHaveLength(11);
   });
 
   it('includes all expected presets', () => {
@@ -86,6 +87,9 @@ describe('Built-in presets', () => {
       'vibe',
       'scaleIn',
       'scaleOut',
+      'tintRed',
+      'tintBlue',
+      'colorFlash',
     ]);
   });
 
@@ -111,5 +115,31 @@ describe('Built-in presets', () => {
     expect(tracks[1]!.property).toBe('transform.scaleY');
     expect(tracks[0]!.duration).toBe(300);
     expect(tracks[1]!.duration).toBe(300);
+  });
+
+  it('tintRed returns color track with valueType', () => {
+    const tintRed = getTweenPreset('tintRed')!;
+    const tracks = tintRed(400);
+    expect(tracks).toHaveLength(1);
+    expect(tracks[0]!.property).toBe('color');
+    expect(tracks[0]!.valueType).toBe('color');
+    expect(tracks[0]!.fromColor).toBe('#ffffff');
+    expect(tracks[0]!.toColor).toBe('#ff0000');
+    expect(tracks[0]!.duration).toBe(400);
+  });
+
+  it('colorFlash returns 2 sequential color tracks', () => {
+    const flash = getTweenPreset('colorFlash')!;
+    const tracks = flash(500);
+    expect(tracks).toHaveLength(2);
+    expect(tracks[0]!.valueType).toBe('color');
+    expect(tracks[1]!.valueType).toBe('color');
+    expect(tracks[0]!.startTime).toBe(0);
+    expect(tracks[0]!.duration).toBe(250);
+    expect(tracks[1]!.startTime).toBe(250);
+    expect(tracks[1]!.duration).toBe(250);
+    expect(tracks[0]!.toColor).toBe('#ffff00');
+    expect(tracks[1]!.fromColor).toBe('#ffff00');
+    expect(tracks[1]!.toColor).toBe('#ffffff');
   });
 });

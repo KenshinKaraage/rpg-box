@@ -71,6 +71,34 @@ export interface UIObject {
 }
 
 /**
+ * アニメーション可能なプロパティ定義
+ * 各 UIComponent は getAnimatablePropertyDefs() でこの配列を返し、
+ * エディタがトラックのプロパティドロップダウンを動的に生成する。
+ */
+export interface AnimatablePropertyDef {
+  /** プロパティキー（serialize/deserialize で使うキー名） */
+  key: string;
+  /** UI表示用ラベル */
+  label: string;
+  /** 値の種別 */
+  valueType: 'number' | 'color';
+}
+
+/**
+ * RectTransform のアニメーション可能なプロパティ定義を返す。
+ * Transform はコンポーネントではなく UIObject の一部なので独立した関数として提供する。
+ */
+export function getRectTransformAnimatablePropertyDefs(): AnimatablePropertyDef[] {
+  return [
+    { key: 'x', label: 'X座標', valueType: 'number' },
+    { key: 'y', label: 'Y座標', valueType: 'number' },
+    { key: 'scaleX', label: 'スケールX', valueType: 'number' },
+    { key: 'scaleY', label: 'スケールY', valueType: 'number' },
+    { key: 'rotation', label: '回転', valueType: 'number' },
+  ];
+}
+
+/**
  * UIコンポーネントの基底抽象クラス
  *
  * UIオブジェクトに付与できる機能単位。
@@ -139,6 +167,14 @@ export abstract class UIComponent {
    * カスタムエディタを持つコンポーネント（Action, TemplateController等）は空配列を返す。
    */
   getPropertyDefs(): PropertyDef[] {
+    return [];
+  }
+
+  /**
+   * アニメーション可能なプロパティの定義一覧を返す。
+   * エディタがトラックのプロパティドロップダウンを動的に生成するために使用する。
+   */
+  getAnimatablePropertyDefs(): AnimatablePropertyDef[] {
     return [];
   }
 
