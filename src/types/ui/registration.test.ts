@@ -22,8 +22,8 @@ describe('UIComponent registration', () => {
       'navigationItem',
       'navigationCursor',
       'animation',
-      'action',
       'templateController',
+      'repeater',
     ];
     for (const name of expected) {
       expect(names).toContain(name);

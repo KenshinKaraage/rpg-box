@@ -10,12 +10,11 @@ import { useStore } from '@/stores';
 import { deserializeActions } from './actionBridge';
 import { startAnimationPlayback, type AnimationPlaybackHandle } from './animationPlayer';
 import type { EditableAction } from '@/types/ui/actions/UIAction';
-import type { SerializedAction } from '@/types/ui/components/ActionComponent';
+import type { SerializedAction } from '@/types/ui/components/ActionTypes';
 import type { SetPropertyAction } from '@/types/ui/actions/SetPropertyAction';
 import type { SetVisibilityAction } from '@/types/ui/actions/SetVisibilityAction';
 import type { NavigateAction } from '@/types/ui/actions/NavigateAction';
 import type { CallFunctionAction } from '@/types/ui/actions/CallFunctionAction';
-import type { TriggerObjectActionAction } from '@/types/ui/actions/TriggerObjectActionAction';
 import type { PlayAnimationAction } from '@/types/ui/actions/PlayAnimationAction';
 import type { NamedAnimation } from '@/types/ui/components/AnimationComponent';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';
@@ -143,26 +142,6 @@ async function executeSingle(
       const fnActions = deserializeActions(fn.actions);
       for (const fnAction of fnActions) {
         await executeSingle(fnAction, canvasId, snapshot, depth + 1);
-      }
-      break;
-    }
-
-    case 'uiTriggerObjectAction': {
-      const a = action as TriggerObjectActionAction;
-      if (!a.targetId || !a.actionEntryName) break;
-      const obj = canvas.objects.find((o) => o.id === a.targetId);
-      if (!obj) break;
-      for (const comp of obj.components) {
-        if (comp.type === 'action') {
-          const data = comp.data as { actions?: Array<{ name: string; blocks: SerializedAction[] }> };
-          const entry = data?.actions?.find((e) => e.name === a.actionEntryName);
-          if (entry) {
-            const entryActions = deserializeActions(entry.blocks);
-            for (const entryAction of entryActions) {
-              await executeSingle(entryAction, canvasId, snapshot, depth + 1);
-            }
-          }
-        }
       }
       break;
     }

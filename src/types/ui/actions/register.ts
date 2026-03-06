@@ -4,11 +4,9 @@ import { SetVisibilityAction } from './SetVisibilityAction';
 import { PlayAnimationAction } from './PlayAnimationAction';
 import { CallFunctionAction } from './CallFunctionAction';
 import { NavigateAction } from './NavigateAction';
-import { TriggerObjectActionAction } from './TriggerObjectActionAction';
 
 registerUIAction('uiSetProperty', SetPropertyAction);
 registerUIAction('uiSetVisibility', SetVisibilityAction);
 registerUIAction('uiPlayAnimation', PlayAnimationAction);
 registerUIAction('uiCallFunction', CallFunctionAction);
 registerUIAction('uiNavigate', NavigateAction);
-registerUIAction('uiTriggerObjectAction', TriggerObjectActionAction);

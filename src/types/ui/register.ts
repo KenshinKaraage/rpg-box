@@ -11,8 +11,8 @@ import { NavigationComponent } from './components/NavigationComponent';
 import { NavigationItemComponent } from './components/NavigationItemComponent';
 import { NavigationCursorComponent } from './components/NavigationCursorComponent';
 import { AnimationComponent } from './components/AnimationComponent';
-import { ActionComponent } from './components/ActionComponent';
 import { TemplateControllerComponent } from './components/TemplateControllerComponent';
+import { RepeaterComponent } from './components/RepeaterComponent';
 
 registerUIComponent('image', ImageComponent);
 registerUIComponent('text', TextComponent);
@@ -26,5 +26,5 @@ registerUIComponent('navigation', NavigationComponent);
 registerUIComponent('navigationItem', NavigationItemComponent);
 registerUIComponent('navigationCursor', NavigationCursorComponent);
 registerUIComponent('animation', AnimationComponent);
-registerUIComponent('action', ActionComponent);
 registerUIComponent('templateController', TemplateControllerComponent);
+registerUIComponent('repeater', RepeaterComponent);

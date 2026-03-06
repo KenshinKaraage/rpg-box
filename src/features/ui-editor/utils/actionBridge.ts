@@ -10,7 +10,7 @@
 import type { EditableAction } from '@/types/ui/actions/UIAction';
 import { getAction } from '@/engine/actions';
 import { getUIAction } from '@/types/ui/actions';
-import type { SerializedAction } from '@/types/ui/components/ActionComponent';
+import type { SerializedAction } from '@/types/ui/components/ActionTypes';
 
 /**
  * SerializedAction[] → EditableAction[] に変換

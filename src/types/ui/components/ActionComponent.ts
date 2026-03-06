@@ -1,35 +1,13 @@
-import { UIComponent } from '../UIComponent';
+/**
+ * ActionComponent は廃止されました。
+ *
+ * 責務は以下に分散:
+ * - クリック/キー入力 → NavigationComponent + NavigationItemComponent
+ * - テンプレート生成時処理 → TemplateControllerComponent.onSpawn / onApply
+ * - ビジュアル操作マクロ → UIFunction
+ *
+ * SerializedAction / UIActionEntry は ActionTypes.ts に移動しました。
+ */
 
-export interface SerializedAction {
-  type: string;
-  data: Record<string, unknown>;
-}
-
-export interface UIActionEntry {
-  id: string;
-  name: string;
-  blocks: SerializedAction[];
-}
-
-export class ActionComponent extends UIComponent {
-  readonly type = 'action';
-  readonly label = 'アクション';
-
-  actions: UIActionEntry[] = [];
-
-  serialize(): unknown {
-    return { actions: structuredClone(this.actions) };
-  }
-
-  deserialize(data: unknown): void {
-    const d = data as Record<string, unknown>;
-    const actions = d.actions as UIActionEntry[] | undefined;
-    this.actions = actions ? structuredClone(actions) : [];
-  }
-
-  clone(): ActionComponent {
-    const c = new ActionComponent();
-    c.actions = structuredClone(this.actions);
-    return c;
-  }
-}
+// Re-export for backward compatibility during migration
+export type { SerializedAction, UIActionEntry } from './ActionTypes';

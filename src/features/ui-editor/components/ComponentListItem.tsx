@@ -5,10 +5,8 @@ import { Maximize2, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/stores';
 import { getUIComponent } from '@/types/ui';
-import { ActionComponentEditor } from './ActionComponentEditor';
 import { ComponentPropertyEditor } from './ComponentPropertyEditor';
 import type { RectTransform } from '@/types/ui/UIComponent';
-import type { UIActionEntry } from '@/types/ui/components/ActionComponent';
 import type { SerializedUIComponent } from '@/stores/uiEditorSlice';
 
 // ──────────────────────────────────────────────
@@ -29,7 +27,7 @@ export function ComponentListItem({ component, onRemove, onUpdateData, onTransfo
   const Ctor = getUIComponent(component.type);
   const instance = Ctor ? new Ctor() : null;
   const label = instance ? instance.label : component.type;
-  const hasEditor = component.type === 'action' || (instance != null && instance.getPropertyDefs().length > 0);
+  const hasEditor = instance != null && instance.getPropertyDefs().length > 0;
 
   const compData = (component.data ?? {}) as Record<string, unknown>;
 
@@ -64,15 +62,7 @@ export function ComponentListItem({ component, onRemove, onUpdateData, onTransfo
           <Trash2 className="h-3 w-3" />
         </Button>
       </div>
-      {expanded && component.type === 'action' && (
-        <div className="px-2 pb-2">
-          <ActionComponentEditor
-            actions={(compData.actions as UIActionEntry[]) ?? []}
-            onChange={(actions) => onUpdateData({ actions })}
-          />
-        </div>
-      )}
-      {expanded && component.type !== 'action' && instance != null && instance.getPropertyDefs().length > 0 && (
+      {expanded && instance != null && instance.getPropertyDefs().length > 0 && (
         <ComponentPropertyEditor
           componentType={component.type}
           data={compData}
