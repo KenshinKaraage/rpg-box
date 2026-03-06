@@ -581,6 +581,96 @@ export interface ScriptAPI {
   // 変数の簡易アクセス
   getVar(variableId: string): unknown;
   setVar(variableId: string, value: unknown): void;
+
+  // UI連携 — UI[canvasName] でキャンバスにアクセス
+  UI: Record<string, UICanvasProxy>;
+}
+
+/**
+ * UIキャンバスへのプロキシ
+ *
+ * UIFunction で定義した関数が自動的にメソッドとして生える:
+ *   UI["menu"].show()        // UIFunction "show" を実行
+ *   UI["menu"].hide({ fade: true })  // 引数付き
+ *
+ * UIFunction と同等の操作をスクリプトから直接行うことも可能。
+ */
+interface UICanvasProxy {
+  // --- UIFunction 自動生成メソッド ---
+  // UIFunction "show" が定義されていれば UI["menu"].show(args?) が使える
+  // (実際の型は動的に生成される)
+  [functionName: string]: (args?: Record<string, unknown>) => Promise<void>;
+
+  // --- オブジェクトアクセス ---
+  getObject(name: string): UIObjectProxy | null;
+
+  // --- テンプレート ---
+  spawn(templateId: string, args?: Record<string, unknown>): Promise<UIObjectProxy>;
+  despawn(objectId: string): Promise<void>;
+}
+
+/**
+ * UIオブジェクトへのプロキシ
+ *
+ * スクリプトから直接オブジェクトのプロパティを操作できる。
+ * UIFunction のアクションブロックでできることと同等。
+ */
+interface UIObjectProxy {
+  readonly id: string;
+  readonly name: string;
+
+  // --- Transform ---
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
+  visible: boolean;
+
+  // --- コンポーネントプロパティ ---
+  get(component: string, property: string): unknown;
+  set(component: string, property: string, value: unknown): void;
+
+  // --- コンポーネント固有操作 ---
+  getComponent(type: string): UIComponentProxy;
+
+  // --- 子オブジェクト ---
+  getChild(name: string): UIObjectProxy | null;
+  getChildren(): UIObjectProxy[];
+}
+
+/**
+ * UIコンポーネントへのプロキシ（基底）
+ *
+ * コンポーネント固有の操作はサブタイプで提供:
+ *   getComponent("navigation") → UINavigationProxy
+ *   getComponent("animation")  → UIAnimationProxy
+ *   getComponent("repeater")   → UIRepeaterProxy
+ */
+interface UIComponentProxy {
+  readonly type: string;
+  get(property: string): unknown;
+  set(property: string, value: unknown): void;
+}
+
+interface UINavigationProxy extends UIComponentProxy {
+  /** ユーザー選択を待ち、選択された NavigationItem の itemId を返す */
+  select(): Promise<string>;
+  /** プログラムでフォーカスを移動 */
+  focus(index: number): void;
+}
+
+interface UIAnimationProxy extends UIComponentProxy {
+  play(name: string, options?: { loop?: boolean; wait?: boolean }): Promise<void>;
+  stop(): void;
+}
+
+interface UIRepeaterProxy extends UIComponentProxy {
+  /** 配列データをセットし、テンプレートインスタンスを生成/更新 */
+  setData(items: Record<string, unknown>[]): void;
+  getItems(): UIObjectProxy[];
 }
 ```
 
@@ -1028,7 +1118,7 @@ export class NavigationComponent extends UIComponent {
 // types/ui/components/NavigationItemComponent.ts
 export class NavigationItemComponent extends UIComponent {
   readonly type = 'navigationItem';
-  onSelectActions: EventAction[]; // 選択時のアクション
+  itemId: string; // スクリプトに返すID（await select() の戻り値）
   // ...
 }
 ```
@@ -1036,21 +1126,10 @@ export class NavigationItemComponent extends UIComponent {
 #### その他のコンポーネント
 
 ```typescript
-// types/ui/components/ActionComponent.ts
-export class ActionComponent extends UIComponent {
-  readonly type = 'action';
-  onClickActions: EventAction[];
-  onHoverActions: EventAction[];
-  onHoverExitActions: EventAction[];
-  // ...
-}
-
 // types/ui/components/AnimationComponent.ts
 export class AnimationComponent extends UIComponent {
   readonly type = 'animation';
-  timelineId: string;
-  autoPlay: boolean = false;
-  loop: boolean = false;
+  animations: NamedAnimation[]; // 名前付きアニメーション（複数管理）
   // ...
 }
 
@@ -1059,7 +1138,18 @@ export class AnimationComponent extends UIComponent {
 export class TemplateControllerComponent extends UIComponent {
   readonly type = 'templateController';
   args: TemplateArg[]; // 公開引数
-  onSpawnActions: EventAction[]; // 生成時アクション
+  onSpawnActions: EventAction[]; // 生成時アクション（1回のみ）
+  onApplyActions: EventAction[]; // データ適用時アクション（引数更新のたびに実行）
+  // ...
+}
+
+// types/ui/components/RepeaterComponent.ts
+// 配列データから子オブジェクトを動的生成
+export class RepeaterComponent extends UIComponent {
+  readonly type = 'repeater';
+  templateId: string; // 繰り返し生成するテンプレートID
+  // 配列データはスクリプトから供給される
+  // 各要素のデータは TemplateControllerComponent の onApply を通じて反映
   // ...
 }
 ```
@@ -1082,6 +1172,32 @@ export interface UIFunction {
   actions: EventAction[];
 }
 ```
+
+#### UI/Script 分離方針
+
+UIキャンバスはあくまで**表示層**であり、ゲームロジックはスクリプト側が担う。
+
+| 責務 | UI (キャンバス) | Script |
+|------|-----------------|--------|
+| 表示・レイアウト | ○ | × |
+| アニメーション再生 | ○ | × |
+| ユーザー入力の報告 | ○ (NavigationComponent → select()) | × |
+| ゲームロジック | × | ○ |
+| データ管理 | × | ○ |
+| フロー制御 | × | ○ |
+
+- **NavigationComponent**: スクリプトから `await ui.select(canvasId)` で呼び出し、ユーザーが選択した NavigationItem の `itemId` を返す
+- **UIFunction**: スクリプトから `await ui.call(canvasId, funcName, args)` で呼び出す「ビジュアル操作マクロ」。複数オブジェクトのプロパティ変更やアニメーション再生を一括実行する
+- **TemplateController.onSpawn**: テンプレートインスタンス生成時に1回実行。引数（`{{argName}}`）によるプロパティ設定とアニメーション再生
+- **TemplateController.onApply**: データ更新時に毎回実行。引数の変化をUIに反映する
+- **RepeaterComponent**: 配列データから TemplateController のインスタンスを動的生成。各要素のデータは onApply を通じて反映
+
+#### ActionComponent 廃止について
+
+従来の ActionComponent（onClick/onHover/onHoverExit）は以下に統合：
+- **クリック/キー入力** → NavigationComponent + NavigationItemComponent
+- **テンプレート生成時処理** → TemplateControllerComponent.onSpawn
+- **ビジュアル操作** → UIFunction
 
 ### 4.9 アセット
 
