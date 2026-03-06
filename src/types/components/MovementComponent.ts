@@ -12,12 +12,14 @@ export class MovementComponent extends Component {
   pattern: 'fixed' | 'random' | 'route' = 'fixed';
   speed = 1;
   routePoints: RoutePoint[] = [];
+  stopOnEvent = true;
 
   serialize(): Record<string, unknown> {
     return {
       pattern: this.pattern,
       speed: this.speed,
       routePoints: this.routePoints.map((p) => ({ x: p.x, y: p.y })),
+      stopOnEvent: this.stopOnEvent,
     };
   }
 
@@ -26,6 +28,7 @@ export class MovementComponent extends Component {
     this.speed = (data.speed as number) ?? 1;
     const points = data.routePoints as RoutePoint[] | undefined;
     this.routePoints = points ? points.map((p) => ({ x: p.x, y: p.y })) : [];
+    this.stopOnEvent = (data.stopOnEvent as boolean) ?? true;
   }
 
   clone(): MovementComponent {
@@ -33,6 +36,7 @@ export class MovementComponent extends Component {
     c.pattern = this.pattern;
     c.speed = this.speed;
     c.routePoints = this.routePoints.map((p) => ({ x: p.x, y: p.y }));
+    c.stopOnEvent = this.stopOnEvent;
     return c;
   }
 }
