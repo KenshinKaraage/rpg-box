@@ -64,10 +64,10 @@ export class InputManager {
   update(): void {
     this.previousState = new Set(this.currentState);
     this.currentState.clear();
-    for (const key of this.rawKeysDown) {
+    this.rawKeysDown.forEach((key) => {
       const button = this.keyMap[key];
       if (button) this.currentState.add(button);
-    }
+    });
   }
 
   isDown(button: GameButton): boolean {

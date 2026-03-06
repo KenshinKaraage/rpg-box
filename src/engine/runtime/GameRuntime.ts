@@ -1,0 +1,238 @@
+/**
+ * GameRuntime — entry point that wires all subsystems together.
+ *
+ * Lifecycle: construct → start → (update/render loop) → stop
+ */
+
+import type { ProjectData } from '@/lib/storage/types';
+import { GameLoop } from './GameLoop';
+import { InputManager } from './InputManager';
+import { Camera } from './Camera';
+import { GameWorld } from './GameWorld';
+import { TriggerSystem } from './TriggerSystem';
+import { MapRenderer } from './MapRenderer';
+import { SpriteRenderer } from '@/engine/rendering/SpriteRenderer';
+import { UICanvasManager, type UICanvasData } from './UICanvasManager';
+import * as twgl from 'twgl.js';
+
+// ── Constants ──
+
+const TILE_SIZE = 32;
+
+// ── GameRuntime ──
+
+export class GameRuntime {
+  private gl: WebGLRenderingContext;
+  private projectData: ProjectData;
+
+  private gameLoop: GameLoop;
+  private input: InputManager;
+  private camera: Camera;
+  private world: GameWorld;
+  private triggerSystem: TriggerSystem;
+  private mapRenderer: MapRenderer;
+  private spriteRenderer: SpriteRenderer;
+  private uiCanvasManager: UICanvasManager;
+
+  private canvas: HTMLCanvasElement;
+
+  constructor(canvas: HTMLCanvasElement, projectData: ProjectData) {
+    const gl = canvas.getContext('webgl');
+    if (!gl) throw new Error('WebGL not supported');
+
+    this.canvas = canvas;
+    this.gl = gl;
+    this.projectData = projectData;
+
+    // WebGL setup
+    gl.clearColor(0, 0, 0, 1);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    // Subsystems
+    this.input = new InputManager();
+    this.camera = new Camera(
+      canvas.width,
+      canvas.height,
+      // Will be set when map loads
+      canvas.width,
+      canvas.height
+    );
+    this.world = new GameWorld();
+    this.triggerSystem = new TriggerSystem();
+    this.mapRenderer = new MapRenderer(gl);
+    this.spriteRenderer = new SpriteRenderer(gl);
+    this.uiCanvasManager = new UICanvasManager(gl, (imageId) => {
+      const asset = projectData.assets.find((a) => a.id === imageId);
+      return (asset?.data as string) ?? null;
+    });
+
+    // Game loop
+    this.gameLoop = new GameLoop({
+      update: (dt) => this.update(dt),
+      render: () => this.render(),
+    });
+  }
+
+  async start(): Promise<void> {
+    const { projectData } = this;
+    const settings = projectData.gameSettings;
+
+    // Attach input to canvas
+    this.canvas.tabIndex = 0;
+    this.input.attach(this.canvas);
+    this.canvas.focus();
+
+    // Load UI canvases
+    this.uiCanvasManager.loadCanvases(
+      projectData.uiCanvases as unknown as UICanvasData[]
+    );
+
+    // Load start map
+    await this.loadMap(settings.startMapId);
+
+    // Set player position from settings
+    if (this.world.activeController) {
+      this.world.activeController.gridX = settings.startPosition.x;
+      this.world.activeController.gridY = settings.startPosition.y;
+      this.world.activeController.pixelX = settings.startPosition.x * TILE_SIZE;
+      this.world.activeController.pixelY = settings.startPosition.y * TILE_SIZE;
+    }
+
+    // Camera follows active controller
+    this.camera.followTarget(() => {
+      const ctrl = this.world.activeController;
+      if (!ctrl) return null;
+      return { x: ctrl.pixelX + TILE_SIZE / 2, y: ctrl.pixelY + TILE_SIZE / 2 };
+    });
+
+    // Start game loop
+    this.gameLoop.start();
+  }
+
+  stop(): void {
+    this.gameLoop.stop();
+    this.input.detach();
+    this.mapRenderer.dispose();
+    this.spriteRenderer.dispose();
+    this.uiCanvasManager.dispose();
+  }
+
+  /** Get UI canvas proxies for ScriptAPI. */
+  getUIProxies(): Record<string, ReturnType<UICanvasManager['createProxies']>[string]> {
+    return this.uiCanvasManager.createProxies();
+  }
+
+  // ── Private: Map loading ──
+
+  private async loadMap(mapId: string): Promise<void> {
+    const { projectData } = this;
+    const map = projectData.maps.find((m) => m.id === mapId);
+    if (!map) {
+      console.warn(`[GameRuntime] Map not found: ${mapId}`);
+      return;
+    }
+
+    // Load map into world
+    this.world.loadMap(map, projectData.chipsets, projectData.prefabs);
+
+    // Update camera bounds
+    this.camera.setMapSize(map.width * TILE_SIZE, map.height * TILE_SIZE);
+
+    // Load tile textures
+    await this.mapRenderer.loadTextures(projectData.chipsets, (imageId) => {
+      const asset = projectData.assets.find((a) => a.id === imageId);
+      return (asset?.data as string) ?? null;
+    });
+
+    // Load sprite textures for objects with SpriteComponent
+    for (const obj of this.world.objects) {
+      const sprite = obj.components['sprite'];
+      if (sprite?.imageId && !this.spriteRenderer.hasTexture(sprite.imageId as string)) {
+        const asset = projectData.assets.find((a) => a.id === sprite.imageId);
+        if (asset?.data) {
+          await this.spriteRenderer.loadTexture(sprite.imageId as string, asset.data as string);
+        }
+      }
+    }
+
+    // Reset trigger system for new map
+    this.triggerSystem.reset();
+  }
+
+  // ── Private: Update ──
+
+  private update(dt: number): void {
+    this.input.update();
+
+    // World update (movement for all objects)
+    this.world.update(dt, this.input);
+
+    // Notify trigger system of completed moves
+    for (const obj of this.world.objects) {
+      if (!obj.isMoving && obj.moveProgress === 0) {
+        // Check if object just finished moving (gridX/Y matches target)
+        // This is a simplification — ideally GameWorld would emit events
+      }
+    }
+
+    // Trigger evaluation
+    const triggerResult = this.triggerSystem.update(this.world, this.input);
+    if (triggerResult) {
+      // TODO: Execute event via EventRunner
+      // For now, just log
+      console.log('[GameRuntime] Trigger fired:', triggerResult.eventId);
+    }
+
+    // Camera update
+    this.camera.update();
+  }
+
+  // ── Private: Render ──
+
+  private render(): void {
+    const gl = this.gl;
+    const canvas = this.canvas;
+
+    twgl.resizeCanvasToDisplaySize(canvas);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    const map = this.world.getCurrentMap();
+    if (!map) return;
+
+    const viewport = this.camera.getViewport();
+    // Convert camera center to top-left for renderer
+    const halfW = canvas.width / (2 * viewport.zoom);
+    const halfH = canvas.height / (2 * viewport.zoom);
+    const renderViewport = {
+      x: (viewport.x - halfW) * viewport.zoom,
+      y: (viewport.y - halfH) * viewport.zoom,
+      zoom: viewport.zoom,
+    };
+
+    // 1. Tile layers
+    this.mapRenderer.render(
+      map,
+      this.projectData.chipsets,
+      renderViewport,
+      canvas.width,
+      canvas.height
+    );
+
+    // 2. Sprite objects (Y-sorted)
+    const z = viewport.zoom;
+    const spriteMatrix = twgl.m4.ortho(
+      renderViewport.x / z,
+      (renderViewport.x + canvas.width) / z,
+      (renderViewport.y + canvas.height) / z,
+      renderViewport.y / z,
+      -1,
+      1
+    );
+    this.spriteRenderer.render(this.world.objects, spriteMatrix);
+
+    // 3. UI canvases (screen-space, on top of everything)
+    this.uiCanvasManager.render(canvas.width, canvas.height);
+  }
+}
