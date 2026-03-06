@@ -20,9 +20,13 @@ interface ActionPreviewButtonProps {
 export function ActionPreviewButton({ actions, canvasId }: ActionPreviewButtonProps) {
   const [revertFn, setRevertFn] = useState<(() => void) | null>(null);
 
-  const handleExecute = useCallback(() => {
+  const [executing, setExecuting] = useState(false);
+
+  const handleExecute = useCallback(async () => {
     if (actions.length === 0) return;
-    const revert = executeActionPreview(actions, canvasId);
+    setExecuting(true);
+    const revert = await executeActionPreview(actions, canvasId);
+    setExecuting(false);
     if (revert) {
       setRevertFn(() => revert);
     }
@@ -55,7 +59,7 @@ export function ActionPreviewButton({ actions, canvasId }: ActionPreviewButtonPr
       variant="outline"
       className="h-6 gap-1 text-[10px]"
       onClick={handleExecute}
-      disabled={actions.length === 0}
+      disabled={actions.length === 0 || executing}
     >
       <Play className="h-3 w-3" />
       テスト

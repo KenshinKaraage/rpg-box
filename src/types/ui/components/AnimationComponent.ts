@@ -19,17 +19,43 @@ export interface TweenTrack {
   toColor?: string;
   /** Easing registry key (e.g. 'linear', 'easeInOut') */
   easing: string;
+  /** If true, from/to are offsets relative to current value */
+  relative?: boolean;
 }
+
+/** Loop type: 'none' = no loop, 'loop' = restart, 'pingpong' = reverse each iteration */
+export type LoopType = 'none' | 'loop' | 'pingpong';
+
+export const LOOP_TYPE_OPTIONS: { value: LoopType; label: string }[] = [
+  { value: 'none', label: 'なし' },
+  { value: 'loop', label: 'ループ' },
+  { value: 'pingpong', label: 'ピンポン' },
+];
 
 export interface InlineTimeline {
   /** Tween tracks */
   tracks: TweenTrack[];
+  /** Number of times to repeat (0 = infinite, 1 = play once (no repeat), 2+ = repeat N times). Default 1. */
+  loopCount?: number;
+  /** Loop behaviour. Default 'none'. */
+  loopType?: LoopType;
 }
 
-/** Compute total duration from tracks: max(startTime + duration) */
-export function computeTimelineDuration(tracks: TweenTrack[]): number {
+/** Compute single-cycle duration from tracks: max(startTime + duration) */
+export function computeCycleDuration(tracks: TweenTrack[]): number {
   if (tracks.length === 0) return 0;
   return Math.max(...tracks.map((t) => t.startTime + t.duration));
+}
+
+/** Compute total duration considering loops. Returns Infinity for infinite loops. */
+export function computeTimelineDuration(tracks: TweenTrack[], loopCount?: number, loopType?: LoopType): number {
+  const cycle = computeCycleDuration(tracks);
+  if (cycle === 0) return 0;
+  const lt = loopType ?? 'none';
+  const lc = loopCount ?? 1;
+  if (lt === 'none') return cycle;
+  if (lc === 0) return Infinity;
+  return cycle * lc;
 }
 
 /** Named animation entry (multiple per AnimationComponent) */

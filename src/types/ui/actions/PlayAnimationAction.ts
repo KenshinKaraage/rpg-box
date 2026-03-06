@@ -13,6 +13,8 @@ export class PlayAnimationAction extends UIAction {
   animationName: string = '';
   autoPlay: boolean = true;
   loop: boolean = false;
+  /** If true, subsequent actions wait for this animation to finish before executing */
+  wait: boolean = false;
 
   toJSON(): Record<string, unknown> {
     return {
@@ -20,6 +22,7 @@ export class PlayAnimationAction extends UIAction {
       animationName: this.animationName,
       autoPlay: this.autoPlay,
       loop: this.loop,
+      wait: this.wait,
     };
   }
 
@@ -28,5 +31,6 @@ export class PlayAnimationAction extends UIAction {
     this.animationName = (data.animationName as string) ?? '';
     this.autoPlay = (data.autoPlay as boolean) ?? true;
     this.loop = (data.loop as boolean) ?? false;
+    this.wait = (data.wait as boolean) ?? false;
   }
 }

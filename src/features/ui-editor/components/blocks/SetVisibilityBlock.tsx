@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ function cloneAction(action: SetVisibilityAction): SetVisibilityAction {
 }
 
 export function SetVisibilityBlock({ action, onChange, onDelete }: ActionBlockProps) {
+  const uid = useId();
   const a = action as SetVisibilityAction;
 
   return (
@@ -38,16 +40,16 @@ export function SetVisibilityBlock({ action, onChange, onDelete }: ActionBlockPr
         </div>
         <div className="flex items-center gap-2">
           <Checkbox
-            id="visible-checkbox"
+            id={`${uid}-visible`}
             checked={a.visible}
             onCheckedChange={(checked) => {
               const updated = cloneAction(a);
               updated.visible = checked === true;
               onChange(updated);
             }}
-            data-testid="visible-checkbox"
+            data-testid={`${uid}-visible`}
           />
-          <Label htmlFor="visible-checkbox" className="text-xs">表示する</Label>
+          <Label htmlFor={`${uid}-visible`} className="text-xs">表示する</Label>
         </div>
       </div>
     </div>

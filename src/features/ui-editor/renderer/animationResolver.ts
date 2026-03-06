@@ -10,7 +10,7 @@ import type {
   InlineTimeline,
   NamedAnimation,
 } from '@/types/ui/components/AnimationComponent';
-import { computeTimelineDuration } from '@/types/ui/components/AnimationComponent';
+import { computeCycleDuration } from '@/types/ui/components/AnimationComponent';
 import { getEasing } from '@/engine/tween/easings';
 
 // ──────────────────────────────────────────────
@@ -111,7 +111,7 @@ export function evaluateColorTrack(track: TweenTrack, timeMs: number): string {
  *
  * @param timeline InlineTimeline 定義
  * @param timeMs 現在時刻（ms）
- * @param loop ループ有効時は duration で折り返す
+ * @param loop (legacy) ループ有効時は duration で折り返す。timeline.loopType が指定されている場合はそちらを優先。
  * @returns property → value (number | string) のマップ
  */
 export function evaluateTimeline(
@@ -121,12 +121,38 @@ export function evaluateTimeline(
 ): Map<string, number | string> {
   const result = new Map<string, number | string>();
 
-  const totalDuration = computeTimelineDuration(timeline.tracks);
+  const cycleDuration = computeCycleDuration(timeline.tracks);
+  if (cycleDuration === 0) return result;
+
+  // Determine effective loop settings
+  const loopType = timeline.loopType ?? (loop ? 'loop' : 'none');
+  const loopCount = timeline.loopCount ?? (loop ? 0 : 1);
+
   let t = timeMs;
-  if (loop && totalDuration > 0) {
-    t = timeMs % totalDuration;
+  if (loopType !== 'none' && cycleDuration > 0) {
+    if (loopCount === 0) {
+      // infinite loop
+      if (loopType === 'pingpong') {
+        const iteration = Math.floor(t / cycleDuration);
+        const remainder = t % cycleDuration;
+        t = iteration % 2 === 0 ? remainder : cycleDuration - remainder;
+      } else {
+        t = t % cycleDuration;
+      }
+    } else {
+      const totalDuration = cycleDuration * loopCount;
+      if (t >= totalDuration) {
+        t = cycleDuration; // clamp to end of last cycle
+      } else if (loopType === 'pingpong') {
+        const iteration = Math.floor(t / cycleDuration);
+        const remainder = t % cycleDuration;
+        t = iteration % 2 === 0 ? remainder : cycleDuration - remainder;
+      } else {
+        t = t % cycleDuration;
+      }
+    }
   } else {
-    t = Math.min(timeMs, totalDuration);
+    t = Math.min(t, cycleDuration);
   }
 
   for (const track of timeline.tracks) {

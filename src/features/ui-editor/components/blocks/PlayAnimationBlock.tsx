@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ function cloneAction(action: PlayAnimationAction): PlayAnimationAction {
 }
 
 export function PlayAnimationBlock({ action, onChange, onDelete }: ActionBlockProps) {
+  const uid = useId();
   const a = action as PlayAnimationAction;
 
   const selectedCanvasId = useStore((s) => s.selectedCanvasId);
@@ -92,29 +94,42 @@ export function PlayAnimationBlock({ action, onChange, onDelete }: ActionBlockPr
         </div>
         <div className="flex items-center gap-2">
           <Checkbox
-            id="autoplay-checkbox"
+            id={`${uid}-autoplay`}
             checked={a.autoPlay}
             onCheckedChange={(checked) => {
               const updated = cloneAction(a);
               updated.autoPlay = checked === true;
               onChange(updated);
             }}
-            data-testid="autoplay-checkbox"
+            data-testid={`${uid}-autoplay`}
           />
-          <Label htmlFor="autoplay-checkbox" className="text-xs">自動再生</Label>
+          <Label htmlFor={`${uid}-autoplay`} className="text-xs">自動再生</Label>
         </div>
         <div className="flex items-center gap-2">
           <Checkbox
-            id="loop-checkbox"
+            id={`${uid}-loop`}
             checked={a.loop}
             onCheckedChange={(checked) => {
               const updated = cloneAction(a);
               updated.loop = checked === true;
               onChange(updated);
             }}
-            data-testid="loop-checkbox"
+            data-testid={`${uid}-loop`}
           />
-          <Label htmlFor="loop-checkbox" className="text-xs">ループ</Label>
+          <Label htmlFor={`${uid}-loop`} className="text-xs">ループ</Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={`${uid}-wait`}
+            checked={a.wait}
+            onCheckedChange={(checked) => {
+              const updated = cloneAction(a);
+              updated.wait = checked === true;
+              onChange(updated);
+            }}
+            data-testid={`${uid}-wait`}
+          />
+          <Label htmlFor={`${uid}-wait`} className="text-xs">完了を待つ</Label>
         </div>
       </div>
     </div>

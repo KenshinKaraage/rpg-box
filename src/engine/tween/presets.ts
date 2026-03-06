@@ -1,6 +1,11 @@
 import type { TweenTrack } from '../../types/ui/components/AnimationComponent';
 
-export type TweenPresetFn = (duration: number) => TweenTrack[];
+/** Track with candidates: property can be a single key or an array of fallback keys */
+export interface PresetTrack extends Omit<TweenTrack, 'property'> {
+  property: string | string[];
+}
+
+export type TweenPresetFn = (duration: number) => PresetTrack[];
 
 const presetRegistry = new Map<string, TweenPresetFn>();
 
@@ -67,7 +72,7 @@ registerTweenPreset('scaleOut', (duration) => [
 
 registerTweenPreset('tintRed', (duration) => [
   {
-    property: 'color',
+    property: ['color', 'fillColor', 'tint'],
     valueType: 'color',
     startTime: 0,
     duration,
@@ -81,7 +86,7 @@ registerTweenPreset('tintRed', (duration) => [
 
 registerTweenPreset('tintBlue', (duration) => [
   {
-    property: 'color',
+    property: ['color', 'fillColor', 'tint'],
     valueType: 'color',
     startTime: 0,
     duration,
@@ -95,7 +100,7 @@ registerTweenPreset('tintBlue', (duration) => [
 
 registerTweenPreset('colorFlash', (duration) => [
   {
-    property: 'color',
+    property: ['color', 'fillColor', 'tint'],
     valueType: 'color',
     startTime: 0,
     duration: Math.floor(duration / 2),
@@ -106,7 +111,7 @@ registerTweenPreset('colorFlash', (duration) => [
     easing: 'easeOut',
   },
   {
-    property: 'color',
+    property: ['color', 'fillColor', 'tint'],
     valueType: 'color',
     startTime: Math.floor(duration / 2),
     duration: duration - Math.floor(duration / 2),
