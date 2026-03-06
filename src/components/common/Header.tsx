@@ -16,6 +16,7 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
+import { TestPlayOverlay, useTestPlay } from '@/features/test-play';
 
 const navigationItems = [
   {
@@ -62,6 +63,7 @@ const navigationItems = [
 
 export function Header() {
   const pathname = usePathname();
+  const { isPlaying, projectData, startTestPlay, stopTestPlay } = useTestPlay();
 
   const isActiveMenu = (items: { href: string }[]) => {
     return items.some((item) => pathname.startsWith(item.href));
@@ -121,10 +123,15 @@ export function Header() {
       <SaveIndicator className="mr-4" />
 
       {/* Test play button */}
-      <Button size="sm" className="gap-1">
+      <Button size="sm" className="gap-1" onClick={startTestPlay}>
         <Play className="h-4 w-4" />
         <span>テストプレイ</span>
       </Button>
+
+      {/* Test play overlay */}
+      {isPlaying && projectData && (
+        <TestPlayOverlay projectData={projectData} onClose={stopTestPlay} />
+      )}
     </header>
   );
 }

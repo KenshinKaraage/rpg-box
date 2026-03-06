@@ -48,6 +48,14 @@ export class GameEngine {
       await this.executeScript(config);
     } else if (config.mode === 'event') {
       await this.executeEvent(config);
+    } else if (config.mode === 'full') {
+      // Full mode is handled externally by GameRuntime (requires a canvas).
+      // GameEngine sends a log message indicating this.
+      this.sendMessage({
+        type: 'log',
+        level: 'info',
+        message: 'Full mode should be started via GameRuntime directly.',
+      });
     }
   }
 
