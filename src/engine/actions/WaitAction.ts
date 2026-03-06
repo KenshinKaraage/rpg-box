@@ -6,10 +6,10 @@ export class WaitAction extends EventAction {
   frames = 60;
 
   async execute(
-    _context: GameContext,
+    context: GameContext,
     _run: (actions: EventAction[]) => Promise<void>
   ): Promise<void> {
-    // No-op: game loop not yet implemented (Phase 18)
+    await context.waitFrames(this.frames);
   }
 
   toJSON(): Record<string, unknown> {

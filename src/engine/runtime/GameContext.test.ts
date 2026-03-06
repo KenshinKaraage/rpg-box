@@ -92,6 +92,26 @@ describe('GameContext', () => {
     });
   });
 
+  describe('Runtime extensions', () => {
+    it('pendingMapChange defaults to null', () => {
+      const ctx = new GameContext(createProjectData(), new ScriptRunner([]));
+      expect(ctx.pendingMapChange).toBeNull();
+    });
+
+    it('waitFrames is no-op without runtime callbacks', async () => {
+      const ctx = new GameContext(createProjectData(), new ScriptRunner([]));
+      await expect(ctx.waitFrames(10)).resolves.toBeUndefined();
+    });
+
+    it('waitFrames delegates to runtime callback', async () => {
+      const ctx = new GameContext(createProjectData(), new ScriptRunner([]));
+      const mockWaitFrames = jest.fn().mockResolvedValue(undefined);
+      ctx.setRuntimeCallbacks({ waitFrames: mockWaitFrames });
+      await ctx.waitFrames(30);
+      expect(mockWaitFrames).toHaveBeenCalledWith(30);
+    });
+  });
+
   describe('ScriptAPI', () => {
     it('getVar/setVar delegates to Variable API', () => {
       const ctx = new GameContext(createProjectData(), new ScriptRunner([]));

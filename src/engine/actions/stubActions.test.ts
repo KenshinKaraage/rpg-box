@@ -4,17 +4,33 @@ import { ObjectAction } from './ObjectAction';
 import { MapAction } from './MapAction';
 
 const noopRun = jest.fn();
-const ctx = {} as GameContext;
+
+function mockContext(overrides?: Partial<GameContext>): GameContext {
+  return {
+    waitFrames: jest.fn().mockResolvedValue(undefined),
+    pendingMapChange: null,
+    ...overrides,
+  } as unknown as GameContext;
+}
 
 describe('WaitAction', () => {
   it('has type "wait"', () => {
     expect(new WaitAction().type).toBe('wait');
   });
 
-  it('execute is no-op', async () => {
+  it('calls context.waitFrames with frame count', async () => {
+    const ctx = mockContext();
     const action = new WaitAction();
-    action.frames = 60;
+    action.frames = 30;
     await action.execute(ctx, noopRun);
+    expect(ctx.waitFrames).toHaveBeenCalledWith(30);
+  });
+
+  it('uses default 60 frames', async () => {
+    const ctx = mockContext();
+    const action = new WaitAction();
+    await action.execute(ctx, noopRun);
+    expect(ctx.waitFrames).toHaveBeenCalledWith(60);
   });
 
   it('toJSON / fromJSON round-trips', () => {
@@ -34,6 +50,7 @@ describe('ObjectAction', () => {
   });
 
   it('execute is no-op', async () => {
+    const ctx = mockContext();
     const action = new ObjectAction();
     action.operation = 'move';
     action.targetId = 'obj-1';
@@ -61,11 +78,40 @@ describe('MapAction', () => {
     expect(new MapAction().type).toBe('map');
   });
 
-  it('execute is no-op', async () => {
+  it('changeMap sets context.pendingMapChange', async () => {
+    const ctx = mockContext();
     const action = new MapAction();
     action.operation = 'changeMap';
     action.targetMapId = 'map-2';
+    action.x = 5;
+    action.y = 10;
     await action.execute(ctx, noopRun);
+    expect(ctx.pendingMapChange).toEqual({
+      mapId: 'map-2',
+      x: 5,
+      y: 10,
+    });
+  });
+
+  it('changeMap defaults position to 0,0', async () => {
+    const ctx = mockContext();
+    const action = new MapAction();
+    action.operation = 'changeMap';
+    action.targetMapId = 'map-3';
+    await action.execute(ctx, noopRun);
+    expect(ctx.pendingMapChange).toEqual({
+      mapId: 'map-3',
+      x: 0,
+      y: 0,
+    });
+  });
+
+  it('changeMap does nothing without targetMapId', async () => {
+    const ctx = mockContext();
+    const action = new MapAction();
+    action.operation = 'changeMap';
+    await action.execute(ctx, noopRun);
+    expect(ctx.pendingMapChange).toBeNull();
   });
 
   it('toJSON / fromJSON round-trips', () => {

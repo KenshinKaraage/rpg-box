@@ -15,10 +15,23 @@ export class MapAction extends EventAction {
   layer?: number;
 
   async execute(
-    _context: GameContext,
+    context: GameContext,
     _run: (actions: EventAction[]) => Promise<void>
   ): Promise<void> {
-    // No-op: map system not yet implemented (Phase 10)
+    switch (this.operation) {
+      case 'changeMap':
+        if (this.targetMapId) {
+          context.pendingMapChange = {
+            mapId: this.targetMapId,
+            x: this.x ?? 0,
+            y: this.y ?? 0,
+          };
+        }
+        break;
+      case 'getChip':
+        // TODO: Read chip data from map and store in resultVariableId
+        break;
+    }
   }
 
   toJSON(): Record<string, unknown> {

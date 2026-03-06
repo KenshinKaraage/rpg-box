@@ -19,6 +19,13 @@ import * as twgl from 'twgl.js';
 
 const TILE_SIZE = 32;
 
+// ── Frame wait tracking ──
+
+interface FrameWaiter {
+  remaining: number;
+  resolve: () => void;
+}
+
 // ── GameRuntime ──
 
 export class GameRuntime {
@@ -35,6 +42,9 @@ export class GameRuntime {
   private uiCanvasManager: UICanvasManager;
 
   private canvas: HTMLCanvasElement;
+
+  /** Pending frame-wait promises (ticked each update). */
+  private frameWaiters: FrameWaiter[] = [];
 
   constructor(canvas: HTMLCanvasElement, projectData: ProjectData) {
     const gl = canvas.getContext('webgl');
@@ -116,11 +126,29 @@ export class GameRuntime {
     this.mapRenderer.dispose();
     this.spriteRenderer.dispose();
     this.uiCanvasManager.dispose();
+    // Resolve any pending frame waiters
+    for (const waiter of this.frameWaiters) {
+      waiter.resolve();
+    }
+    this.frameWaiters.length = 0;
   }
 
   /** Get UI canvas proxies for ScriptAPI. */
   getUIProxies(): Record<string, ReturnType<UICanvasManager['createProxies']>[string]> {
     return this.uiCanvasManager.createProxies();
+  }
+
+  /**
+   * Create a RuntimeCallbacks-compatible waitFrames function.
+   * Returns a Promise that resolves after N game loop update ticks.
+   */
+  createWaitFrames(): (frames: number) => Promise<void> {
+    return (frames: number) => {
+      if (frames <= 0) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        this.frameWaiters.push({ remaining: frames, resolve });
+      });
+    };
   }
 
   // ── Private: Map loading ──
@@ -165,6 +193,9 @@ export class GameRuntime {
   private update(dt: number): void {
     this.input.update();
 
+    // Tick frame waiters
+    this.tickFrameWaiters();
+
     // World update (movement for all objects)
     this.world.update(dt, this.input);
 
@@ -186,6 +217,23 @@ export class GameRuntime {
 
     // Camera update
     this.camera.update();
+  }
+
+  /** Decrement frame waiters and resolve those that reach 0. */
+  private tickFrameWaiters(): void {
+    let i = 0;
+    while (i < this.frameWaiters.length) {
+      const waiter = this.frameWaiters[i]!;
+      waiter.remaining--;
+      if (waiter.remaining <= 0) {
+        waiter.resolve();
+        // Remove by swapping with last element (O(1))
+        this.frameWaiters[i] = this.frameWaiters[this.frameWaiters.length - 1]!;
+        this.frameWaiters.pop();
+      } else {
+        i++;
+      }
+    }
   }
 
   // ── Private: Render ──

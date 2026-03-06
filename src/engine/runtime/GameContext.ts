@@ -9,6 +9,21 @@ import type { ScriptRunner } from '../core/ScriptRunner';
 import type { EngineProjectData } from '../types';
 
 // =============================================================================
+// Runtime Extension Types (set by GameRuntime for action integration)
+// =============================================================================
+
+export interface MapChangeRequest {
+  mapId: string;
+  x: number;
+  y: number;
+}
+
+export interface RuntimeCallbacks {
+  /** Wait for N frames (returns a Promise resolved by the game loop). */
+  waitFrames: (frames: number) => Promise<void>;
+}
+
+// =============================================================================
 // API Interfaces
 // =============================================================================
 
@@ -68,6 +83,11 @@ export class GameContext {
   readonly save: SaveAPI;
   readonly scriptRunner: ScriptRunner;
 
+  /** Set by MapAction, consumed by GameRuntime after event execution. */
+  pendingMapChange: MapChangeRequest | null = null;
+
+  private runtimeCallbacks: RuntimeCallbacks | null = null;
+
   constructor(
     projectData: EngineProjectData,
     scriptRunner: ScriptRunner,
@@ -80,6 +100,18 @@ export class GameContext {
     this.sound = createSoundAPI();
     this.camera = createCameraAPI();
     this.save = createSaveAPI();
+  }
+
+  /** Inject runtime callbacks (called by GameRuntime after construction). */
+  setRuntimeCallbacks(callbacks: RuntimeCallbacks): void {
+    this.runtimeCallbacks = callbacks;
+  }
+
+  /** Wait for N frames. Resolves when the game loop has ticked N times. */
+  async waitFrames(frames: number): Promise<void> {
+    if (this.runtimeCallbacks) {
+      await this.runtimeCallbacks.waitFrames(frames);
+    }
   }
 }
 
