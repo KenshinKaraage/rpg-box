@@ -6,7 +6,7 @@
  */
 
 import type { GameWorld, RuntimeObject, Direction } from './GameWorld';
-import type { InputManager } from './InputManager';
+import type { InputManager, GameButton } from './InputManager';
 
 // ── Types ──
 
@@ -176,7 +176,7 @@ export class TriggerSystem {
       const trigger = obj.components['inputTrigger'];
       if (!trigger || !trigger.eventId || !trigger.key) continue;
 
-      if (input.isJustPressed(trigger.key as string)) {
+      if (input.isJustPressed(trigger.key as GameButton)) {
         return { eventId: trigger.eventId as string, targetObject: obj };
       }
     }

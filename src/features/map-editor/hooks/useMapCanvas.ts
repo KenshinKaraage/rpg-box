@@ -2,12 +2,11 @@
 import { useEffect, useRef, useState } from 'react';
 import * as twgl from 'twgl.js';
 import { useStore } from '@/stores';
-import { TILE_VERT, TILE_FRAG, GRID_VERT, GRID_FRAG } from '../utils/shaders';
+import { GRID_VERT, GRID_FRAG } from '../utils/shaders';
 import { getVisibleTileRange } from '../utils/visibleTiles';
-import { buildTileBatch } from '../utils/tileBatch';
 import { TILE_SIZE } from '../utils/constants';
 import { dataUrlToBlob } from '@/hooks/useBlobUrl';
-import type { ImageMetadata } from '@/types/assets';
+import { TileRenderer } from '@/engine/rendering/TileRenderer';
 
 export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>, mapId: string) {
   const maps = useStore((s) => s.maps);
@@ -17,9 +16,8 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   const showGrid = useStore((s) => s.showGrid);
 
   const glRef = useRef<WebGLRenderingContext | null>(null);
-  const tileProgramRef = useRef<twgl.ProgramInfo | null>(null);
+  const tileRendererRef = useRef<TileRenderer | null>(null);
   const gridProgramRef = useRef<twgl.ProgramInfo | null>(null);
-  const textureCache = useRef<Map<string, WebGLTexture>>(new Map());
   // assetId → Blob URL のキャッシュ（Base64 デコードを初回のみ実行するため）
   const blobUrlCache = useRef<Map<string, string>>(new Map());
 
@@ -36,7 +34,7 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     gl.clearColor(0, 0, 0, 1); // 未描画エリアを黒に
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // 透明部分は背景（黒）を透過
-    tileProgramRef.current = twgl.createProgramInfo(gl, [TILE_VERT, TILE_FRAG]);
+    tileRendererRef.current = new TileRenderer(gl);
     gridProgramRef.current = twgl.createProgramInfo(gl, [GRID_VERT, GRID_FRAG]);
   }, [canvasRef]);
 
@@ -44,8 +42,8 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   useEffect(() => {
     const canvas = canvasRef.current;
     const gl = glRef.current;
-    const tileProgram = tileProgramRef.current;
-    if (!canvas || !gl || !tileProgram) return;
+    const tileRenderer = tileRendererRef.current;
+    if (!canvas || !gl || !tileRenderer) return;
 
     const map = maps.find((m) => m.id === mapId);
     if (!map) return;
@@ -58,8 +56,6 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     const mapSize = { w: map.width, h: map.height };
 
     // 投影行列: ワールド座標 → クリップ座標
-    // screen_x = world_x * zoom - viewport.x  なので
-    // ortho の範囲を [viewport.x/zoom, (viewport.x + canvas.width)/zoom] にする
     const z = viewport.zoom;
     const matrix = twgl.m4.ortho(
       viewport.x / z,
@@ -76,16 +72,14 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     for (const layer of map.layers) {
       if (layer.visible === false) continue;
       if (layer.type !== 'tile') continue;
-
       if (!layer.tiles) continue;
 
       for (const chipsetId of layer.chipsetIds) {
         const chipset = chipsets.find((c) => c.id === chipsetId);
         if (!chipset) continue;
 
-        // テクスチャ取得（キャッシュ優先）
-        const texture = textureCache.current.get(chipsetId);
-        if (!texture) {
+        // テクスチャが未ロードなら非同期ロード → 完了後に再レンダー
+        if (!tileRenderer.hasTexture(chipsetId)) {
           const asset = assets.find((a) => a.id === chipset.imageId);
           if (!asset?.data) continue;
 
@@ -99,50 +93,22 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           const img = new Image();
           img.src = blobUrl;
           img.onload = () => {
-            if (!glRef.current) return;
-            const tex = twgl.createTexture(glRef.current, {
-              src: img,
-              minMag: glRef.current.NEAREST,
-            });
-            textureCache.current.set(chipsetId, tex);
-            // テクスチャロード完了 → 再レンダーをトリガー
+            if (!tileRendererRef.current) return;
+            tileRendererRef.current.setTextureFromImage(chipsetId, img);
             setTextureGen((t) => t + 1);
           };
           continue;
         }
 
-        const asset = assets.find((a) => a.id === chipset.imageId);
-        const meta = asset?.metadata as ImageMetadata | null;
-        if (!meta?.width || !meta?.height) {
-          console.warn('[MapCanvas] no image metadata for chipset', chipsetId);
-          continue;
-        }
-        const tilesPerRow = Math.max(1, Math.floor(meta.width / chipset.tileWidth));
-        const batch = buildTileBatch(
+        tileRenderer.renderChipset(
           layer.tiles,
           range,
           chipsetId,
-          TILE_SIZE,
-          meta.width,
-          meta.height,
-          chipset.tileWidth,
-          chipset.tileHeight,
-          tilesPerRow,
-          chipset.autotile,
+          chipset,
+          matrix,
           map.width,
           map.height
         );
-        if (batch.count === 0) continue;
-
-        const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
-          a_position: { numComponents: 2, data: new Float32Array(batch.positions) },
-          a_texcoord: { numComponents: 2, data: new Float32Array(batch.texcoords) },
-        });
-
-        gl.useProgram(tileProgram.program);
-        twgl.setBuffersAndAttributes(gl, tileProgram, bufferInfo);
-        twgl.setUniforms(tileProgram, { u_matrix: matrix, u_texture: texture });
-        twgl.drawBufferInfo(gl, bufferInfo);
       }
     }
 
