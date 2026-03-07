@@ -40,36 +40,40 @@ export function DataTypeList({
   return (
     <div className="flex h-full flex-col">
       {/* ヘッダー */}
-      <div className="flex items-center justify-between border-b bg-card px-4 py-3">
-        <h2 className="flex items-center gap-2 text-sm font-bold">
-          <Database className="h-4 w-4 text-primary" />
-          データ型
-        </h2>
+      <div className="flex items-center justify-between border-b px-5 py-4">
+        <h2 className="text-sm font-bold">データタイプ</h2>
         <div className="flex gap-1">
           <Button
-            size="sm"
-            variant="ghost"
+            size="icon"
+            variant="outline"
+            className="h-8 w-8"
             onClick={onImportDefaults}
             disabled={isImporting}
             data-testid="import-defaults-button"
           >
             <Download className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" onClick={onAdd} data-testid="add-datatype-button">
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-8 w-8"
+            onClick={onAdd}
+            data-testid="add-datatype-button"
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* リスト */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto px-3 py-3">
         {dataTypes.length === 0 ? (
           <div className="p-6 text-center text-sm text-muted-foreground">
-            <Database className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
+            <Database className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
             データ型がありません
           </div>
         ) : (
-          <ul className="divide-y" data-testid="datatype-list">
+          <ul className="space-y-1.5" data-testid="datatype-list">
             {dataTypes.map((dataType) => {
               const entryCount = dataEntries[dataType.id]?.length ?? 0;
               return (
@@ -77,14 +81,23 @@ export function DataTypeList({
                   <ContextMenuTrigger asChild>
                     <li
                       className={cn(
-                        'cursor-pointer px-4 py-2.5 transition-colors hover:bg-accent',
-                        selectedId === dataType.id && 'border-l-2 border-l-primary bg-accent'
+                        'cursor-pointer rounded-lg px-4 py-3 transition-colors',
+                        selectedId === dataType.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'hover:bg-accent'
                       )}
                       onClick={() => onSelect(dataType.id)}
                       data-testid={`datatype-item-${dataType.id}`}
                     >
                       <div className="text-sm font-medium">{dataType.name}</div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
+                      <div
+                        className={cn(
+                          'mt-1 text-xs',
+                          selectedId === dataType.id
+                            ? 'text-primary-foreground/70'
+                            : 'text-muted-foreground'
+                        )}
+                      >
                         {dataType.fields.length} フィールド · {entryCount} エントリ
                       </div>
                     </li>

@@ -72,14 +72,14 @@ export function FormBuilder({
   return (
     <div className="flex h-full flex-col">
       {/* ヘッダー */}
-      <div className="border-b p-3">
-        <h2 className="text-sm font-semibold">データ編集</h2>
+      <div className="border-b px-5 py-4">
+        <h2 className="text-lg font-bold">データ編集</h2>
       </div>
 
       {/* フィールド */}
-      <div className="flex-1 overflow-auto p-4 space-y-4">
+      <div className="flex-1 overflow-auto p-5 space-y-6">
         {/* エントリID */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="entry-id">ID</Label>
           <Input
             id="entry-id"
@@ -95,7 +95,7 @@ export function FormBuilder({
           if (!visibility[field.id]) return null;
           const value = entry.values[field.id] ?? field.getDefaultValue();
           return (
-            <div key={field.id} className="space-y-1">
+            <div key={field.id} className="space-y-2">
               <Label>
                 {field.name}
                 {field.required && <span className="ml-1 text-red-500">*</span>}

@@ -52,9 +52,9 @@ export function FieldRow({
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
-      <div className="rounded-lg border bg-card shadow-sm">
+      <div className="rounded-xl border-2 bg-card">
         {/* Header row */}
-        <div className="flex items-center gap-2 px-3 py-2">
+        <div className="flex items-center gap-3 px-4 py-3">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
               <ChevronRight
@@ -99,8 +99,8 @@ export function FieldRow({
 
         {/* Expandable config panel */}
         <CollapsibleContent>
-          <div className="space-y-3 border-t bg-muted/20 px-4 py-3">
-            <div className="space-y-1">
+          <div className="space-y-4 border-t bg-muted/20 px-5 py-4">
+            <div className="space-y-2">
               <Label className="text-xs">フィールドID</Label>
               <Input
                 defaultValue={field.id}

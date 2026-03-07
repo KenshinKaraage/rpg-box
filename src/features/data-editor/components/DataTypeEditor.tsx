@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Settings2, Layers } from 'lucide-react';
+import { Plus, Settings2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -139,11 +139,8 @@ export function DataTypeEditor({
   return (
     <div className="flex h-full flex-col">
       {/* データ型基本情報 */}
-      <div className="space-y-4 border-b bg-card p-4">
-        <h3 className="flex items-center gap-2 text-sm font-bold">
-          <Settings2 className="h-4 w-4 text-primary" />
-          データ型設定
-        </h3>
+      <div className="space-y-6 border-b p-5">
+        <h3 className="text-sm font-bold">データ型設定</h3>
 
         <div className="space-y-2">
           <Label htmlFor="dataTypeId">データ型ID</Label>
@@ -190,24 +187,26 @@ export function DataTypeEditor({
       </div>
 
       {/* フィールド一覧 */}
-      <div className="flex-1 overflow-auto p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-sm font-bold">
-            <Layers className="h-4 w-4 text-primary" />
-            フィールド一覧
-          </h3>
-          <Button size="sm" variant="outline" onClick={() => setFieldSelectorOpen(true)}>
+      <div className="flex-1 overflow-auto p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-bold">フィールド一覧</h3>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-primary text-primary"
+            onClick={() => setFieldSelectorOpen(true)}
+          >
             <Plus className="mr-1 h-4 w-4" />
             追加
           </Button>
         </div>
 
         {dataType.fields.length === 0 ? (
-          <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border-2 border-dashed p-6 text-center text-sm text-muted-foreground">
             フィールドがありません
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {dataType.fields.map((field) => (
               <FieldRow
                 key={field.id}
