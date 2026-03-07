@@ -89,31 +89,31 @@ export function ThreeColumnLayout({
       }}
     >
       {/* Left column */}
-      <div className="overflow-auto border-r bg-background" data-testid="left-column">
+      <div className="overflow-auto border-r bg-card" data-testid="left-column">
         {left}
       </div>
 
       {/* Left resize handle */}
       <div
-        className="cursor-col-resize bg-border hover:bg-primary/50 active:bg-primary"
+        className="cursor-col-resize bg-transparent hover:bg-primary/30 active:bg-primary transition-colors"
         onMouseDown={startDraggingLeft}
         data-testid="left-resize-handle"
       />
 
       {/* Center column */}
-      <div className="overflow-hidden bg-background" data-testid="center-column">
+      <div className="overflow-hidden border-r bg-card" data-testid="center-column">
         {center}
       </div>
 
       {/* Right resize handle */}
       <div
-        className="cursor-col-resize bg-border hover:bg-primary/50 active:bg-primary"
+        className="cursor-col-resize bg-transparent hover:bg-primary/30 active:bg-primary transition-colors"
         onMouseDown={startDraggingRight}
         data-testid="right-resize-handle"
       />
 
       {/* Right column */}
-      <div className="overflow-auto border-l bg-background" data-testid="right-column">
+      <div className="overflow-auto bg-background" data-testid="right-column">
         {right}
       </div>
     </div>

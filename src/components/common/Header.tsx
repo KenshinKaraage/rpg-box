@@ -113,7 +113,7 @@ export function Header() {
   );
 
   return (
-    <header className="flex h-12 items-center border-b bg-background px-4">
+    <header className="flex h-12 items-center border-b bg-card px-4 shadow-sm">
       {/* Hamburger menu */}
       <div className="mr-2">
         <HamburgerMenu
@@ -134,8 +134,8 @@ export function Header() {
       />
 
       {/* Logo */}
-      <Link href="/" className="mr-6 flex items-center gap-2 font-semibold">
-        <span className="text-primary">◇</span>
+      <Link href="/" className="mr-6 flex items-center gap-2 font-bold">
+        <span className="flex h-6 w-6 items-center justify-center rounded bg-primary text-xs text-primary-foreground">◇</span>
         <span>RPG Box</span>
       </Link>
 

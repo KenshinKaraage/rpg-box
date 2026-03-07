@@ -92,7 +92,7 @@ describe('DataTypeEditor', () => {
     render(<DataTypeEditor {...defaultProps} />);
 
     // フィールド追加ボタンでモーダルが開く
-    fireEvent.click(screen.getByText('フィールド追加'));
+    fireEvent.click(screen.getByText('追加'));
     expect(screen.getByText('フィールドタイプを選択')).toBeInTheDocument();
 
     // タイプを選択するとonAddFieldが呼ばれる

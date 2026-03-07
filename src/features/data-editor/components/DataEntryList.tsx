@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Trash2, Copy, Search } from 'lucide-react';
+import { Plus, Trash2, Copy, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDataFilter } from '../hooks/useDataFilter';
@@ -46,20 +46,24 @@ export function DataEntryList({
   return (
     <div className="flex h-full flex-col">
       {/* ヘッダー */}
-      <div className="flex items-center justify-between border-b p-3">
+      <div className="flex items-center justify-between border-b bg-card px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold">{dataType ? dataType.name : 'データ一覧'}</h2>
-          {dataType && <span className="text-xs text-muted-foreground">{entries.length} 件</span>}
+          <h2 className="flex items-center gap-2 text-sm font-bold">
+            <FileText className="h-4 w-4 text-primary" />
+            {dataType ? dataType.name : 'エントリ'}
+          </h2>
+          {dataType && (
+            <span className="ml-6 text-xs text-muted-foreground">{entries.length} 件</span>
+          )}
         </div>
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           onClick={onAdd}
           disabled={isAddDisabled}
           data-testid="add-entry-button"
         >
-          <Plus className="mr-1 h-4 w-4" />
-          追加
+          <Plus className="h-4 w-4" />
         </Button>
       </div>
 
@@ -82,11 +86,13 @@ export function DataEntryList({
       {/* リスト */}
       <div className="min-h-0 flex-1 overflow-auto">
         {!dataType ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">
+          <div className="p-6 text-center text-sm text-muted-foreground">
+            <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
             データ型を選択してください
           </div>
         ) : filteredEntries.length === 0 ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">
+          <div className="p-6 text-center text-sm text-muted-foreground">
+            <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
             {entries.length === 0 ? 'エントリがありません' : '一致するエントリがありません'}
           </div>
         ) : (
@@ -96,15 +102,15 @@ export function DataEntryList({
                 <ContextMenuTrigger asChild>
                   <li
                     className={cn(
-                      'cursor-pointer px-3 py-2 hover:bg-accent',
-                      selectedId === entry.id && 'bg-accent'
+                      'cursor-pointer px-4 py-2.5 transition-colors hover:bg-accent',
+                      selectedId === entry.id && 'border-l-2 border-l-primary bg-accent'
                     )}
                     onClick={() => onSelect(entry.id)}
                     data-testid={`entry-item-${entry.id}`}
                   >
-                    <div className="font-medium">{entry.id}</div>
+                    <div className="text-sm font-medium">{entry.id}</div>
                     {firstStringField && (
-                      <div className="truncate text-xs text-muted-foreground">
+                      <div className="mt-0.5 truncate text-xs text-muted-foreground">
                         {String(entry.values[firstStringField.id] ?? '')}
                       </div>
                     )}

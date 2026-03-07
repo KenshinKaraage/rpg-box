@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus } from 'lucide-react';
+import { Plus, Settings2, Layers } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -69,8 +69,9 @@ export function DataTypeEditor({
 
   if (!dataType) {
     return (
-      <div className="flex h-full items-center justify-center text-muted-foreground">
-        データ型を選択してください
+      <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
+        <Settings2 className="mb-2 h-10 w-10 text-muted-foreground/20" />
+        <p className="text-sm">データ型を選択してください</p>
       </div>
     );
   }
@@ -138,8 +139,11 @@ export function DataTypeEditor({
   return (
     <div className="flex h-full flex-col">
       {/* データ型基本情報 */}
-      <div className="space-y-4 border-b p-4">
-        <h3 className="text-sm font-semibold">データ型設定</h3>
+      <div className="space-y-4 border-b bg-card p-4">
+        <h3 className="flex items-center gap-2 text-sm font-bold">
+          <Settings2 className="h-4 w-4 text-primary" />
+          データ型設定
+        </h3>
 
         <div className="space-y-2">
           <Label htmlFor="dataTypeId">データ型ID</Label>
@@ -188,10 +192,13 @@ export function DataTypeEditor({
       {/* フィールド一覧 */}
       <div className="flex-1 overflow-auto p-4">
         <div className="mb-3 flex items-center justify-between">
-          <Label>フィールド一覧</Label>
+          <h3 className="flex items-center gap-2 text-sm font-bold">
+            <Layers className="h-4 w-4 text-primary" />
+            フィールド一覧
+          </h3>
           <Button size="sm" variant="outline" onClick={() => setFieldSelectorOpen(true)}>
             <Plus className="mr-1 h-4 w-4" />
-            フィールド追加
+            追加
           </Button>
         </div>
 
