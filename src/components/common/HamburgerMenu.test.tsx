@@ -35,7 +35,7 @@ describe('HamburgerMenu', () => {
 
     await waitFor(() => {
       expect(screen.getByText('プロジェクト')).toBeInTheDocument();
-      expect(screen.getByText('エクスポート')).toBeInTheDocument();
+      expect(screen.getByText('エクスポート / インポート')).toBeInTheDocument();
       expect(screen.getByText('設定')).toBeInTheDocument();
       expect(screen.getByText('ヘルプ')).toBeInTheDocument();
       expect(screen.getByText('アカウント')).toBeInTheDocument();

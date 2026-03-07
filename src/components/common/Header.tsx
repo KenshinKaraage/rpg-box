@@ -2,6 +2,7 @@
 
 import { Play } from 'lucide-react';
 import Link from 'next/link';
+import { useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { HamburgerMenu } from '@/components/common/HamburgerMenu';
@@ -17,6 +18,9 @@ import {
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { TestPlayOverlay, useTestPlay } from '@/features/test-play';
+import { buildProjectData } from '@/features/test-play/buildProjectData';
+import { useStorage } from '@/hooks/useStorage';
+import { useStore } from '@/stores';
 
 const navigationItems = [
   {
@@ -64,17 +68,70 @@ const navigationItems = [
 export function Header() {
   const pathname = usePathname();
   const { isPlaying, projectData, startTestPlay, stopTestPlay } = useTestPlay();
+  const { exportProject, importProject } = useStorage();
+  const loadProjectData = useStore((s) => s.loadProjectData);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isActiveMenu = (items: { href: string }[]) => {
     return items.some((item) => pathname.startsWith(item.href));
   };
 
+  // Export: build ProjectData from store → download as JSON
+  const handleExport = useCallback(async () => {
+    const data = buildProjectData();
+    const savedProject = {
+      id: 'exported',
+      name: data.gameSettings.title || 'RPG Project',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      data,
+    };
+    await exportProject(savedProject);
+  }, [exportProject]);
+
+  // Import: file picker → parse JSON → load into store
+  const handleImportClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const project = await importProject(file);
+      if (project) {
+        loadProjectData(project.data);
+      } else {
+        console.error('[Import] Invalid project file');
+      }
+
+      // Reset input so the same file can be re-imported
+      e.target.value = '';
+    },
+    [importProject, loadProjectData]
+  );
+
   return (
     <header className="flex h-12 items-center border-b bg-background px-4">
       {/* Hamburger menu */}
       <div className="mr-2">
-        <HamburgerMenu />
+        <HamburgerMenu
+          export={{
+            onExportProject: handleExport,
+            onImportProject: handleImportClick,
+          }}
+        />
       </div>
+
+      {/* Hidden file input for import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleFileChange}
+      />
 
       {/* Logo */}
       <Link href="/" className="mr-6 flex items-center gap-2 font-semibold">

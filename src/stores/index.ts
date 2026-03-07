@@ -6,6 +6,8 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
+import type { ProjectData } from '@/lib/storage/types';
+
 import { createUISlice, UISlice } from './uiSlice';
 import { createGameSettingsSlice, GameSettingsSlice } from './gameSettingsSlice';
 import { createVariableSlice, VariableSlice } from './variableSlice';
@@ -19,6 +21,12 @@ import { createMapEditorSlice, MapEditorSlice } from './mapEditorSlice';
 import { createEventSlice, EventSlice } from './eventSlice';
 import { createUIEditorSlice, UIEditorSlice } from './uiEditorSlice';
 
+// プロジェクトデータの一括読み込み
+interface ProjectDataSlice {
+  /** ProjectData を一括でストアに読み込む */
+  loadProjectData: (data: ProjectData) => void;
+}
+
 // 全スライスを統合した型
 type StoreState = UISlice &
   GameSettingsSlice &
@@ -31,7 +39,8 @@ type StoreState = UISlice &
   PrefabSlice &
   MapEditorSlice &
   EventSlice &
-  UIEditorSlice;
+  UIEditorSlice &
+  ProjectDataSlice;
 
 // ストア作成
 export const useStore = create<StoreState>()(
@@ -48,5 +57,24 @@ export const useStore = create<StoreState>()(
     ...createMapEditorSlice(set, get),
     ...createEventSlice(set),
     ...createUIEditorSlice(set, get),
+
+    loadProjectData: (data: ProjectData) =>
+      set((state) => {
+        // Storage types and editor types differ slightly but are compatible at runtime.
+        // Use `as unknown as` to bridge Immer's draft types.
+        state.dataTypes = data.dataTypes as typeof state.dataTypes;
+        state.dataEntries = data.dataEntries as typeof state.dataEntries;
+        state.classes = data.classes as typeof state.classes;
+        state.variables = data.variables as typeof state.variables;
+        state.maps = data.maps as typeof state.maps;
+        state.chipsets = data.chipsets as typeof state.chipsets;
+        state.prefabs = data.prefabs as typeof state.prefabs;
+        state.eventTemplates = data.eventTemplates as unknown as typeof state.eventTemplates;
+        state.uiCanvases = data.uiCanvases as unknown as typeof state.uiCanvases;
+        state.uiTemplates = data.uiTemplates as unknown as typeof state.uiTemplates;
+        state.scripts = data.scripts as typeof state.scripts;
+        state.assets = data.assets as unknown as typeof state.assets;
+        state.gameSettings = data.gameSettings;
+      }),
   }))
 );
