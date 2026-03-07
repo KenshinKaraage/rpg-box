@@ -7,6 +7,7 @@
  */
 
 import type { FieldType } from './fields/FieldType';
+import { hydrateFields } from './fields';
 
 /**
  * カスタムクラスインターフェース
@@ -75,4 +76,15 @@ export function wouldCreateCycle(
   }
 
   return reachesTarget(candidateClassId);
+}
+
+/**
+ * プレーンオブジェクト（JSON由来）の CustomClass を FieldType インスタンス付きに復元
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydrateCustomClass(plain: any): CustomClass {
+  return {
+    ...plain,
+    fields: hydrateFields(plain.fields ?? []),
+  };
 }

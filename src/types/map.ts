@@ -1,5 +1,6 @@
 import type { Component } from './components/Component';
 import type { FieldType } from './fields/FieldType';
+import { hydrateFields } from './fields';
 
 /**
  * プレハブに付与されたコンポーネントのインスタンス
@@ -65,4 +66,26 @@ export interface Prefab {
   id: string;
   name: string;
   components: PrefabComponent[];
+}
+
+/**
+ * プレーンオブジェクト（JSON由来）の GameMap を FieldType インスタンス付きに復元
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydrateGameMap(plain: any): GameMap {
+  return {
+    ...plain,
+    fields: hydrateFields(plain.fields ?? []),
+  };
+}
+
+/**
+ * プレーンオブジェクト（JSON由来）の Chipset を FieldType インスタンス付きに復元
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydrateChipset(plain: any): Chipset {
+  return {
+    ...plain,
+    fields: hydrateFields(plain.fields ?? []),
+  };
 }

@@ -7,6 +7,7 @@
  */
 
 import type { FieldType } from './fields/FieldType';
+import { hydrateFields } from './fields';
 import { StringFieldType } from './fields/StringFieldType';
 
 // =============================================================================
@@ -123,4 +124,15 @@ export function validateDataId(id: string): { valid: boolean; message?: string }
  */
 export function isDataIdUnique(id: string, existingIds: string[]): boolean {
   return !existingIds.includes(id);
+}
+
+/**
+ * プレーンオブジェクト（JSON由来）の DataType を FieldType インスタンス付きに復元
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydrateDataType(plain: any): DataType {
+  return {
+    ...plain,
+    fields: hydrateFields(plain.fields ?? []),
+  };
 }

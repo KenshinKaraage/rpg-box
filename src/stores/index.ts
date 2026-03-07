@@ -7,6 +7,10 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
 import type { ProjectData } from '@/lib/storage/types';
+import { hydrateDataType } from '@/types/data';
+import { hydrateCustomClass } from '@/types/customClass';
+import { hydrateVariable } from '@/types/variable';
+import { hydrateGameMap, hydrateChipset } from '@/types/map';
 
 import { createUISlice, UISlice } from './uiSlice';
 import { createGameSettingsSlice, GameSettingsSlice } from './gameSettingsSlice';
@@ -60,14 +64,13 @@ export const useStore = create<StoreState>()(
 
     loadProjectData: (data: ProjectData) =>
       set((state) => {
-        // Storage types and editor types differ slightly but are compatible at runtime.
-        // Use `as unknown as` to bridge Immer's draft types.
-        state.dataTypes = data.dataTypes as typeof state.dataTypes;
+        // Hydrate FieldType class instances from plain JSON objects
+        state.dataTypes = data.dataTypes.map(hydrateDataType) as typeof state.dataTypes;
         state.dataEntries = data.dataEntries as typeof state.dataEntries;
-        state.classes = data.classes as typeof state.classes;
-        state.variables = data.variables as typeof state.variables;
-        state.maps = data.maps as typeof state.maps;
-        state.chipsets = data.chipsets as typeof state.chipsets;
+        state.classes = data.classes.map(hydrateCustomClass) as typeof state.classes;
+        state.variables = data.variables.map(hydrateVariable) as typeof state.variables;
+        state.maps = data.maps.map(hydrateGameMap) as typeof state.maps;
+        state.chipsets = data.chipsets.map(hydrateChipset) as typeof state.chipsets;
         state.prefabs = data.prefabs as typeof state.prefabs;
         state.eventTemplates = data.eventTemplates as unknown as typeof state.eventTemplates;
         state.uiCanvases = data.uiCanvases as unknown as typeof state.uiCanvases;

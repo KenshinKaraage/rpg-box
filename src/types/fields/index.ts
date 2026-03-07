@@ -19,6 +19,8 @@ export {
   clearFieldTypeRegistry,
   createFieldTypeInstance,
   getFieldTypeOptions,
+  hydrateFieldType,
+  hydrateFields,
 } from './registry';
 
 // 組み込みフィールドタイプ

@@ -101,6 +101,51 @@ export function createFieldTypeInstance(type: string): FieldType<any> | undefine
 }
 
 /**
+ * プレーンオブジェクト（JSON由来）から FieldType クラスインスタンスを復元する。
+ * createFieldTypeInstance() で空インスタンスを作成し、保存されたプロパティをコピー。
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydrateFieldType(plain: Record<string, unknown>): FieldType<any> | null {
+  const typeName = plain['type'] as string | undefined;
+  if (!typeName) return null;
+
+  const instance = createFieldTypeInstance(typeName);
+  if (!instance) return null;
+
+  // 基底クラス共通プロパティ
+  if (typeof plain['id'] === 'string') instance.id = plain['id'];
+  if (typeof plain['name'] === 'string') instance.name = plain['name'];
+  if (typeof plain['required'] === 'boolean') instance.required = plain['required'];
+  if (plain['displayCondition']) {
+    instance.displayCondition = plain['displayCondition'] as typeof instance.displayCondition;
+  }
+
+  // サブクラス固有プロパティをコピー（type, label, tsType は readonly なのでスキップ）
+  const skip = new Set(['type', 'label', 'tsType', 'id', 'name', 'required', 'displayCondition']);
+  for (const key of Object.keys(plain)) {
+    if (!skip.has(key) && key in instance) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (instance as any)[key] = plain[key];
+    }
+  }
+
+  return instance;
+}
+
+/**
+ * fields 配列内のプレーンオブジェクトを FieldType インスタンスに復元。
+ * 既にインスタンスの場合はそのまま返す。
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydrateFields(fields: unknown[]): FieldType<any>[] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return fields.map((f: any) => {
+    if (typeof f?.renderConfig === 'function') return f;
+    return hydrateFieldType(f as Record<string, unknown>) ?? f;
+  });
+}
+
+/**
  * ドロップダウン用のフィールドタイプオプション一覧を取得
  *
  * @param allowedTypes 許可するタイプ名の配列（省略時は全タイプ）

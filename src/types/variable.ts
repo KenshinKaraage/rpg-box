@@ -7,7 +7,7 @@
  */
 
 import type { FieldType } from './fields/FieldType';
-import { createFieldTypeInstance, NumberFieldType } from './fields';
+import { createFieldTypeInstance, hydrateFieldType, NumberFieldType } from './fields';
 
 /**
  * 変数インターフェース
@@ -65,4 +65,16 @@ export function createVariable(
     isArray,
     initialValue: getDefaultInitialValue(fieldType, isArray),
   };
+}
+
+/**
+ * プレーンオブジェクト（JSON由来）の Variable を FieldType インスタンス付きに復元
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydrateVariable(plain: any): Variable {
+  if (plain.fieldType && typeof plain.fieldType.renderConfig === 'function') {
+    return plain; // 既にインスタンス
+  }
+  const hydrated = hydrateFieldType(plain.fieldType as Record<string, unknown>);
+  return { ...plain, fieldType: hydrated ?? plain.fieldType };
 }
