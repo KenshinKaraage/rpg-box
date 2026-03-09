@@ -106,7 +106,7 @@ describe('ensureTemplateController', () => {
     const root = objects[0]!;
     const tc = root.components.find((c) => c.type === 'templateController');
     expect(tc).toBeDefined();
-    expect(tc!.data).toEqual({ args: [], onSpawnActions: [] });
+    expect(tc!.data).toEqual({ args: [], onSpawnActions: [], onApplyActions: [] });
   });
 
   it('does not duplicate if templateController already exists', () => {

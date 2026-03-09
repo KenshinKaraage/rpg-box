@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useStore } from '@/stores';
 import { getUIComponent } from '@/types/ui';
 import { ComponentPropertyEditor } from './ComponentPropertyEditor';
+import { TemplateControllerEditor } from './TemplateControllerEditor';
 import type { RectTransform } from '@/types/ui/UIComponent';
 import type { SerializedUIComponent } from '@/stores/uiEditorSlice';
 
@@ -27,7 +28,9 @@ export function ComponentListItem({ component, onRemove, onUpdateData, onTransfo
   const Ctor = getUIComponent(component.type);
   const instance = Ctor ? new Ctor() : null;
   const label = instance ? instance.label : component.type;
-  const hasEditor = instance != null && instance.getPropertyDefs().length > 0;
+  const hasEditor =
+    instance != null &&
+    (instance.getPropertyDefs().length > 0 || component.type === 'templateController');
 
   const compData = (component.data ?? {}) as Record<string, unknown>;
 
@@ -62,7 +65,13 @@ export function ComponentListItem({ component, onRemove, onUpdateData, onTransfo
           <Trash2 className="h-3 w-3" />
         </Button>
       </div>
-      {expanded && instance != null && instance.getPropertyDefs().length > 0 && (
+      {expanded && component.type === 'templateController' && (
+        <TemplateControllerEditor
+          data={compData}
+          onChange={(updated) => onUpdateData(updated)}
+        />
+      )}
+      {expanded && instance != null && instance.getPropertyDefs().length > 0 && component.type !== 'templateController' && (
         <ComponentPropertyEditor
           componentType={component.type}
           data={compData}
