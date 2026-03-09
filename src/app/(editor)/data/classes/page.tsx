@@ -15,6 +15,7 @@ import { generateId } from '@/lib/utils';
 export default function ClassesPage() {
   // ストアから状態とアクションを取得
   const classes = useStore((state) => state.classes);
+  const dataTypes = useStore((state) => state.dataTypes);
   const selectedClassId = useStore((state) => state.selectedClassId);
   const addClass = useStore((state) => state.addClass);
   const updateClass = useStore((state) => state.updateClass);
@@ -84,8 +85,9 @@ export default function ClassesPage() {
             .filter((c) => !wouldCreateCycle(selectedClassId, c.id, classes))
             .map((c) => ({ id: c.id, name: c.name }))
         : classes.map((c) => ({ id: c.id, name: c.name })),
+      dataTypes: dataTypes.map((t) => ({ id: t.id, name: t.name })),
     }),
-    [classes, selectedClassId]
+    [classes, dataTypes, selectedClassId]
   );
 
   return (
