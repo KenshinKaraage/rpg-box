@@ -5033,23 +5033,23 @@ export function useAutoSave() {
 
 #### [T187] [P] Implement TemplateControllerComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
+- **ステータス:** [x] 完了
 
 **完了条件:**
 
-- [ ] `src/types/ui/components/TemplateControllerComponent.ts` 作成
-- [ ] `args: TemplateArg[]` — 公開引数
-- [ ] `onSpawnActions: SerializedAction[]` — 生成時に1回実行（引数 `{{argName}}` 参照可）
-- [ ] `onApplyActions: SerializedAction[]` — データ更新時に毎回実行（引数 `{{argName}}` 参照可）
-- [ ] serialize/deserialize/clone 実装
-- [ ] テスト追加
-- [ ] `register.ts` と `index.ts` を更新
+- [x] `src/types/ui/components/TemplateControllerComponent.ts` 作成
+- [x] `args: TemplateArg[]` — 公開引数
+- [x] `onSpawnActions: SerializedAction[]` — 生成時に1回実行（引数 `{{argName}}` 参照可）
+- [x] `onApplyActions: SerializedAction[]` — データ更新時に毎回実行（引数 `{{argName}}` 参照可）
+- [x] serialize/deserialize/clone 実装
+- [x] テスト追加
+- [x] `register.ts` と `index.ts` を更新
+- [x] エディタUI: TemplateControllerEditor（引数編集 + onSpawn/onApply アクション編集）
 
 **関連ファイル:**
 
 - `src/types/ui/components/TemplateControllerComponent.ts` + `.test.ts`
+- `src/features/ui-editor/components/TemplateControllerEditor.tsx`
 
 **備考:** onSpawn = インスタンス生成時（例: ダメージポップ出現）、onApply = データ更新時（例: キャラパネル更新）。両方とも全アクションブロックを許可（条件分岐、ループ、アニメーション再生等）
 
@@ -5057,17 +5057,15 @@ export function useAutoSave() {
 
 #### [T187a] [P] Implement RepeaterComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
+- **ステータス:** [x] 完了
 
 **完了条件:**
 
-- [ ] `src/types/ui/components/RepeaterComponent.ts` 作成
-- [ ] `templateId: string` — 繰り返し生成するテンプレートID
-- [ ] serialize/deserialize/clone 実装
-- [ ] テスト追加
-- [ ] `register.ts` と `index.ts` を更新
+- [x] `src/types/ui/components/RepeaterComponent.ts` 作成
+- [x] `templateId: string` — 繰り返し生成するテンプレートID
+- [x] serialize/deserialize/clone 実装
+- [x] テスト追加
+- [x] `register.ts` と `index.ts` を更新
 
 **関連ファイル:**
 
@@ -5364,14 +5362,14 @@ export function useAutoSave() {
 - [x] 全 ID 再生成（oldId → newId リマッピング）
 - [x] useTemplateInstantiate() フック
 - [x] テスト追加
-- [ ] TemplateControllerComponent.onSpawn 実行（T187 で TemplateController 型を拡張後に実装）
-- [ ] TemplateControllerComponent.onApply 実行（T187 で TemplateController 型を拡張後に実装）
+- [ ] TemplateControllerComponent.onSpawn 実行 → Phase 18（Game Engine ランタイムで実行）
+- [ ] TemplateControllerComponent.onApply 実行 → Phase 18（Game Engine ランタイムで実行）
 
 **関連ファイル:**
 
 - `src/features/ui-editor/hooks/useTemplateInstantiate.ts` + `.test.ts`
 
-**備考:** インスタンス生成の基盤は完了。onSpawn/onApply の実行は T187 の TemplateControllerComponent 拡張後に追加
+**備考:** インスタンス生成の基盤は完了。onSpawn/onApply はエディタでは定義のみ、実際の実行は Phase 18 Game Engine ランタイムで実装
 
 ---
 

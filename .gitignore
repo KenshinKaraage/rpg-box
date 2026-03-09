@@ -40,3 +40,10 @@ coverage/
 
 # Misc
 *.log
+
+# AI tools (local config)
+.claude/
+.serena/
+
+# Temporary screenshots
+screenshot/
