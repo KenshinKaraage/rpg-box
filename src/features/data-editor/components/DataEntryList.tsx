@@ -1,6 +1,6 @@
 'use client';
 
-import { Trash2, Copy, Search, FileText } from 'lucide-react';
+import { Plus, Trash2, Copy, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDataFilter } from '../hooks/useDataFilter';
@@ -11,14 +11,17 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
+import { useStore } from '@/stores';
 import type { DataType, DataEntry } from '@/types/data';
-import { MAX_DATA_ENTRIES_PER_TYPE } from '@/types/data';
+import { NAME_FIELD_ID, MAX_DATA_ENTRIES_PER_TYPE } from '@/types/data';
 
 interface DataEntryListProps {
   entries: DataEntry[];
   dataType: DataType | null;
   selectedId: string | null;
+  isFieldEditing: boolean;
   onSelect: (id: string | null) => void;
+  onFieldEdit: () => void;
   onAdd: () => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
@@ -31,32 +34,55 @@ export function DataEntryList({
   entries,
   dataType,
   selectedId,
+  isFieldEditing,
   onSelect,
+  onFieldEdit,
   onAdd,
   onDelete,
   onDuplicate,
 }: DataEntryListProps) {
   const { query, setQuery, filteredEntries } = useDataFilter(entries);
+  const assets = useStore((state) => state.assets);
 
-  // dataType のフィールドから最初の string タイプを見つける
-  const firstStringField = dataType?.fields.find((field) => field.type === 'string') ?? null;
+  // 最初の画像フィールドを見つける
+  const firstImageField = dataType?.fields.find((field) => field.type === 'image') ?? null;
 
   const isAddDisabled = !dataType || entries.length >= MAX_DATA_ENTRIES_PER_TYPE;
+
+  // エントリの表示名を取得（nameフィールドの値、なければID）
+  const getEntryDisplayName = (entry: DataEntry): string => {
+    const nameValue = entry.values[NAME_FIELD_ID];
+    if (nameValue && typeof nameValue === 'string' && nameValue.trim()) {
+      return nameValue;
+    }
+    return entry.id;
+  };
+
+  // エントリのサムネイル画像URLを取得
+  const getEntryThumbnail = (entry: DataEntry): string | null => {
+    if (!firstImageField) return null;
+    const assetId = entry.values[firstImageField.id];
+    if (!assetId || typeof assetId !== 'string') return null;
+    const asset = assets.find((a) => a.id === assetId);
+    return asset?.data ?? null;
+  };
 
   return (
     <div className="flex h-full flex-col">
       {/* ヘッダー */}
       <div className="flex items-center justify-between border-b px-5 py-4">
-        <h2 className="text-lg font-bold">
-          {dataType ? dataType.name : 'エントリ'}
-        </h2>
+        <h2 className="text-lg font-bold">{dataType ? dataType.name : 'エントリ'}</h2>
         <div className="flex gap-2">
           {dataType && (
             <Button
               size="sm"
               variant="outline"
-              className="border-primary text-primary"
-              onClick={() => onSelect(null)}
+              className={
+                isFieldEditing
+                  ? 'border-primary text-primary'
+                  : 'border-muted-foreground/30 text-muted-foreground'
+              }
+              onClick={onFieldEdit}
             >
               フィールド編集
             </Button>
@@ -69,6 +95,7 @@ export function DataEntryList({
             disabled={isAddDisabled}
             data-testid="add-entry-button"
           >
+            <Plus className="mr-1 h-4 w-4" />
             新規作成
           </Button>
         </div>
@@ -109,7 +136,7 @@ export function DataEntryList({
                 <ContextMenuTrigger asChild>
                   <li
                     className={cn(
-                      'flex cursor-pointer items-center justify-between rounded-xl border-2 px-5 py-4 transition-colors',
+                      'flex cursor-pointer items-center gap-4 rounded-xl border-2 px-5 py-4 transition-colors',
                       selectedId === entry.id
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-primary/50'
@@ -117,15 +144,26 @@ export function DataEntryList({
                     onClick={() => onSelect(entry.id)}
                     data-testid={`entry-item-${entry.id}`}
                   >
-                    <div>
-                      <div className="text-sm font-bold">{entry.id}</div>
-                      {firstStringField && (
-                        <div className="mt-1 truncate text-xs text-muted-foreground">
-                          {String(entry.values[firstStringField.id] ?? '')}
-                        </div>
-                      )}
+                    {(() => {
+                      const thumb = getEntryThumbnail(entry);
+                      // eslint-disable-next-line @next/next/no-img-element
+                      return thumb ? (
+                        <img
+                          src={thumb}
+                          alt=""
+                          className="h-10 w-10 shrink-0 rounded-md object-cover"
+                        />
+                      ) : null;
+                    })()}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-bold">
+                        {getEntryDisplayName(entry)}
+                      </div>
+                      <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {entry.id}
+                      </div>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex shrink-0 gap-1">
                       <Button
                         size="icon"
                         variant="ghost"

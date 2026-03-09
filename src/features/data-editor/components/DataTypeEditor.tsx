@@ -1,13 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Plus, Settings2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NAME_FIELD_ID, type DataType } from '@/types/data';
 import type { FieldType } from '@/types/fields/FieldType';
@@ -17,30 +11,19 @@ import { generateId } from '@/lib/utils';
 import { FieldRow } from './FieldRow';
 import { FieldTypeSelector } from './FieldTypeSelector';
 
-const dataTypeSchema = z.object({
-  name: z.string().min(1, 'データ型名は必須です').max(50, '50文字以内で入力してください'),
-  description: z.string().max(200, '200文字以内で入力してください').optional(),
-});
-
-type DataTypeFormData = z.infer<typeof dataTypeSchema>;
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFieldType = FieldType<any>;
 
 interface DataTypeEditorProps {
-  dataType: DataType | null;
-  existingIds: string[];
-  onUpdateDataType: (id: string, updates: Partial<DataType>) => void;
+  dataType: DataType;
   onAddField: (typeId: string, field: AnyFieldType) => void;
   onReplaceField: (typeId: string, fieldId: string, newField: AnyFieldType) => void;
   onDeleteField: (typeId: string, fieldId: string) => void;
-  onReorderFields: (typeId: string, fromIndex: number, toIndex: number) => void;
   configContext?: FieldConfigContext;
 }
 
 export function DataTypeEditor({
   dataType,
-  onUpdateDataType,
   onAddField,
   onReplaceField,
   onDeleteField,
@@ -48,33 +31,6 @@ export function DataTypeEditor({
 }: DataTypeEditorProps) {
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
   const [fieldSelectorOpen, setFieldSelectorOpen] = useState(false);
-
-  const defaultValues: DataTypeFormData = dataType
-    ? {
-        name: dataType.name,
-        description: dataType.description ?? '',
-      }
-    : {
-        name: '',
-        description: '',
-      };
-
-  const {
-    register,
-    formState: { errors },
-  } = useForm<DataTypeFormData>({
-    resolver: zodResolver(dataTypeSchema),
-    defaultValues,
-  });
-
-  if (!dataType) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
-        <Settings2 className="mb-2 h-10 w-10 text-muted-foreground/20" />
-        <p className="text-sm">データ型を選択してください</p>
-      </div>
-    );
-  }
 
   const handleAddField = (type: string) => {
     const newField = createFieldTypeInstance(type);
@@ -138,56 +94,13 @@ export function DataTypeEditor({
 
   return (
     <div className="flex h-full flex-col">
-      {/* データ型基本情報 */}
-      <div className="space-y-6 border-b p-5">
-        <h3 className="text-sm font-bold">データ型設定</h3>
-
-        <div className="space-y-2">
-          <Label htmlFor="dataTypeId">データ型ID</Label>
-          <Input
-            id="dataTypeId"
-            defaultValue={dataType.id}
-            onBlur={(e) => {
-              const newId = e.target.value.trim();
-              if (newId && newId !== dataType.id) {
-                onUpdateDataType(dataType.id, { id: newId } as Partial<DataType>);
-              }
-            }}
-            placeholder="データ型ID"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="name">データ型名</Label>
-          <Input
-            id="name"
-            {...register('name')}
-            onChange={(e) => {
-              register('name').onChange(e);
-              onUpdateDataType(dataType.id, { name: e.target.value });
-            }}
-            placeholder="データ型名を入力"
-          />
-          {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">説明（オプション）</Label>
-          <Textarea
-            id="description"
-            {...register('description')}
-            onChange={(e) => {
-              register('description').onChange(e);
-              onUpdateDataType(dataType.id, { description: e.target.value });
-            }}
-            placeholder="データ型の説明"
-            rows={2}
-          />
-        </div>
+      {/* ヘッダー */}
+      <div className="border-b px-5 py-4">
+        <h3 className="text-sm font-bold">フィールド編集</h3>
       </div>
 
       {/* フィールド一覧 */}
-      <div className="flex-1 overflow-auto p-5">
+      <div className="flex-1 overflow-auto p-3">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-sm font-bold">フィールド一覧</h3>
           <Button
@@ -206,7 +119,7 @@ export function DataTypeEditor({
             フィールドがありません
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {dataType.fields.map((field) => (
               <FieldRow
                 key={field.id}

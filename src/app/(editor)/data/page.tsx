@@ -3,7 +3,13 @@
 import { useMemo, useState, useCallback } from 'react';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { DataTypeList, DataTypeEditor, DataEntryList, FormBuilder } from '@/features/data-editor';
+import {
+  DataTypeList,
+  DataTypeEditor,
+  DataTypeInfoView,
+  DataEntryList,
+  FormBuilder,
+} from '@/features/data-editor';
 import { useStore } from '@/stores';
 import { createDataType, createDataEntry } from '@/types/data';
 import { createFieldTypeInstance } from '@/types/fields';
@@ -44,7 +50,6 @@ export default function DataPage() {
   const addFieldToDataType = useStore((state) => state.addFieldToDataType);
   const replaceDataTypeField = useStore((state) => state.replaceDataTypeField);
   const deleteDataTypeField = useStore((state) => state.deleteDataTypeField);
-  const reorderDataTypeFields = useStore((state) => state.reorderDataTypeFields);
 
   const addDataEntry = useStore((state) => state.addDataEntry);
   const updateDataEntryId = useStore((state) => state.updateDataEntryId);
@@ -72,6 +77,9 @@ export default function DataPage() {
     return typeEntries?.find((e) => e.id === state.selectedDataEntryId) ?? null;
   });
 
+  // フィールド編集モード
+  const [isFieldEditing, setIsFieldEditing] = useState(false);
+
   // インポート状態
   const [isImporting, setIsImporting] = useState(false);
 
@@ -84,7 +92,6 @@ export default function DataPage() {
   } | null>(null);
 
   // 既存のデータ型IDリスト（バリデーション用）
-  const existingIds = useMemo(() => dataTypes.map((t) => t.id), [dataTypes]);
 
   // フィールド設定コンテキスト
   const configContext: FieldConfigContext = useMemo(
@@ -176,6 +183,7 @@ export default function DataPage() {
     const entry = createDataEntry(id, selectedDataType.id, selectedDataType.fields);
     addDataEntry(entry);
     selectDataEntry(id);
+    setIsFieldEditing(false);
   };
 
   // エントリを複製
@@ -246,9 +254,30 @@ export default function DataPage() {
 
   // --- レンダリング ---
 
-  // 右パネル: エントリ選択時 → FormBuilder / 未選択時 → DataTypeEditor
-  const rightPanel =
-    selectedDataType && selectedEntry ? (
+  // データタイプ切替時にフィールド編集モードを解除
+  const handleSelectDataType = (id: string) => {
+    setIsFieldEditing(false);
+    selectDataType(id);
+  };
+
+  // フィールド編集モードに入る
+  const handleFieldEdit = () => {
+    selectDataEntry(null as unknown as string);
+    setIsFieldEditing(true);
+  };
+
+  // エントリ選択時にフィールド編集モードを解除
+  const handleSelectEntry = (id: string | null) => {
+    if (id !== null) {
+      setIsFieldEditing(false);
+    }
+    selectDataEntry(id);
+  };
+
+  // 右パネル: エントリ選択時 → FormBuilder / フィールド編集 → DataTypeEditor / それ以外 → DataTypeInfoView
+  let rightPanel;
+  if (selectedDataType && selectedEntry) {
+    rightPanel = (
       <FormBuilder
         key={selectedEntry.id}
         dataType={selectedDataType}
@@ -257,19 +286,28 @@ export default function DataPage() {
         onUpdateEntry={updateDataEntry}
         onUpdateEntryId={updateDataEntryId}
       />
-    ) : (
+    );
+  } else if (selectedDataType && isFieldEditing) {
+    rightPanel = (
       <DataTypeEditor
-        key={selectedDataTypeId ?? 'none'}
+        key={`fields-${selectedDataTypeId}`}
         dataType={selectedDataType}
-        existingIds={existingIds}
-        onUpdateDataType={updateDataType}
         onAddField={addFieldToDataType}
         onReplaceField={replaceDataTypeField}
         onDeleteField={deleteDataTypeField}
-        onReorderFields={reorderDataTypeFields}
         configContext={configContext}
       />
     );
+  } else {
+    rightPanel = (
+      <DataTypeInfoView
+        key={selectedDataTypeId ?? 'none'}
+        dataType={selectedDataType}
+        onUpdateDataType={updateDataType}
+        onFieldEdit={handleFieldEdit}
+      />
+    );
+  }
 
   return (
     <>
@@ -279,7 +317,7 @@ export default function DataPage() {
             dataTypes={dataTypes}
             dataEntries={dataEntries}
             selectedId={selectedDataTypeId}
-            onSelect={selectDataType}
+            onSelect={handleSelectDataType}
             onAdd={handleAddDataType}
             onDelete={handleDeleteDataType}
             onDuplicate={handleDuplicateDataType}
@@ -292,7 +330,9 @@ export default function DataPage() {
             entries={entries}
             dataType={selectedDataType}
             selectedId={selectedDataEntryId}
-            onSelect={selectDataEntry}
+            isFieldEditing={isFieldEditing}
+            onSelect={handleSelectEntry}
+            onFieldEdit={handleFieldEdit}
             onAdd={handleAddEntry}
             onDelete={handleDeleteEntry}
             onDuplicate={handleDuplicateEntry}

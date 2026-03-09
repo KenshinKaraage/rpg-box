@@ -4,6 +4,7 @@ export { ClassList } from './components/ClassList';
 export { ClassEditor } from './components/ClassEditor';
 export { DataTypeList } from './components/DataTypeList';
 export { DataTypeEditor } from './components/DataTypeEditor';
+export { DataTypeInfoView } from './components/DataTypeInfoView';
 export { DataEntryList } from './components/DataEntryList';
 export { FormBuilder } from './components/FormBuilder';
 export { FieldRow } from './components/FieldRow';

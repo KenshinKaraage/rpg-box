@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { DataType, DataEntry } from '@/types/data';
-import { validateDataId } from '@/types/data';
+import { NAME_FIELD_ID, validateDataId } from '@/types/data';
 import { computeFieldVisibility } from '../utils/conditionEvaluator';
 
 interface FormBuilderProps {
@@ -73,7 +73,14 @@ export function FormBuilder({
     <div className="flex h-full flex-col">
       {/* ヘッダー */}
       <div className="border-b px-5 py-4">
-        <h2 className="text-lg font-bold">データ編集</h2>
+        <h3 className="text-sm font-bold">
+          {(() => {
+            const nameVal = entry.values[NAME_FIELD_ID];
+            return nameVal && typeof nameVal === 'string' && nameVal.trim()
+              ? nameVal
+              : entry.id;
+          })()}
+        </h3>
       </div>
 
       {/* フィールド */}
