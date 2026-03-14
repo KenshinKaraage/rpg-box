@@ -55,6 +55,10 @@ export class GameRuntime {
   /** True while an event is being executed (blocks new triggers). */
   private eventRunning = false;
 
+  /** Shared context for all event/script execution (persists variable state). */
+  private context: GameContext | null = null;
+  private sharedScriptRunner: ScriptRunner | null = null;
+
   constructor(canvas: HTMLCanvasElement, projectData: ProjectData) {
     const gl = canvas.getContext('webgl');
     if (!gl) throw new Error('WebGL not supported');
@@ -109,6 +113,12 @@ export class GameRuntime {
 
     // Load start map
     await this.loadMap(settings.startMapId);
+
+    // Build persistent GameContext (shared across all events)
+    const engineData = this.buildEngineProjectData();
+    this.sharedScriptRunner = new ScriptRunner(this.projectData.scripts);
+    this.context = new GameContext(engineData, this.sharedScriptRunner);
+    this.context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
 
     // Camera follows active controller
     this.camera.followTarget(() => {
@@ -258,8 +268,28 @@ export class GameRuntime {
       return action;
     });
 
-    // Build EngineProjectData from ProjectData
-    const engineData = {
+    if (!this.context) {
+      console.error('[GameRuntime] GameContext not initialized');
+      return;
+    }
+
+    // Run asynchronously using the shared context
+    this.eventRunning = true;
+    this.world.setEventRunning(true);
+    const eventRunner = new EventRunner();
+    eventRunner
+      .run(actions, this.context)
+      .catch((err) => {
+        console.error(`[GameRuntime] Event error (${eventId}):`, err);
+      })
+      .finally(() => {
+        this.eventRunning = false;
+        this.world.setEventRunning(false);
+      });
+  }
+
+  private buildEngineProjectData() {
+    return {
       scripts: this.projectData.scripts,
       variables: this.projectData.variables.map((v) => ({
         id: v.id,
@@ -275,23 +305,6 @@ export class GameRuntime {
       dataTypes: this.projectData.dataTypes?.map((dt) => ({ id: dt.id, name: dt.name })) ?? [],
       dataEntries: this.projectData.dataEntries ?? {},
     };
-    const runner = new ScriptRunner(this.projectData.scripts);
-    const context = new GameContext(engineData, runner);
-
-    // Wire up waitFrames so WaitAction works within the game loop
-    context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
-
-    // Run asynchronously
-    this.eventRunning = true;
-    const eventRunner = new EventRunner();
-    eventRunner
-      .run(actions, context)
-      .catch((err) => {
-        console.error(`[GameRuntime] Event error (${eventId}):`, err);
-      })
-      .finally(() => {
-        this.eventRunning = false;
-      });
   }
 
   // ── Private: Render ──
