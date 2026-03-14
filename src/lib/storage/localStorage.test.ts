@@ -61,7 +61,6 @@ describe('LocalStorageProvider', () => {
             description: 'Test Description',
             resolution: { width: 1280, height: 720 },
             startMapId: 'map_001',
-            startPosition: { x: 0, y: 0 },
           },
         },
       };
@@ -87,7 +86,6 @@ describe('LocalStorageProvider', () => {
             description: 'Test',
             resolution: { width: 1280, height: 720 },
             startMapId: 'map_001',
-            startPosition: { x: 0, y: 0 },
           },
         },
       };

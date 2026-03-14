@@ -39,10 +39,6 @@ const gameSettingsSchema = z.object({
       .max(2160, '2160以下の値を入力してください'),
   }),
   startMapId: z.string(),
-  startPosition: z.object({
-    x: z.number().min(0),
-    y: z.number().min(0),
-  }),
   defaultBGM: z.string().optional(),
   icon: z.string().optional(),
 });

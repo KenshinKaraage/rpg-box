@@ -9,16 +9,6 @@ export interface Resolution {
 }
 
 /**
- * 位置座標
- */
-export interface Position {
-  /** X座標 */
-  x: number;
-  /** Y座標 */
-  y: number;
-}
-
-/**
  * ゲーム設定
  *
  * ゲームの基本情報と初期設定を保持する
@@ -42,9 +32,6 @@ export interface GameSettings {
   /** ゲーム開始時のマップID */
   startMapId: string;
 
-  /** ゲーム開始時の初期位置 */
-  startPosition: Position;
-
   /** デフォルトBGMのアセットパス（オプション） */
   defaultBGM?: string;
 
@@ -62,7 +49,6 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
   description: '',
   resolution: { width: 1280, height: 720 },
   startMapId: '',
-  startPosition: { x: 0, y: 0 },
 };
 
 /**

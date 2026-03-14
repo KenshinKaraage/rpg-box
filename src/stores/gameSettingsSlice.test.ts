@@ -81,16 +81,6 @@ describe('gameSettingsSlice', () => {
       expect(result.current.gameSettings.startMapId).toBe('map_forest');
     });
 
-    it('updates startPosition', () => {
-      const { result } = renderHook(() => useStore());
-
-      act(() => {
-        result.current.updateGameSettings({ startPosition: { x: 10, y: 20 } });
-      });
-
-      expect(result.current.gameSettings.startPosition).toEqual({ x: 10, y: 20 });
-    });
-
     it('updates defaultBGM', () => {
       const { result } = renderHook(() => useStore());
 

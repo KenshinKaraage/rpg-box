@@ -5,6 +5,12 @@
  */
 
 import type { ProjectData } from '@/lib/storage/types';
+import '@/engine/actions/register';
+import '@/engine/values/register';
+import { getAction } from '@/engine/actions/index';
+import { EventRunner } from '@/engine/event/EventRunner';
+import { ScriptRunner } from '@/engine/core/ScriptRunner';
+import { GameContext } from './GameContext';
 import { GameLoop } from './GameLoop';
 import { InputManager } from './InputManager';
 import { Camera } from './Camera';
@@ -45,6 +51,9 @@ export class GameRuntime {
 
   /** Pending frame-wait promises (ticked each update). */
   private frameWaiters: FrameWaiter[] = [];
+
+  /** True while an event is being executed (blocks new triggers). */
+  private eventRunning = false;
 
   constructor(canvas: HTMLCanvasElement, projectData: ProjectData) {
     const gl = canvas.getContext('webgl');
@@ -100,14 +109,6 @@ export class GameRuntime {
 
     // Load start map
     await this.loadMap(settings.startMapId);
-
-    // Set player position from settings
-    if (this.world.activeController) {
-      this.world.activeController.gridX = settings.startPosition.x;
-      this.world.activeController.gridY = settings.startPosition.y;
-      this.world.activeController.pixelX = settings.startPosition.x * TILE_SIZE;
-      this.world.activeController.pixelY = settings.startPosition.y * TILE_SIZE;
-    }
 
     // Camera follows active controller
     this.camera.followTarget(() => {
@@ -207,12 +208,12 @@ export class GameRuntime {
       }
     }
 
-    // Trigger evaluation
-    const triggerResult = this.triggerSystem.update(this.world, this.input);
-    if (triggerResult) {
-      // TODO: Execute event via EventRunner
-      // For now, just log
-      console.log('[GameRuntime] Trigger fired:', triggerResult.eventId);
+    // Trigger evaluation (skip while an event is already running)
+    if (!this.eventRunning) {
+      const triggerResult = this.triggerSystem.update(this.world, this.input);
+      if (triggerResult) {
+        this.executeTriggeredEvent(triggerResult.eventId);
+      }
     }
 
     // Camera update
@@ -234,6 +235,66 @@ export class GameRuntime {
         i++;
       }
     }
+  }
+
+  // ── Private: Event execution ──
+
+  /**
+   * Find an event template by ID, deserialize its actions, and run them.
+   * Runs asynchronously — the game loop continues (for waitFrames support).
+   */
+  private executeTriggeredEvent(eventId: string): void {
+    const template = this.projectData.eventTemplates.find((t) => t.id === eventId);
+    if (!template) {
+      console.warn(`[GameRuntime] Event template not found: ${eventId}`);
+      return;
+    }
+
+    if (!template.actions || template.actions.length === 0) return;
+
+    // Deserialize actions
+    const actions = template.actions.map((a) => {
+      const ActionClass = getAction(a.type);
+      if (!ActionClass) throw new Error(`Unknown action type: ${a.type}`);
+      const action = new ActionClass();
+      action.fromJSON(a.data as Record<string, unknown>);
+      return action;
+    });
+
+    // Build EngineProjectData from ProjectData
+    const engineData = {
+      scripts: this.projectData.scripts,
+      variables: this.projectData.variables.map((v) => ({
+        id: v.id,
+        name: v.name,
+        type: v.fieldType.type,
+        defaultValue: v.initialValue,
+      })),
+      classes: this.projectData.classes?.map((c) => ({
+        id: c.id,
+        name: c.name,
+        fields: c.fields?.map((f) => ({ id: f.id, fieldType: f.type })) ?? [],
+      })) ?? [],
+      dataTypes: this.projectData.dataTypes?.map((dt) => ({ id: dt.id, name: dt.name })) ?? [],
+      dataEntries: this.projectData.dataEntries ?? {},
+    };
+    const runner = new ScriptRunner(this.projectData.scripts);
+    const context = new GameContext(engineData, runner);
+
+    // Wire up waitFrames so WaitAction works within the game loop
+    context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
+
+    // Run asynchronously
+    this.eventRunning = true;
+    const eventRunner = new EventRunner();
+    eventRunner
+      .run(actions, context)
+      .catch((err) => {
+        console.error(`[GameRuntime] Event error (${eventId}):`, err);
+      })
+      .finally(() => {
+        this.eventRunning = false;
+      });
   }
 
   // ── Private: Render ──

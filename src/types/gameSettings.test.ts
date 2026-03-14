@@ -1,4 +1,4 @@
-import type { GameSettings, Resolution, Position } from './gameSettings';
+import type { GameSettings, Resolution } from './gameSettings';
 import { DEFAULT_GAME_SETTINGS, RESOLUTION_PRESETS } from './gameSettings';
 
 describe('GameSettings type', () => {
@@ -13,17 +13,6 @@ describe('GameSettings type', () => {
     });
   });
 
-  describe('Position type', () => {
-    it('has x and y properties', () => {
-      const position: Position = {
-        x: 10,
-        y: 20,
-      };
-      expect(position.x).toBe(10);
-      expect(position.y).toBe(20);
-    });
-  });
-
   describe('GameSettings type', () => {
     it('has all required properties', () => {
       const settings: GameSettings = {
@@ -33,7 +22,6 @@ describe('GameSettings type', () => {
         description: 'An epic adventure',
         resolution: { width: 1280, height: 720 },
         startMapId: 'map_001',
-        startPosition: { x: 5, y: 10 },
       };
 
       expect(settings.title).toBe('My RPG Game');
@@ -43,8 +31,6 @@ describe('GameSettings type', () => {
       expect(settings.resolution.width).toBe(1280);
       expect(settings.resolution.height).toBe(720);
       expect(settings.startMapId).toBe('map_001');
-      expect(settings.startPosition.x).toBe(5);
-      expect(settings.startPosition.y).toBe(10);
     });
 
     it('allows optional defaultBGM', () => {
@@ -55,7 +41,6 @@ describe('GameSettings type', () => {
         description: '',
         resolution: { width: 1280, height: 720 },
         startMapId: 'map_001',
-        startPosition: { x: 0, y: 0 },
         defaultBGM: 'bgm/title.mp3',
       };
 
@@ -70,7 +55,6 @@ describe('GameSettings type', () => {
         description: '',
         resolution: { width: 1280, height: 720 },
         startMapId: 'map_001',
-        startPosition: { x: 0, y: 0 },
         icon: 'images/icon.png',
       };
 
@@ -86,7 +70,6 @@ describe('GameSettings type', () => {
       expect(DEFAULT_GAME_SETTINGS.description).toBe('');
       expect(DEFAULT_GAME_SETTINGS.resolution).toEqual({ width: 1280, height: 720 });
       expect(DEFAULT_GAME_SETTINGS.startMapId).toBe('');
-      expect(DEFAULT_GAME_SETTINGS.startPosition).toEqual({ x: 0, y: 0 });
     });
 
     it('does not have optional fields set', () => {

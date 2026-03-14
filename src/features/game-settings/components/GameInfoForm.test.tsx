@@ -35,7 +35,6 @@ describe('GameInfoForm', () => {
         description: 'Test Description',
         resolution: { width: 1920, height: 1080 },
         startMapId: 'map_001',
-        startPosition: { x: 5, y: 10 },
       };
 
       render(<GameInfoForm initialValues={customSettings} onSubmit={mockOnSubmit} />);

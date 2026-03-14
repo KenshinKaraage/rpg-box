@@ -279,7 +279,6 @@ export interface GameSettings {
   description: string;
   resolution: { width: number; height: number };
   startMapId: string;
-  startPosition: { x: number; y: number };
   defaultBGM?: string;
 }
 

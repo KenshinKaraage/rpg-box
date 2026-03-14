@@ -36,7 +36,6 @@ describe('Storage types', () => {
           description: 'Test Description',
           resolution: { width: 1280, height: 720 },
           startMapId: 'map_001',
-          startPosition: { x: 0, y: 0 },
         },
       };
 
@@ -101,7 +100,6 @@ describe('Storage types', () => {
           description: 'Test Description',
           resolution: { width: 1280, height: 720 },
           startMapId: 'map_001',
-          startPosition: { x: 0, y: 0 },
         },
       };
 
@@ -140,7 +138,6 @@ describe('Storage types', () => {
             description: 'My RPG Description',
             resolution: { width: 1280, height: 720 },
             startMapId: 'map_001',
-            startPosition: { x: 5, y: 10 },
           },
         },
       };
@@ -187,7 +184,6 @@ describe('Storage types', () => {
             description: 'Temp',
             resolution: { width: 1280, height: 720 },
             startMapId: 'map_001',
-            startPosition: { x: 0, y: 0 },
           },
         },
       };
