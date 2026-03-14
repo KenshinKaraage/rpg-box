@@ -79,10 +79,17 @@ export class GameWorld {
     this.eventRunning = running;
   }
 
-  update(dt: number, input: InputManager): void {
+  update(dt: number, input: InputManager): { obj: RuntimeObject; fromX: number; fromY: number }[] {
+    const completions: { obj: RuntimeObject; fromX: number; fromY: number }[] = [];
+
     for (const obj of this.objects) {
       if (obj.isMoving) {
+        const fromX = obj.gridX;
+        const fromY = obj.gridY;
         this.advanceMovement(obj, dt);
+        if (!obj.isMoving) {
+          completions.push({ obj, fromX, fromY });
+        }
         continue;
       }
 
@@ -99,6 +106,7 @@ export class GameWorld {
         this.startMove(obj, toX, toY);
       }
     }
+    return completions;
   }
 
   canMove(fromX: number, fromY: number, toX: number, toY: number): boolean {

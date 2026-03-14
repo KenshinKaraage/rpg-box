@@ -227,6 +227,34 @@ describe('GameWorld', () => {
       expect(obj.pixelX).toBe(2 * 32);
     });
 
+    it('returns completed move with fromX/fromY when object finishes moving', () => {
+      const world = new GameWorld();
+      const player = makeObject('player', 2, 3, [
+        makeComponent('controller', { moveSpeed: 4, inputEnabled: true }),
+      ]);
+      world.loadMap(makeMap(10, 10, [player]), [], []);
+
+      // Start moving right
+      world.update(1 / 60, mockInput({ right: true }));
+      const obj = world.objects[0]!;
+      expect(obj.isMoving).toBe(true);
+      expect(obj.moveTargetX).toBe(3);
+
+      // Manually set progress near completion
+      obj.moveProgress = 0.95;
+
+      // Large dt should finish the move
+      const noInput = mockInput();
+      const completions = world.update(1, noInput);
+
+      expect(completions).toHaveLength(1);
+      expect(completions[0]!.obj.id).toBe('player');
+      expect(completions[0]!.fromX).toBe(2);
+      expect(completions[0]!.fromY).toBe(3);
+      expect(obj.isMoving).toBe(false);
+      expect(obj.gridX).toBe(3);
+    });
+
     it('interpolates pixel position during movement', () => {
       const world = new GameWorld();
       const player = makeObject('player', 0, 0, [

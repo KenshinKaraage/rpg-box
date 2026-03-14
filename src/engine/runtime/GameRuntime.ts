@@ -197,15 +197,12 @@ export class GameRuntime {
     // Tick frame waiters
     this.tickFrameWaiters();
 
-    // World update (movement for all objects)
-    this.world.update(dt, this.input);
+    // World update — returns objects that finished a grid move this frame
+    const completions = this.world.update(dt, this.input);
 
     // Notify trigger system of completed moves
-    for (const obj of this.world.objects) {
-      if (!obj.isMoving && obj.moveProgress === 0) {
-        // Check if object just finished moving (gridX/Y matches target)
-        // This is a simplification — ideally GameWorld would emit events
-      }
+    for (const { obj, fromX, fromY } of completions) {
+      this.triggerSystem.notifyMoveCompleted(obj, fromX, fromY);
     }
 
     // Trigger evaluation (skip while an event is already running)
