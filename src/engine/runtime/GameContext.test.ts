@@ -25,7 +25,7 @@ function createProjectData(overrides?: Partial<EngineProjectData>): EngineProjec
 describe('GameContext', () => {
   it('creates context from project data', () => {
     const data = createProjectData();
-    const ctx = new GameContext(data);
+    const ctx = new GameContext(data, new ScriptRunner([]));
     expect(ctx.scriptAPI).toBeDefined();
     expect(ctx.variable).toBeDefined();
     expect(ctx.data).toBeDefined();
@@ -72,15 +72,9 @@ describe('GameContext', () => {
 
     it('entries are accessible by ID via bracket notation', () => {
       const ctx = new GameContext(createProjectData(), new ScriptRunner([]));
-      const chars = ctx.data['character'] as Record<string, unknown>[] &
-        Record<string, Record<string, unknown>>;
+      const chars = ctx.data['character'] as Record<string, unknown>;
       expect(chars['char-1']).toEqual({ id: 'char-1', name: 'スライム', hp: 30 });
       expect(chars['char-2']).toEqual({ id: 'char-2', name: 'ドラゴン', hp: 500 });
-    });
-
-    it('returns undefined for missing typeId', () => {
-      const ctx = new GameContext(createProjectData(), new ScriptRunner([]));
-      expect(ctx.data['nonexistent']).toBeUndefined();
     });
 
     it('array methods work on entries', () => {
@@ -89,6 +83,11 @@ describe('GameContext', () => {
       const found = chars.filter((c) => c['name'] === 'ドラゴン');
       expect(found).toHaveLength(1);
       expect(found[0]!['hp']).toBe(500);
+    });
+
+    it('returns undefined for missing typeId', () => {
+      const ctx = new GameContext(createProjectData(), new ScriptRunner([]));
+      expect(ctx.data['nonexistent']).toBeUndefined();
     });
   });
 
