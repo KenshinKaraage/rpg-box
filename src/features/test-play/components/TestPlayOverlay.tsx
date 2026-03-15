@@ -98,8 +98,8 @@ export function TestPlayOverlay({ projectData, onClose }: TestPlayOverlayProps) 
       {/* Game canvas */}
       <canvas
         ref={canvasRef}
-        className="block"
-        style={{ imageRendering: 'pixelated' }}
+        className="block max-h-full max-w-full"
+        style={{ imageRendering: 'pixelated', objectFit: 'contain' }}
       />
     </div>
   );

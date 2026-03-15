@@ -114,6 +114,14 @@ export class GameRuntime {
     // Load start map
     await this.loadMap(settings.startMapId);
 
+    // Warn if no player object found
+    if (!this.world.activeController) {
+      console.warn(
+        '[GameRuntime] No object with ControllerComponent found on start map. ' +
+        'Player movement will not work. Place an object with ControllerComponent on the map.'
+      );
+    }
+
     // Build persistent GameContext (shared across all events)
     const engineData = this.buildEngineProjectData();
     this.sharedScriptRunner = new ScriptRunner(this.projectData.scripts);
@@ -313,7 +321,9 @@ export class GameRuntime {
     const gl = this.gl;
     const canvas = this.canvas;
 
-    twgl.resizeCanvasToDisplaySize(canvas);
+    // Canvas size is set by TestPlayOverlay from gameSettings.resolution.
+    // Do NOT call twgl.resizeCanvasToDisplaySize — it overrides the
+    // configured resolution with the CSS display size.
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
