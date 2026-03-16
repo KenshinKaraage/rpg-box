@@ -65,6 +65,13 @@ export function useObjectPlacement(mapId: string, layerId: string) {
 
       // 配置モード: プレハブが選択されている場合
       if (placementPrefabId) {
+        // 同じ位置にオブジェクトが既にある場合は選択のみ
+        const existingObj = getObjectAtTile(tx, ty);
+        if (existingObj) {
+          selectObject(existingObj.id);
+          return;
+        }
+
         const isEmpty = placementPrefabId === EMPTY_OBJECT_PREFAB_ID;
         const layer = getLayer();
         const existingIds = layer?.objects?.map((o) => o.id) ?? [];
@@ -82,9 +89,11 @@ export function useObjectPlacement(mapId: string, layerId: string) {
           components,
         };
 
+        console.log('[ObjectPlacement] placing object:', { newObj, mapId, layerId });
         addObject(mapId, layerId, newObj);
         pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
         selectObject(newObj.id);
+        console.log('[ObjectPlacement] object placed and selected:', newObj.id);
         return;
       }
 

@@ -213,11 +213,9 @@ export default function MapEditPage() {
           defaultValue="chipset"
           className="flex h-full flex-col bg-muted/20"
           onValueChange={(tab) => {
-            console.log('[MapPage] tab changed:', tab, 'selectedMap:', selectedMap?.id, 'layers:', selectedMap?.layers.map(l => ({ id: l.id, type: l.type })));
             if (!selectedMap) return;
             if (tab === 'object') {
               const objLayer = selectedMap.layers.find((l) => l.type === 'object');
-              console.log('[MapPage] objLayer found:', objLayer?.id);
               if (objLayer) selectLayer(objLayer.id);
             } else if (tab === 'chipset') {
               const tileLayer = selectedMap.layers.find((l) => l.type === 'tile');
