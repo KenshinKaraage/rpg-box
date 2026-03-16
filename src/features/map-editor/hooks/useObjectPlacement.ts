@@ -144,6 +144,10 @@ export function useObjectPlacement(mapId: string, layerId: string) {
       const obj = layer.objects.find((o) => o.id === dragRef.current!.objectId);
       if (!obj) return;
 
+      // 移動先に別のオブジェクトがあればブロック
+      const occupant = getObjectAtTile(tx, ty);
+      if (occupant && occupant.id !== obj.id) return;
+
       // Transform の x, y を更新
       const newComponents = obj.components.map((c) => {
         if (c.type === 'transform') {
