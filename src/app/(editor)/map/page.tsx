@@ -251,7 +251,7 @@ export default function MapEditPage() {
           <TabsContent value="chipset" className="mt-0 flex min-h-0 flex-1 flex-col">
             {selectedMap && (
               <LayerTabs
-                layers={selectedMap.layers}
+                layers={selectedMap.layers.filter((l) => l.type === 'tile')}
                 selectedLayerId={selectedLayerId}
                 onSelectLayer={selectLayer}
                 onToggleVisibility={(id) =>
@@ -304,6 +304,18 @@ export default function MapEditPage() {
           </TabsContent>
 
           <TabsContent value="object" className="mt-0 flex min-h-0 flex-1 flex-col">
+            {selectedMap && (
+              <LayerTabs
+                layers={selectedMap.layers.filter((l) => l.type === 'object')}
+                selectedLayerId={selectedLayerId}
+                onSelectLayer={selectLayer}
+                onToggleVisibility={(id) =>
+                  updateLayer(selectedMapId!, id, {
+                    visible: !(selectedMap.layers.find((l) => l.id === id)?.visible ?? true),
+                  })
+                }
+              />
+            )}
             <div className="border-b p-2 text-xs font-semibold text-muted-foreground">プレハブ</div>
             <PrefabList
               prefabs={prefabs}

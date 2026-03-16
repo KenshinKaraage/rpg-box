@@ -169,7 +169,7 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         const py = ty * TILE_SIZE;
         const isSelected = obj.id === selectedObjectId;
 
-        // 太枠（2px相当の線で矩形を描画）
+        // Frame as 4 filled rectangles (lineWidth not reliable in WebGL)
         const frameColor = hexToGlColor(objectFrameColor);
         gl.useProgram(gridProgram.program);
         twgl.setUniforms(gridProgram, {
@@ -177,18 +177,27 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           u_color: frameColor,
         });
 
+        const fw = 3; // frame width in pixels
+        // Top, Right, Bottom, Left strips as two triangles each
         const framePositions = new Float32Array([
-          px, py, px + TILE_SIZE, py,
-          px + TILE_SIZE, py, px + TILE_SIZE, py + TILE_SIZE,
-          px + TILE_SIZE, py + TILE_SIZE, px, py + TILE_SIZE,
-          px, py + TILE_SIZE, px, py,
+          // Top
+          px, py, px + TILE_SIZE, py, px, py + fw,
+          px + TILE_SIZE, py, px + TILE_SIZE, py + fw, px, py + fw,
+          // Bottom
+          px, py + TILE_SIZE - fw, px + TILE_SIZE, py + TILE_SIZE - fw, px, py + TILE_SIZE,
+          px + TILE_SIZE, py + TILE_SIZE - fw, px + TILE_SIZE, py + TILE_SIZE, px, py + TILE_SIZE,
+          // Left
+          px, py, px + fw, py, px, py + TILE_SIZE,
+          px + fw, py, px + fw, py + TILE_SIZE, px, py + TILE_SIZE,
+          // Right
+          px + TILE_SIZE - fw, py, px + TILE_SIZE, py, px + TILE_SIZE - fw, py + TILE_SIZE,
+          px + TILE_SIZE, py, px + TILE_SIZE, py + TILE_SIZE, px + TILE_SIZE - fw, py + TILE_SIZE,
         ]);
         const frameBuffer = twgl.createBufferInfoFromArrays(gl, {
           a_position: { numComponents: 2, data: framePositions },
         });
         twgl.setBuffersAndAttributes(gl, gridProgram, frameBuffer);
-        gl.lineWidth(2);
-        twgl.drawBufferInfo(gl, frameBuffer, gl.LINES);
+        twgl.drawBufferInfo(gl, frameBuffer, gl.TRIANGLES);
 
         // 選択中: 🔻マーカー（小さな三角形を枠の上に描画）
         if (isSelected) {
