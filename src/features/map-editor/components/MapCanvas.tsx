@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useStore } from '@/stores';
 import { useMapCanvas } from '../hooks/useMapCanvas';
 import { useMapViewport } from '../hooks/useMapViewport';
 import { useTilePainting } from '../hooks/useTilePainting';
+import { useObjectPlacement } from '../hooks/useObjectPlacement';
 import { TILE_SIZE } from '../utils/constants';
 
 interface MapCanvasProps {
@@ -15,6 +16,8 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
   const maps = useStore((s) => s.maps);
   const selectedLayerId = useStore((s) => s.selectedLayerId);
   const map = maps.find((m) => m.id === mapId);
+  const selectedLayer = map?.layers.find((l) => l.id === selectedLayerId) ?? null;
+  const isObjectLayer = selectedLayer?.type === 'object';
 
   useMapCanvas(canvasRef, mapId);
 
@@ -26,6 +29,7 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
   );
 
   const { paint, commitRect } = useTilePainting(mapId, selectedLayerId ?? '');
+  const objPlacement = useObjectPlacement(mapId, selectedLayerId ?? '');
 
   // ホイールイベントは passive:false で登録する必要があるため useEffect で直接アタッチ
   useEffect(() => {
@@ -35,11 +39,32 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     return () => canvas.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
+  // Delete キーでオブジェクト削除
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (isObjectLayer) {
+        objPlacement.handleKeyDown(e.key);
+      }
+    },
+    [isObjectLayer, objPlacement]
+  );
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     handleMouseDown(e.nativeEvent);
     if (e.button === 0) {
       const rect = e.currentTarget.getBoundingClientRect();
-      paint(e.clientX - rect.left, e.clientY - rect.top);
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      if (isObjectLayer) {
+        objPlacement.handleMouseDown(sx, sy);
+      } else {
+        paint(sx, sy);
+      }
     }
   };
 
@@ -47,7 +72,13 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     handleMouseMove(e.nativeEvent);
     if (e.buttons & 1) {
       const rect = e.currentTarget.getBoundingClientRect();
-      paint(e.clientX - rect.left, e.clientY - rect.top);
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      if (isObjectLayer) {
+        objPlacement.handleMouseMove(sx, sy);
+      } else {
+        paint(sx, sy);
+      }
     }
   };
 
@@ -59,9 +90,13 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
       onMouseDown={handleCanvasMouseDown}
       onMouseMove={handleCanvasMouseMove}
       onMouseUp={(e) => {
-        handleMouseUp();
-        const domRect = e.currentTarget.getBoundingClientRect();
-        commitRect(e.clientX - domRect.left, e.clientY - domRect.top);
+        if (isObjectLayer) {
+          objPlacement.handleMouseUp();
+        } else {
+          handleMouseUp();
+          const domRect = e.currentTarget.getBoundingClientRect();
+          commitRect(e.clientX - domRect.left, e.clientY - domRect.top);
+        }
       }}
     />
   );

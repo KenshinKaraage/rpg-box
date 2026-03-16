@@ -8,12 +8,22 @@ import { TILE_SIZE } from '../utils/constants';
 import { dataUrlToBlob } from '@/hooks/useBlobUrl';
 import { TileRenderer } from '@/engine/rendering/TileRenderer';
 
+/** hex色文字列 (#RRGGBB) を [r, g, b, a] (0-1) に変換 */
+function hexToGlColor(hex: string, alpha = 1): [number, number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  return [r, g, b, alpha];
+}
+
 export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>, mapId: string) {
   const maps = useStore((s) => s.maps);
   const chipsets = useStore((s) => s.chipsets);
   const assets = useStore((s) => s.assets);
   const viewport = useStore((s) => s.viewport);
   const showGrid = useStore((s) => s.showGrid);
+  const objectFrameColor = useStore((s) => s.objectFrameColor);
+  const selectedObjectId = useStore((s) => s.selectedObjectId);
 
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const tileRendererRef = useRef<TileRenderer | null>(null);
@@ -139,5 +149,66 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         }
       }
     }
-  }, [maps, chipsets, assets, viewport, showGrid, mapId, canvasRef, textureGen]);
+    // オブジェクトレイヤーのオブジェクト描画
+    for (const layer of map.layers) {
+      if (layer.visible === false) continue;
+      if (layer.type !== 'object') continue;
+      if (!layer.objects) continue;
+
+      const gridProgram = gridProgramRef.current;
+      if (!gridProgram) continue;
+
+      for (const obj of layer.objects) {
+        const transform = obj.components.find((c) => c.type === 'transform');
+        if (!transform) continue;
+        // Component クラスインスタンスから x, y を取得
+        const tx = (transform as unknown as { x: number }).x ?? 0;
+        const ty = (transform as unknown as { y: number }).y ?? 0;
+
+        const px = tx * TILE_SIZE;
+        const py = ty * TILE_SIZE;
+        const isSelected = obj.id === selectedObjectId;
+
+        // 太枠（2px相当の線で矩形を描画）
+        const frameColor = hexToGlColor(objectFrameColor);
+        gl.useProgram(gridProgram.program);
+        twgl.setUniforms(gridProgram, {
+          u_matrix: matrix,
+          u_color: frameColor,
+        });
+
+        const framePositions = new Float32Array([
+          px, py, px + TILE_SIZE, py,
+          px + TILE_SIZE, py, px + TILE_SIZE, py + TILE_SIZE,
+          px + TILE_SIZE, py + TILE_SIZE, px, py + TILE_SIZE,
+          px, py + TILE_SIZE, px, py,
+        ]);
+        const frameBuffer = twgl.createBufferInfoFromArrays(gl, {
+          a_position: { numComponents: 2, data: framePositions },
+        });
+        twgl.setBuffersAndAttributes(gl, gridProgram, frameBuffer);
+        gl.lineWidth(2);
+        twgl.drawBufferInfo(gl, frameBuffer, gl.LINES);
+
+        // 選択中: 🔻マーカー（小さな三角形を枠の上に描画）
+        if (isSelected) {
+          const markerColor: [number, number, number, number] = [1, 0.2, 0.2, 1];
+          twgl.setUniforms(gridProgram, { u_color: markerColor });
+          const cx = px + TILE_SIZE / 2;
+          const markerTop = py - 4;
+          const markerBottom = py - 12;
+          const markerPositions = new Float32Array([
+            cx, markerTop,
+            cx - 6, markerBottom,
+            cx + 6, markerBottom,
+          ]);
+          const markerBuffer = twgl.createBufferInfoFromArrays(gl, {
+            a_position: { numComponents: 2, data: markerPositions },
+          });
+          twgl.setBuffersAndAttributes(gl, gridProgram, markerBuffer);
+          twgl.drawBufferInfo(gl, markerBuffer, gl.TRIANGLES);
+        }
+      }
+    }
+  }, [maps, chipsets, assets, viewport, showGrid, mapId, canvasRef, textureGen, objectFrameColor, selectedObjectId]);
 }
