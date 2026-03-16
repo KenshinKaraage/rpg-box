@@ -34,6 +34,9 @@ export type MapEditAction =
 
 const MAX_UNDO = 100;
 
+/** 空オブジェクト配置用の特別ID */
+export const EMPTY_OBJECT_PREFAB_ID = '__empty__';
+
 export interface MapEditorSlice {
   currentTool: MapEditTool;
   selectedChipId: string | null;
@@ -41,6 +44,11 @@ export interface MapEditorSlice {
   showGrid: boolean;
   undoStack: MapEditAction[];
   redoStack: MapEditAction[];
+
+  /** オブジェクト枠の色 */
+  objectFrameColor: string;
+  /** 配置用に選択中のプレハブID（null=未選択、'__empty__'=空オブジェクト） */
+  selectedPrefabId: string | null;
 
   setTool: (tool: MapEditTool) => void;
   selectChip: (chipId: string | null) => void;
@@ -50,6 +58,8 @@ export interface MapEditorSlice {
   popUndo: () => MapEditAction | undefined;
   pushRedo: (action: MapEditAction) => void;
   popRedo: () => MapEditAction | undefined;
+  setObjectFrameColor: (color: string) => void;
+  selectPrefabForPlacement: (id: string | null) => void;
 }
 
 export const createMapEditorSlice = <T extends MapEditorSlice>(
@@ -62,6 +72,8 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
   showGrid: true,
   undoStack: [],
   redoStack: [],
+  objectFrameColor: '#3b82f6',
+  selectedPrefabId: null,
 
   setTool: (tool) =>
     set((s) => {
@@ -109,4 +121,13 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
     });
     return popped;
   },
+
+  setObjectFrameColor: (color) =>
+    set((s) => {
+      s.objectFrameColor = color;
+    }),
+  selectPrefabForPlacement: (id) =>
+    set((s) => {
+      s.selectedPrefabId = id;
+    }),
 });
