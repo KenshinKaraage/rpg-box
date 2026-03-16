@@ -107,15 +107,26 @@ export default function MapEditPage() {
       name: '新しいマップ',
       width: 20,
       height: 15,
-      layers: [
-        {
-          id: generateId('layer', []),
-          name: 'レイヤー1',
-          type: 'tile' as const,
-          visible: true,
-          chipsetIds: [],
-        },
-      ],
+      layers: (() => {
+        const tileLayerId = generateId('layer', []);
+        return [
+          {
+            id: tileLayerId,
+            name: 'レイヤー1',
+            type: 'tile' as const,
+            visible: true,
+            chipsetIds: [],
+          },
+          {
+            id: generateId('layer', [tileLayerId]),
+            name: 'オブジェクト',
+            type: 'object' as const,
+            visible: true,
+            chipsetIds: [],
+            objects: [],
+          },
+        ];
+      })(),
       fields: createDefaultMapFields(),
       values: {},
     };
@@ -229,7 +240,20 @@ export default function MapEditPage() {
   return (
     <ThreeColumnLayout
       left={
-        <Tabs defaultValue="chipset" className="flex h-full flex-col bg-muted/20">
+        <Tabs
+          defaultValue="chipset"
+          className="flex h-full flex-col bg-muted/20"
+          onValueChange={(tab) => {
+            if (!selectedMap) return;
+            if (tab === 'object') {
+              const objLayer = selectedMap.layers.find((l) => l.type === 'object');
+              if (objLayer) selectLayer(objLayer.id);
+            } else if (tab === 'chipset') {
+              const tileLayer = selectedMap.layers.find((l) => l.type === 'tile');
+              if (tileLayer) selectLayer(tileLayer.id);
+            }
+          }}
+        >
           <TabsList className="w-full shrink-0 rounded-none border-b">
             <TabsTrigger value="map" className="flex-1">
               マップ
