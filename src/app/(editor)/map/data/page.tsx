@@ -5,8 +5,8 @@ import { MapList, MapSettingsEditor } from '@/features/map-editor';
 import { ChipsetEditor } from '@/features/map-editor/components/ChipsetEditor';
 import { useStore } from '@/stores';
 import { generateId } from '@/lib/utils';
-import { createDefaultMapFields } from '@/lib/defaultMapFields';
 import { createDefaultChipsetFields } from '@/lib/defaultChipsetFields';
+import { createDefaultMap } from '@/features/map-editor/utils/createDefaultMap';
 import type { GameMap } from '@/types/map';
 
 /**
@@ -52,29 +52,9 @@ export default function MapDataPage() {
 
   // マップを追加
   const handleAddMap = () => {
-    const id = generateId(
-      'map',
-      maps.map((m) => m.id)
-    );
-    const newMap: GameMap = {
-      id,
-      name: '新しいマップ',
-      width: 20,
-      height: 15,
-      layers: [
-        {
-          id: generateId('layer', []),
-          name: 'レイヤー1',
-          type: 'tile' as const,
-          visible: true,
-          chipsetIds: [],
-        },
-      ],
-      fields: createDefaultMapFields(),
-      values: {},
-    };
+    const newMap = createDefaultMap(maps.map((m) => m.id));
     addMap(newMap);
-    selectMap(id);
+    selectMap(newMap.id);
   };
 
   // マップを複製

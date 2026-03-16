@@ -22,7 +22,7 @@ import { useMapShortcuts } from '@/features/map-editor/hooks/useMapShortcuts';
 import { applyZoom } from '@/features/map-editor/hooks/useMapViewport';
 import { useBlobUrl } from '@/hooks/useBlobUrl';
 import { generateId } from '@/lib/utils';
-import { createDefaultMapFields } from '@/lib/defaultMapFields';
+import { createDefaultMap } from '@/features/map-editor/utils/createDefaultMap';
 import type { GameMap, Prefab } from '@/types/map';
 import type { ImageMetadata } from '@/types/assets';
 
@@ -98,40 +98,9 @@ export default function MapEditPage() {
 
   // --- Map handlers ---
   const handleAddMap = () => {
-    const id = generateId(
-      'map',
-      maps.map((m) => m.id)
-    );
-    const newMap: GameMap = {
-      id,
-      name: '新しいマップ',
-      width: 20,
-      height: 15,
-      layers: (() => {
-        const tileLayerId = generateId('layer', []);
-        return [
-          {
-            id: tileLayerId,
-            name: 'レイヤー1',
-            type: 'tile' as const,
-            visible: true,
-            chipsetIds: [],
-          },
-          {
-            id: generateId('layer', [tileLayerId]),
-            name: 'オブジェクト',
-            type: 'object' as const,
-            visible: true,
-            chipsetIds: [],
-            objects: [],
-          },
-        ];
-      })(),
-      fields: createDefaultMapFields(),
-      values: {},
-    };
+    const newMap = createDefaultMap(maps.map((m) => m.id));
     addMap(newMap);
-    selectMap(id);
+    selectMap(newMap.id);
   };
 
   const handleDuplicateMap = (id: string) => {
@@ -244,9 +213,11 @@ export default function MapEditPage() {
           defaultValue="chipset"
           className="flex h-full flex-col bg-muted/20"
           onValueChange={(tab) => {
+            console.log('[MapPage] tab changed:', tab, 'selectedMap:', selectedMap?.id, 'layers:', selectedMap?.layers.map(l => ({ id: l.id, type: l.type })));
             if (!selectedMap) return;
             if (tab === 'object') {
               const objLayer = selectedMap.layers.find((l) => l.type === 'object');
+              console.log('[MapPage] objLayer found:', objLayer?.id);
               if (objLayer) selectLayer(objLayer.id);
             } else if (tab === 'chipset') {
               const tileLayer = selectedMap.layers.find((l) => l.type === 'tile');
