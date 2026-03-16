@@ -70,6 +70,10 @@ export default function MapEditPage() {
   const setViewport = useStore((s) => s.setViewport);
   const toggleGrid = useStore((s) => s.toggleGrid);
 
+  // Object placement state
+  const placementPrefabId = useStore((s) => s.selectedPrefabId);
+  const selectPrefabForPlacement = useStore((s) => s.selectPrefabForPlacement);
+
   // Undo/redo
   const pushUndo = useStore((s) => s.pushUndo);
   const popUndo = useStore((s) => s.popUndo);
@@ -313,6 +317,8 @@ export default function MapEditPage() {
               onAdd={handleAddPrefab}
               onDelete={deletePrefab}
               onDuplicate={handleDuplicatePrefab}
+              placementSelectedId={placementPrefabId}
+              onSelectForPlacement={selectPrefabForPlacement}
             />
             <div className="border-b border-t p-2 text-xs font-semibold text-muted-foreground">
               配置済み

@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Trash2, Copy } from 'lucide-react';
+import { Plus, Trash2, Copy, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   ContextMenu,
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { Prefab } from '@/types/map';
+import { EMPTY_OBJECT_PREFAB_ID } from '@/stores/mapEditorSlice';
 
 interface PrefabListProps {
   prefabs: Prefab[];
@@ -18,10 +19,17 @@ interface PrefabListProps {
   onAdd: () => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  /** 配置用に選択中のプレハブID */
+  placementSelectedId?: string | null;
+  /** 配置用プレハブ選択コールバック */
+  onSelectForPlacement?: (id: string | null) => void;
 }
 
 /**
  * プレハブ一覧コンポーネント
+ *
+ * onSelectForPlacement が渡された場合、配置モードUIを表示する。
+ * クリックで配置用に選択、再クリックで選択解除。
  */
 export function PrefabList({
   prefabs,
@@ -30,7 +38,27 @@ export function PrefabList({
   onAdd,
   onDelete,
   onDuplicate,
+  placementSelectedId,
+  onSelectForPlacement,
 }: PrefabListProps) {
+  const isPlacementMode = !!onSelectForPlacement;
+
+  const handleItemClick = (id: string) => {
+    if (isPlacementMode) {
+      // 配置モード: トグル選択
+      onSelectForPlacement(placementSelectedId === id ? null : id);
+    } else {
+      onSelect(id);
+    }
+  };
+
+  const getItemHighlight = (id: string) => {
+    if (isPlacementMode) {
+      return placementSelectedId === id;
+    }
+    return selectedId === id;
+  };
+
   return (
     <div className="flex h-full flex-col">
       {/* ヘッダー */}
@@ -44,40 +72,58 @@ export function PrefabList({
 
       {/* リスト */}
       <div className="flex-1 overflow-auto">
-        {prefabs.length === 0 ? (
+        <ul className="divide-y" data-testid="prefab-list">
+          {/* 空オブジェクト（配置モード時のみ表示） */}
+          {isPlacementMode && (
+            <li
+              className={cn(
+                'cursor-pointer px-3 py-2 hover:bg-accent',
+                getItemHighlight(EMPTY_OBJECT_PREFAB_ID) && 'bg-accent'
+              )}
+              onClick={() => handleItemClick(EMPTY_OBJECT_PREFAB_ID)}
+              data-testid="prefab-item-empty"
+            >
+              <div className="flex items-center gap-2 font-medium">
+                <Square className="h-4 w-4 text-muted-foreground" />
+                空オブジェクト
+              </div>
+              <div className="text-xs text-muted-foreground">Transform のみ</div>
+            </li>
+          )}
+
+          {prefabs.map((prefab) => (
+            <ContextMenu key={prefab.id}>
+              <ContextMenuTrigger asChild>
+                <li
+                  className={cn(
+                    'cursor-pointer px-3 py-2 hover:bg-accent',
+                    getItemHighlight(prefab.id) && 'bg-accent'
+                  )}
+                  onClick={() => handleItemClick(prefab.id)}
+                  data-testid={`prefab-item-${prefab.id}`}
+                >
+                  <div className="font-medium">{prefab.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {prefab.components.length} コンポーネント
+                  </div>
+                </li>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => onDuplicate(prefab.id)}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  複製
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => onDelete(prefab.id)} className="text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  削除
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
+          ))}
+        </ul>
+
+        {prefabs.length === 0 && !isPlacementMode && (
           <div className="p-4 text-center text-sm text-muted-foreground">プレハブがありません</div>
-        ) : (
-          <ul className="divide-y" data-testid="prefab-list">
-            {prefabs.map((prefab) => (
-              <ContextMenu key={prefab.id}>
-                <ContextMenuTrigger asChild>
-                  <li
-                    className={cn(
-                      'cursor-pointer px-3 py-2 hover:bg-accent',
-                      selectedId === prefab.id && 'bg-accent'
-                    )}
-                    onClick={() => onSelect(prefab.id)}
-                    data-testid={`prefab-item-${prefab.id}`}
-                  >
-                    <div className="font-medium">{prefab.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {prefab.components.length} コンポーネント
-                    </div>
-                  </li>
-                </ContextMenuTrigger>
-                <ContextMenuContent>
-                  <ContextMenuItem onClick={() => onDuplicate(prefab.id)}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    複製
-                  </ContextMenuItem>
-                  <ContextMenuItem onClick={() => onDelete(prefab.id)} className="text-destructive">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    削除
-                  </ContextMenuItem>
-                </ContextMenuContent>
-              </ContextMenu>
-            ))}
-          </ul>
         )}
       </div>
     </div>
