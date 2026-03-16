@@ -53,6 +53,22 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
   const handleComponentChange = (index: number, updates: Record<string, unknown>) => {
     const comp = obj.components[index];
     if (!comp) return;
+
+    // Transform の位置変更時は重複チェック
+    if (comp.type === 'transform' && ('x' in updates || 'y' in updates)) {
+      const current = comp as unknown as { x: number; y: number };
+      const newX = (updates.x as number) ?? current.x;
+      const newY = (updates.y as number) ?? current.y;
+      const otherObjects = layer?.objects?.filter((o) => o.id !== obj.id) ?? [];
+      const occupied = otherObjects.some((o) => {
+        const t = o.components.find((c) => c.type === 'transform');
+        if (!t) return false;
+        const pos = t as unknown as { x: number; y: number };
+        return pos.x === newX && pos.y === newY;
+      });
+      if (occupied) return; // 被る位置には設定できない
+    }
+
     const cloned = comp.clone();
     cloned.deserialize({ ...cloned.serialize(), ...updates });
     const newComponents = [...obj.components];
