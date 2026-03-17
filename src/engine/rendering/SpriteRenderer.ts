@@ -104,6 +104,45 @@ export class SpriteRenderer {
     const flipY = (sprite.flipY as boolean) ?? false;
     const opacity = (sprite.opacity as number) ?? 1;
 
+    const spriteMode = (sprite.spriteMode as string) ?? 'single';
+    const frameWidth = (sprite.frameWidth as number) ?? 0;
+    const frameHeight = (sprite.frameHeight as number) ?? 0;
+    const animFrameCount = (sprite.animFrameCount as number) ?? 1;
+    const animIntervalMs = (sprite.animIntervalMs as number) ?? 200;
+
+    const texW = texMeta.width;
+    const texH = texMeta.height;
+
+    // Calculate UV coordinates based on sprite mode and frame extraction
+    let u0 = 0, u1 = 1, v0 = 0, v1 = 1;
+
+    if (spriteMode === 'directional' && frameWidth > 0 && frameHeight > 0) {
+      // Direction determines row: down=0, left=1, right=2, up=3
+      const DIR_ROW: Record<string, number> = { down: 0, left: 1, right: 2, up: 3 };
+      const dirRow = DIR_ROW[obj.facing] ?? 0;
+
+      // Current animation frame based on elapsed time
+      const frameIndex = Math.floor(Date.now() / animIntervalMs) % animFrameCount;
+
+      u0 = (frameIndex * frameWidth) / texW;
+      u1 = ((frameIndex + 1) * frameWidth) / texW;
+      v0 = (dirRow * frameHeight) / texH;
+      v1 = ((dirRow + 1) * frameHeight) / texH;
+    } else if (spriteMode === 'single' && frameWidth > 0 && frameHeight > 0) {
+      // Animated single sprite: only row 0, no direction
+      const frameIndex = Math.floor(Date.now() / animIntervalMs) % animFrameCount;
+
+      u0 = (frameIndex * frameWidth) / texW;
+      u1 = ((frameIndex + 1) * frameWidth) / texW;
+      v0 = 0;
+      v1 = frameHeight / texH;
+    }
+    // else: single mode with frameWidth=0 → full image (u0=0, u1=1, v0=0, v1=1)
+
+    // Apply flip
+    if (flipX) { const tmp = u0; u0 = u1; u1 = tmp; }
+    if (flipY) { const tmp = v0; v0 = v1; v1 = tmp; }
+
     // Sprite is drawn at pixelX, pixelY with size TILE_SIZE x TILE_SIZE
     const x = obj.pixelX;
     const y = obj.pixelY;
@@ -115,11 +154,6 @@ export class SpriteRenderer {
       x, y, x + w, y, x, y + h,
       x + w, y, x + w, y + h, x, y + h,
     ]);
-
-    // UV coordinates with flip support
-    let u0 = 0, u1 = 1, v0 = 0, v1 = 1;
-    if (flipX) { u0 = 1; u1 = 0; }
-    if (flipY) { v0 = 1; v1 = 0; }
 
     const texcoords = new Float32Array([
       u0, v0, u1, v0, u0, v1,

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as twgl from 'twgl.js';
 import { useStore } from '@/stores';
 import { GRID_VERT, GRID_FRAG } from '../utils/shaders';
+import { TEXTURED_VERT, TEXTURED_FRAG } from '@/features/ui-editor/utils/shaders';
 import { getVisibleTileRange } from '../utils/visibleTiles';
 import { TILE_SIZE } from '../utils/constants';
 import { dataUrlToBlob } from '@/hooks/useBlobUrl';
@@ -28,8 +29,11 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const tileRendererRef = useRef<TileRenderer | null>(null);
   const gridProgramRef = useRef<twgl.ProgramInfo | null>(null);
+  const spriteProgramRef = useRef<twgl.ProgramInfo | null>(null);
   // assetId → Blob URL のキャッシュ（Base64 デコードを初回のみ実行するため）
   const blobUrlCache = useRef<Map<string, string>>(new Map());
+  // スプライトテクスチャキャッシュ（imageId → texture + size）
+  const spriteTextureCache = useRef<Map<string, { texture: WebGLTexture; width: number; height: number }>>(new Map());
 
   // テクスチャロード完了時に再レンダーをトリガーするカウンタ
   const [textureGen, setTextureGen] = useState(0);
@@ -46,6 +50,7 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); // 透明部分は背景（黒）を透過
     tileRendererRef.current = new TileRenderer(gl);
     gridProgramRef.current = twgl.createProgramInfo(gl, [GRID_VERT, GRID_FRAG]);
+    spriteProgramRef.current = twgl.createProgramInfo(gl, [TEXTURED_VERT, TEXTURED_FRAG]);
   }, [canvasRef]);
 
   // レンダリング（状態変化ごとに1回実行）
@@ -168,6 +173,90 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         const px = tx * TILE_SIZE;
         const py = ty * TILE_SIZE;
         const isSelected = obj.id === selectedObjectId;
+
+        // スプライト画像の描画（フレームより先に描画してフレームが上に来るようにする）
+        const spriteComp = obj.components.find((c) => c.type === 'sprite');
+        const spriteData = spriteComp as unknown as {
+          imageId?: string;
+          spriteMode?: string;
+          frameWidth?: number;
+          frameHeight?: number;
+          animFrameCount?: number;
+        } | undefined;
+        const spriteProgram = spriteProgramRef.current;
+        if (spriteData?.imageId && spriteProgram) {
+          const imageId = spriteData.imageId;
+          const cached = spriteTextureCache.current.get(imageId);
+
+          if (!cached) {
+            // テクスチャ未ロード: アセットから非同期ロード
+            const asset = assets.find((a) => a.id === imageId);
+            if (asset?.data) {
+              let blobUrl = blobUrlCache.current.get(asset.id);
+              if (!blobUrl) {
+                blobUrl = URL.createObjectURL(dataUrlToBlob(asset.data as string));
+                blobUrlCache.current.set(asset.id, blobUrl);
+              }
+              const img = new Image();
+              img.src = blobUrl;
+              img.onload = () => {
+                const glCtx = glRef.current;
+                if (!glCtx) return;
+                const tex = twgl.createTexture(glCtx, { src: img, minMag: glCtx.NEAREST });
+                spriteTextureCache.current.set(imageId, {
+                  texture: tex,
+                  width: img.naturalWidth,
+                  height: img.naturalHeight,
+                });
+                setTextureGen((t) => t + 1);
+              };
+            }
+          } else {
+            // テクスチャ取得済み: UV座標を計算して描画
+            const spriteMode = spriteData.spriteMode ?? 'single';
+            const frameWidth = spriteData.frameWidth ?? 0;
+            const frameHeight = spriteData.frameHeight ?? 0;
+            const texW = cached.width;
+            const texH = cached.height;
+
+            let u0 = 0, u1 = 1, v0 = 0, v1 = 1;
+            if (spriteMode === 'directional' && frameWidth > 0 && frameHeight > 0) {
+              // 1フレーム目、下向き（行0）
+              u0 = 0;
+              u1 = frameWidth / texW;
+              v0 = 0;
+              v1 = frameHeight / texH;
+            } else if (spriteMode === 'single' && frameWidth > 0 && frameHeight > 0) {
+              // アニメーション付きシングル: 1フレーム目
+              u0 = 0;
+              u1 = frameWidth / texW;
+              v0 = 0;
+              v1 = frameHeight / texH;
+            }
+            // spriteMode === 'single' && frameWidth === 0: フル画像 (u0=0, u1=1, v0=0, v1=1)
+
+            const positions = new Float32Array([
+              px, py, px + TILE_SIZE, py, px, py + TILE_SIZE,
+              px + TILE_SIZE, py, px + TILE_SIZE, py + TILE_SIZE, px, py + TILE_SIZE,
+            ]);
+            const texcoords = new Float32Array([
+              u0, v0, u1, v0, u0, v1,
+              u1, v0, u1, v1, u0, v1,
+            ]);
+            const spriteBuffer = twgl.createBufferInfoFromArrays(gl, {
+              a_position: { numComponents: 2, data: positions },
+              a_texcoord: { numComponents: 2, data: texcoords },
+            });
+            gl.useProgram(spriteProgram.program);
+            twgl.setBuffersAndAttributes(gl, spriteProgram, spriteBuffer);
+            twgl.setUniforms(spriteProgram, {
+              u_matrix: matrix,
+              u_texture: cached.texture,
+              u_tint: [1, 1, 1, 1],
+            });
+            twgl.drawBufferInfo(gl, spriteBuffer);
+          }
+        }
 
         // Frame as 4 filled rectangles (lineWidth not reliable in WebGL)
         const frameColor = hexToGlColor(objectFrameColor);
