@@ -480,16 +480,15 @@
 
 **完了条件:**
 
-- [x] `src/types/actions/EventAction.ts` 作成
+- [x] `src/engine/actions/EventAction.ts` 作成
 - [x] abstract class `EventAction` 定義
 - [x] 必須プロパティ: `type`
-- [x] 抽象メソッド: `execute()`, `serialize()`, `deserialize()`, `renderBlock()`, `renderPropertyPanel()`
+- [x] 抽象メソッド: `execute()`, `toJSON()`, `fromJSON()`
 - [x] `EventContext` インターフェース定義
-- [x] JSDoc コメント追加
 
 **関連ファイル:**
 
-- `src/types/actions/EventAction.ts`
+- `src/engine/actions/EventAction.ts`
 
 **参照:**
 
@@ -576,17 +575,17 @@
 
 **完了条件:**
 
-- [x] `src/types/actions/index.ts` 作成
+- [x] `src/engine/actions/index.ts` 作成
 - [x] `actionRegistry` Map 作成
 - [x] `registerAction(type, class)` 関数
 - [x] `getAction(type)` 関数
 - [x] `getAllActions()` 関数
-- [ ] テスト追加（T238 E2Eテスト等でカバー/Polish）
+- [x] `src/engine/actions/register.ts` で全アクション登録
 
 **関連ファイル:**
 
-- `src/types/actions/index.ts`
-- `src/types/actions/index.test.ts`
+- `src/engine/actions/index.ts`
+- `src/engine/actions/register.ts`
 
 ---
 
@@ -851,7 +850,7 @@ export function useAutoSave() {
 
 #### [T026b] Create ShortcutHelpModal
 
-- **ステータス:** [x] 完了 (T026c 以降へ持ち越し/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -873,7 +872,7 @@ export function useAutoSave() {
 
 #### [T026c] Implement per-page undo history
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -896,7 +895,7 @@ export function useAutoSave() {
 
 #### [T026d] Create ValidationManager
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -918,7 +917,7 @@ export function useAutoSave() {
 
 #### [T026e] [P] Create InlineError component
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -939,7 +938,7 @@ export function useAutoSave() {
 
 #### [T026f] Create useValidation hook
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -960,7 +959,7 @@ export function useAutoSave() {
 
 #### [T026g] Create SearchModal (Ctrl+F)
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -982,7 +981,7 @@ export function useAutoSave() {
 
 #### [T026h] Create ReferenceSearchModal (Ctrl+P)
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -1006,7 +1005,7 @@ export function useAutoSave() {
 
 #### [T026i] Create ClipboardManager
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -1027,7 +1026,7 @@ export function useAutoSave() {
 
 #### [T026j] Implement copy/paste with type validation
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -1051,7 +1050,7 @@ export function useAutoSave() {
 
 #### [T027] [P] Create PropertyPanel
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手（Polish で実装予定）
 - **ブランチ:** -
 - **PR:** -
 
@@ -2898,7 +2897,7 @@ export function useAutoSave() {
 
 #### [T097] [US8] Create default DataTypes
 
-- **ステータス:** [x] 完了
+- **ステータス:** [x] 部分完了（基本5タイプ実装済み。追加タイプ・テスト未実装）
 - **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
@@ -3601,13 +3600,13 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [x] `src/app/(editor)/script/event/page.tsx` 作成
+- [x] `src/app/(editor)/script/events/page.tsx` 作成
 - [x] ThreeColumnLayout 使用
 - [x] 左: スクリプト一覧、中央: エディタ、右: 設定
 
 **関連ファイル:**
 
-- `src/app/(editor)/script/event/page.tsx`
+- `src/app/(editor)/script/events/page.tsx`
 
 ---
 
@@ -3619,13 +3618,13 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [x] `src/app/(editor)/script/component/page.tsx` 作成
+- [x] `src/app/(editor)/script/components/page.tsx` 作成
 - [x] EventScriptPage と同様のレイアウト
 - [x] コンポーネント用フィールド設定
 
 **関連ファイル:**
 
-- `src/app/(editor)/script/component/page.tsx`
+- `src/app/(editor)/script/components/page.tsx`
 
 ---
 
@@ -4572,22 +4571,182 @@ export function useAutoSave() {
 
 #### [T168] [US13] Create useObjectPlacement hook
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
+
+**設計:**
+
+- プレハブ選択 → マップクリックで配置（空オブジェクトも対応）
+- selectツールでクリック選択 → ドラッグ移動（グリッドスナップ）→ Delete削除
+- オブジェクト位置は TransformComponent の x, y で保持
 
 **完了条件:**
 
 - [ ] `src/features/map-editor/hooks/useObjectPlacement.ts` 作成
-- [ ] オブジェクト配置
-- [ ] ドラッグ移動
-- [ ] 削除
+- [ ] handleMouseDown: selectedPrefabId あり → addObject で配置、select ツール → オブジェクト選択 + ドラッグ開始
+- [ ] handleMouseMove: ドラッグ中 → Transform x, y 更新（グリッドスナップ）
+- [ ] handleMouseUp: ドラッグ終了 → updateObject で最終位置確定
+- [ ] handleKeyDown: Delete → 選択中オブジェクトを deleteObject
+- [ ] getObjectAtTile(x, y) ヘルパー
 - [ ] テスト追加
+
+**依存:** T168a, T168b
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useObjectPlacement.ts`
 - `src/features/map-editor/hooks/useObjectPlacement.test.ts`
+
+---
+
+#### [T168a] [US13] mapEditorSlice にオブジェクト配置用状態を追加
+
+- **ステータス:** [x] 完了
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `objectFrameColor: string`（デフォルト `'#3b82f6'`）追加
+- [ ] `setObjectFrameColor(color: string)` アクション追加
+- [ ] `selectedPrefabId: string | null`（デフォルト `null`、`'__empty__'` = 空オブジェクト）追加
+- [ ] `selectPrefabForPlacement(id: string | null)` アクション追加
+
+**関連ファイル:**
+
+- `src/stores/mapEditorSlice.ts`
+
+---
+
+#### [T168b] [US13] PrefabList に「空オブジェクト」と配置選択UIを追加
+
+- **ステータス:** [x] 完了
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] リスト先頭に「空オブジェクト」項目追加（id = `'__empty__'`）
+- [ ] 各項目クリックで `selectPrefabForPlacement(id)` を呼ぶ
+- [ ] 選択中の項目をハイライト表示
+- [ ] 再クリックで選択解除
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/PrefabList.tsx`
+
+---
+
+#### [T168c] [US13] MapCanvas にオブジェクト描画を追加
+
+- **ステータス:** [x] 完了
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] 各オブジェクトの Transform x, y から位置取得
+- [ ] `objectFrameColor` で1タイル分の太枠を描画
+- [ ] SpriteComponent の imageId があれば枠内にテクスチャ描画
+- [ ] 選択中オブジェクト（`selectedObjectId`）の上に🔻マーカー描画
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/MapCanvas.tsx`
+- `src/features/map-editor/hooks/useMapCanvas.ts`
+
+---
+
+#### [T168d] [US13] MapCanvas にオブジェクト操作イベントを接続
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] 選択レイヤーが object タイプの時、useObjectPlacement のハンドラを接続
+- [x] tile/object レイヤーでハンドラ切り替え
+- [x] Delete キーイベントを useObjectPlacement に渡す
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/MapCanvas.tsx`
+- `src/app/(editor)/map/page.tsx`
+
+---
+
+#### [T168e] [US13] SpriteComponent スプライトシート対応
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**設計:**
+
+SpriteComponent にスプライトシートモードを追加。単一画像 or 4方向歩行チップをサポート。
+スプライトシートからフレームを切り出して描画する仕組み。
+
+**完了条件:**
+
+- [ ] SpriteComponent にプロパティ追加:
+  - `spriteMode: 'single' | 'directional'`（単一画像 or 4方向）
+  - `frameWidth`, `frameHeight`（1フレームのサイズ、px）
+  - `animFrameCount: number`（横方向のアニメーションフレーム数）
+  - `animIntervalMs: number`（アニメーション間隔）
+  - `direction: number`（4方向時の行インデックス: 0=下, 1=左, 2=右, 3=上）
+- [ ] SpritePropertyPanel にスプライトモード選択UI追加
+- [ ] フレームサイズ・アニメーションフレーム数の入力UI
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/types/components/SpriteComponent.ts`
+- `src/features/map-editor/components/panels/SpritePropertyPanel.tsx`
+
+---
+
+#### [T168f] [US13] エディタ上でスプライト画像を描画
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**依存:** T168e
+
+**完了条件:**
+
+- [ ] useMapCanvas でオブジェクト枠内に SpriteComponent の画像を描画
+- [ ] スプライトシートから正しいフレームを切り出して表示
+- [ ] 4方向モードの場合はデフォルト方向（下向き）の最初のフレームを表示
+- [ ] 画像未設定の場合は枠のみ表示（現状維持）
+- [ ] アセットからのテクスチャロード（チップセット同様の非同期ロード）
+
+**関連ファイル:**
+
+- `src/features/map-editor/hooks/useMapCanvas.ts`
+
+---
+
+#### [T168g] [US13] ランタイム SpriteRenderer のスプライトシート対応
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**依存:** T168e
+
+**完了条件:**
+
+- [ ] SpriteRenderer がスプライトシートからフレームを切り出して描画
+- [ ] 4方向モード時、RuntimeObject の facing に応じて行を切り替え
+- [ ] アニメーションフレーム送り（animFrameCount, animIntervalMs に基づく）
+- [ ] single モード時は従来通り画像全体を描画
+
+**関連ファイル:**
+
+- `src/engine/rendering/SpriteRenderer.ts`
 
 ---
 
@@ -5676,23 +5835,35 @@ export function useAutoSave() {
 
 #### [T210] [P] Create GameEngine core
 
-- **ステータス:** [x] 部分完了（スクリプト実行モード実装済み。ゲームループ・シーン管理・入力は未実装）
+- **ステータス:** [x] 部分完了（スクリプト実行・イベント実行・ゲームループ・入力実装済み。コンポーネントライフサイクル・シーン管理は未実装）
 - **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
 - [x] `src/engine/core/GameEngine.ts` 作成
-- [ ] ゲームループ実装
-- [ ] コンポーネントライフサイクル実行（各コンポーネントの onCreate/onUpdate/onDestroy/onEnable/onDisable を呼ぶ。Phase 10 でシグネチャ定義済み、ここで実処理を実装）
+- [x] `src/engine/core/ScriptRunner.ts` 作成（スクリプトコンパイル・実行）
+- [x] `src/engine/runtime/GameRuntime.ts` 作成（ランタイムオーケストレーター）
+- [x] `src/engine/runtime/GameLoop.ts` 作成（requestAnimationFrame ループ）
+- [x] `src/engine/runtime/GameWorld.ts` 作成（オブジェクト・マップ管理）
+- [x] `src/engine/runtime/Camera.ts` 作成（2Dカメラ・ビューポート）
+- [x] `src/engine/runtime/InputManager.ts` 作成（キーボード入力）
+- [ ] コンポーネントライフサイクル実行（各コンポーネントの onCreate/onUpdate/onDestroy/onEnable/onDisable を呼ぶ）
 - [ ] シーン管理
-- [ ] 入力ハンドリング
 - [x] テスト追加
 
 **関連ファイル:**
 
 - `src/engine/core/GameEngine.ts`
 - `src/engine/core/GameEngine.test.ts`
+- `src/engine/core/ScriptRunner.ts`
+- `src/engine/core/ScriptRunner.test.ts`
+- `src/engine/runtime/GameRuntime.ts`
+- `src/engine/runtime/GameLoop.ts`
+- `src/engine/runtime/GameWorld.ts`
+- `src/engine/runtime/Camera.ts`
+- `src/engine/runtime/InputManager.ts`
+- `src/engine/runtime/InputManager.test.ts`
 
 ---
 
@@ -5746,23 +5917,25 @@ export function useAutoSave() {
 
 #### [T210c] [P] Implement trigger components event firing
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 部分完了（TriggerSystem でトリガー検出実装済み。EventRunner との接続は TODO）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] TalkTrigger: 話しかけ判定 → eventId のイベント発火
-- [ ] TouchTrigger: 接触判定 → eventId のイベント発火
+- [x] TalkTrigger: 話しかけ判定 → eventId 検出
+- [x] TouchTrigger: 接触判定 → eventId 検出
 - [ ] StepTrigger: 踏み判定 → eventId のイベント発火
 - [ ] AutoTrigger: interval に基づく定期実行、runOnce 制御
-- [ ] InputTrigger: 指定キー入力検知 → eventId のイベント発火
-- [ ] EventRunner との連携
-- [ ] テスト追加
+- [x] InputTrigger: 指定キー入力検知 → eventId 検出
+- [ ] EventRunner との連携（GameRuntime 内で TODO コメントのみ）
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/types/components/triggers/*.ts`
+- `src/engine/runtime/TriggerSystem.ts`
+- `src/engine/runtime/TriggerSystem.test.ts`
 - `src/engine/event/EventRunner.ts`
 
 ---
@@ -5856,64 +6029,62 @@ export function useAutoSave() {
 
 #### [T212] [P] Create MapRenderer
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了（パスは `src/engine/runtime/MapRenderer.ts`）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/renderer/MapRenderer.ts` 作成
-- [ ] タイルレンダリング
-- [ ] レイヤー合成
-- [ ] カリング最適化
+- [x] `src/engine/runtime/MapRenderer.ts` 作成
+- [x] タイルレンダリング
+- [x] レイヤー合成
+- [x] カリング最適化
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/engine/renderer/MapRenderer.ts`
-- `src/engine/renderer/MapRenderer.test.ts`
+- `src/engine/runtime/MapRenderer.ts`
 
 ---
 
 #### [T213] [P] Create SpriteRenderer
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了（パスは `src/engine/rendering/SpriteRenderer.ts`）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/renderer/SpriteRenderer.ts` 作成
-- [ ] スプライト描画
-- [ ] アニメーション再生
-- [ ] Zソート
+- [x] `src/engine/rendering/SpriteRenderer.ts` 作成
+- [x] スプライト描画
+- [x] アニメーション再生
+- [x] Zソート
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/engine/renderer/SpriteRenderer.ts`
-- `src/engine/renderer/SpriteRenderer.test.ts`
+- `src/engine/rendering/SpriteRenderer.ts`
 
 ---
 
 #### [T214] [P] Create UIRenderer
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了（パスは `src/engine/runtime/UICanvasManager.ts`）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/renderer/UIRenderer.ts` 作成
-- [ ] UIObject描画
-- [ ] コンポーネント処理
+- [x] `src/engine/runtime/UICanvasManager.ts` 作成
+- [x] UIObject描画
+- [x] コンポーネント処理
 - [ ] マスク処理
-- [ ] テスト追加
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/engine/renderer/UIRenderer.ts`
-- `src/engine/renderer/UIRenderer.test.ts`
+- `src/engine/runtime/UICanvasManager.ts`
+- `src/engine/runtime/UICanvasManager.test.ts`
 
 ---
 
@@ -6060,23 +6231,28 @@ export function useAutoSave() {
 
 #### [T221] [P] Implement TweenAPI
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 部分完了（イージング関数・プリセット実装済み。API層は未実装）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
+- [x] `src/engine/tween/easings.ts` 作成（イージング関数レジストリ）
+- [x] `src/engine/tween/presets.ts` 作成（プリセット定義）
 - [ ] `src/engine/api/TweenAPI.ts` 作成
 - [ ] `game.tween.to(target, props, duration, easing)`
 - [ ] `game.tween.from(target, props, duration, easing)`
 - [ ] チェーン/シーケンス
 - [ ] コールバック（onComplete, onUpdate）
-- [ ] テスト追加
+- [x] テスト追加（easings, presets）
 
 **関連ファイル:**
 
-- `src/engine/api/TweenAPI.ts`
-- `src/engine/api/TweenAPI.test.ts`
+- `src/engine/tween/easings.ts`
+- `src/engine/tween/easings.test.ts`
+- `src/engine/tween/presets.ts`
+- `src/engine/tween/presets.test.ts`
+- `src/engine/tween/index.ts`
 
 ---
 
@@ -6153,22 +6329,26 @@ export function useAutoSave() {
 
 #### [T225] [US17] Create TestPlayPage
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 部分完了（オーバーレイ方式で実装済み。専用ページではなくモーダル型）
+- **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/test-play/page.tsx` 作成
-- [ ] GameEngine埋め込み
-- [ ] フルスクリーン対応
-- [ ] エディタに戻るボタン
+- [x] `src/features/test-play/components/TestPlayOverlay.tsx` 作成
+- [x] `src/features/test-play/hooks/useTestPlay.ts` 作成
+- [x] `src/features/test-play/buildProjectData.ts` 作成
+- [x] GameEngine埋め込み
+- [x] フルスクリーン対応
+- [x] エディタに戻るボタン
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/app/(editor)/test-play/page.tsx`
-- `src/app/(editor)/test-play/page.test.tsx`
+- `src/features/test-play/components/TestPlayOverlay.tsx`
+- `src/features/test-play/hooks/useTestPlay.ts`
+- `src/features/test-play/buildProjectData.ts`
+- `src/features/test-play/index.ts`
 
 ---
 
