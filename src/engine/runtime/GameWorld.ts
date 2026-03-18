@@ -51,12 +51,15 @@ export class GameWorld {
   private currentMap: GameMap | null = null;
   private chipsets: Chipset[] = [];
   private eventRunning = false;
+  /** ルート移動の現在ステップインデックス（オブジェクトID → index） */
+  private routeIndices = new Map<string, number>();
 
   loadMap(map: GameMap, chipsets: Chipset[], prefabs: Prefab[]): void {
     this.currentMap = map;
     this.chipsets = chipsets;
     this.objects = [];
     this.activeController = null;
+    this.routeIndices.clear();
 
     for (const layer of map.layers) {
       if (layer.type !== 'object' || !layer.objects) continue;
@@ -141,14 +144,33 @@ export class GameWorld {
     }
 
     const movement = obj.components['movement'];
-    if (movement && movement.pattern === 'random') {
-      if (this.eventRunning && (movement.stopOnEvent ?? true)) return null;
-      // activeness: 1=おとなしい(0.1%), 5=普通(0.5%), 10=せわしない(1.5%)
+    if (!movement) return null;
+    if (this.eventRunning && (movement.stopOnEvent ?? true)) return null;
+
+    if (movement.pattern === 'random') {
       const activeness = (movement.activeness as number) ?? 3;
-      const chance = 0.001 + (activeness - 1) * 0.0016; // 1→0.1%, 10→1.54%
+      const chance = 0.001 + (activeness - 1) * 0.0016;
       if (Math.random() > chance) return null;
       const dirs: Direction[] = ['up', 'down', 'left', 'right'];
       return dirs[Math.floor(Math.random() * dirs.length)]!;
+    }
+
+    if (movement.pattern === 'route') {
+      const steps = (movement.routeSteps as Direction[]) ?? [];
+      if (steps.length === 0) return null;
+
+      const currentIndex = this.routeIndices.get(obj.id) ?? 0;
+      if (currentIndex >= steps.length) {
+        // ルート終了
+        const loop = (movement.routeLoop as boolean) ?? true;
+        if (!loop) return null;
+        this.routeIndices.set(obj.id, 0);
+        return steps[0]!;
+      }
+
+      const dir = steps[currentIndex]!;
+      this.routeIndices.set(obj.id, currentIndex + 1);
+      return dir;
     }
 
     return null;
