@@ -89,8 +89,11 @@ export class GameWorld {
         this.advanceMovement(obj, dt);
         if (!obj.isMoving) {
           completions.push({ obj, fromX, fromY });
+          // 到着フレームで即次の移動を開始（入力が続いていれば隙間なし）
+          // ↓ fallthrough して方向判定へ
+        } else {
+          continue;
         }
-        continue;
       }
 
       // Determine direction from component
