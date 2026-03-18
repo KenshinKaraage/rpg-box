@@ -5,10 +5,8 @@ import { Component } from './Component';
 import type { ComponentPanelProps } from './Component';
 import { MovementPropertyPanel } from '@/features/map-editor/components/panels/MovementPropertyPanel';
 
-export interface RoutePoint {
-  x: number;
-  y: number;
-}
+/** ルートの1ステップ（移動方向） */
+export type RouteStep = 'up' | 'down' | 'left' | 'right';
 
 export class MovementComponent extends Component {
   readonly type = 'movement';
@@ -18,7 +16,7 @@ export class MovementComponent extends Component {
   speed = 1;
   /** 活発さ（1=おとなしい〜10=せわしない）。ランダム移動時の移動頻度 */
   activeness = 3;
-  routePoints: RoutePoint[] = [];
+  routeSteps: RouteStep[] = [];
   /** ルート完了後にループするか */
   routeLoop = true;
 
@@ -27,7 +25,7 @@ export class MovementComponent extends Component {
       pattern: this.pattern,
       speed: this.speed,
       activeness: this.activeness,
-      routePoints: this.routePoints.map((p) => ({ x: p.x, y: p.y })),
+      routeSteps: [...this.routeSteps],
       routeLoop: this.routeLoop,
     };
   }
@@ -36,8 +34,7 @@ export class MovementComponent extends Component {
     this.pattern = (data.pattern as 'fixed' | 'random' | 'route') ?? 'fixed';
     this.speed = (data.speed as number) ?? 1;
     this.activeness = (data.activeness as number) ?? 3;
-    const points = data.routePoints as RoutePoint[] | undefined;
-    this.routePoints = points ? points.map((p) => ({ x: p.x, y: p.y })) : [];
+    this.routeSteps = (data.routeSteps as RouteStep[]) ?? [];
     this.routeLoop = (data.routeLoop as boolean) ?? true;
   }
 
@@ -46,7 +43,7 @@ export class MovementComponent extends Component {
     c.pattern = this.pattern;
     c.speed = this.speed;
     c.activeness = this.activeness;
-    c.routePoints = this.routePoints.map((p) => ({ x: p.x, y: p.y }));
+    c.routeSteps = [...this.routeSteps];
     c.routeLoop = this.routeLoop;
     return c;
   }

@@ -11,35 +11,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2 } from 'lucide-react';
-import type { MovementComponent, RoutePoint } from '@/types/components/MovementComponent';
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, X } from 'lucide-react';
+import type { MovementComponent, RouteStep } from '@/types/components/MovementComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
 
 interface Props extends ComponentPanelProps {
   component: MovementComponent;
 }
 
+const STEP_ICON: Record<RouteStep, typeof ArrowUp> = {
+  up: ArrowUp,
+  down: ArrowDown,
+  left: ArrowLeft,
+  right: ArrowRight,
+};
+
+const STEP_LABEL: Record<RouteStep, string> = {
+  up: '↑',
+  down: '↓',
+  left: '←',
+  right: '→',
+};
+
 export function MovementPropertyPanel({ component, onChange }: Props) {
   const isRandom = component.pattern === 'random';
   const isRoute = component.pattern === 'route';
 
-  const handleRoutePointChange = (index: number, field: 'x' | 'y', value: number) => {
-    const newPoints = component.routePoints.map((p, i) =>
-      i === index ? { ...p, [field]: value } : p
-    );
-    onChange({ routePoints: newPoints });
+  const handleAddStep = (step: RouteStep) => {
+    onChange({ routeSteps: [...component.routeSteps, step] });
   };
 
-  const handleAddRoutePoint = () => {
-    const lastPoint = component.routePoints[component.routePoints.length - 1];
-    const newPoint: RoutePoint = lastPoint
-      ? { x: lastPoint.x, y: lastPoint.y }
-      : { x: 0, y: 0 };
-    onChange({ routePoints: [...component.routePoints, newPoint] });
-  };
-
-  const handleDeleteRoutePoint = (index: number) => {
-    onChange({ routePoints: component.routePoints.filter((_, i) => i !== index) });
+  const handleDeleteStep = (index: number) => {
+    onChange({ routeSteps: component.routeSteps.filter((_, i) => i !== index) });
   };
 
   return (
@@ -96,53 +99,45 @@ export function MovementPropertyPanel({ component, onChange }: Props) {
       {/* ルート編集（ルート時のみ） */}
       {isRoute && (
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">ルートポイント</Label>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={handleAddRoutePoint}
-              aria-label="ポイントを追加"
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
+          <Label className="text-xs">ルート</Label>
+
+          {/* 方向追加ボタン */}
+          <div className="flex gap-1">
+            {(['up', 'down', 'left', 'right'] as RouteStep[]).map((step) => {
+              const Icon = STEP_ICON[step];
+              return (
+                <Button
+                  key={step}
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => handleAddStep(step)}
+                  aria-label={`${STEP_LABEL[step]}を追加`}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              );
+            })}
           </div>
 
-          {component.routePoints.length === 0 ? (
-            <div className="text-xs text-muted-foreground">ポイントがありません</div>
+          {/* ステップ一覧 */}
+          {component.routeSteps.length === 0 ? (
+            <div className="text-xs text-muted-foreground">矢印ボタンでルートを追加</div>
           ) : (
-            <div className="space-y-1">
-              {component.routePoints.map((point, index) => (
-                <div key={index} className="flex items-center gap-1">
-                  <span className="w-5 text-[10px] text-muted-foreground">{index + 1}</span>
-                  <Input
-                    type="number"
-                    className="h-6 w-14 text-xs"
-                    value={point.x}
-                    onChange={(e) =>
-                      handleRoutePointChange(index, 'x', parseInt(e.target.value) || 0)
-                    }
-                    placeholder="X"
-                  />
-                  <Input
-                    type="number"
-                    className="h-6 w-14 text-xs"
-                    value={point.y}
-                    onChange={(e) =>
-                      handleRoutePointChange(index, 'y', parseInt(e.target.value) || 0)
-                    }
-                    placeholder="Y"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleDeleteRoutePoint(index)}
-                    aria-label="ポイントを削除"
+            <div className="flex flex-wrap gap-1">
+              {component.routeSteps.map((step, index) => (
+                <div
+                  key={index}
+                  className="group flex items-center gap-0.5 rounded border bg-muted/50 px-1 py-0.5 text-xs"
+                >
+                  <span>{STEP_LABEL[step]}</span>
+                  <button
+                    className="hidden h-3 w-3 items-center justify-center group-hover:flex"
+                    onClick={() => handleDeleteStep(index)}
+                    aria-label="削除"
                   >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                    <X className="h-2.5 w-2.5" />
+                  </button>
                 </div>
               ))}
             </div>
