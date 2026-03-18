@@ -240,7 +240,13 @@ export class GameWorld {
   private createRuntimeObject(obj: MapObject): RuntimeObject {
     const components: Record<string, Record<string, unknown>> = {};
     for (const comp of obj.components) {
-      components[comp.type] = (comp.data as Record<string, unknown>) ?? {};
+      // Component クラスインスタンスの場合は serialize() でデータ取得
+      if (typeof (comp as unknown as { serialize: () => Record<string, unknown> }).serialize === 'function') {
+        components[comp.type] = (comp as unknown as { serialize: () => Record<string, unknown> }).serialize();
+      } else {
+        // SerializedComponent（storage types）の場合は .data を使う
+        components[comp.type] = ((comp as unknown as { data: unknown }).data as Record<string, unknown>) ?? {};
+      }
     }
 
     const transform = components['transform'] ?? {};
