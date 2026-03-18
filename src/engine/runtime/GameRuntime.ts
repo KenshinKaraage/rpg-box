@@ -15,6 +15,7 @@ import { GameLoop } from './GameLoop';
 import { InputManager } from './InputManager';
 import { Camera } from './Camera';
 import { GameWorld } from './GameWorld';
+import type { Direction } from './GameWorld';
 import type { RuntimeObject } from './GameWorld';
 import { TriggerSystem } from './TriggerSystem';
 import { MapRenderer } from './MapRenderer';
@@ -228,6 +229,17 @@ export class GameRuntime {
     if (!this.eventRunning) {
       const triggerResult = this.triggerSystem.update(this.world, this.input);
       if (triggerResult) {
+        // Talk trigger: NPC がプレイヤーの方を向く
+        if (triggerResult.triggerType === 'talkTrigger') {
+          const talk = triggerResult.targetObject.components['talkTrigger'];
+          if (talk?.facePlayer && this.world.activeController) {
+            const ctrl = this.world.activeController;
+            // プレイヤーの向きの逆方向をNPCに設定
+            const OPPOSITE: Record<string, string> = { up: 'down', down: 'up', left: 'right', right: 'left' };
+            triggerResult.targetObject.facing = (OPPOSITE[ctrl.facing] ?? 'down') as Direction;
+          }
+        }
+
         // Check for local actions on the trigger component
         const localActions = this.getLocalActionsFromTrigger(triggerResult.targetObject);
         if (localActions && localActions.length > 0) {

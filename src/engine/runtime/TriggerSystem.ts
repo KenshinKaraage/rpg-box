@@ -13,6 +13,7 @@ import type { InputManager, GameButton } from './InputManager';
 export interface TriggerResult {
   eventId: string;
   targetObject: RuntimeObject;
+  triggerType: string;
 }
 
 // ── Direction helpers ──
@@ -104,13 +105,11 @@ export class TriggerSystem {
     if (!talk.eventId && !hasActions) return null;
 
     if (talk.direction === 'front') {
-      // 'front' means player must be facing the object
-      // Already guaranteed by checking the tile in player's facing direction
-      return { eventId: talk.eventId as string, targetObject: target };
+      return { eventId: talk.eventId as string, targetObject: target, triggerType: 'talkTrigger' };
     }
 
     if (talk.direction === 'any') {
-      return { eventId: talk.eventId as string, targetObject: target };
+      return { eventId: talk.eventId as string, targetObject: target, triggerType: 'talkTrigger' };
     }
 
     return null;
@@ -128,7 +127,7 @@ export class TriggerSystem {
       if (touch) {
         const hasActions = Array.isArray(touch.actions) && (touch.actions as unknown[]).length > 0;
         if (touch.eventId || hasActions) {
-          return { eventId: touch.eventId as string, targetObject: obj };
+          return { eventId: touch.eventId as string, targetObject: obj, triggerType: 'touchTrigger' };
         }
       }
 
@@ -137,7 +136,7 @@ export class TriggerSystem {
       if (step) {
         const hasActions = Array.isArray(step.actions) && (step.actions as unknown[]).length > 0;
         if (step.eventId || hasActions) {
-          return { eventId: step.eventId as string, targetObject: obj };
+          return { eventId: step.eventId as string, targetObject: obj, triggerType: 'stepTrigger' };
         }
       }
     }
@@ -160,7 +159,7 @@ export class TriggerSystem {
       if (runOnce) {
         if (this.firedAutoTriggers.has(key)) continue;
         this.firedAutoTriggers.add(key);
-        return { eventId: auto.eventId as string, targetObject: obj };
+        return { eventId: auto.eventId as string, targetObject: obj, triggerType: 'autoTrigger' };
       }
 
       // Interval-based: fire immediately on first frame, then every `interval` frames
@@ -168,12 +167,12 @@ export class TriggerSystem {
       if (counter === undefined) {
         // First time — fire immediately
         this.autoTriggerCounters.set(key, 0);
-        return { eventId: auto.eventId as string, targetObject: obj };
+        return { eventId: auto.eventId as string, targetObject: obj, triggerType: 'autoTrigger' };
       }
       const next = counter + 1;
       if (next >= interval) {
         this.autoTriggerCounters.set(key, 0);
-        return { eventId: auto.eventId as string, targetObject: obj };
+        return { eventId: auto.eventId as string, targetObject: obj, triggerType: 'autoTrigger' };
       }
       this.autoTriggerCounters.set(key, next);
     }
@@ -191,7 +190,7 @@ export class TriggerSystem {
       if (!trigger.eventId && !hasActions) continue;
 
       if (input.isJustPressed(trigger.key as GameButton)) {
-        return { eventId: trigger.eventId as string, targetObject: obj };
+        return { eventId: trigger.eventId as string, targetObject: obj, triggerType: 'inputTrigger' };
       }
     }
     return null;

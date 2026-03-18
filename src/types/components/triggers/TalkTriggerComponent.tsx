@@ -12,12 +12,15 @@ export class TalkTriggerComponent extends Component {
 
   eventId = '';
   direction: 'front' | 'any' = 'front';
+  /** 話しかけた時にプレイヤーの方を向くか */
+  facePlayer = true;
   actions: EditableAction[] = [];
 
   serialize(): Record<string, unknown> {
     return {
       eventId: this.eventId,
       direction: this.direction,
+      facePlayer: this.facePlayer,
       actions: this.actions.map((a) => ({ type: a.type, data: a.toJSON() })),
     };
   }
@@ -25,7 +28,7 @@ export class TalkTriggerComponent extends Component {
   deserialize(data: Record<string, unknown>): void {
     this.eventId = (data.eventId as string) ?? '';
     this.direction = (data.direction as TalkTriggerComponent['direction']) ?? 'front';
-    // actions deserialization is handled at a higher level; store raw data
+    this.facePlayer = (data.facePlayer as boolean) ?? true;
     this.actions = (data.actions as EditableAction[]) ?? [];
   }
 
@@ -33,6 +36,7 @@ export class TalkTriggerComponent extends Component {
     const c = new TalkTriggerComponent();
     c.eventId = this.eventId;
     c.direction = this.direction;
+    c.facePlayer = this.facePlayer;
     c.actions = this.actions.map((a) => {
       const cloned = Object.create(Object.getPrototypeOf(a));
       Object.assign(cloned, a);

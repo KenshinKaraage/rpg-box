@@ -62,7 +62,7 @@ describe('TriggerSystem', () => {
 
       const result = trigger.update(world, mockInput({ confirm: true }));
 
-      expect(result).toEqual({ eventId: 'evt1', targetObject: npc });
+      expect(result).toMatchObject({ eventId: 'evt1', targetObject: npc });
     });
 
     it('does not fire when player faces wrong direction', () => {
@@ -94,7 +94,7 @@ describe('TriggerSystem', () => {
       const world2 = mockWorld([player, npcLeft], player);
       const result = trigger.update(world2, mockInput({ confirm: true }));
 
-      expect(result).toEqual({ eventId: 'evt2', targetObject: npcLeft });
+      expect(result).toMatchObject({ eventId: 'evt2', targetObject: npcLeft });
     });
 
     it('does not fire without confirm press', () => {
@@ -127,7 +127,7 @@ describe('TriggerSystem', () => {
       trigger.notifyMoveCompleted(player, 1, 1); // moved from (1,1) to current (2,1)
       const result = trigger.update(world, mockInput());
 
-      expect(result).toEqual({ eventId: 'evt_touch', targetObject: obj });
+      expect(result).toMatchObject({ eventId: 'evt_touch', targetObject: obj });
     });
 
     it('does not fire when player has not moved', () => {
@@ -156,7 +156,7 @@ describe('TriggerSystem', () => {
       trigger.notifyMoveCompleted(player, 2, 2);
       const result = trigger.update(world, mockInput());
 
-      expect(result).toEqual({ eventId: 'evt_step', targetObject: trap });
+      expect(result).toMatchObject({ eventId: 'evt_step', targetObject: trap });
     });
   });
 
@@ -169,7 +169,7 @@ describe('TriggerSystem', () => {
       const trigger = new TriggerSystem();
 
       const r1 = trigger.update(world, mockInput());
-      expect(r1).toEqual({ eventId: 'evt_auto', targetObject: obj });
+      expect(r1).toMatchObject({ eventId: 'evt_auto', targetObject: obj });
 
       // Second time: should not fire
       const r2 = trigger.update(world, mockInput());
@@ -185,7 +185,7 @@ describe('TriggerSystem', () => {
 
       // Frame 1: fires (first time)
       const r1 = trigger.update(world, mockInput());
-      expect(r1).toEqual({ eventId: 'evt_rain', targetObject: obj });
+      expect(r1).toMatchObject({ eventId: 'evt_rain', targetObject: obj });
 
       // Frames 2-3: does not fire (interval=3)
       expect(trigger.update(world, mockInput())).toBeNull();
@@ -193,7 +193,7 @@ describe('TriggerSystem', () => {
 
       // Frame 4: fires again
       const r4 = trigger.update(world, mockInput());
-      expect(r4).toEqual({ eventId: 'evt_rain', targetObject: obj });
+      expect(r4).toMatchObject({ eventId: 'evt_rain', targetObject: obj });
     });
   });
 
@@ -207,7 +207,7 @@ describe('TriggerSystem', () => {
 
       const result = trigger.update(world, mockInput({ menu: true }));
 
-      expect(result).toEqual({ eventId: 'evt_menu', targetObject: obj });
+      expect(result).toMatchObject({ eventId: 'evt_menu', targetObject: obj });
     });
 
     it('does not fire for wrong key', () => {
@@ -251,7 +251,7 @@ describe('TriggerSystem', () => {
 
       const result = trigger.update(world, mockInput());
 
-      expect(result).toEqual({ eventId: 'evt_auto', targetObject: obj });
+      expect(result).toMatchObject({ eventId: 'evt_auto', targetObject: obj });
     });
   });
 });

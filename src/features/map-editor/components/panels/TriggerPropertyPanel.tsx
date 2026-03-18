@@ -86,21 +86,33 @@ export function TriggerPropertyPanel({ component, onChange }: Props) {
 
       {/* トリガー固有設定 */}
       {component.type === 'talkTrigger' && (
-        <div className="space-y-1">
-          <Label className="text-xs">方向</Label>
-          <Select
-            value={(component as TalkTriggerComponent).direction}
-            onValueChange={(v) => onChange({ direction: v })}
-          >
-            <SelectTrigger className="h-7 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="front">正面</SelectItem>
-              <SelectItem value="any">全方向</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <>
+          <div className="space-y-1">
+            <Label className="text-xs">方向</Label>
+            <Select
+              value={(component as TalkTriggerComponent).direction}
+              onValueChange={(v) => onChange({ direction: v })}
+            >
+              <SelectTrigger className="h-7 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="front">正面</SelectItem>
+                <SelectItem value="any">全方向</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="talk-face-player"
+              checked={(component as TalkTriggerComponent).facePlayer}
+              onCheckedChange={(v) => onChange({ facePlayer: v === true })}
+            />
+            <Label htmlFor="talk-face-player" className="text-xs">
+              話しかけた時にこちらを向く
+            </Label>
+          </div>
+        </>
       )}
 
       {component.type === 'autoTrigger' && (
