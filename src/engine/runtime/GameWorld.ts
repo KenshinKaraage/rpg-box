@@ -127,9 +127,12 @@ export class GameWorld {
     if (!this.isTilePassable(toX, toY)) return false;
 
     for (const obj of this.objects) {
-      if (obj.gridX === toX && obj.gridY === toY && !obj.isMoving) {
-        const collider = obj.components['collider'];
-        if (collider && !collider.passable) return false;
+      const collider = obj.components['collider'];
+      if (collider && !collider.passable) {
+        // 停止中: 現在位置でブロック
+        if (!obj.isMoving && obj.gridX === toX && obj.gridY === toY) return false;
+        // 移動中: 移動先タイルもブロック（すれ違い防止）
+        if (obj.isMoving && obj.moveTargetX === toX && obj.moveTargetY === toY) return false;
       }
     }
     return true;
