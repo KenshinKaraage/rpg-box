@@ -121,8 +121,10 @@ export class SpriteRenderer {
       const DIR_ROW: Record<string, number> = { down: 0, left: 1, right: 2, up: 3 };
       const dirRow = DIR_ROW[obj.facing] ?? 0;
 
-      // Current animation frame based on elapsed time
-      const frameIndex = Math.floor(Date.now() / animIntervalMs) % animFrameCount;
+      // Animate only while moving; static frame (0) when stopped
+      const frameIndex = obj.isMoving
+        ? Math.floor(Date.now() / animIntervalMs) % animFrameCount
+        : 0;
 
       u0 = (frameIndex * frameWidth) / texW;
       u1 = ((frameIndex + 1) * frameWidth) / texW;
@@ -130,7 +132,9 @@ export class SpriteRenderer {
       v1 = ((dirRow + 1) * frameHeight) / texH;
     } else if (spriteMode === 'single' && frameWidth > 0 && frameHeight > 0) {
       // Animated single sprite: only row 0, no direction
-      const frameIndex = Math.floor(Date.now() / animIntervalMs) % animFrameCount;
+      const frameIndex = obj.isMoving
+        ? Math.floor(Date.now() / animIntervalMs) % animFrameCount
+        : 0;
 
       u0 = (frameIndex * frameWidth) / texW;
       u1 = ((frameIndex + 1) * frameWidth) / texW;
