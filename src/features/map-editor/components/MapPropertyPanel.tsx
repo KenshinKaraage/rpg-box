@@ -25,6 +25,8 @@ interface MapPropertyPanelProps {
 export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapPropertyPanelProps) {
   const maps = useStore((s) => s.maps);
   const updateObject = useStore((s) => s.updateObject);
+  const deleteObjectFromStore = useStore((s) => s.deleteObject);
+  const selectObject = useStore((s) => s.selectObject);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   if (!selectedObjectId || !layerId) {
@@ -101,9 +103,25 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header: object name */}
+      {/* Header: object name + delete button */}
       <div className="border-b px-4 py-3">
-        <Label htmlFor="obj-name" className="text-xs text-muted-foreground">名前</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="obj-name" className="text-xs text-muted-foreground">名前</Label>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-destructive"
+            onClick={() => {
+              if (layerId) {
+                deleteObjectFromStore(mapId, layerId, obj.id);
+                selectObject(null);
+              }
+            }}
+            aria-label="オブジェクトを削除"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
         <Input
           id="obj-name"
           value={obj.name}

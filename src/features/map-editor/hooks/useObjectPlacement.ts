@@ -169,28 +169,23 @@ export function useObjectPlacement(mapId: string, layerId: string) {
     dragRef.current = null;
   }, []);
 
-  /** keydown: Delete で選択中オブジェクト削除 */
-  const handleKeyDown = useCallback(
-    (key: string) => {
-      if (key === 'Delete' || key === 'Backspace') {
-        if (!selectedObjectId) return;
-        const layer = getLayer();
-        const obj = layer?.objects?.find((o) => o.id === selectedObjectId);
-        if (!obj) return;
+  /** 選択中のオブジェクトを削除 */
+  const deleteSelectedObject = useCallback(() => {
+    if (!selectedObjectId) return;
+    const layer = getLayer();
+    const obj = layer?.objects?.find((o) => o.id === selectedObjectId);
+    if (!obj) return;
 
-        deleteObject(mapId, layerId, selectedObjectId);
-        pushUndo({ type: 'deleteObject', mapId, layerId, object: obj });
-        selectObject(null);
-      }
-    },
-    [selectedObjectId, mapId, layerId, getLayer, deleteObject, pushUndo, selectObject]
-  );
+    deleteObject(mapId, layerId, selectedObjectId);
+    pushUndo({ type: 'deleteObject', mapId, layerId, object: obj });
+    selectObject(null);
+  }, [selectedObjectId, mapId, layerId, getLayer, deleteObject, pushUndo, selectObject]);
 
   return {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-    handleKeyDown,
+    deleteSelectedObject,
     getObjectAtTile,
   };
 }

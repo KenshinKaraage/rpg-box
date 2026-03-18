@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore } from '@/stores';
 import { useMapCanvas } from '../hooks/useMapCanvas';
 import { useMapViewport } from '../hooks/useMapViewport';
@@ -39,20 +39,6 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     return () => canvas.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-  // Delete キーでオブジェクト削除
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (isObjectLayer) {
-        objPlacement.handleKeyDown(e.key);
-      }
-    },
-    [isObjectLayer, objPlacement]
-  );
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     handleMouseDown(e.nativeEvent);
