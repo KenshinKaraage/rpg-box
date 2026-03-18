@@ -179,7 +179,12 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
         {/* Add component */}
         {availableComponents.length > 0 && (
           <div className="p-4">
-            <Select onValueChange={handleAddComponent}>
+            <Select
+              value=""
+              onValueChange={(type) => {
+                handleAddComponent(type);
+              }}
+            >
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue placeholder="コンポーネントを追加..." />
               </SelectTrigger>
