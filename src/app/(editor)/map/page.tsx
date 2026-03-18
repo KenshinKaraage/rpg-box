@@ -1,4 +1,5 @@
 'use client';
+import '@/features/event-editor/registry/register';
 import { useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
