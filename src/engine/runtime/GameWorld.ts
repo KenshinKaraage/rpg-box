@@ -128,15 +128,19 @@ export class GameWorld {
     if (toX < 0 || toY < 0 || toX >= this.currentMap.width || toY >= this.currentMap.height) return false;
 
     const movingCollider = movingObj.components['collider'];
-    const collideLayers: string[] = (movingCollider?.collideLayers as string[]) ?? [];
+    const collideLayers: string[] | null = movingCollider
+      ? (movingCollider.collideLayers as string[]) ?? null
+      : null;
 
-    // タイルレイヤーとの衝突判定（collideLayers に含まれるタイルレイヤーのみ）
+    // タイルレイヤーとの衝突判定
+    // collideLayers が null（Collider なし）→ 全タイルレイヤーと衝突
     if (!this.isTilePassable(toX, toY, collideLayers)) return false;
 
-    // オブジェクトとの衝突判定（collideLayers に相手のレイヤーが含まれる場合のみ）
+    // オブジェクトとの衝突判定
     for (const obj of this.objects) {
       if (obj.id === movingObj.id) continue;
-      if (!collideLayers.includes(obj.layerId)) continue;
+      // collideLayers が null → 全オブジェクトと衝突
+      if (collideLayers !== null && !collideLayers.includes(obj.layerId)) continue;
 
       const collider = obj.components['collider'];
       if (!collider) continue;
@@ -240,13 +244,14 @@ export class GameWorld {
 
   // ── Private: Tile passability ──
 
-  private isTilePassable(x: number, y: number, collideLayers: string[]): boolean {
+  private isTilePassable(x: number, y: number, collideLayers: string[] | null): boolean {
     if (!this.currentMap) return false;
 
     for (const layer of this.currentMap.layers) {
       if (layer.type !== 'tile' || !layer.tiles) continue;
-      // このタイルレイヤーが collideLayers に含まれていなければスキップ
-      if (!collideLayers.includes(layer.id)) continue;
+      // collideLayers が null → 全タイルレイヤーと衝突
+      // collideLayers が配列 → 指定レイヤーのみ
+      if (collideLayers !== null && !collideLayers.includes(layer.id)) continue;
       const row = layer.tiles[y];
       if (!row) continue;
       const cell = row[x];
@@ -257,9 +262,10 @@ export class GameWorld {
       const chipset = this.chipsets.find((c) => c.id === chipsetId);
       if (!chipset) continue;
       const chip = chipset.chips.find((c) => c.index === parseInt(indexStr, 10));
-      if (!chip) continue;
-
-      if (chip.values.passable === false) return false;
+      // チップのプロパティが未設定 → デフォルトで通行不可
+      if (!chip) return false;
+      // passable が明示的に true でなければ通行不可
+      if (chip.values.passable !== true) return false;
     }
     return true;
   }

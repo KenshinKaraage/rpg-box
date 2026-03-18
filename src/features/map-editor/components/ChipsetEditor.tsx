@@ -213,7 +213,30 @@ export function ChipsetEditor({
               <Label className="text-xs">画像</Label>
               <ImageFieldEditor
                 value={chipset.imageId || null}
-                onChange={(id) => onUpdateChipset(chipset.id, { imageId: id ?? '' })}
+                onChange={(id) => {
+                  onUpdateChipset(chipset.id, { imageId: id ?? '' });
+                  // 画像変更時: 全チップのデフォルト値を初期化
+                  if (id) {
+                    const imgAsset = assets.find((a) => a.id === id);
+                    const meta = imgAsset?.metadata as ImageMetadata | null;
+                    if (meta?.width && meta?.height) {
+                      const cols = Math.max(1, Math.floor(meta.width / chipset.tileWidth));
+                      const rows = Math.max(1, Math.floor(meta.height / chipset.tileHeight));
+                      const total = cols * rows;
+                      // デフォルト値で全チップを初期化（既存のチップは保持）
+                      const existingMap = new Map(chipset.chips.map((c) => [c.index, c]));
+                      const defaultValues: Record<string, unknown> = {};
+                      for (const field of chipset.fields) {
+                        defaultValues[field.id] = field.getDefaultValue();
+                      }
+                      const newChips = Array.from({ length: total }, (_, i) => {
+                        const existing = existingMap.get(i);
+                        return existing ?? { index: i, values: { ...defaultValues } };
+                      });
+                      onUpdateChipset(chipset.id, { chips: newChips });
+                    }
+                  }
+                }}
                 showPreview={false}
               />
             </div>
