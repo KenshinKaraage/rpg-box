@@ -1,8 +1,21 @@
 import { GameWorld } from './GameWorld';
+import type { RuntimeObject } from './GameWorld';
 import type { GameMap, Chipset, MapObject, SerializedComponent } from '@/lib/storage/types';
 import type { InputManager } from './InputManager';
 
 // ── Helpers ──
+
+function makeDummyMover(collideLayers: string[] = ['tile1', 'obj1']): RuntimeObject {
+  return {
+    id: '__mover__',
+    name: 'mover',
+    components: { collider: { collideLayers } },
+    layerId: 'obj1',
+    gridX: 0, gridY: 0, pixelX: 0, pixelY: 0,
+    facing: 'down' as const,
+    isMoving: false, moveProgress: 0, moveTargetX: 0, moveTargetY: 0,
+  };
+}
 
 function makeComponent(type: string, data: Record<string, unknown> = {}): SerializedComponent {
   return { type, data };
@@ -95,17 +108,19 @@ describe('GameWorld', () => {
     it('blocks movement outside map bounds', () => {
       const world = new GameWorld();
       world.loadMap(makeMap(5, 5), [], []);
+      const mover = makeDummyMover();
 
-      expect(world.canMove(0, 0, -1, 0)).toBe(false);
-      expect(world.canMove(0, 0, 0, -1)).toBe(false);
-      expect(world.canMove(4, 4, 5, 4)).toBe(false);
-      expect(world.canMove(4, 4, 4, 5)).toBe(false);
+      expect(world.canMove(mover, 0, 0, -1, 0)).toBe(false);
+      expect(world.canMove(mover, 0, 0, 0, -1)).toBe(false);
+      expect(world.canMove(mover, 4, 4, 5, 4)).toBe(false);
+      expect(world.canMove(mover, 4, 4, 4, 5)).toBe(false);
     });
 
     it('allows movement to empty tile', () => {
       const world = new GameWorld();
       world.loadMap(makeMap(5, 5), [], []);
-      expect(world.canMove(0, 0, 1, 0)).toBe(true);
+      const mover = makeDummyMover();
+      expect(world.canMove(mover, 0, 0, 1, 0)).toBe(true);
     });
 
     it('blocks movement to impassable tile', () => {
@@ -116,27 +131,28 @@ describe('GameWorld', () => {
       ];
       const chipset = makeChipset({ 0: true, 1: false });
       world.loadMap(makeMap(2, 2, [], tiles), [chipset], []);
+      const mover = makeDummyMover();
 
-      expect(world.canMove(0, 0, 1, 0)).toBe(false);
-      expect(world.canMove(0, 0, 0, 1)).toBe(true);
+      expect(world.canMove(mover, 0, 0, 1, 0)).toBe(false);
+      expect(world.canMove(mover, 0, 0, 0, 1)).toBe(true);
     });
 
     it('blocks movement to tile with non-passable collider', () => {
       const world = new GameWorld();
       const wall = makeObject('wall', 2, 0, [
-        makeComponent('collider', { passable: false }),
+        makeComponent('collider', { collideLayers: ['tile1', 'obj1'] }),
       ]);
       world.loadMap(makeMap(5, 5, [wall]), [], []);
-      expect(world.canMove(1, 0, 2, 0)).toBe(false);
+      const mover = makeDummyMover();
+      expect(world.canMove(mover, 1, 0, 2, 0)).toBe(false);
     });
 
-    it('allows movement to tile with passable collider', () => {
+    it('allows movement to tile with object that has no collider', () => {
       const world = new GameWorld();
-      const trigger = makeObject('trigger', 2, 0, [
-        makeComponent('collider', { passable: true }),
-      ]);
+      const trigger = makeObject('trigger', 2, 0, []);
       world.loadMap(makeMap(5, 5, [trigger]), [], []);
-      expect(world.canMove(1, 0, 2, 0)).toBe(true);
+      const mover = makeDummyMover();
+      expect(world.canMove(mover, 1, 0, 2, 0)).toBe(true);
     });
   });
 

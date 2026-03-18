@@ -20,6 +20,8 @@ export interface RuntimeObject {
   id: string;
   name: string;
   components: Record<string, Record<string, unknown>>; // type → serialized data
+  /** このオブジェクトが属するレイヤーID */
+  layerId: string;
   gridX: number;
   gridY: number;
   pixelX: number;
@@ -65,7 +67,7 @@ export class GameWorld {
       if (layer.type !== 'object' || !layer.objects) continue;
       for (const obj of layer.objects) {
         const resolved = this.resolveObject(obj, prefabs);
-        const rtObj = this.createRuntimeObject(resolved);
+        const rtObj = this.createRuntimeObject(resolved, layer.id);
         this.objects.push(rtObj);
       }
     }
@@ -108,7 +110,7 @@ export class GameWorld {
       const toX = obj.gridX + delta.dx;
       const toY = obj.gridY + delta.dy;
 
-      if (this.canMove(obj.gridX, obj.gridY, toX, toY)) {
+      if (this.canMove(obj, obj.gridX, obj.gridY, toX, toY)) {
         this.startMove(obj, toX, toY);
         // ルート移動の場合、移動成功後にインデックスを進める
         const movement = obj.components['movement'];
@@ -121,19 +123,28 @@ export class GameWorld {
     return completions;
   }
 
-  canMove(fromX: number, fromY: number, toX: number, toY: number): boolean {
+  canMove(movingObj: RuntimeObject, fromX: number, fromY: number, toX: number, toY: number): boolean {
     if (!this.currentMap) return false;
     if (toX < 0 || toY < 0 || toX >= this.currentMap.width || toY >= this.currentMap.height) return false;
-    if (!this.isTilePassable(toX, toY)) return false;
 
+    const movingCollider = movingObj.components['collider'];
+    const collideLayers: string[] = (movingCollider?.collideLayers as string[]) ?? [];
+
+    // タイルレイヤーとの衝突判定（collideLayers に含まれるタイルレイヤーのみ）
+    if (!this.isTilePassable(toX, toY, collideLayers)) return false;
+
+    // オブジェクトとの衝突判定（collideLayers に相手のレイヤーが含まれる場合のみ）
     for (const obj of this.objects) {
+      if (obj.id === movingObj.id) continue;
+      if (!collideLayers.includes(obj.layerId)) continue;
+
       const collider = obj.components['collider'];
-      if (collider && !collider.passable) {
-        // 停止中: 現在位置でブロック
-        if (!obj.isMoving && obj.gridX === toX && obj.gridY === toY) return false;
-        // 移動中: 移動先タイルもブロック（すれ違い防止）
-        if (obj.isMoving && obj.moveTargetX === toX && obj.moveTargetY === toY) return false;
-      }
+      if (!collider) continue;
+
+      // 停止中: 現在位置でブロック
+      if (!obj.isMoving && obj.gridX === toX && obj.gridY === toY) return false;
+      // 移動中: 移動先タイルもブロック（すれ違い防止）
+      if (obj.isMoving && obj.moveTargetX === toX && obj.moveTargetY === toY) return false;
     }
     return true;
   }
@@ -229,11 +240,13 @@ export class GameWorld {
 
   // ── Private: Tile passability ──
 
-  private isTilePassable(x: number, y: number): boolean {
+  private isTilePassable(x: number, y: number, collideLayers: string[]): boolean {
     if (!this.currentMap) return false;
 
     for (const layer of this.currentMap.layers) {
       if (layer.type !== 'tile' || !layer.tiles) continue;
+      // このタイルレイヤーが collideLayers に含まれていなければスキップ
+      if (!collideLayers.includes(layer.id)) continue;
       const row = layer.tiles[y];
       if (!row) continue;
       const cell = row[x];
@@ -272,7 +285,7 @@ export class GameWorld {
     return { ...obj, components: mergedComponents };
   }
 
-  private createRuntimeObject(obj: MapObject): RuntimeObject {
+  private createRuntimeObject(obj: MapObject, layerId: string): RuntimeObject {
     const components: Record<string, Record<string, unknown>> = {};
     for (const comp of obj.components) {
       // Component クラスインスタンスの場合は serialize() でデータ取得
@@ -292,6 +305,7 @@ export class GameWorld {
       id: obj.id,
       name: obj.name,
       components,
+      layerId,
       gridX: gx,
       gridY: gy,
       pixelX: gx * TILE_SIZE,

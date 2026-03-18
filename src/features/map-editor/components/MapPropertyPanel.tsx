@@ -81,9 +81,15 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
   const handleAddComponent = (type: string) => {
     const CompClass = getComponent(type);
     if (!CompClass) return;
-    // Check if already exists
     if (obj.components.some((c) => c.type === type)) return;
     const instance = new CompClass();
+
+    // Collider 追加時: 全レイヤーIDをデフォルトでセット
+    if (type === 'collider' && map) {
+      (instance as unknown as { collideLayers: string[] }).collideLayers =
+        map.layers.map((l) => l.id);
+    }
+
     const newComponents = [...obj.components, instance];
     updateObject(mapId, layerId, obj.id, { components: newComponents });
   };

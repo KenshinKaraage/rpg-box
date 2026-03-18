@@ -11,31 +11,32 @@ export class ColliderComponent extends Component {
 
   width = 1;
   height = 1;
-  passable = false;
-  layer = 0;
+  /** ぶつかるマップレイヤーIDの一覧 */
+  collideLayers: string[] = [];
 
   serialize(): Record<string, unknown> {
     return {
       width: this.width,
       height: this.height,
-      passable: this.passable,
-      layer: this.layer,
+      collideLayers: [...this.collideLayers],
     };
   }
 
   deserialize(data: Record<string, unknown>): void {
     this.width = (data.width as number) ?? 1;
     this.height = (data.height as number) ?? 1;
-    this.passable = (data.passable as boolean) ?? false;
-    this.layer = (data.layer as number) ?? 0;
+    this.collideLayers = (data.collideLayers as string[]) ?? [];
+    // 旧データ互換: passable=false + layer=0 だった場合
+    if (!data.collideLayers && data.passable === false) {
+      this.collideLayers = []; // 後でマップのレイヤーIDで初期化
+    }
   }
 
   clone(): ColliderComponent {
     const c = new ColliderComponent();
     c.width = this.width;
     c.height = this.height;
-    c.passable = this.passable;
-    c.layer = this.layer;
+    c.collideLayers = [...this.collideLayers];
     return c;
   }
 
