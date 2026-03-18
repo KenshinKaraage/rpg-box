@@ -9,6 +9,7 @@ import { CallTemplateAction } from './CallTemplateAction';
 import { WaitAction } from './WaitAction';
 import { ObjectAction } from './ObjectAction';
 import { MapAction } from './MapAction';
+import { LogAction } from './LogAction';
 
 registerAction('variableOp', VariableOpAction);
 registerAction('conditional', ConditionalAction);
@@ -20,3 +21,4 @@ registerAction('callTemplate', CallTemplateAction);
 registerAction('wait', WaitAction);
 registerAction('object', ObjectAction);
 registerAction('map', MapAction);
+registerAction('log', LogAction);

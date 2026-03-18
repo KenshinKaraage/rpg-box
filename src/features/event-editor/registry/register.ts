@@ -14,6 +14,7 @@ import { ScriptActionBlock } from '../components/blocks/ScriptActionBlock';
 import { CallTemplateActionBlock } from '../components/blocks/CallTemplateActionBlock';
 import { MapActionBlock } from '../components/blocks/MapActionBlock';
 import { ObjectActionBlock } from '../components/blocks/ObjectActionBlock';
+import { LogActionBlock } from '../components/blocks/LogActionBlock';
 
 // ロジック
 registerActionBlock({
@@ -87,4 +88,12 @@ registerActionBlock({
   label: 'テンプレート呼出',
   category: 'template',
   BlockComponent: CallTemplateActionBlock,
+});
+
+// デバッグ
+registerActionBlock({
+  type: 'log',
+  label: 'ログ出力',
+  category: 'basic',
+  BlockComponent: LogActionBlock,
 });
