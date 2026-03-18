@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useStore } from '@/stores';
 import type { GameSettings } from '@/types/gameSettings';
 import { RESOLUTION_PRESETS } from '@/types/gameSettings';
 
@@ -54,15 +55,19 @@ interface GameInfoFormProps {
  * ゲーム情報設定フォーム
  */
 export function GameInfoForm({ initialValues, onSubmit }: GameInfoFormProps) {
+  const maps = useStore((s) => s.maps);
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<GameSettingsFormData>({
     resolver: zodResolver(gameSettingsSchema),
     defaultValues: initialValues,
   });
+
+  const currentStartMapId = watch('startMapId');
 
   const handlePresetChange = (presetLabel: string) => {
     const preset = RESOLUTION_PRESETS.find((p) => p.label === presetLabel);
@@ -154,6 +159,26 @@ export function GameInfoForm({ initialValues, onSubmit }: GameInfoFormProps) {
             )}
           </div>
         </div>
+      </div>
+
+      {/* 開始マップ */}
+      <div className="space-y-2">
+        <Label>開始マップ</Label>
+        <Select
+          value={currentStartMapId || ''}
+          onValueChange={(v) => setValue('startMapId', v)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="マップを選択" />
+          </SelectTrigger>
+          <SelectContent>
+            {maps.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 送信ボタン */}
