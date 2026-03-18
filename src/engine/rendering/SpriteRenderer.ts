@@ -97,6 +97,8 @@ export class SpriteRenderer {
     if (!sprite) return;
 
     const imageId = sprite.imageId as string;
+    if (!imageId) return;
+
     const texMeta = this.textures.get(imageId);
     if (!texMeta) return;
 
