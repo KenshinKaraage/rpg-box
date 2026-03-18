@@ -15,6 +15,7 @@ import { GameLoop } from './GameLoop';
 import { InputManager } from './InputManager';
 import { Camera } from './Camera';
 import { GameWorld } from './GameWorld';
+import type { RuntimeObject } from './GameWorld';
 import { TriggerSystem } from './TriggerSystem';
 import { MapRenderer } from './MapRenderer';
 import { SpriteRenderer } from '@/engine/rendering/SpriteRenderer';
@@ -227,7 +228,13 @@ export class GameRuntime {
     if (!this.eventRunning) {
       const triggerResult = this.triggerSystem.update(this.world, this.input);
       if (triggerResult) {
-        this.executeTriggeredEvent(triggerResult.eventId);
+        // Check for local actions on the trigger component
+        const localActions = this.getLocalActionsFromTrigger(triggerResult.targetObject);
+        if (localActions && localActions.length > 0) {
+          this.executeLocalActions(localActions);
+        } else if (triggerResult.eventId) {
+          this.executeTriggeredEvent(triggerResult.eventId);
+        }
       }
     }
 
@@ -289,6 +296,49 @@ export class GameRuntime {
       .run(actions, this.context)
       .catch((err) => {
         console.error(`[GameRuntime] Event error (${eventId}):`, err);
+      })
+      .finally(() => {
+        this.eventRunning = false;
+        this.world.setEventRunning(false);
+      });
+  }
+
+  /** Extract local actions from the trigger component that fired. */
+  private getLocalActionsFromTrigger(obj: RuntimeObject): unknown[] | null {
+    // Check each trigger component type for local actions
+    const triggerTypes = ['talkTrigger', 'touchTrigger', 'stepTrigger', 'autoTrigger', 'inputTrigger'];
+    for (const type of triggerTypes) {
+      const trigger = obj.components[type];
+      if (trigger?.actions && Array.isArray(trigger.actions) && (trigger.actions as unknown[]).length > 0) {
+        return trigger.actions as unknown[];
+      }
+    }
+    return null;
+  }
+
+  /** Execute locally-defined actions (not from a template). */
+  private executeLocalActions(rawActions: unknown[]): void {
+    if (!this.context) {
+      console.error('[GameRuntime] GameContext not initialized');
+      return;
+    }
+
+    const actions = rawActions.map((a) => {
+      const raw = a as { type: string; data?: Record<string, unknown> };
+      const ActionClass = getAction(raw.type);
+      if (!ActionClass) throw new Error(`Unknown action type: ${raw.type}`);
+      const action = new ActionClass();
+      if (raw.data) action.fromJSON(raw.data);
+      return action;
+    });
+
+    this.eventRunning = true;
+    this.world.setEventRunning(true);
+    const eventRunner = new EventRunner();
+    eventRunner
+      .run(actions, this.context)
+      .catch((err) => {
+        console.error('[GameRuntime] Local event error:', err);
       })
       .finally(() => {
         this.eventRunning = false;

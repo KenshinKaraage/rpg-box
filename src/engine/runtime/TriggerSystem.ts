@@ -98,7 +98,10 @@ export class TriggerSystem {
     if (!target) return null;
 
     const talk = target.components['talkTrigger'];
-    if (!talk || !talk.eventId) return null;
+    if (!talk) return null;
+
+    const hasActions = Array.isArray(talk.actions) && (talk.actions as unknown[]).length > 0;
+    if (!talk.eventId && !hasActions) return null;
 
     if (talk.direction === 'front') {
       // 'front' means player must be facing the object
@@ -122,14 +125,20 @@ export class TriggerSystem {
 
       // Touch trigger: player walked onto this object
       const touch = obj.components['touchTrigger'];
-      if (touch && touch.eventId) {
-        return { eventId: touch.eventId as string, targetObject: obj };
+      if (touch) {
+        const hasActions = Array.isArray(touch.actions) && (touch.actions as unknown[]).length > 0;
+        if (touch.eventId || hasActions) {
+          return { eventId: touch.eventId as string, targetObject: obj };
+        }
       }
 
       // Step trigger: same as touch (player stepped on object's tile)
       const step = obj.components['stepTrigger'];
-      if (step && step.eventId) {
-        return { eventId: step.eventId as string, targetObject: obj };
+      if (step) {
+        const hasActions = Array.isArray(step.actions) && (step.actions as unknown[]).length > 0;
+        if (step.eventId || hasActions) {
+          return { eventId: step.eventId as string, targetObject: obj };
+        }
       }
     }
     return null;
@@ -140,7 +149,9 @@ export class TriggerSystem {
   private checkAutoTriggers(world: GameWorld): TriggerResult | null {
     for (const obj of world.objects) {
       const auto = obj.components['autoTrigger'];
-      if (!auto || !auto.eventId) continue;
+      if (!auto) continue;
+      const hasActions = Array.isArray(auto.actions) && (auto.actions as unknown[]).length > 0;
+      if (!auto.eventId && !hasActions) continue;
 
       const key = obj.id;
       const runOnce = (auto.runOnce as boolean) ?? true;
@@ -174,7 +185,10 @@ export class TriggerSystem {
   private checkInputTriggers(world: GameWorld, input: InputManager): TriggerResult | null {
     for (const obj of world.objects) {
       const trigger = obj.components['inputTrigger'];
-      if (!trigger || !trigger.eventId || !trigger.key) continue;
+      if (!trigger || !trigger.key) continue;
+
+      const hasActions = Array.isArray(trigger.actions) && (trigger.actions as unknown[]).length > 0;
+      if (!trigger.eventId && !hasActions) continue;
 
       if (input.isJustPressed(trigger.key as GameButton)) {
         return { eventId: trigger.eventId as string, targetObject: obj };
