@@ -28,3 +28,18 @@ export function getActionNames(): string[] {
 export function clearActionRegistry(): void {
   actionRegistry.clear();
 }
+
+/**
+ * Deserialize an array of serialized actions ({ type, data }) into EventAction instances.
+ */
+export function deserializeActions(
+  items: { type: string; data: Record<string, unknown> }[]
+): EventAction[] {
+  return items.map((item) => {
+    const ActionClass = actionRegistry.get(item.type);
+    if (!ActionClass) throw new Error(`Unknown action type: ${item.type}`);
+    const action = new ActionClass();
+    action.fromJSON(item.data);
+    return action;
+  });
+}

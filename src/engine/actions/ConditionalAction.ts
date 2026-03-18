@@ -1,6 +1,7 @@
 import type { GameContext } from '../runtime/GameContext';
 
 import { EventAction } from './EventAction';
+import { deserializeActions } from './index';
 
 export type ConditionOperand =
   | { type: 'literal'; value: number | string | boolean }
@@ -81,6 +82,16 @@ export class ConditionalAction extends EventAction {
       };
     } else {
       this.condition = cond as unknown as Condition;
+    }
+    if (Array.isArray(data.thenActions)) {
+      this.thenActions = deserializeActions(
+        data.thenActions as { type: string; data: Record<string, unknown> }[]
+      );
+    }
+    if (Array.isArray(data.elseActions)) {
+      this.elseActions = deserializeActions(
+        data.elseActions as { type: string; data: Record<string, unknown> }[]
+      );
     }
   }
 }

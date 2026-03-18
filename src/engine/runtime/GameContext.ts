@@ -154,18 +154,9 @@ function createDataAPI(projectData: EngineProjectData): DataAPI {
   const api: DataAPI = {};
 
   for (const [typeId, entries] of Object.entries(projectData.dataEntries)) {
-    // Build array of entry objects (id + values merged)
-    const arr: Record<string, unknown>[] = entries.map((e) => ({
-      id: e.id,
-      ...e.values,
-    }));
-
-    // Add ID-based access on the array itself
-    for (const entry of arr) {
-      (arr as Record<string, unknown>)[entry['id'] as string] = entry;
-    }
-
-    api[typeId] = arr;
+    const arr = entries.map((e) => ({ id: e.id, ...e.values }));
+    const byId = Object.fromEntries(arr.map((e) => [e.id, e]));
+    api[typeId] = Object.assign(arr, byId);
   }
 
   return api;

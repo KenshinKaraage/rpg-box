@@ -1,6 +1,7 @@
 import type { GameContext } from '../runtime/GameContext';
 
 import { EventAction } from './EventAction';
+import { deserializeActions } from './index';
 
 export class LoopAction extends EventAction {
   readonly type = 'loop';
@@ -32,5 +33,10 @@ export class LoopAction extends EventAction {
 
   fromJSON(data: Record<string, unknown>): void {
     this.count = data.count as number | undefined;
+    if (Array.isArray(data.actions)) {
+      this.actions = deserializeActions(
+        data.actions as { type: string; data: Record<string, unknown> }[]
+      );
+    }
   }
 }
