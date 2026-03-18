@@ -143,7 +143,10 @@ export class GameWorld {
     const movement = obj.components['movement'];
     if (movement && movement.pattern === 'random') {
       if (this.eventRunning && (movement.stopOnEvent ?? true)) return null;
-      if (Math.random() > 0.005) return null;
+      // activeness: 1=おとなしい(0.1%), 5=普通(0.5%), 10=せわしない(1.5%)
+      const activeness = (movement.activeness as number) ?? 3;
+      const chance = 0.001 + (activeness - 1) * 0.0016; // 1→0.1%, 10→1.54%
+      if (Math.random() > chance) return null;
       const dirs: Direction[] = ['up', 'down', 'left', 'right'];
       return dirs[Math.floor(Math.random() * dirs.length)]!;
     }
