@@ -110,6 +110,12 @@ export class GameWorld {
 
       if (this.canMove(obj.gridX, obj.gridY, toX, toY)) {
         this.startMove(obj, toX, toY);
+        // ルート移動の場合、移動成功後にインデックスを進める
+        const movement = obj.components['movement'];
+        if (movement?.pattern === 'route') {
+          const idx = this.routeIndices.get(obj.id) ?? 0;
+          this.routeIndices.set(obj.id, idx + 1);
+        }
       }
     }
     return completions;
@@ -159,18 +165,16 @@ export class GameWorld {
       const steps = (movement.routeSteps as Direction[]) ?? [];
       if (steps.length === 0) return null;
 
-      const currentIndex = this.routeIndices.get(obj.id) ?? 0;
+      let currentIndex = this.routeIndices.get(obj.id) ?? 0;
       if (currentIndex >= steps.length) {
-        // ルート終了
         const loop = (movement.routeLoop as boolean) ?? true;
         if (!loop) return null;
+        currentIndex = 0;
         this.routeIndices.set(obj.id, 0);
-        return steps[0]!;
       }
 
-      const dir = steps[currentIndex]!;
-      this.routeIndices.set(obj.id, currentIndex + 1);
-      return dir;
+      // インデックスは進めない。移動成功後に advanceRouteIndex() で進める
+      return steps[currentIndex]!;
     }
 
     return null;
