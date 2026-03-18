@@ -76,10 +76,10 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
       onMouseDown={handleCanvasMouseDown}
       onMouseMove={handleCanvasMouseMove}
       onMouseUp={(e) => {
+        handleMouseUp(); // パン状態を常にリセット
         if (isObjectLayer) {
           objPlacement.handleMouseUp();
         } else {
-          handleMouseUp();
           const domRect = e.currentTarget.getBoundingClientRect();
           commitRect(e.clientX - domRect.left, e.clientY - domRect.top);
         }
