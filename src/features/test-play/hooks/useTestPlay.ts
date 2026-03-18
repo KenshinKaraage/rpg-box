@@ -16,14 +16,17 @@ export function useTestPlay() {
   const startTestPlay = useCallback(() => {
     const data = buildProjectData();
 
-    if (!data.gameSettings.startMapId) {
-      console.warn('[TestPlay] No start map configured in game settings.');
-      return;
-    }
-
     if (data.maps.length === 0) {
       console.warn('[TestPlay] No maps found in project.');
       return;
+    }
+
+    // startMapId が未設定の場合、最初のマップを使う
+    if (!data.gameSettings.startMapId) {
+      data.gameSettings = {
+        ...data.gameSettings,
+        startMapId: data.maps[0]!.id,
+      };
     }
 
     setProjectData(data);
