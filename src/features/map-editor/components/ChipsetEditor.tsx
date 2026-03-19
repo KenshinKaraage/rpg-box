@@ -537,9 +537,9 @@ function ChipGridCanvas({
       return;
     }
 
-    // 同じ data URL: 画像は再ロードせず再描画のみ（選択/passable 変化に対応）
-    if (blobUrlRef.current?.dataUrl === imageDataUrl) {
-      if (imgRef.current) drawGrid(canvas, imgRef.current);
+    // 同じ data URL かつ画像ロード済み: 再描画のみ（選択/passable 変化に対応）
+    if (blobUrlRef.current?.dataUrl === imageDataUrl && imgRef.current) {
+      drawGrid(canvas, imgRef.current);
       return;
     }
 
