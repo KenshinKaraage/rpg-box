@@ -39,7 +39,7 @@ class CounterAction extends EventAction {
 
 function createMockContext(vars: Record<string, unknown> = {}): GameContext {
   const store = { ...vars };
-  return {
+  const ctx = {
     variable: {
       get: jest.fn((name: string) => store[name]),
       set: jest.fn((name: string, value: unknown) => {
@@ -47,7 +47,12 @@ function createMockContext(vars: Record<string, unknown> = {}): GameContext {
       }),
       getAll: jest.fn(() => ({ ...store })),
     },
+    currentEvent: { nextAction: null },
+    setNextAction: jest.fn((next: unknown) => {
+      ctx.currentEvent = { nextAction: next } as GameContext['currentEvent'];
+    }),
   } as unknown as GameContext;
+  return ctx;
 }
 
 describe('EventRunner', () => {
@@ -96,6 +101,75 @@ describe('EventRunner', () => {
     await runner.run([action, action, action], ctx);
 
     expect(ctx.variable.set).toHaveBeenCalledTimes(3);
+  });
+
+  it('sets currentEvent.nextAction for each action', async () => {
+    const runner = new EventRunner();
+    const ctx = createMockContext();
+    const captured: unknown[] = [];
+
+    class CaptureAction extends EventAction {
+      readonly type = 'capture';
+      async execute(context: GameContext): Promise<void> {
+        captured.push(structuredClone(context.currentEvent));
+      }
+      toJSON() { return {}; }
+      fromJSON() {}
+    }
+
+    const a1 = new CaptureAction();
+    const a2 = new CaptureAction();
+    const a3 = new CaptureAction();
+
+    await runner.run([a1, a2, a3], ctx);
+
+    // a1 sees a2 as next, a2 sees a3, a3 sees null (end)
+    expect(captured[0]).toEqual({ nextAction: { type: 'capture' } });
+    expect(captured[1]).toEqual({ nextAction: { type: 'capture' } });
+    expect(captured[2]).toEqual({ nextAction: null });
+  });
+
+  it('propagates parentNextAction into nested blocks', async () => {
+    const runner = new EventRunner();
+    const ctx = createMockContext();
+    const captured: unknown[] = [];
+
+    class CaptureAction extends EventAction {
+      readonly type = 'capture';
+      async execute(context: GameContext): Promise<void> {
+        captured.push(structuredClone(context.currentEvent));
+      }
+      toJSON() { return {}; }
+      fromJSON() {}
+    }
+
+    class ParentAction extends EventAction {
+      readonly type = 'parent';
+      children: EventAction[];
+      constructor(children: EventAction[]) {
+        super();
+        this.children = children;
+      }
+      async execute(
+        _context: GameContext,
+        run: (actions: EventAction[]) => Promise<void>
+      ): Promise<void> {
+        await run(this.children);
+      }
+      toJSON() { return {}; }
+      fromJSON() {}
+    }
+
+    const innerCapture = new CaptureAction();
+    const outerAfter = new CaptureAction();
+    const parent = new ParentAction([innerCapture]);
+
+    await runner.run([parent, outerAfter], ctx);
+
+    // innerCapture is last in its block → sees outerAfter (parent's next) as nextAction
+    expect(captured[0]).toEqual({ nextAction: { type: 'capture' } });
+    // outerAfter is last overall → sees null
+    expect(captured[1]).toEqual({ nextAction: null });
   });
 
   it('supports nested child action execution', async () => {

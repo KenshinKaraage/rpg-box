@@ -70,6 +70,15 @@ export interface InputAPI {
   isJustPressed(button: GameButton): boolean;
 }
 
+export interface NextActionInfo {
+  type: string;
+  scriptId?: string;
+}
+
+export interface CurrentEventInfo {
+  nextAction: NextActionInfo | null;
+}
+
 // =============================================================================
 // Context Overrides
 // =============================================================================
@@ -96,6 +105,9 @@ export class GameContext {
 
   /** Input API — スクリプト内で Input.waitKey("confirm") として使用 */
   input: InputAPI = createStubInputAPI();
+
+  /** 現在実行中のイベントの次のアクション情報 */
+  currentEvent: CurrentEventInfo = { nextAction: null };
 
   /** Set by MapAction, consumed by GameRuntime after event execution. */
   pendingMapChange: MapChangeRequest | null = null;
@@ -124,6 +136,11 @@ export class GameContext {
   /** Inject Input API backed by a real InputManager (called by GameRuntime). */
   setInputAPI(api: InputAPI): void {
     this.input = api;
+  }
+
+  /** Set next action info (called by EventRunner each iteration). */
+  setNextAction(next: NextActionInfo | null): void {
+    this.currentEvent = { nextAction: next };
   }
 
   /** Inject runtime callbacks (called by GameRuntime after construction). */

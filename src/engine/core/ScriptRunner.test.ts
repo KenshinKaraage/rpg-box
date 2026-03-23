@@ -41,6 +41,7 @@ function createMockContext(): GameContext {
       isDown: jest.fn().mockReturnValue(false),
       isJustPressed: jest.fn().mockReturnValue(false),
     },
+    currentEvent: { nextAction: null },
   } as unknown as GameContext;
 }
 
