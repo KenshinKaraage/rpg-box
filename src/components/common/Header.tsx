@@ -6,6 +6,7 @@ import { useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 import { HamburgerMenu } from '@/components/common/HamburgerMenu';
+import { loadDefaultTestData } from '@/lib/defaultTestData';
 import { SaveIndicator } from '@/components/common/SaveIndicator';
 import { Button } from '@/components/ui/button';
 import {
@@ -117,6 +118,9 @@ export function Header() {
       {/* Hamburger menu */}
       <div className="mr-2">
         <HamburgerMenu
+          project={{
+            onLoadTestData: loadDefaultTestData,
+          }}
           export={{
             onExportProject: handleExport,
             onImportProject: handleImportClick,

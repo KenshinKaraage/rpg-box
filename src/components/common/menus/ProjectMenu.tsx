@@ -13,6 +13,7 @@ export interface ProjectMenuProps {
   onSave?: () => void;
   onSaveAs?: () => void;
   onClearTempData?: () => void;
+  onLoadTestData?: () => void;
 }
 
 export function ProjectMenu({
@@ -21,6 +22,7 @@ export function ProjectMenu({
   onSave,
   onSaveAs,
   onClearTempData,
+  onLoadTestData,
 }: ProjectMenuProps) {
   return (
     <DropdownMenuGroup>
@@ -33,6 +35,7 @@ export function ProjectMenu({
       </DropdownMenuItem>
       <DropdownMenuItem onSelect={onSaveAs}>名前を付けて保存</DropdownMenuItem>
       <DropdownMenuItem onSelect={onClearTempData}>一時データをクリア</DropdownMenuItem>
+      <DropdownMenuItem onSelect={onLoadTestData}>テストデータ読み込み</DropdownMenuItem>
     </DropdownMenuGroup>
   );
 }
