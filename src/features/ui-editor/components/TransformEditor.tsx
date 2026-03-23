@@ -2,6 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -158,6 +159,16 @@ export function TransformEditor({ transform, onUpdate }: TransformEditorProps) {
           />
         </div>
       </fieldset>
+
+      {/* Visible */}
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="transform-visible"
+          checked={transform.visible !== false}
+          onCheckedChange={(checked) => onUpdate({ visible: !!checked })}
+        />
+        <Label htmlFor="transform-visible" className="text-xs">表示</Label>
+      </div>
 
       {/* Rotation & Scale */}
       <fieldset>
