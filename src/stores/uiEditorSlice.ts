@@ -79,7 +79,7 @@ export interface UIEditorSlice {
 
   // Canvas CRUD
   addUICanvas: (canvas: EditorUICanvas) => void;
-  updateUICanvas: (id: string, updates: Partial<Pick<EditorUICanvas, 'name'>>) => void;
+  updateUICanvas: (id: string, updates: Partial<Pick<EditorUICanvas, 'id' | 'name'>>) => void;
   deleteUICanvas: (id: string) => void;
   selectUICanvas: (id: string | null) => void;
 
@@ -172,7 +172,12 @@ export const createUIEditorSlice = <T extends UIEditorSlice>(
   updateUICanvas: (id, updates) =>
     set((s) => {
       const canvas = findCanvas(s, id);
-      if (canvas) Object.assign(canvas, updates);
+      if (!canvas) return;
+      const newId = updates.id;
+      Object.assign(canvas, updates);
+      if (newId && newId !== id && s.selectedCanvasId === id) {
+        s.selectedCanvasId = newId;
+      }
     }),
 
   deleteUICanvas: (id) =>

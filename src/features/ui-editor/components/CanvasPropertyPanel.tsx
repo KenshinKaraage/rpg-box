@@ -22,17 +22,17 @@ export function CanvasPropertyPanel({ canvas }: CanvasPropertyPanelProps) {
           value={canvas.name}
           onChange={(e) => updateUICanvas(canvas.id, { name: e.target.value })}
         />
-        <p className="mt-1 text-[10px] text-muted-foreground">
-          スクリプトから UI[&quot;{canvas.name}&quot;] でアクセスします
-        </p>
       </div>
       <div>
         <Label className="text-xs font-medium">ID</Label>
         <Input
-          className="mt-1 h-7 text-xs text-muted-foreground"
+          className="mt-1 h-7 text-xs"
           value={canvas.id}
-          readOnly
+          onChange={(e) => updateUICanvas(canvas.id, { id: e.target.value })}
         />
+        <p className="mt-1 text-[10px] text-muted-foreground">
+          スクリプトから UI[&quot;{canvas.id}&quot;] でアクセスします
+        </p>
       </div>
     </div>
   );

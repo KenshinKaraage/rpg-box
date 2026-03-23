@@ -348,13 +348,12 @@ export class UICanvasManager implements UIActionManager {
     return false;
   }
 
-  /** Create ScriptAPI proxies for all canvases, keyed by canvas name. */
+  /** Create ScriptAPI proxies for all canvases, keyed by canvas ID. */
   createProxies(): Record<string, UICanvasRuntimeProxy> {
     const proxies: Record<string, UICanvasRuntimeProxy> = {};
 
     for (const state of Array.from(this.canvases.values())) {
       const canvasId = state.data.id;
-      const canvasName = state.data.name;
 
       const proxy: UICanvasRuntimeProxy = {
         show: () => this.showCanvas(canvasId),
@@ -375,7 +374,7 @@ export class UICanvasManager implements UIActionManager {
         };
       }
 
-      proxies[canvasName] = proxy;
+      proxies[canvasId] = proxy;
     }
 
     return proxies;

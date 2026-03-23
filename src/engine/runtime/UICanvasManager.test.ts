@@ -50,7 +50,7 @@ describe('UICanvasManager', () => {
     ]);
 
     const proxies = mgr.createProxies();
-    expect(Object.keys(proxies)).toEqual(['message', 'menu']);
+    expect(Object.keys(proxies)).toEqual(['c1', 'c2']);
   });
 
   it('show/hide controls visibility', () => {
@@ -71,7 +71,7 @@ describe('UICanvasManager', () => {
     mgr.loadCanvases([makeCanvas('c1', 'message')]);
 
     const proxies = mgr.createProxies();
-    const proxy = proxies['message']!;
+    const proxy = proxies['c1']!;
 
     expect(proxy.isVisible()).toBe(false);
     proxy.show();
@@ -90,7 +90,7 @@ describe('UICanvasManager', () => {
     mgr.setProperty('c1', 'textBox', 'text', 'content', 'world');
 
     // Verify via proxy
-    const proxy = mgr.createProxies()['message']!;
+    const proxy = mgr.createProxies()['c1']!;
     const objProxy = proxy.getObject('textBox');
     expect(objProxy).not.toBeNull();
     expect(objProxy!.id).toBe('obj1');
@@ -103,7 +103,7 @@ describe('UICanvasManager', () => {
     const mgr = new UICanvasManager(mockGl(), () => null);
     mgr.loadCanvases([makeCanvas('c1', 'dialog', [obj])]);
 
-    const proxy = mgr.createProxies()['dialog']!;
+    const proxy = mgr.createProxies()['c1']!;
     proxy.setProperty('label', 'text', 'content', 'after');
 
     // The underlying data should be mutated
@@ -116,7 +116,7 @@ describe('UICanvasManager', () => {
     const mgr = new UICanvasManager(mockGl(), () => null);
     mgr.loadCanvases([makeCanvas('c1', 'test')]);
 
-    const proxy = mgr.createProxies()['test']!;
+    const proxy = mgr.createProxies()['c1']!;
     expect(proxy.getObject('nonexistent')).toBeNull();
   });
 
@@ -228,7 +228,7 @@ describe('UICanvasManager', () => {
     const mgr = new UICanvasManager(mockGl(), () => null);
     mgr.loadCanvases([canvas]);
 
-    const proxy = mgr.createProxies()['dialog']!;
+    const proxy = mgr.createProxies()['c1']!;
     expect(typeof proxy['setText']).toBe('function');
     await (proxy['setText'] as (args?: Record<string, unknown>) => Promise<void>)();
 
@@ -253,7 +253,7 @@ describe('UICanvasManager', () => {
     const mgr = new UICanvasManager(mockGl(), () => null);
     mgr.loadCanvases([canvas]);
 
-    const proxy = mgr.createProxies()['dialog']!;
+    const proxy = mgr.createProxies()['c1']!;
     // "show" is a builtin name, so dynamic method is not added
     expect(typeof proxy['show']).toBe('function');
     // But call() can invoke it
@@ -270,7 +270,7 @@ describe('UICanvasManager', () => {
     const mgr = new UICanvasManager(mockGl(), () => null);
     mgr.loadCanvases([makeCanvas('c1', 'test', [obj])]);
 
-    const proxy = mgr.createProxies()['test']!;
+    const proxy = mgr.createProxies()['c1']!;
     const objProxy = proxy.getObject('box')!;
 
     expect(objProxy.x).toBe(0);
@@ -295,7 +295,7 @@ describe('UICanvasManager', () => {
     const mgr = new UICanvasManager(mockGl(), () => null);
     mgr.loadCanvases([makeCanvas('cv1', 'test', [parent, child1, child2])]);
 
-    const proxy = mgr.createProxies()['test']!;
+    const proxy = mgr.createProxies()['cv1']!;
     const parentProxy = proxy.getObject('parent')!;
 
     const c1 = parentProxy.getChild('child1');
