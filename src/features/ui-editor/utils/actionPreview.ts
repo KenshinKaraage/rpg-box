@@ -90,6 +90,9 @@ async function executeSingle(
       const a = action as SetPropertyAction;
       const targetId = a.targetId;
       if (!targetId) break;
+      // エディタプレビューでは literal のみ使用（引数はランタイムで解決）
+      const value = a.valueSource?.source === 'literal' ? a.valueSource.value : undefined;
+      if (value === undefined) break;
 
       const obj = canvas.objects.find((o) => o.id === targetId);
       if (!obj) break;
@@ -97,13 +100,13 @@ async function executeSingle(
 
       if (a.component === 'transform') {
         useStore.getState().updateUIObject(canvasId, targetId, {
-          transform: { ...obj.transform, [a.property]: a.value },
+          transform: { ...obj.transform, [a.property]: value },
         });
       } else {
         const comp = obj.components.find((c) => c.type === a.component);
         if (!comp) break;
         const newData = structuredClone(comp.data) as Record<string, unknown>;
-        newData[a.property] = a.value;
+        newData[a.property] = value;
         useStore.getState().updateUIComponent(canvasId, targetId, a.component, newData);
       }
       break;

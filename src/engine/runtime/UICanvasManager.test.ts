@@ -166,7 +166,7 @@ describe('UICanvasManager', () => {
         name: 'show',
         args: [{ id: 'text', name: 'テキスト', fieldType: { type: 'string' } as never, required: true }],
         actions: [
-          { type: 'uiSetProperty', data: { targetId: 'obj1', component: 'text', property: 'content', value: '{text}' } },
+          { type: 'uiSetProperty', data: { targetId: 'obj1', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'text' } } },
         ],
       },
     ]);

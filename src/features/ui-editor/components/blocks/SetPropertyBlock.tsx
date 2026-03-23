@@ -11,22 +11,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { ActionBlockProps } from '@/features/event-editor/registry/actionBlockRegistry';
-import type { SetPropertyAction } from '@/types/ui/actions/SetPropertyAction';
+import { SetPropertyAction, type PropertyValueSource } from '@/types/ui/actions/SetPropertyAction';
 import {
   useComponentOptions,
   getPropertyDefsForComponent,
 } from '@/features/ui-editor/hooks/useComponentProperties';
 import { PropertyField } from '../ComponentPropertyEditor';
 import { UIObjectSelector } from '../UIObjectSelector';
-
-/** value が引数参照 {argName} かどうか判定 */
-function isArgReference(value: unknown): string | null {
-  if (typeof value !== 'string') return null;
-  const match = /^\{(\w+)\}$/.exec(value);
-  return match ? match[1]! : null;
-}
-
-type ValueMode = 'literal' | 'arg';
 
 function cloneAction(action: SetPropertyAction): SetPropertyAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
@@ -40,11 +31,9 @@ export function SetPropertyBlock({ action, onChange, onDelete, functionArgs }: A
   const propertyDefs = getPropertyDefsForComponent(a.component);
   const selectedDef = a.property ? propertyDefs.find((d) => d.key === a.property) : undefined;
 
-  // 値モード判定
-  const argRef = isArgReference(a.value);
-  const valueMode: ValueMode = argRef ? 'arg' : 'literal';
+  const valueSource = a.valueSource ?? { source: 'literal' as const, value: 0 };
 
-  const handleChange = (field: string, value: unknown) => {
+  const handleFieldChange = (field: string, value: unknown) => {
     const updated = cloneAction(a);
     (updated as unknown as Record<string, unknown>)[field] = value;
     onChange(updated);
@@ -54,29 +43,37 @@ export function SetPropertyBlock({ action, onChange, onDelete, functionArgs }: A
     const updated = cloneAction(a);
     updated.component = comp;
     updated.property = '';
-    updated.value = undefined;
+    updated.valueSource = { source: 'literal', value: undefined };
     onChange(updated);
   };
 
   const handlePropertyChange = (prop: string) => {
     const updated = cloneAction(a);
     updated.property = prop;
-    updated.value = undefined;
+    updated.valueSource = { source: 'literal', value: undefined };
     onChange(updated);
   };
 
-  const handleValueModeChange = (mode: ValueMode) => {
+  const handleValueSourceChange = (source: PropertyValueSource['source']) => {
     const updated = cloneAction(a);
-    if (mode === 'arg' && functionArgs && functionArgs.length > 0) {
-      updated.value = `{${functionArgs[0]!.id}}`;
+    if (source === 'arg' && functionArgs && functionArgs.length > 0) {
+      updated.valueSource = { source: 'arg', argId: functionArgs[0]!.id };
     } else {
-      updated.value = undefined;
+      updated.valueSource = { source: 'literal', value: undefined };
     }
     onChange(updated);
   };
 
   const handleArgSelect = (argId: string) => {
-    handleChange('value', `{${argId}}`);
+    const updated = cloneAction(a);
+    updated.valueSource = { source: 'arg', argId };
+    onChange(updated);
+  };
+
+  const handleLiteralChange = (value: unknown) => {
+    const updated = cloneAction(a);
+    updated.valueSource = { source: 'literal', value };
+    onChange(updated);
   };
 
   return (
@@ -93,7 +90,7 @@ export function SetPropertyBlock({ action, onChange, onDelete, functionArgs }: A
           <Label className="w-20 shrink-0 text-xs text-muted-foreground">対象</Label>
           <UIObjectSelector
             value={a.targetId}
-            onChange={(id) => handleChange('targetId', id)}
+            onChange={(id) => handleFieldChange('targetId', id)}
             className="h-7 flex-1 text-xs"
           />
         </div>
@@ -139,15 +136,17 @@ export function SetPropertyBlock({ action, onChange, onDelete, functionArgs }: A
           </Select>
         </div>
 
-        {/* Value input with mode toggle */}
+        {/* Value input */}
         {selectedDef && (
           <div className="space-y-1">
-            {/* Mode selector (only shown when functionArgs available) */}
             {hasArgs && (
               <div className="flex items-center gap-2">
                 <Label className="w-20 shrink-0 text-xs text-muted-foreground">値ソース</Label>
-                <Select value={valueMode} onValueChange={(v) => handleValueModeChange(v as ValueMode)}>
-                  <SelectTrigger className="h-7 text-xs" data-testid="value-mode-select">
+                <Select
+                  value={valueSource.source}
+                  onValueChange={(v) => handleValueSourceChange(v as PropertyValueSource['source'])}
+                >
+                  <SelectTrigger className="h-7 text-xs" data-testid="value-source-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -158,12 +157,11 @@ export function SetPropertyBlock({ action, onChange, onDelete, functionArgs }: A
               </div>
             )}
 
-            {/* Value input */}
-            {valueMode === 'arg' && hasArgs ? (
+            {valueSource.source === 'arg' && hasArgs ? (
               <div className="flex items-center gap-2">
                 <Label className="w-20 shrink-0 text-xs text-muted-foreground">引数</Label>
                 <Select
-                  value={argRef ?? ''}
+                  value={valueSource.argId}
                   onValueChange={handleArgSelect}
                 >
                   <SelectTrigger className="h-7 text-xs" data-testid="arg-select">
@@ -181,8 +179,8 @@ export function SetPropertyBlock({ action, onChange, onDelete, functionArgs }: A
             ) : (
               <PropertyField
                 def={{ ...selectedDef, label: '値' }}
-                value={a.value}
-                onChange={(v) => handleChange('value', v)}
+                value={valueSource.source === 'literal' ? valueSource.value : undefined}
+                onChange={handleLiteralChange}
               />
             )}
           </div>
