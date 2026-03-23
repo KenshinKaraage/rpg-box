@@ -23,13 +23,39 @@ const msgBg: EditorUIObject = {
   id: 'msg_bg',
   name: 'background',
   transform: {
-    x: 0, y: 480, width: 1280, height: 240,
+    x: 0, y: 720, width: 1280, height: 240,
     anchorX: 'left', anchorY: 'top',
     pivotX: 0.5, pivotY: 0.5,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: false,
   },
   components: [
     { type: 'shape', data: { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 } },
+    {
+      type: 'animation',
+      data: {
+        mode: 'inline',
+        autoPlay: false,
+        loop: false,
+        animations: [
+          {
+            name: 'slideIn',
+            timeline: {
+              tracks: [
+                { property: 'transform.y', startTime: 0, duration: 300, from: 720, to: 480, easing: 'easeOut' },
+              ],
+            },
+          },
+          {
+            name: 'slideOut',
+            timeline: {
+              tracks: [
+                { property: 'transform.y', startTime: 0, duration: 300, from: 480, to: 720, easing: 'easeIn' },
+              ],
+            },
+          },
+        ],
+      },
+    },
   ],
 };
 
@@ -70,9 +96,9 @@ const messageCanvas: EditorUICanvas = {
             valueSource: { source: 'arg', argId: 'text' },
           },
         },
-        // 表示
+        // 表示 + スライドイン
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: true } },
-        // TODO: スライドインアニメーション（AnimationComponent 追加後）
+        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideIn', wait: true } },
       ],
     },
     {
@@ -99,8 +125,8 @@ const messageCanvas: EditorUICanvas = {
       name: 'hide',
       args: [],
       actions: [
-        // TODO: スライドアウトアニメーション（AnimationComponent 追加後）
-        // 非表示
+        // スライドアウト + 非表示
+        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideOut', wait: true } },
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: false } },
       ],
     },
