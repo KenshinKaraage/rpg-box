@@ -12,9 +12,7 @@ import { useStore } from '@/stores';
 export function buildProjectData(): ProjectData {
   const state = useStore.getState();
 
-  // structuredClone でディープコピー — Immer の frozen proxy を解除し、
-  // ランタイムでデータを直接変更可能にする（UICanvasManager 等）
-  return structuredClone({
+  return {
     // Data
     dataTypes: state.dataTypes,
     dataEntries: state.dataEntries,
@@ -30,16 +28,16 @@ export function buildProjectData(): ProjectData {
     events: [],
     eventTemplates: state.eventTemplates as unknown as ProjectData['eventTemplates'],
 
-    // UI
-    uiCanvases: state.uiCanvases as unknown as ProjectData['uiCanvases'],
+    // UI — structuredClone で Immer frozen proxy を解除（UICanvasManager が直接変更する）
+    uiCanvases: structuredClone(state.uiCanvases) as unknown as ProjectData['uiCanvases'],
     objectUIs: [],
     uiTemplates: state.uiTemplates as unknown as ProjectData['uiTemplates'],
 
-    // Scripts & Assets
+    // Scripts & Assets — 参照のまま（変更しない、Blob を壊さない）
     scripts: state.scripts,
     assets: state.assets as unknown as ProjectData['assets'],
 
     // Settings
     gameSettings: state.gameSettings,
-  });
+  };
 }
