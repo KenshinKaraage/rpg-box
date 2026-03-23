@@ -55,11 +55,14 @@ export class TriggerSystem {
 
     // 1. Talk triggers (confirm + facing direction)
     if (ctrl && input.isJustPressed('confirm')) {
+      console.log(`[TriggerSystem] confirm pressed, checking talk triggers. ctrl at (${ctrl.gridX}, ${ctrl.gridY}) facing ${ctrl.facing}`);
       const result = this.checkTalkTriggers(world, ctrl);
       if (result) {
+        console.log(`[TriggerSystem] talk trigger hit:`, result.eventId, result.targetObject.id);
         this.moveCompletions.clear();
         return result;
       }
+      console.log(`[TriggerSystem] no talk trigger found`);
     }
 
     // 2. Touch / Step triggers (player just moved)

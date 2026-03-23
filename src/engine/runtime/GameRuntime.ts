@@ -236,6 +236,9 @@ export class GameRuntime {
     }
 
     // Trigger evaluation (skip while an event is already running)
+    if (this.eventRunning && this.input.isJustPressed('confirm')) {
+      console.log('[GameRuntime] confirm pressed but eventRunning=true, skipping triggers');
+    }
     if (!this.eventRunning) {
       const triggerResult = this.triggerSystem.update(this.world, this.input);
       if (triggerResult) {
