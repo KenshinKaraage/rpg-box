@@ -60,6 +60,7 @@ const messageCanvas: EditorUICanvas = {
         { id: 'text', name: 'テキスト', fieldType: 'string', defaultValue: '' },
       ],
       actions: [
+        // テキスト設定
         {
           type: 'uiSetProperty',
           data: {
@@ -69,9 +70,27 @@ const messageCanvas: EditorUICanvas = {
             valueSource: { source: 'arg', argId: 'text' },
           },
         },
+        // 表示
+        { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: true } },
+        // TODO: スライドインアニメーション（AnimationComponent 追加後）
+      ],
+    },
+    {
+      id: 'fn_update',
+      name: 'updateText',
+      args: [
+        { id: 'text', name: 'テキスト', fieldType: 'string', defaultValue: '' },
+      ],
+      actions: [
+        // テキストだけ更新（アニメなし）
         {
-          type: 'uiSetVisibility',
-          data: { targetId: 'msg_bg', visible: true },
+          type: 'uiSetProperty',
+          data: {
+            targetId: 'msg_text',
+            component: 'text',
+            property: 'content',
+            valueSource: { source: 'arg', argId: 'text' },
+          },
         },
       ],
     },
@@ -80,10 +99,9 @@ const messageCanvas: EditorUICanvas = {
       name: 'hide',
       args: [],
       actions: [
-        {
-          type: 'uiSetVisibility',
-          data: { targetId: 'msg_bg', visible: false },
-        },
+        // TODO: スライドアウトアニメーション（AnimationComponent 追加後）
+        // 非表示
+        { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: false } },
       ],
     },
   ],
@@ -96,12 +114,14 @@ const messageScript: Script = {
   name: 'メッセージ',
   callId: 'message',
   type: 'event',
-  content: `UI["message"].show();
-await UI["message"].call("show", { text });
+  content: `if (!UI["message"].isVisible()) {
+  await UI["message"].call("show", { text });
+} else {
+  await UI["message"].call("updateText", { text });
+}
 await Input.waitKey("confirm");
 if (currentEvent.nextAction?.scriptId !== "message") {
   await UI["message"].call("hide");
-  UI["message"].hide();
 }`,
   args: [
     { id: 'text', name: 'テキスト', fieldType: 'string', required: true, defaultValue: '' },
