@@ -305,8 +305,7 @@ export class UICanvasManager implements UIActionManager {
     }
 
     for (const action of fn.actions) {
-      const resolved = resolveArgs(action, args);
-      await this.executeAction(canvasId, resolved, args, depth);
+      await this.executeAction(canvasId, action, args, depth);
     }
   }
 
@@ -491,55 +490,4 @@ export class UICanvasManager implements UIActionManager {
       },
     });
   };
-}
-
-// ── Arg resolution ──
-
-/**
- * アクション内の {argName} プレースホルダーを引数値に置換する。
- * - 完全一致: "{argName}" → args[argName]（型を保持）
- * - 部分埋め込み: "HP: {hp}/{maxHp}" → 文字列として置換
- */
-function resolveArgs(
-  action: SerializedAction,
-  args: Record<string, unknown>
-): SerializedAction {
-  if (Object.keys(args).length === 0) return action;
-  return {
-    type: action.type,
-    data: resolveObject(action.data, args) as Record<string, unknown>,
-  };
-}
-
-function resolveObject(obj: unknown, args: Record<string, unknown>): unknown {
-  if (typeof obj === 'string') return resolveString(obj, args);
-  if (Array.isArray(obj)) return obj.map((item) => resolveObject(item, args));
-  if (obj !== null && typeof obj === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[key] = resolveObject(value, args);
-    }
-    return result;
-  }
-  return obj;
-}
-
-function resolveString(str: string, args: Record<string, unknown>): unknown {
-  // 完全一致: "{argName}" → 型を保持して返す
-  const exactMatch = /^\{(\w+)\}$/.exec(str);
-  if (exactMatch) {
-    const argName = exactMatch[1]!;
-    if (argName in args) return args[argName];
-    return str;
-  }
-
-  // 部分埋め込み: "HP: {hp}/{maxHp}" → 文字列置換
-  if (str.includes('{')) {
-    return str.replace(/\{(\w+)\}/g, (match, argName: string) => {
-      if (argName in args) return String(args[argName]);
-      return match;
-    });
-  }
-
-  return str;
 }
