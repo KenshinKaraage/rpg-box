@@ -2,10 +2,18 @@ import type React from 'react';
 
 import type { EditableAction } from '@/types/ui/actions/UIAction';
 
+export interface FunctionArgDef {
+  id: string;
+  name: string;
+  fieldType: string;
+}
+
 export interface ActionBlockProps {
   action: EditableAction;
   onChange: (action: EditableAction) => void;
   onDelete: () => void;
+  /** UIFunction の引数定義（UIFunction 内のブロックでのみ渡される） */
+  functionArgs?: FunctionArgDef[];
 }
 
 export interface ActionBlockDefinition {

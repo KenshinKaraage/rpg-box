@@ -19,16 +19,30 @@ import {
 import { PropertyField } from '../ComponentPropertyEditor';
 import { UIObjectSelector } from '../UIObjectSelector';
 
+/** value が引数参照 {argName} かどうか判定 */
+function isArgReference(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const match = /^\{(\w+)\}$/.exec(value);
+  return match ? match[1]! : null;
+}
+
+type ValueMode = 'literal' | 'arg';
+
 function cloneAction(action: SetPropertyAction): SetPropertyAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
 }
 
-export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProps) {
+export function SetPropertyBlock({ action, onChange, onDelete, functionArgs }: ActionBlockProps) {
   const a = action as SetPropertyAction;
+  const hasArgs = functionArgs && functionArgs.length > 0;
 
   const components = useComponentOptions(a.targetId, 'all');
   const propertyDefs = getPropertyDefsForComponent(a.component);
   const selectedDef = a.property ? propertyDefs.find((d) => d.key === a.property) : undefined;
+
+  // 値モード判定
+  const argRef = isArgReference(a.value);
+  const valueMode: ValueMode = argRef ? 'arg' : 'literal';
 
   const handleChange = (field: string, value: unknown) => {
     const updated = cloneAction(a);
@@ -49,6 +63,20 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
     updated.property = prop;
     updated.value = undefined;
     onChange(updated);
+  };
+
+  const handleValueModeChange = (mode: ValueMode) => {
+    const updated = cloneAction(a);
+    if (mode === 'arg' && functionArgs && functionArgs.length > 0) {
+      updated.value = `{${functionArgs[0]!.id}}`;
+    } else {
+      updated.value = undefined;
+    }
+    onChange(updated);
+  };
+
+  const handleArgSelect = (argId: string) => {
+    handleChange('value', `{${argId}}`);
   };
 
   return (
@@ -111,13 +139,53 @@ export function SetPropertyBlock({ action, onChange, onDelete }: ActionBlockProp
           </Select>
         </div>
 
-        {/* Dynamic value input — reuses PropertyField from ComponentPropertyEditor */}
+        {/* Value input with mode toggle */}
         {selectedDef && (
-          <PropertyField
-            def={{ ...selectedDef, label: '値' }}
-            value={a.value}
-            onChange={(v) => handleChange('value', v)}
-          />
+          <div className="space-y-1">
+            {/* Mode selector (only shown when functionArgs available) */}
+            {hasArgs && (
+              <div className="flex items-center gap-2">
+                <Label className="w-20 shrink-0 text-xs text-muted-foreground">値ソース</Label>
+                <Select value={valueMode} onValueChange={(v) => handleValueModeChange(v as ValueMode)}>
+                  <SelectTrigger className="h-7 text-xs" data-testid="value-mode-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="literal">固定値</SelectItem>
+                    <SelectItem value="arg">引数</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Value input */}
+            {valueMode === 'arg' && hasArgs ? (
+              <div className="flex items-center gap-2">
+                <Label className="w-20 shrink-0 text-xs text-muted-foreground">引数</Label>
+                <Select
+                  value={argRef ?? ''}
+                  onValueChange={handleArgSelect}
+                >
+                  <SelectTrigger className="h-7 text-xs" data-testid="arg-select">
+                    <SelectValue placeholder="引数を選択..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {functionArgs!.map((arg) => (
+                      <SelectItem key={arg.id} value={arg.id}>
+                        {arg.name}（{arg.fieldType}）
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <PropertyField
+                def={{ ...selectedDef, label: '値' }}
+                value={a.value}
+                onChange={(v) => handleChange('value', v)}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>

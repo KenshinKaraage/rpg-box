@@ -269,6 +269,11 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                         <ActionBlockEditor
                           actions={deserializeActions(fn.actions)}
                           onChange={(actions) => handleUpdateActions(fn.id, actions)}
+                          functionArgs={fn.args.map((arg) => ({
+                            id: arg.id,
+                            name: arg.name,
+                            fieldType: arg.fieldType ?? 'string',
+                          }))}
                         />
                       </div>
                     </div>

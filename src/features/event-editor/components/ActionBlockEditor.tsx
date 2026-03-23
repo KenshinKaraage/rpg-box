@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { getActionBlock } from '../registry/actionBlockRegistry';
 import { ActionSelector } from './ActionSelector';
 import type { EditableAction } from '@/types/ui/actions/UIAction';
+import type { FunctionArgDef } from '../registry/actionBlockRegistry';
 import { getAction } from '@/engine/actions';
 import { getUIAction } from '@/types/ui/actions';
 
@@ -16,13 +17,15 @@ import { getUIAction } from '@/types/ui/actions';
 interface ActionBlockEditorProps {
   actions: EditableAction[];
   onChange: (actions: EditableAction[]) => void;
+  /** UIFunction の引数定義（UIFunction 内のブロックでのみ渡される） */
+  functionArgs?: FunctionArgDef[];
 }
 
 // =============================================================================
 // ActionBlockEditor コンポーネント
 // =============================================================================
 
-export function ActionBlockEditor({ actions, onChange }: ActionBlockEditorProps) {
+export function ActionBlockEditor({ actions, onChange, functionArgs }: ActionBlockEditorProps) {
   const [selectorOpen, setSelectorOpen] = useState(false);
 
   const handleAddAction = (type: string) => {
@@ -71,6 +74,7 @@ export function ActionBlockEditor({ actions, onChange }: ActionBlockEditorProps)
                 action={action}
                 onChange={(updated) => handleChangeAction(index, updated)}
                 onDelete={() => handleDeleteAction(index)}
+                functionArgs={functionArgs}
               />
             </div>
           );
