@@ -71,6 +71,7 @@ export class ScriptRunner {
     context: GameContext,
     argValues?: Record<string, unknown>
   ): unknown {
+    console.log(`[ScriptRunner] executeById: "${scriptId}", args=`, argValues);
     const script = this.findById(scriptId);
     if (!script) throw new Error(`Script "${scriptId}" not found`);
     return this.execute(script, context, argValues);

@@ -10,10 +10,15 @@ export class ScriptAction extends EventAction {
     context: GameContext,
     _run: (actions: EventAction[]) => Promise<void>
   ): Promise<void> {
+    console.log(`[ScriptAction] execute: scriptId="${this.scriptId}", args=`, this.args);
     const script = context.scriptRunner.findById(this.scriptId);
+    if (!script) {
+      console.warn(`[ScriptAction] script "${this.scriptId}" not found`);
+      return;
+    }
+    console.log(`[ScriptAction] found script "${script.name}", isAsync=${script.isAsync}`);
     const promise = context.scriptRunner.executeById(this.scriptId, context, this.args);
-    // isAsync: 完了まで待機する。それ以外: 待たずに次のアクションへ
-    if (script?.isAsync) {
+    if (script.isAsync) {
       await promise;
     }
   }

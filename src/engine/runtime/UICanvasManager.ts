@@ -290,13 +290,17 @@ export class UICanvasManager implements UIActionManager {
     args: Record<string, unknown> = {},
     depth: number = 0
   ): Promise<void> {
+    console.log(`[UICanvasManager] executeFunction: canvas="${canvasId}", fn="${functionName}", args=`, args);
     if (depth > 10) {
       console.error(`UIFunction call depth exceeded (max 10): ${functionName}`);
       return;
     }
 
     const state = this.canvases.get(canvasId);
-    if (!state) return;
+    if (!state) {
+      console.warn(`[UICanvasManager] canvas "${canvasId}" not found`);
+      return;
+    }
 
     const fn = state.data.functions?.find((f) => f.name === functionName);
     if (!fn) {
