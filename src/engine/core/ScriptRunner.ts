@@ -207,8 +207,9 @@ export class ScriptRunner {
       argsArray,
     ];
 
-    // isAsync: async IIFE（await 使用可能）、それ以外: 同期 IIFE
-    const wrappedBody = isAsync
+    // await を含むスクリプトは自動的に async にする
+    const effectiveAsync = isAsync || content.includes('await ');
+    const wrappedBody = effectiveAsync
       ? `return (async () => { ${content} })();`
       : `return (() => { ${content} })();`;
 

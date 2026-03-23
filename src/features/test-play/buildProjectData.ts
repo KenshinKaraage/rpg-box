@@ -11,7 +11,10 @@ import { useStore } from '@/stores';
 
 export function buildProjectData(): ProjectData {
   const state = useStore.getState();
-  return {
+
+  // structuredClone でディープコピー — Immer の frozen proxy を解除し、
+  // ランタイムでデータを直接変更可能にする（UICanvasManager 等）
+  return structuredClone({
     // Data
     dataTypes: state.dataTypes,
     dataEntries: state.dataEntries,
@@ -38,5 +41,5 @@ export function buildProjectData(): ProjectData {
 
     // Settings
     gameSettings: state.gameSettings,
-  };
+  });
 }
