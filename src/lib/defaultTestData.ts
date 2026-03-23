@@ -98,7 +98,7 @@ const messageCanvas: EditorUICanvas = {
         },
         // 表示 + スライドイン
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: true } },
-        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideIn', wait: false } },
+        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideIn', wait: true } },
       ],
     },
     {
@@ -126,7 +126,7 @@ const messageCanvas: EditorUICanvas = {
       args: [],
       actions: [
         // スライドアウト + 非表示
-        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideOut', wait: false } },
+        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideOut', wait: true } },
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: false } },
       ],
     },
