@@ -17,6 +17,7 @@ import { TransformEditor } from './TransformEditor';
 import { ComponentListItem } from './ComponentListItem';
 import type { RectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';
+import { CanvasPropertyPanel } from './CanvasPropertyPanel';
 
 // ──────────────────────────────────────────────
 // UIPropertyPanel
@@ -82,11 +83,19 @@ export function UIPropertyPanel() {
   const availableComponents = getAllUIComponents().filter(([type]) => !attachedTypes.has(type));
 
   if (!selectedObject) {
+    if (selectedObjectIds.length > 1) {
+      return (
+        <div className="p-4 text-sm text-muted-foreground" data-testid="property-panel-empty">
+          複数のオブジェクトが選択されています
+        </div>
+      );
+    }
+    if (selectedCanvas) {
+      return <CanvasPropertyPanel canvas={selectedCanvas} />;
+    }
     return (
       <div className="p-4 text-sm text-muted-foreground" data-testid="property-panel-empty">
-        {selectedObjectIds.length > 1
-          ? '複数のオブジェクトが選択されています'
-          : 'オブジェクトを選択してください'}
+        画面を選択してください
       </div>
     );
   }
