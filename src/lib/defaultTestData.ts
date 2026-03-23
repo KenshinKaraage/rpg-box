@@ -4,14 +4,18 @@
  * メッセージ表示の動作確認に必要な最小セット:
  * - メッセージ UICanvas（テキスト表示 + show/hide ファンクション）
  * - メッセージスクリプト（イベントスクリプト）
- * - テスト用マップにNPC（TalkTrigger → ScriptAction）
+ * - テスト用マップにプレイヤー + NPC（TalkTrigger → ScriptAction）
  */
 
 import { useStore } from '@/stores';
 import type { EditorUICanvas, EditorUIObject } from '@/stores/uiEditorSlice';
 import type { Script } from '@/types/script';
-// GameMap の型は Component クラスインスタンスを要求するが、
-// ランタイムではシリアライズされた形式で扱われるため unknown でキャストする
+import type { GameMap, MapObject } from '@/types/map';
+import { TransformComponent } from '@/types/components/TransformComponent';
+import { ColliderComponent } from '@/types/components/ColliderComponent';
+import { ControllerComponent } from '@/types/components/ControllerComponent';
+import { TalkTriggerComponent } from '@/types/components/triggers/TalkTriggerComponent';
+import { ScriptAction } from '@/engine/actions/ScriptAction';
 
 // ── UICanvas: メッセージ画面 ──
 
@@ -56,7 +60,6 @@ const messageCanvas: EditorUICanvas = {
         { id: 'text', name: 'テキスト', fieldType: 'string', defaultValue: '' },
       ],
       actions: [
-        // テキストを設定
         {
           type: 'uiSetProperty',
           data: {
@@ -66,7 +69,6 @@ const messageCanvas: EditorUICanvas = {
             valueSource: { source: 'arg', argId: 'text' },
           },
         },
-        // キャンバス表示（SetVisibility で bg を表示）
         {
           type: 'uiSetVisibility',
           data: { targetId: 'msg_bg', visible: true },
@@ -94,8 +96,7 @@ const messageScript: Script = {
   name: 'メッセージ',
   callId: 'message',
   type: 'event',
-  content: `// メッセージ表示 → キー入力待ち → 次がメッセージでなければ閉じる
-UI["message"].show();
+  content: `UI["message"].show();
 await UI["message"].call("show", { text });
 await Input.waitKey("confirm");
 if (currentEvent.nextAction?.scriptId !== "message") {
@@ -110,71 +111,88 @@ if (currentEvent.nextAction?.scriptId !== "message") {
   isAsync: true,
 };
 
-// ── Map: テスト用マップ ──
+// ── Map helpers ──
 
-const testMap = {
-  id: 'test_map',
-  name: 'テストマップ',
-  width: 20,
-  height: 15,
-  fields: [],
-  values: {},
-  layers: [
-    {
-      id: 'layer_tile',
-      name: 'タイル',
-      type: 'tile',
-      visible: true,
-      chipsetIds: [],
-      tiles: [],
-    },
-    {
-      id: 'layer_obj',
-      name: 'オブジェクト',
-      type: 'object',
-      visible: true,
-      chipsetIds: [],
-      objects: [
-        // プレイヤー
-        {
-          id: 'player',
-          name: 'プレイヤー',
-          components: [
-            { type: 'transform', data: { x: 5, y: 5, rotation: 0, scaleX: 1, scaleY: 1 } },
-            { type: 'collider', data: { width: 1, height: 1, passable: false, layer: 'default' } },
-            { type: 'controller', data: { moveSpeed: 4, dashEnabled: false, inputEnabled: true } },
-          ],
-        },
-        // NPC（話しかけるとメッセージ表示）
-        {
-          id: 'npc_01',
-          name: 'NPC',
-          components: [
-            { type: 'transform', data: { x: 7, y: 5, rotation: 0, scaleX: 1, scaleY: 1 } },
-            { type: 'collider', data: { width: 1, height: 1, passable: false, layer: 'default' } },
-            {
-              type: 'talkTrigger',
-              data: {
-                direction: 'front',
-                facePlayer: true,
-                actions: [
-                  {
-                    type: 'script',
-                    data: { scriptId: 'message', args: { text: 'こんにちは！' } },
-                  },
-                  {
-                    type: 'script',
-                    data: { scriptId: 'message', args: { text: 'テストメッセージです。' } },
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+function createPlayerObject(x: number, y: number): MapObject {
+  const transform = new TransformComponent();
+  transform.x = x;
+  transform.y = y;
+
+  const collider = new ColliderComponent();
+  collider.width = 1;
+  collider.height = 1;
+
+  const controller = new ControllerComponent();
+  controller.moveSpeed = 4;
+  controller.inputEnabled = true;
+
+  return {
+    id: 'player',
+    name: 'プレイヤー',
+    components: [transform, collider, controller],
+  };
+}
+
+function createNpcObject(id: string, name: string, x: number, y: number, messages: string[]): MapObject {
+  const transform = new TransformComponent();
+  transform.x = x;
+  transform.y = y;
+
+  const collider = new ColliderComponent();
+  collider.width = 1;
+  collider.height = 1;
+
+  const talk = new TalkTriggerComponent();
+  talk.direction = 'any';
+  talk.facePlayer = true;
+  talk.actions = messages.map((text) => {
+    const action = new ScriptAction();
+    action.scriptId = 'message';
+    action.args = { text };
+    return action;
+  });
+
+  return {
+    id,
+    name,
+    components: [transform, collider, talk],
+  };
+}
+
+function createTestMap(): GameMap {
+  return {
+    id: 'test_map',
+    name: 'テストマップ',
+    width: 20,
+    height: 15,
+    fields: [],
+    values: {},
+    layers: [
+      {
+        id: 'layer_tile',
+        name: 'タイル',
+        type: 'tile',
+        visible: true,
+        chipsetIds: [],
+        tiles: [],
+      },
+      {
+        id: 'layer_obj',
+        name: 'オブジェクト',
+        type: 'object',
+        visible: true,
+        chipsetIds: [],
+        objects: [
+          createPlayerObject(5, 5),
+          createNpcObject('npc_01', 'NPC', 7, 5, [
+            'こんにちは！',
+            'テストメッセージです。',
+          ]),
+        ],
+      },
+    ],
+  };
+}
 
 // ── Store に投入 ──
 
@@ -191,9 +209,9 @@ export function loadDefaultTestData(): void {
     state.addScript(messageScript);
   }
 
-  // Map（Component はクラスインスタンスが要求されるが、ランタイムではシリアライズ形式で動作する）
+  // Map
   if (!state.maps.find((m) => m.id === 'test_map')) {
-    state.addMap(testMap as unknown as import('@/types/map').GameMap);
+    state.addMap(createTestMap());
   }
 
   // ゲーム設定: 開始マップを設定
