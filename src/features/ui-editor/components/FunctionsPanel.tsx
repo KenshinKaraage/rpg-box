@@ -262,6 +262,11 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                           <ActionPreviewButton
                             actions={deserializeActions(fn.actions)}
                             canvasId={selectedCanvasId}
+                            functionArgs={fn.args.map((arg) => ({
+                              id: arg.id,
+                              name: arg.name,
+                              fieldType: arg.fieldType ?? 'string',
+                            }))}
                           />
                         )}
                       </div>

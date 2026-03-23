@@ -3,34 +3,56 @@
 import { useState, useCallback } from 'react';
 import { Play, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { executeActionPreview } from '../utils/actionPreview';
 import type { EditableAction } from '@/types/ui/actions/UIAction';
+import type { FunctionArgDef } from '@/features/event-editor/registry/actionBlockRegistry';
 
 interface ActionPreviewButtonProps {
   actions: EditableAction[];
   canvasId: string;
+  /** ファンクション引数定義（テスト値入力用） */
+  functionArgs?: FunctionArgDef[];
 }
 
 /**
  * アクションリストのテスト実行 / 戻すボタン
  *
- * 「▶ テスト」を押すとアクションをエディタ上で即時実行し、
- * 「↩ 戻す」で元の状態に復元する。
+ * 引数がある場合は入力フォームを表示し、入力した値でテスト実行する。
  */
-export function ActionPreviewButton({ actions, canvasId }: ActionPreviewButtonProps) {
+export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionPreviewButtonProps) {
   const [revertFn, setRevertFn] = useState<(() => void) | null>(null);
-
   const [executing, setExecuting] = useState(false);
+  const [testArgs, setTestArgs] = useState<Record<string, string>>({});
+
+  const hasArgs = functionArgs && functionArgs.length > 0;
 
   const handleExecute = useCallback(async () => {
     if (actions.length === 0) return;
     setExecuting(true);
-    const revert = await executeActionPreview(actions, canvasId);
+
+    // テスト引数を型に応じて変換
+    const resolvedArgs: Record<string, unknown> = {};
+    if (functionArgs) {
+      for (const arg of functionArgs) {
+        const raw = testArgs[arg.id] ?? '';
+        if (arg.fieldType === 'number') {
+          resolvedArgs[arg.id] = Number(raw) || 0;
+        } else if (arg.fieldType === 'boolean') {
+          resolvedArgs[arg.id] = raw === 'true';
+        } else {
+          resolvedArgs[arg.id] = raw;
+        }
+      }
+    }
+
+    const revert = await executeActionPreview(actions, canvasId, resolvedArgs);
     setExecuting(false);
     if (revert) {
       setRevertFn(() => revert);
     }
-  }, [actions, canvasId]);
+  }, [actions, canvasId, functionArgs, testArgs]);
 
   const handleRevert = useCallback(() => {
     if (revertFn) {
@@ -39,30 +61,53 @@ export function ActionPreviewButton({ actions, canvasId }: ActionPreviewButtonPr
     }
   }, [revertFn]);
 
-  if (revertFn) {
-    return (
-      <Button
-        size="sm"
-        variant="outline"
-        className="h-6 gap-1 text-[10px] text-orange-600 border-orange-300 hover:bg-orange-50"
-        onClick={handleRevert}
-      >
-        <Undo2 className="h-3 w-3" />
-        戻す
-      </Button>
-    );
-  }
-
   return (
-    <Button
-      size="sm"
-      variant="outline"
-      className="h-6 gap-1 text-[10px]"
-      onClick={handleExecute}
-      disabled={actions.length === 0 || executing}
-    >
-      <Play className="h-3 w-3" />
-      テスト
-    </Button>
+    <div className="space-y-1">
+      {/* 引数テスト入力 */}
+      {hasArgs && (
+        <div className="space-y-1 rounded border border-dashed p-2">
+          <Label className="text-[10px] text-muted-foreground">テスト引数</Label>
+          {functionArgs!.map((arg) => (
+            <div key={arg.id} className="flex items-center gap-1">
+              <Label className="w-16 shrink-0 truncate text-[10px]" title={arg.name}>
+                {arg.name}
+              </Label>
+              <Input
+                className="h-6 flex-1 text-[10px]"
+                placeholder={arg.fieldType}
+                value={testArgs[arg.id] ?? ''}
+                onChange={(e) =>
+                  setTestArgs((prev) => ({ ...prev, [arg.id]: e.target.value }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 実行 / 戻すボタン */}
+      {revertFn ? (
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-6 gap-1 text-[10px] text-orange-600 border-orange-300 hover:bg-orange-50"
+          onClick={handleRevert}
+        >
+          <Undo2 className="h-3 w-3" />
+          戻す
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-6 gap-1 text-[10px]"
+          onClick={handleExecute}
+          disabled={actions.length === 0 || executing}
+        >
+          <Play className="h-3 w-3" />
+          テスト
+        </Button>
+      )}
+    </div>
   );
 }

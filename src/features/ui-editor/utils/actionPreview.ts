@@ -39,7 +39,8 @@ interface PreviewSnapshot {
  */
 export async function executeActionPreview(
   actions: EditableAction[],
-  canvasId: string
+  canvasId: string,
+  fnArgs: Record<string, unknown> = {}
 ): Promise<(() => void) | null> {
   const state = useStore.getState();
   const canvas = state.uiCanvases.find((c) => c.id === canvasId);
@@ -53,7 +54,7 @@ export async function executeActionPreview(
   };
 
   for (const action of actions) {
-    await executeSingle(action, canvasId, snapshot, 0);
+    await executeSingle(action, canvasId, snapshot, 0, fnArgs);
   }
 
   // revert 関数を返す
@@ -65,10 +66,11 @@ export async function executeActionPreview(
  */
 export async function executeSerializedActionPreview(
   serializedActions: SerializedAction[],
-  canvasId: string
+  canvasId: string,
+  fnArgs: Record<string, unknown> = {}
 ): Promise<(() => void) | null> {
   const actions = deserializeActions(serializedActions);
-  return executeActionPreview(actions, canvasId);
+  return executeActionPreview(actions, canvasId, fnArgs);
 }
 
 const MAX_DEPTH = 10;
@@ -77,7 +79,8 @@ async function executeSingle(
   action: EditableAction,
   canvasId: string,
   snapshot: PreviewSnapshot,
-  depth: number
+  depth: number,
+  fnArgs: Record<string, unknown> = {}
 ): Promise<void> {
   if (depth > MAX_DEPTH) return;
 
@@ -90,8 +93,13 @@ async function executeSingle(
       const a = action as SetPropertyAction;
       const targetId = a.targetId;
       if (!targetId) break;
-      // エディタプレビューでは literal のみ使用（引数はランタイムで解決）
-      const value = a.valueSource?.source === 'literal' ? a.valueSource.value : undefined;
+      // valueSource から値を解決（literal: 直接値、arg: fnArgs から取得）
+      let value: unknown;
+      if (a.valueSource?.source === 'arg') {
+        value = fnArgs[a.valueSource.argId];
+      } else {
+        value = a.valueSource?.value;
+      }
       if (value === undefined) break;
 
       const obj = canvas.objects.find((o) => o.id === targetId);
@@ -139,9 +147,10 @@ async function executeSingle(
       const a = action as CallFunctionAction;
       const fn = canvas.functions.find((f) => f.name === a.functionName);
       if (!fn) break;
+      const mergedArgs = { ...fnArgs, ...a.args };
       const fnActions = deserializeActions(fn.actions);
       for (const fnAction of fnActions) {
-        await executeSingle(fnAction, canvasId, snapshot, depth + 1);
+        await executeSingle(fnAction, canvasId, snapshot, depth + 1, mergedArgs);
       }
       break;
     }
