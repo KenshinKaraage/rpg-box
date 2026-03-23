@@ -29,12 +29,18 @@ const DEFAULT_KEY_MAP: Record<string, GameButton> = {
   M: 'menu',
 };
 
+interface ButtonWaiter {
+  button: GameButton;
+  resolve: () => void;
+}
+
 export class InputManager {
   private keyMap: Record<string, GameButton>;
   private currentState = new Set<GameButton>();
   private previousState = new Set<GameButton>();
   private rawKeysDown = new Set<string>();
   private target: HTMLElement | null = null;
+  private waiters: ButtonWaiter[] = [];
 
   constructor(keyMap?: Record<string, GameButton>) {
     this.keyMap = keyMap ?? { ...DEFAULT_KEY_MAP };
@@ -58,6 +64,7 @@ export class InputManager {
     this.rawKeysDown.clear();
     this.currentState.clear();
     this.previousState.clear();
+    this.waiters = [];
   }
 
   /** Call at the start of each frame to latch state. */
@@ -84,18 +91,26 @@ export class InputManager {
 
   /**
    * Returns a Promise that resolves when the specified button is just pressed.
-   * Used by ScriptAPI: `await Input.pressed('confirm')`
+   * Game-loop synced: processWaiters() must be called each frame after update().
    */
   pressed(button: GameButton): Promise<void> {
     return new Promise<void>((resolve) => {
-      const check = () => {
-        if (this.isJustPressed(button)) {
-          resolve();
-        } else {
-          requestAnimationFrame(check);
-        }
-      };
-      requestAnimationFrame(check);
+      this.waiters.push({ button, resolve });
+    });
+  }
+
+  /**
+   * Resolve waiters for buttons that were just pressed this frame.
+   * Called by GameRuntime each frame after update().
+   */
+  processWaiters(): void {
+    if (this.waiters.length === 0) return;
+    this.waiters = this.waiters.filter((w) => {
+      if (this.isJustPressed(w.button)) {
+        w.resolve();
+        return false;
+      }
+      return true;
     });
   }
 

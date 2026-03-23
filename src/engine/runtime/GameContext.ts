@@ -8,6 +8,7 @@
 import type { ScriptRunner } from '../core/ScriptRunner';
 import type { EngineProjectData } from '../types';
 import type { UICanvasRuntimeProxy } from './UICanvasManager';
+import type { GameButton } from './InputManager';
 
 // =============================================================================
 // Runtime Extension Types (set by GameRuntime for action integration)
@@ -63,6 +64,12 @@ export interface SaveAPI {
   load(slotId: string): void;
 }
 
+export interface InputAPI {
+  waitKey(button: GameButton): Promise<void>;
+  isDown(button: GameButton): boolean;
+  isJustPressed(button: GameButton): boolean;
+}
+
 // =============================================================================
 // Context Overrides
 // =============================================================================
@@ -87,6 +94,9 @@ export class GameContext {
   /** UI canvas proxies — スクリプト内で UI["canvasName"].functionName() として使用 */
   ui: Record<string, UICanvasRuntimeProxy> = {};
 
+  /** Input API — スクリプト内で Input.waitKey("confirm") として使用 */
+  input: InputAPI = createStubInputAPI();
+
   /** Set by MapAction, consumed by GameRuntime after event execution. */
   pendingMapChange: MapChangeRequest | null = null;
 
@@ -109,6 +119,11 @@ export class GameContext {
   /** Inject UI proxies (called by GameRuntime after UICanvasManager setup). */
   setUIProxies(proxies: Record<string, UICanvasRuntimeProxy>): void {
     this.ui = proxies;
+  }
+
+  /** Inject Input API backed by a real InputManager (called by GameRuntime). */
+  setInputAPI(api: InputAPI): void {
+    this.input = api;
   }
 
   /** Inject runtime callbacks (called by GameRuntime after construction). */
@@ -229,6 +244,20 @@ function createSaveAPI(): SaveAPI {
     },
     load(_slotId: string): void {
       // Stub
+    },
+  };
+}
+
+function createStubInputAPI(): InputAPI {
+  return {
+    async waitKey(_button: GameButton): Promise<void> {
+      // Stub: resolves immediately
+    },
+    isDown(_button: GameButton): boolean {
+      return false;
+    },
+    isJustPressed(_button: GameButton): boolean {
+      return false;
     },
   };
 }

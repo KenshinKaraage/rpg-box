@@ -36,6 +36,11 @@ function createMockContext(): GameContext {
     },
     scriptRunner: {} as never,
     ui: {},
+    input: {
+      waitKey: jest.fn().mockResolvedValue(undefined),
+      isDown: jest.fn().mockReturnValue(false),
+      isJustPressed: jest.fn().mockReturnValue(false),
+    },
   } as unknown as GameContext;
 }
 

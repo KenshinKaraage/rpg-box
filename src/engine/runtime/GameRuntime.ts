@@ -130,6 +130,11 @@ export class GameRuntime {
     this.context = new GameContext(engineData, this.sharedScriptRunner);
     this.context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
     this.context.setUIProxies(this.uiCanvasManager.createProxies());
+    this.context.setInputAPI({
+      waitKey: (button) => this.input.pressed(button),
+      isDown: (button) => this.input.isDown(button),
+      isJustPressed: (button) => this.input.isJustPressed(button),
+    });
 
     // Camera follows active controller
     this.camera.followTarget(() => {
@@ -214,6 +219,7 @@ export class GameRuntime {
 
   private update(dt: number): void {
     this.input.update();
+    this.input.processWaiters();
 
     // Tick frame waiters
     this.tickFrameWaiters();
