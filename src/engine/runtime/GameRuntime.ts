@@ -227,8 +227,8 @@ export class GameRuntime {
     // World update — returns objects that finished a grid move this frame
     const completions = this.world.update(dt, this.input);
 
-    // UI animation update
-    this.uiCanvasManager.updateAnimations(dt);
+    // UI animation update (dt is in seconds, animations use ms)
+    this.uiCanvasManager.updateAnimations(dt * 1000);
 
     // Notify trigger system of completed moves
     for (const { obj, fromX, fromY } of completions) {
