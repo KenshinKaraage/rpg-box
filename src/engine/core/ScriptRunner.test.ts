@@ -54,7 +54,7 @@ describe('ScriptRunner', () => {
     runner = new ScriptRunner(allScripts);
   });
 
-  it('executes a simple script and returns the result', () => {
+  it('executes a simple script and returns the result', async () => {
     const script: Script = {
       id: 'script-1',
       name: 'test',
@@ -68,7 +68,7 @@ describe('ScriptRunner', () => {
     allScripts.push(script);
 
     const context = createMockContext();
-    const result = runner.execute(script, context);
+    const result = await runner.execute(script, context);
     expect(result).toBe(42);
   });
 
@@ -91,7 +91,7 @@ describe('ScriptRunner', () => {
     expect(result).toBe('done');
   });
 
-  it('injects Variable API', () => {
+  it('injects Variable API', async () => {
     const script: Script = {
       id: 'script-1',
       name: 'test',
@@ -105,8 +105,8 @@ describe('ScriptRunner', () => {
     allScripts.push(script);
 
     const context = createMockContext();
-    context.variable.get.mockReturnValue(100);
-    const result = runner.execute(script, context);
+    (context.variable.get as jest.Mock).mockReturnValue(100);
+    const result = await runner.execute(script, context);
     expect(context.variable.set).toHaveBeenCalledWith('hp', 100);
     expect(result).toBe(100);
   });
@@ -197,7 +197,7 @@ describe('ScriptRunner', () => {
     expect(() => runner.execute(script, context)).toThrow();
   });
 
-  it('throws on runtime error', () => {
+  it('throws on runtime error', async () => {
     const script: Script = {
       id: 'err',
       name: 'err',
@@ -211,10 +211,10 @@ describe('ScriptRunner', () => {
     allScripts.push(script);
 
     const context = createMockContext();
-    expect(() => runner.execute(script, context)).toThrow('boom');
+    await expect(runner.execute(script, context)).rejects.toThrow('boom');
   });
 
-  it('injects script args as named variables', () => {
+  it('injects script args as named variables', async () => {
     const script: Script = {
       id: 's1',
       name: 'ダメージ計算',
@@ -231,11 +231,11 @@ describe('ScriptRunner', () => {
     allScripts.push(script);
 
     const context = createMockContext();
-    const result = runner.execute(script, context, { damage: 10, multiplier: 3 });
+    const result = await runner.execute(script, context, { damage: 10, multiplier: 3 });
     expect(result).toBe(30);
   });
 
-  it('calls other scripts via Script namespace', () => {
+  it('calls other scripts via Script namespace', async () => {
     const calcScript: Script = {
       id: 'calc',
       name: '計算スクリプト',
@@ -254,20 +254,20 @@ describe('ScriptRunner', () => {
       id: 'main',
       name: 'メイン',
       type: 'event',
-      content: 'const dmg = Script.calc_damage({ atk: 50, def: 20 }); return dmg;',
+      content: 'const dmg = await Script.calc_damage({ atk: 50, def: 20 }); return dmg;',
       args: [],
       returns: [],
       fields: [],
-      isAsync: false,
+      isAsync: true,
     };
     allScripts.push(calcScript, mainScript);
 
     const context = createMockContext();
-    const result = runner.execute(mainScript, context);
+    const result = await runner.execute(mainScript, context);
     expect(result).toBe(30);
   });
 
-  it('Script namespace is not available for internal scripts callId', () => {
+  it('Script namespace is not available for internal scripts callId', async () => {
     const internalScript: Script = {
       id: 'int',
       name: '_helper',
@@ -293,11 +293,11 @@ describe('ScriptRunner', () => {
     allScripts.push(internalScript, mainScript);
 
     const context = createMockContext();
-    const result = runner.execute(mainScript, context);
+    const result = await runner.execute(mainScript, context);
     expect(result).toBe('undefined');
   });
 
-  it('calls other scripts via Script namespace with positional args', () => {
+  it('calls other scripts via Script namespace with positional args', async () => {
     const calcScript: Script = {
       id: 'calc',
       name: '計算スクリプト',
@@ -316,20 +316,20 @@ describe('ScriptRunner', () => {
       id: 'main',
       name: 'メイン',
       type: 'event',
-      content: 'const dmg = Script.calc_damage(50, 20); return dmg;',
+      content: 'const dmg = await Script.calc_damage(50, 20); return dmg;',
       args: [],
       returns: [],
       fields: [],
-      isAsync: false,
+      isAsync: true,
     };
     allScripts.push(calcScript, mainScript);
 
     const context = createMockContext();
-    const result = runner.execute(mainScript, context);
+    const result = await runner.execute(mainScript, context);
     expect(result).toBe(30);
   });
 
-  it('calls single-arg script with positional arg (not treated as object)', () => {
+  it('calls single-arg script with positional arg (not treated as object)', async () => {
     const script: Script = {
       id: 'greet',
       name: '挨拶',
@@ -345,20 +345,20 @@ describe('ScriptRunner', () => {
       id: 'main',
       name: 'メイン',
       type: 'event',
-      content: 'return Script.greet("World");',
+      content: 'return await Script.greet("World");',
       args: [],
       returns: [],
       fields: [],
-      isAsync: false,
+      isAsync: true,
     };
     allScripts.push(script, mainScript);
 
     const context = createMockContext();
-    const result = runner.execute(mainScript, context);
+    const result = await runner.execute(mainScript, context);
     expect(result).toBe('Hello World');
   });
 
-  it('scripts without callId are not in Script namespace', () => {
+  it('scripts without callId are not in Script namespace', async () => {
     const noCallId: Script = {
       id: 'no-call',
       name: 'No CallId',
@@ -382,7 +382,7 @@ describe('ScriptRunner', () => {
     allScripts.push(noCallId, mainScript);
 
     const context = createMockContext();
-    const result = runner.execute(mainScript, context);
+    const result = await runner.execute(mainScript, context);
     expect(result).toBe(0);
   });
 });

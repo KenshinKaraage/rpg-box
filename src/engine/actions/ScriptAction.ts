@@ -10,7 +10,12 @@ export class ScriptAction extends EventAction {
     context: GameContext,
     _run: (actions: EventAction[]) => Promise<void>
   ): Promise<void> {
-    await context.scriptRunner.executeById(this.scriptId, context, this.args);
+    const script = context.scriptRunner.findById(this.scriptId);
+    const promise = context.scriptRunner.executeById(this.scriptId, context, this.args);
+    // isAsync: 完了まで待機する。それ以外: 待たずに次のアクションへ
+    if (script?.isAsync) {
+      await promise;
+    }
   }
 
   toJSON(): Record<string, unknown> {

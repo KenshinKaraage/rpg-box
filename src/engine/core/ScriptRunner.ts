@@ -52,7 +52,6 @@ export class ScriptRunner {
       context,
       ns,
       internalFns,
-      script.isAsync,
       script.args,
       argValues
     );
@@ -62,12 +61,17 @@ export class ScriptRunner {
    * Execute a script by its ID. Looks up the script in the registered list
    * and delegates to execute().
    */
+  /** Find a script by ID. */
+  findById(scriptId: string): Script | undefined {
+    return this.scripts.find((s) => s.id === scriptId);
+  }
+
   executeById(
     scriptId: string,
     context: GameContext,
     argValues?: Record<string, unknown>
   ): unknown {
-    const script = this.scripts.find((s) => s.id === scriptId);
+    const script = this.findById(scriptId);
     if (!script) throw new Error(`Script "${scriptId}" not found`);
     return this.execute(script, context, argValues);
   }
@@ -140,7 +144,6 @@ export class ScriptRunner {
           context,
           ns,
           { ...childInternalFns },
-          child.isAsync,
           [],
           args
         );
@@ -164,7 +167,6 @@ export class ScriptRunner {
     context: GameContext,
     scriptNamespace: Record<string, (...args: unknown[]) => unknown>,
     internalFns: Record<string, (...args: unknown[]) => unknown>,
-    isAsync: boolean,
     scriptArgs?: ScriptArg[],
     argValues?: Record<string, unknown> | unknown[]
   ): unknown {
@@ -207,11 +209,8 @@ export class ScriptRunner {
       argsArray,
     ];
 
-    // await を含むスクリプトは自動的に async にする
-    const effectiveAsync = isAsync || content.includes('await ');
-    const wrappedBody = effectiveAsync
-      ? `return (async () => { ${content} })();`
-      : `return (() => { ${content} })();`;
+    // スクリプトは常に async IIFE でラップ（await を使用可能にする）
+    const wrappedBody = `return (async () => { ${content} })();`;
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const fn = new Function(...paramNames, wrappedBody);
