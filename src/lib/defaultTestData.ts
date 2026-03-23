@@ -98,7 +98,7 @@ const messageCanvas: EditorUICanvas = {
         },
         // 表示 + スライドイン
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: true } },
-        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideIn', wait: true } },
+        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideIn', wait: false } },
       ],
     },
     {
@@ -126,7 +126,7 @@ const messageCanvas: EditorUICanvas = {
       args: [],
       actions: [
         // スライドアウト + 非表示
-        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideOut', wait: true } },
+        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideOut', wait: false } },
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: false } },
       ],
     },
@@ -141,6 +141,7 @@ const messageScript: Script = {
   callId: 'message',
   type: 'event',
   content: `if (!UI["message"].isVisible()) {
+  UI["message"].show();
   await UI["message"].call("show", { text });
 } else {
   await UI["message"].call("updateText", { text });
@@ -148,6 +149,7 @@ const messageScript: Script = {
 await Input.waitKey("confirm");
 if (currentEvent.nextAction?.scriptId !== "message") {
   await UI["message"].call("hide");
+  UI["message"].hide();
 }`,
   args: [
     { id: 'text', name: 'テキスト', fieldType: 'string', required: true, defaultValue: '' },
