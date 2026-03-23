@@ -23,6 +23,7 @@ const INJECTED_PARAM_NAMES = [
   'Camera',
   'Save',
   'Script',
+  'UI',
 ] as const;
 
 export class ScriptRunner {
@@ -196,6 +197,7 @@ export class ScriptRunner {
       context.camera,
       context.save,
       scriptNamespace,
+      context.ui,
       ...internalNames.map((name) => internalFns[name]),
       ...argParamValues,
       argsArray,

@@ -1,4 +1,4 @@
-import { UIAction } from './UIAction';
+import { UIAction, type UIActionManager } from './UIAction';
 
 /**
  * UIオブジェクトの表示/非表示を切り替えるアクション
@@ -10,6 +10,11 @@ export class SetVisibilityAction extends UIAction {
 
   targetId: string = '';
   visible: boolean = true;
+
+  async execute(canvasId: string, manager: UIActionManager): Promise<void> {
+    if (!this.targetId) return;
+    manager.setObjectVisibility(canvasId, this.targetId, this.visible);
+  }
 
   toJSON(): Record<string, unknown> {
     return {

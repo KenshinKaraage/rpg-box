@@ -1,4 +1,4 @@
-import { UIAction } from './UIAction';
+import { UIAction, type UIActionManager } from './UIAction';
 
 /**
  * UIキャンバス間のナビゲーションアクション
@@ -11,6 +11,11 @@ export class NavigateAction extends UIAction {
 
   canvasId: string = '';
   transition: 'none' | 'fade' | 'slide' = 'none';
+
+  async execute(_canvasId: string, manager: UIActionManager): Promise<void> {
+    if (!this.canvasId) return;
+    manager.showCanvas(this.canvasId);
+  }
 
   toJSON(): Record<string, unknown> {
     return {

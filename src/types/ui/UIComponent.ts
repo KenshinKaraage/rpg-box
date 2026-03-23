@@ -51,6 +51,8 @@ export interface RectTransform {
   scaleX: number;
   /** Y方向のスケール */
   scaleY: number;
+  /** 表示/非表示 */
+  visible: boolean;
 }
 
 /**
@@ -223,5 +225,6 @@ export function createDefaultRectTransform(): RectTransform {
     rotation: 0,
     scaleX: 1,
     scaleY: 1,
+    visible: true,
   };
 }

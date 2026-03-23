@@ -98,6 +98,7 @@ function buildDrawOrder(objects: EditorUIObject[]): string[] {
     const children = childrenMap.get(parentId);
     if (!children) return;
     for (const child of children) {
+      if (child.transform.visible === false) continue;
       order.push(child.id);
       traverse(child.id);
     }

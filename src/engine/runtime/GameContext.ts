@@ -7,6 +7,7 @@
 
 import type { ScriptRunner } from '../core/ScriptRunner';
 import type { EngineProjectData } from '../types';
+import type { UICanvasRuntimeProxy } from './UICanvasManager';
 
 // =============================================================================
 // Runtime Extension Types (set by GameRuntime for action integration)
@@ -83,6 +84,9 @@ export class GameContext {
   readonly save: SaveAPI;
   readonly scriptRunner: ScriptRunner;
 
+  /** UI canvas proxies — スクリプト内で UI["canvasName"].functionName() として使用 */
+  ui: Record<string, UICanvasRuntimeProxy> = {};
+
   /** Set by MapAction, consumed by GameRuntime after event execution. */
   pendingMapChange: MapChangeRequest | null = null;
 
@@ -100,6 +104,11 @@ export class GameContext {
     this.sound = createSoundAPI();
     this.camera = createCameraAPI();
     this.save = createSaveAPI();
+  }
+
+  /** Inject UI proxies (called by GameRuntime after UICanvasManager setup). */
+  setUIProxies(proxies: Record<string, UICanvasRuntimeProxy>): void {
+    this.ui = proxies;
   }
 
   /** Inject runtime callbacks (called by GameRuntime after construction). */

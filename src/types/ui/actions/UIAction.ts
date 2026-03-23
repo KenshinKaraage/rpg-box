@@ -11,15 +11,28 @@ export interface EditableAction {
 }
 
 /**
+ * UIAction の execute に渡されるマネージャーインターフェース。
+ * UICanvasManager が実装する。循環参照を避けるためインターフェースで定義。
+ */
+export interface UIActionManager {
+  setPropertyById(canvasId: string, objectId: string, componentType: string, key: string, value: unknown): void;
+  setObjectVisibility(canvasId: string, objectId: string, visible: boolean): void;
+  playAnimation(canvasId: string, objectId: string, animationName: string, options?: { wait?: boolean }): Promise<void>;
+  executeFunction(canvasId: string, functionName: string, args: Record<string, unknown>, depth?: number): Promise<void>;
+  showCanvas(canvasId: string): void;
+}
+
+/**
  * UIAction 基底クラス
  *
  * EventAction とは別系統のアクション基底クラス。
  * UIプロパティの操作やアニメーション発動など UI 固有の操作を定義する。
- *
- * execute() は持たない — 実行は UI ランタイムが担当する。
  */
 export abstract class UIAction implements EditableAction {
   abstract readonly type: string;
+
+  /** Execute the action at runtime. */
+  abstract execute(canvasId: string, manager: UIActionManager, fnArgs: Record<string, unknown>, depth: number): Promise<void>;
 
   /** Serialize to JSON for saving */
   abstract toJSON(): Record<string, unknown>;

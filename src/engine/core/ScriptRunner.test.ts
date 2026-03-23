@@ -35,7 +35,8 @@ function createMockContext(): GameContext {
       load: jest.fn(),
     },
     scriptRunner: {} as never,
-  } as GameContext;
+    ui: {},
+  } as unknown as GameContext;
 }
 
 describe('ScriptRunner', () => {

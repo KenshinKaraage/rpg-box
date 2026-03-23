@@ -1,4 +1,4 @@
-import { UIAction } from './UIAction';
+import { UIAction, type UIActionManager } from './UIAction';
 
 /**
  * 登録された関数を呼び出すアクション
@@ -10,6 +10,12 @@ export class CallFunctionAction extends UIAction {
 
   functionName: string = '';
   args: Record<string, unknown> = {};
+
+  async execute(canvasId: string, manager: UIActionManager, fnArgs: Record<string, unknown>, depth: number): Promise<void> {
+    if (!this.functionName) return;
+    const mergedArgs = { ...fnArgs, ...this.args };
+    await manager.executeFunction(canvasId, this.functionName, mergedArgs, depth + 1);
+  }
 
   toJSON(): Record<string, unknown> {
     return {

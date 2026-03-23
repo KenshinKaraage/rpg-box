@@ -129,6 +129,7 @@ export class GameRuntime {
     this.sharedScriptRunner = new ScriptRunner(this.projectData.scripts);
     this.context = new GameContext(engineData, this.sharedScriptRunner);
     this.context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
+    this.context.setUIProxies(this.uiCanvasManager.createProxies());
 
     // Camera follows active controller
     this.camera.followTarget(() => {
@@ -219,6 +220,9 @@ export class GameRuntime {
 
     // World update — returns objects that finished a grid move this frame
     const completions = this.world.update(dt, this.input);
+
+    // UI animation update
+    this.uiCanvasManager.updateAnimations(dt);
 
     // Notify trigger system of completed moves
     for (const { obj, fromX, fromY } of completions) {

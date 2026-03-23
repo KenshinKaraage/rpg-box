@@ -1,4 +1,4 @@
-import { UIAction } from './UIAction';
+import { UIAction, type UIActionManager } from './UIAction';
 
 /**
  * UIオブジェクトのプロパティを設定するアクション
@@ -13,6 +13,11 @@ export class SetPropertyAction extends UIAction {
   component: string = 'transform';
   property: string = '';
   value: unknown = 0;
+
+  async execute(canvasId: string, manager: UIActionManager): Promise<void> {
+    if (!this.targetId) return;
+    manager.setPropertyById(canvasId, this.targetId, this.component, this.property, this.value);
+  }
 
   toJSON(): Record<string, unknown> {
     return {

@@ -1,4 +1,4 @@
-import { UIAction } from './UIAction';
+import { UIAction, type UIActionManager } from './UIAction';
 
 /**
  * UIオブジェクトの AnimationComponent を発動するアクション
@@ -15,6 +15,11 @@ export class PlayAnimationAction extends UIAction {
   loop: boolean = false;
   /** If true, subsequent actions wait for this animation to finish before executing */
   wait: boolean = false;
+
+  async execute(canvasId: string, manager: UIActionManager): Promise<void> {
+    if (!this.targetId || !this.animationName) return;
+    await manager.playAnimation(canvasId, this.targetId, this.animationName, { wait: this.wait });
+  }
 
   toJSON(): Record<string, unknown> {
     return {

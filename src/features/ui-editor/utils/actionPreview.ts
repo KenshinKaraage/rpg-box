@@ -118,12 +118,9 @@ async function executeSingle(
       if (!visObj) break;
       captureObject(canvas.objects, targetId, snapshot);
 
-      // scaleX/Y を 0 にして非表示をシミュレート、復元は snapshot から
-      if (!a.visible) {
-        useStore.getState().updateUIObject(canvasId, targetId, {
-          transform: { ...visObj.transform, scaleX: 0, scaleY: 0 },
-        });
-      }
+      useStore.getState().updateUIObject(canvasId, targetId, {
+        transform: { ...visObj.transform, visible: a.visible },
+      });
       break;
     }
 
