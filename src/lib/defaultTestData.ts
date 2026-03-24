@@ -16,6 +16,20 @@ import { ColliderComponent } from '@/types/components/ColliderComponent';
 import { ControllerComponent } from '@/types/components/ControllerComponent';
 import { TalkTriggerComponent } from '@/types/components/triggers/TalkTriggerComponent';
 import { ScriptAction } from '@/engine/actions/ScriptAction';
+import '@/types/ui/register';
+import { getUIComponent } from '@/types/ui';
+
+/** UIComponent をインスタンス化し、プロパティを設定してシリアライズ形式で返す */
+function createUIComponentData(type: string, overrides: Record<string, unknown> = {}): { type: string; data: unknown } {
+  const Ctor = getUIComponent(type);
+  if (!Ctor) return { type, data: overrides };
+  const instance = new Ctor();
+  // overrides を適用
+  for (const [key, value] of Object.entries(overrides)) {
+    (instance as unknown as Record<string, unknown>)[key] = value;
+  }
+  return { type, data: instance.serialize() };
+}
 
 // ── UICanvas: メッセージ画面 ──
 
@@ -33,33 +47,30 @@ const msgBg: EditorUIObject = {
     rotation: 0, scaleX: 1, scaleY: 1, visible: false,
   },
   components: [
-    { type: 'shape', data: { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 } },
-    {
-      type: 'animation',
-      data: {
-        mode: 'inline',
-        autoPlay: false,
-        loop: false,
-        animations: [
-          {
-            name: 'slideIn',
-            timeline: {
-              tracks: [
-                { property: 'transform.y', startTime: 0, duration: 300, from: MSG_HIDE_Y, to: MSG_SHOW_Y, easing: 'easeOut' },
-              ],
-            },
+    createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+    createUIComponentData('animation', {
+      mode: 'inline',
+      autoPlay: false,
+      loop: false,
+      animations: [
+        {
+          name: 'slideIn',
+          timeline: {
+            tracks: [
+              { property: 'transform.y', startTime: 0, duration: 300, from: MSG_HIDE_Y, to: MSG_SHOW_Y, easing: 'easeOut' },
+            ],
           },
-          {
-            name: 'slideOut',
-            timeline: {
-              tracks: [
-                { property: 'transform.y', startTime: 0, duration: 300, from: MSG_SHOW_Y, to: MSG_HIDE_Y, easing: 'easeIn' },
-              ],
-            },
+        },
+        {
+          name: 'slideOut',
+          timeline: {
+            tracks: [
+              { property: 'transform.y', startTime: 0, duration: 300, from: MSG_SHOW_Y, to: MSG_HIDE_Y, easing: 'easeIn' },
+            ],
           },
-        ],
-      },
-    },
+        },
+      ],
+    }),
   ],
 };
 
@@ -74,7 +85,7 @@ const msgFace: EditorUIObject = {
     rotation: 0, scaleX: 1, scaleY: 1, visible: true,
   },
   components: [
-    { type: 'image', data: { imageId: '', tint: '', opacity: 1, sliceMode: 'none' } },
+    createUIComponentData('image', { imageId: '', opacity: 1 }),
   ],
 };
 
@@ -89,7 +100,7 @@ const msgText: EditorUIObject = {
     rotation: 0, scaleX: 1, scaleY: 1, visible: true,
   },
   components: [
-    { type: 'text', data: { content: '', fontSize: 24, color: '#ffffff', fontId: '', align: 'left', verticalAlign: 'top', lineHeight: 1.4 } },
+    createUIComponentData('text', { content: '', fontSize: 24, color: '#ffffff', align: 'left', verticalAlign: 'top', lineHeight: 1.4 }),
   ],
 };
 
