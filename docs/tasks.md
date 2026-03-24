@@ -5986,27 +5986,24 @@ export function useAutoSave() {
 
 #### [T218] [P] Implement UIAPI (UICanvasProxy / UIObjectProxy)
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] UICanvasManager に `executeFunction(canvasId, functionName, args)` 追加
-- [ ] UICanvasManager に `findObjectById()` ヘルパー追加
-- [ ] UICanvasManager に `setObjectVisibility()` 追加
-- [ ] UICanvasManager に `playAnimation()` / `updateAnimations(deltaMs)` 追加
-- [ ] UIFunction の引数プレースホルダー `{argName}` 解決ロジック
-- [ ] UICanvasRuntimeProxy に `call(functionName, args)` メソッド追加
-- [ ] UIFunction 名を動的メソッドとして追加（ビルトイン名との衝突回避）
-- [ ] UIObjectRuntimeProxy に transform 直接アクセス（x, y, width, height, scaleX, scaleY, rotation, visible）
-- [ ] UIObjectRuntimeProxy に `getChild(name)` / `getChildren()` 追加
-- [ ] RectTransform に `visible: boolean` 追加 + `createDefaultRectTransform()` 更新
-- [ ] UIRenderer で `visible === false` の描画スキップ
-- [ ] ScriptRunner の INJECTED_PARAM_NAMES に `'UI'` 追加
-- [ ] GameContext に `ui` プロパティ追加
-- [ ] GameRuntime で `updateAnimations(deltaMs)` 呼び出し
-- [ ] テスト追加
+- [x] UICanvasManager に `executeFunction(canvasId, functionName, args)` 追加
+- [x] UICanvasManager に `findObjectById()` ヘルパー追加
+- [x] UICanvasManager に `setObjectVisibility()` 追加
+- [x] UICanvasManager に `playAnimation()` / `updateAnimations(deltaMs)` 追加
+- [x] UICanvasRuntimeProxy に `call(functionName, args)` メソッド追加
+- [x] UIFunction 名を動的メソッドとして追加（既存キー衝突回避）
+- [x] UIObjectRuntimeProxy に transform 直接アクセス（Proxy）
+- [x] UIObjectRuntimeProxy に `getChild(name)` / `getChildren()` 追加
+- [x] ScriptRunner の INJECTED_PARAM_NAMES に `'UI'` 追加
+- [x] GameContext に `ui` プロパティ + `setUIProxies()` 追加
+- [x] GameRuntime で `updateAnimations(dt * 1000)` 呼び出し + UI proxy 注入
+- [x] テスト追加（15テスト全通過）
 
 **関連ファイル:**
 
@@ -6014,8 +6011,6 @@ export function useAutoSave() {
 - `src/engine/runtime/GameContext.ts`
 - `src/engine/core/ScriptRunner.ts`
 - `src/engine/runtime/GameRuntime.ts`
-- `src/types/ui/UIComponent.ts`
-- `src/features/ui-editor/renderer/UIRenderer.ts`
 
 **参照:**
 
@@ -6089,18 +6084,18 @@ export function useAutoSave() {
 
 #### [T222] [P] Implement InputAPI (waitKey)
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] InputManager.pressed() をゲームループ同期に改修（rAF → waiter リスト方式）
-- [ ] InputManager に `processWaiters()` 追加
-- [ ] GameRuntime.update() で `processWaiters()` 呼び出し
-- [ ] GameContext に `input` プロパティ追加（waitKey, isDown, isJustPressed）
-- [ ] ScriptRunner の INJECTED_PARAM_NAMES に `'Input'` 追加
-- [ ] テスト追加
+- [x] InputManager.pressed() をゲームループ同期に改修（rAF → waiter リスト方式）
+- [x] InputManager に `processWaiters()` 追加
+- [x] GameRuntime.update() で `processWaiters()` 呼び出し
+- [x] GameContext に `input` プロパティ追加（InputAPI: waitKey, isDown, isJustPressed）
+- [x] ScriptRunner の INJECTED_PARAM_NAMES に `'Input'` 追加
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -6108,10 +6103,6 @@ export function useAutoSave() {
 - `src/engine/runtime/GameContext.ts`
 - `src/engine/core/ScriptRunner.ts`
 - `src/engine/runtime/GameRuntime.ts`
-
-**参照:**
-
-- `docs/superpowers/specs/2026-03-20-script-ui-integration-design.md` セクション2
 
 ---
 
@@ -6165,45 +6156,43 @@ export function useAutoSave() {
 
 #### [T218a] [P] Add RectTransform visible flag
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] RectTransform に `visible: boolean` フィールド追加
-- [ ] `createDefaultRectTransform()` に `visible: true` 追加
-- [ ] UIRenderer で `visible === false` のオブジェクトと子孫を描画スキップ
-- [ ] actionPreview の scale=0 方式を visible フラグ方式に変更
-- [ ] 古い保存データの読み込み時に `visible ?? true` フォールバック
-- [ ] テスト追加
+- [x] RectTransform に `visible: boolean` フィールド追加
+- [x] `createDefaultRectTransform()` に `visible: true` 追加
+- [x] UIRenderer で `visible === false` のオブジェクトと子孫を描画スキップ
+- [x] actionPreview の scale=0 方式を visible フラグ方式に変更
+- [x] 古い保存データの読み込み時に `visible ?? true` フォールバック
+- [x] TransformEditor に「表示」チェックボックス追加
+- [x] テスト追加
 
 **関連ファイル:**
 
 - `src/types/ui/UIComponent.ts`
 - `src/features/ui-editor/renderer/UIRenderer.ts`
 - `src/features/ui-editor/utils/actionPreview.ts`
-
-**参照:**
-
-- `docs/superpowers/specs/2026-03-20-script-ui-integration-design.md` セクション4
+- `src/features/ui-editor/components/TransformEditor.tsx`
 
 ---
 
 #### [T223a] [P] Implement currentEvent.nextAction
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] EventRunner.run() に `parentNextAction` 引数追加（デフォルト null）
-- [ ] for...of → for+index に変更、次アクション情報を context にセット
-- [ ] 子ブロック（Conditional/Loop）に parentNextAction を伝播
-- [ ] GameContext に `currentEvent` / `setNextAction()` 追加
-- [ ] ScriptRunner の INJECTED_PARAM_NAMES に `'currentEvent'` 追加
-- [ ] テスト追加
+- [x] EventRunner.run() に `parentNextAction` 引数追加（デフォルト null）
+- [x] for...of → for+index に変更、次アクション情報を context にセット
+- [x] 子ブロック（Conditional/Loop）に parentNextAction を伝播
+- [x] GameContext に `currentEvent` / `setNextAction()` 追加
+- [x] ScriptRunner の INJECTED_PARAM_NAMES に `'currentEvent'` 追加
+- [x] テスト追加（7テスト全通過）
 
 **関連ファイル:**
 
@@ -6211,9 +6200,77 @@ export function useAutoSave() {
 - `src/engine/runtime/GameContext.ts`
 - `src/engine/core/ScriptRunner.ts`
 
-**参照:**
+---
 
-- `docs/superpowers/specs/2026-03-20-script-ui-integration-design.md` セクション3
+#### [T218b] Script ↔ UI 連携追加実装
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] UIAction 基底クラスに `execute(canvasId, manager)` 追加（switch/case 廃止）
+- [x] UICanvasManager が `UIActionManager` インターフェースを実装
+- [x] SetPropertyAction に構造化 `PropertyValueSource`（literal / arg）追加
+- [x] SetPropertyBlock で固定値/引数の切替UI
+- [x] ScriptActionBlock をドロップダウン選択 + 引数入力フォームに改修
+- [x] スクリプト引数フィールドレジストリ（arg-fields）新規作成
+- [x] arg-fields: string, number, boolean, color, image, audio 対応
+- [x] ScriptTestPanel を arg-fields レジストリ対応に改修
+- [x] ActionPreviewButton を arg-fields レジストリ対応に改修
+- [x] FunctionsPanel 引数タイプに image, audio 追加
+- [x] ScriptSettingsPanel 引数タイプに color, image, audio, dataSelect 追加
+- [x] CanvasPropertyPanel 新規作成（画面名・ID編集）
+- [x] UICanvasProxy のキーを name → ID に変更
+- [x] キャンバスIDを編集可能に
+- [x] ScriptRunner: 全スクリプトを常に async IIFE でラップ
+- [x] ScriptAction: script.isAsync で完了待機を制御
+- [x] buildProjectData: uiCanvases のみ structuredClone（Immer frozen 解除）
+- [x] デフォルトテストデータ作成（メッセージ UICanvas + スクリプト + マップ）
+
+**関連ファイル:**
+
+- `src/types/ui/actions/UIAction.ts`
+- `src/types/ui/actions/SetPropertyAction.ts`
+- `src/types/ui/actions/SetVisibilityAction.ts`
+- `src/types/ui/actions/PlayAnimationAction.ts`
+- `src/types/ui/actions/CallFunctionAction.ts`
+- `src/types/ui/actions/NavigateAction.ts`
+- `src/engine/runtime/UICanvasManager.ts`
+- `src/engine/actions/ScriptAction.ts`
+- `src/engine/core/ScriptRunner.ts`
+- `src/features/event-editor/components/arg-fields/`
+- `src/features/event-editor/components/blocks/ScriptActionBlock.tsx`
+- `src/features/ui-editor/components/blocks/SetPropertyBlock.tsx`
+- `src/features/ui-editor/components/CanvasPropertyPanel.tsx`
+- `src/features/ui-editor/components/ActionPreviewButton.tsx`
+- `src/features/ui-editor/components/FunctionsPanel.tsx`
+- `src/features/script-editor/components/ScriptSettingsPanel.tsx`
+- `src/features/script-editor/components/ScriptTestPanel.tsx`
+- `src/features/test-play/buildProjectData.ts`
+- `src/lib/defaultTestData.ts`
+
+---
+
+#### [T218c] Fix renderer pivot handling
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] shapeRenderer: buildRoundedRectOutline がピボットを正しく考慮
+- [x] shapeRenderer: renderEllipse / renderEllipseStroke がピボットを正しく考慮
+- [x] transformResolver: resolveTransform が親のピボットを考慮して子の位置を計算
+- [x] dt 秒→ミリ秒変換修正（UIアニメーション）
+
+**関連ファイル:**
+
+- `src/features/ui-editor/renderer/shapeRenderer.ts`
+- `src/features/ui-editor/renderer/transformResolver.ts`
+- `src/engine/runtime/GameRuntime.ts`
 
 ---
 
