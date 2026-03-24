@@ -45,7 +45,7 @@ describe('ScriptTestPanel', () => {
   it('shows argument inputs based on script args', () => {
     mockScripts.push(testScript);
     render(<ScriptTestPanel script={testScript} />);
-    expect(screen.getByLabelText('level')).toBeInTheDocument();
+    expect(screen.getByText('level（number）')).toBeInTheDocument();
   });
 
   it('shows no args section when script has no args', () => {

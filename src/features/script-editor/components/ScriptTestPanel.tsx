@@ -10,6 +10,8 @@ import { GameEngine } from '@/engine/core/GameEngine';
 import type { EngineMessage, ScriptModeConfig } from '@/engine/types';
 import { useStore } from '@/stores';
 import type { Script } from '@/types/script';
+import { getArgField } from '@/features/event-editor/components/arg-fields';
+import '@/features/event-editor/components/arg-fields/register';
 
 interface ScriptTestPanelProps {
   script: Script | null;
@@ -21,7 +23,7 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
   const classes = useStore((s) => s.classes);
   const dataTypes = useStore((s) => s.dataTypes);
   const dataEntries = useStore((s) => s.dataEntries);
-  const [argValues, setArgValues] = useState<Record<string, string>>({});
+  const [argValues, setArgValues] = useState<Record<string, unknown>>({});
   const [result, setResult] = useState<string | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
@@ -55,13 +57,10 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     let errorMsg: string | null = null;
     const typeErrors: string[] = [];
 
-    // Build args keyed by arg.id (script variable name)
+    // Build args keyed by arg.id (values are already typed from arg field renderers)
     const args: Record<string, unknown> = {};
     for (const arg of script.args) {
-      const raw = argValues[arg.id] ?? '';
-      if (arg.fieldType === 'number') args[arg.id] = Number(raw) || 0;
-      else if (arg.fieldType === 'boolean') args[arg.id] = raw === 'true';
-      else args[arg.id] = raw;
+      args[arg.id] = argValues[arg.id] ?? arg.defaultValue ?? '';
     }
 
     // Map store variables to engine format
@@ -140,21 +139,34 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
           {script.args.length > 0 && (
             <div className="space-y-2">
               <Label>引数</Label>
-              {script.args.map((arg) => (
-                <div key={arg.id} className="space-y-1">
-                  <Label htmlFor={`test-arg-${arg.id}`} className="text-xs">
-                    {arg.name}
-                  </Label>
-                  <Input
-                    id={`test-arg-${arg.id}`}
-                    value={argValues[arg.id] ?? ''}
-                    onChange={(e) =>
-                      setArgValues((prev) => ({ ...prev, [arg.id]: e.target.value }))
-                    }
-                    placeholder={arg.fieldType}
-                  />
-                </div>
-              ))}
+              {script.args.map((arg) => {
+                const Renderer = getArgField(arg.fieldType);
+                return (
+                  <div key={arg.id} className="space-y-1">
+                    <Label htmlFor={`test-arg-${arg.id}`} className="text-xs">
+                      {arg.name}（{arg.fieldType}）
+                    </Label>
+                    {Renderer ? (
+                      <Renderer
+                        value={argValues[arg.id]}
+                        onChange={(v) =>
+                          setArgValues((prev) => ({ ...prev, [arg.id]: v }))
+                        }
+                        placeholder={arg.fieldType}
+                      />
+                    ) : (
+                      <Input
+                        id={`test-arg-${arg.id}`}
+                        value={String(argValues[arg.id] ?? '')}
+                        onChange={(e) =>
+                          setArgValues((prev) => ({ ...prev, [arg.id]: e.target.value }))
+                        }
+                        placeholder={arg.fieldType}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
