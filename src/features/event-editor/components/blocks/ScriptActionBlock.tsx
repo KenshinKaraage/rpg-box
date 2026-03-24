@@ -12,8 +12,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStore } from '@/stores';
+import { getArgField } from '../arg-fields';
+import '../arg-fields/register';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { ScriptAction } from '@/engine/actions/ScriptAction';
+import type { ScriptArg } from '@/types/script';
 
 function cloneAction(action: ScriptAction): ScriptAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
@@ -23,21 +26,17 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
   const scriptAction = action as ScriptAction;
   const scripts = useStore((s) => s.scripts);
 
-  // イベントスクリプトのみ（internal, component は除外）
   const eventScripts = scripts.filter((s) => s.type === 'event');
-
-  // 選択中のスクリプト
   const selectedScript = scripts.find((s) => s.id === scriptAction.scriptId);
 
   const handleScriptChange = (scriptId: string) => {
     const updated = cloneAction(scriptAction);
     updated.scriptId = scriptId === '__none__' ? '' : scriptId;
-    // スクリプト変更時に引数をリセット
     updated.args = {};
     onChange(updated);
   };
 
-  const handleArgChange = (argId: string, value: string) => {
+  const handleArgChange = (argId: string, value: unknown) => {
     const updated = cloneAction(scriptAction);
     updated.args = { ...updated.args, [argId]: value };
     onChange(updated);
@@ -58,7 +57,6 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
         </Button>
       </div>
       <div className="mt-2 space-y-2">
-        {/* スクリプト選択ドロップダウン */}
         <div className="flex items-center gap-2">
           <Label className="w-24 shrink-0 text-xs text-muted-foreground">スクリプト</Label>
           <Select
@@ -79,26 +77,43 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
           </Select>
         </div>
 
-        {/* 引数入力フォーム */}
         {selectedScript && selectedScript.args.length > 0 && (
           <div className="space-y-1 rounded border border-dashed p-2">
             <Label className="text-[10px] text-muted-foreground">引数</Label>
             {selectedScript.args.map((arg) => (
-              <div key={arg.id} className="flex items-center gap-1">
-                <Label className="w-20 shrink-0 truncate text-[10px]" title={`${arg.name} (${arg.fieldType})`}>
-                  {arg.name}
-                </Label>
-                <Input
-                  className="h-6 flex-1 text-[10px]"
-                  placeholder={arg.fieldType}
-                  value={String(scriptAction.args[arg.id] ?? '')}
-                  onChange={(e) => handleArgChange(arg.id, e.target.value)}
-                />
-              </div>
+              <ArgFieldRow
+                key={arg.id}
+                arg={arg}
+                value={scriptAction.args[arg.id]}
+                onChange={(v) => handleArgChange(arg.id, v)}
+              />
             ))}
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** 引数1行: ラベル + fieldType に応じた入力UI */
+function ArgFieldRow({ arg, value, onChange }: { arg: ScriptArg; value: unknown; onChange: (v: unknown) => void }) {
+  const Renderer = getArgField(arg.fieldType);
+
+  return (
+    <div className="flex items-center gap-1">
+      <Label className="w-20 shrink-0 truncate text-[10px]" title={`${arg.name} (${arg.fieldType})`}>
+        {arg.name}
+      </Label>
+      {Renderer ? (
+        <Renderer value={value} onChange={onChange} placeholder={arg.fieldType} />
+      ) : (
+        <Input
+          className="h-6 flex-1 text-[10px]"
+          placeholder={arg.fieldType}
+          value={String(value ?? '')}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
     </div>
   );
 }

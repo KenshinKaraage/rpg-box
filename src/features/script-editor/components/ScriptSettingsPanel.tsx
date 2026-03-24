@@ -22,6 +22,10 @@ const FIELD_TYPES = [
   { value: 'string', label: '文字列' },
   { value: 'number', label: '数値' },
   { value: 'boolean', label: '真偽値' },
+  { value: 'color', label: '色' },
+  { value: 'image', label: '画像' },
+  { value: 'audio', label: '音声' },
+  { value: 'dataSelect', label: 'データ選択' },
 ];
 
 const RETURN_FIELD_TYPES = [
