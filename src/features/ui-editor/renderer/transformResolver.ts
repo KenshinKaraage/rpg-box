@@ -77,9 +77,13 @@ export function resolveTransform(
   const ax = anchorXRatio(transform.anchorX);
   const ay = anchorYRatio(transform.anchorY);
 
-  // アンカーポイント（親のローカル座標系内）
-  const anchorWorldX = parentRect.x - parentRect.w * parentRect.scaleX * 0.5 + parentRect.w * parentRect.scaleX * ax;
-  const anchorWorldY = parentRect.y - parentRect.h * parentRect.scaleY * 0.5 + parentRect.h * parentRect.scaleY * ay;
+  // 親の左上ワールド座標（親のピボットを考慮）
+  const parentLeft = parentRect.x - parentRect.w * parentRect.scaleX * parentRect.pivotX;
+  const parentTop = parentRect.y - parentRect.h * parentRect.scaleY * parentRect.pivotY;
+
+  // アンカーポイント（親の左上 + 親サイズ × アンカー比率）
+  const anchorWorldX = parentLeft + parentRect.w * parentRect.scaleX * ax;
+  const anchorWorldY = parentTop + parentRect.h * parentRect.scaleY * ay;
 
   // ピボットのワールド座標 = アンカー + ローカルオフセット (親のスケール考慮)
   let localX = transform.x * parentRect.scaleX;
