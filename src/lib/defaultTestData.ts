@@ -19,15 +19,15 @@ import { ScriptAction } from '@/engine/actions/ScriptAction';
 
 // ── UICanvas: メッセージ画面 ──
 
-// 解像度 1280x720 基準
-const SCREEN_H = 720;
 const MSG_H = 200;
+const MSG_SHOW_Y = 0;      // 表示位置: 画面下端にぴったり
+const MSG_HIDE_Y = MSG_H;   // 隠す位置: 下に完全に隠れる
 
 const msgBg: EditorUIObject = {
   id: 'msg_bg',
   name: 'background',
   transform: {
-    x: 0, y: SCREEN_H, width: 1280, height: MSG_H,
+    x: 0, y: MSG_HIDE_Y, width: 1280, height: MSG_H,
     anchorX: 'center', anchorY: 'bottom',
     pivotX: 0.5, pivotY: 1,
     rotation: 0, scaleX: 1, scaleY: 1, visible: false,
@@ -45,7 +45,7 @@ const msgBg: EditorUIObject = {
             name: 'slideIn',
             timeline: {
               tracks: [
-                { property: 'transform.y', startTime: 0, duration: 300, from: SCREEN_H + MSG_H, to: SCREEN_H, easing: 'easeOut' },
+                { property: 'transform.y', startTime: 0, duration: 300, from: MSG_HIDE_Y, to: MSG_SHOW_Y, easing: 'easeOut' },
               ],
             },
           },
@@ -53,7 +53,7 @@ const msgBg: EditorUIObject = {
             name: 'slideOut',
             timeline: {
               tracks: [
-                { property: 'transform.y', startTime: 0, duration: 300, from: SCREEN_H, to: SCREEN_H + MSG_H, easing: 'easeIn' },
+                { property: 'transform.y', startTime: 0, duration: 300, from: MSG_SHOW_Y, to: MSG_HIDE_Y, easing: 'easeIn' },
               ],
             },
           },
