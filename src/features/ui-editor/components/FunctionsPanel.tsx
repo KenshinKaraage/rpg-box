@@ -26,7 +26,7 @@ interface FunctionsPanelProps {
 }
 
 /** ファンクション引数で選択可能なフィールドタイプ */
-const ARG_FIELD_TYPES = ['number', 'string', 'boolean', 'color', 'select'];
+const ARG_FIELD_TYPES = ['number', 'string', 'boolean', 'color', 'select', 'image', 'audio'];
 
 export function FunctionsPanel({ functions }: FunctionsPanelProps) {
   const selectedCanvasId = useStore((s) => s.selectedCanvasId);
