@@ -183,13 +183,19 @@ function renderStrokeQuads(
 const CORNER_SEGMENTS = 8;
 
 function buildRoundedRectOutline(rect: WorldRect, radius: number): [number, number][] {
-  const hw = (rect.w * rect.scaleX) / 2;
-  const hh = (rect.h * rect.scaleY) / 2;
-  const r = Math.min(radius, hw, hh);
+  const sw = rect.w * rect.scaleX;
+  const sh = rect.h * rect.scaleY;
+  const r = Math.min(radius, sw / 2, sh / 2);
 
   const rad = (rect.rotation * Math.PI) / 180;
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
+
+  // ピボットを考慮したローカル座標（getWorldCorners と同じ基準）
+  const left = -sw * rect.pivotX;
+  const right = sw * (1 - rect.pivotX);
+  const top = -sh * rect.pivotY;
+  const bottom = sh * (1 - rect.pivotY);
 
   const transform = (lx: number, ly: number): [number, number] => [
     rect.x + lx * cos - ly * sin,
@@ -199,10 +205,10 @@ function buildRoundedRectOutline(rect: WorldRect, radius: number): [number, numb
   const points: [number, number][] = [];
 
   const cornerCenters: [number, number, number][] = [
-    [-hw + r, -hh + r, Math.PI],
-    [hw - r, -hh + r, -Math.PI / 2],
-    [hw - r, hh - r, 0],
-    [-hw + r, hh - r, Math.PI / 2],
+    [left + r,  top + r,    Math.PI],
+    [right - r, top + r,    -Math.PI / 2],
+    [right - r, bottom - r, 0],
+    [left + r,  bottom - r, Math.PI / 2],
   ];
 
   for (const [cx, cy, startAngle] of cornerCenters) {
@@ -338,25 +344,34 @@ function renderEllipse(
 ): void {
   const segments = 32;
   const positions: number[] = [];
-  const hw = (rect.w * rect.scaleX) / 2;
-  const hh = (rect.h * rect.scaleY) / 2;
+  const sw = rect.w * rect.scaleX;
+  const sh = rect.h * rect.scaleY;
+  // ピボットを考慮した楕円中心（ローカル座標）
+  const cx = sw * (0.5 - rect.pivotX);
+  const cy = sh * (0.5 - rect.pivotY);
+  const hw = sw / 2;
+  const hh = sh / 2;
   const rad = (rect.rotation * Math.PI) / 180;
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
+
+  // 楕円中心のワールド座標
+  const centerX = rect.x + cx * cos - cy * sin;
+  const centerY = rect.y + cx * sin + cy * cos;
 
   for (let i = 0; i < segments; i++) {
     const a1 = (i / segments) * Math.PI * 2;
     const a2 = ((i + 1) / segments) * Math.PI * 2;
 
-    positions.push(rect.x, rect.y);
+    positions.push(centerX, centerY);
 
     const lx1 = Math.cos(a1) * hw;
     const ly1 = Math.sin(a1) * hh;
-    positions.push(rect.x + lx1 * cos - ly1 * sin, rect.y + lx1 * sin + ly1 * cos);
+    positions.push(centerX + lx1 * cos - ly1 * sin, centerY + lx1 * sin + ly1 * cos);
 
     const lx2 = Math.cos(a2) * hw;
     const ly2 = Math.sin(a2) * hh;
-    positions.push(rect.x + lx2 * cos - ly2 * sin, rect.y + lx2 * sin + ly2 * cos);
+    positions.push(centerX + lx2 * cos - ly2 * sin, centerY + lx2 * sin + ly2 * cos);
   }
 
   gl.useProgram(ctx.solidProgram.program);
@@ -377,13 +392,20 @@ function renderEllipseStroke(
 ): void {
   const segments = 32;
   const positions: number[] = [];
-  const hwOuter = (rect.w * rect.scaleX) / 2 + strokeWidth / 2;
-  const hhOuter = (rect.h * rect.scaleY) / 2 + strokeWidth / 2;
-  const hwInner = (rect.w * rect.scaleX) / 2 - strokeWidth / 2;
-  const hhInner = (rect.h * rect.scaleY) / 2 - strokeWidth / 2;
+  const sw = rect.w * rect.scaleX;
+  const sh = rect.h * rect.scaleY;
+  const cx = sw * (0.5 - rect.pivotX);
+  const cy = sh * (0.5 - rect.pivotY);
+  const hwOuter = sw / 2 + strokeWidth / 2;
+  const hhOuter = sh / 2 + strokeWidth / 2;
+  const hwInner = sw / 2 - strokeWidth / 2;
+  const hhInner = sh / 2 - strokeWidth / 2;
   const rad = (rect.rotation * Math.PI) / 180;
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
+
+  const centerX = rect.x + cx * cos - cy * sin;
+  const centerY = rect.y + cx * sin + cy * cos;
 
   for (let i = 0; i < segments; i++) {
     const a1 = (i / segments) * Math.PI * 2;
@@ -398,8 +420,8 @@ function renderEllipseStroke(
     const ix2 = Math.cos(a2) * hwInner;
     const iy2 = Math.sin(a2) * hhInner;
 
-    const rotX = (lx: number, ly: number) => rect.x + lx * cos - ly * sin;
-    const rotY = (lx: number, ly: number) => rect.y + lx * sin + ly * cos;
+    const rotX = (lx: number, ly: number) => centerX + lx * cos - ly * sin;
+    const rotY = (lx: number, ly: number) => centerY + lx * sin + ly * cos;
 
     positions.push(rotX(ox1, oy1), rotY(ox1, oy1));
     positions.push(rotX(ox2, oy2), rotY(ox2, oy2));
