@@ -19,13 +19,17 @@ import { ScriptAction } from '@/engine/actions/ScriptAction';
 
 // ── UICanvas: メッセージ画面 ──
 
+// 解像度 1280x720 基準
+const SCREEN_H = 720;
+const MSG_H = 200;
+
 const msgBg: EditorUIObject = {
   id: 'msg_bg',
   name: 'background',
   transform: {
-    x: 0, y: 720, width: 1280, height: 240,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0.5, pivotY: 0.5,
+    x: 0, y: SCREEN_H, width: 1280, height: MSG_H,
+    anchorX: 'center', anchorY: 'bottom',
+    pivotX: 0.5, pivotY: 1,
     rotation: 0, scaleX: 1, scaleY: 1, visible: false,
   },
   components: [
@@ -41,7 +45,7 @@ const msgBg: EditorUIObject = {
             name: 'slideIn',
             timeline: {
               tracks: [
-                { property: 'transform.y', startTime: 0, duration: 300, from: 720, to: 480, easing: 'easeOut' },
+                { property: 'transform.y', startTime: 0, duration: 300, from: SCREEN_H + MSG_H, to: SCREEN_H, easing: 'easeOut' },
               ],
             },
           },
@@ -49,7 +53,7 @@ const msgBg: EditorUIObject = {
             name: 'slideOut',
             timeline: {
               tracks: [
-                { property: 'transform.y', startTime: 0, duration: 300, from: 480, to: 720, easing: 'easeIn' },
+                { property: 'transform.y', startTime: 0, duration: 300, from: SCREEN_H, to: SCREEN_H + MSG_H, easing: 'easeIn' },
               ],
             },
           },
@@ -59,12 +63,27 @@ const msgBg: EditorUIObject = {
   ],
 };
 
+const msgFace: EditorUIObject = {
+  id: 'msg_face',
+  name: 'faceImage',
+  parentId: 'msg_bg',
+  transform: {
+    x: 16, y: 16, width: 168, height: 168,
+    anchorX: 'left', anchorY: 'top',
+    pivotX: 0, pivotY: 0,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+  },
+  components: [
+    { type: 'image', data: { imageId: '', tint: '', opacity: 1, sliceMode: 'none' } },
+  ],
+};
+
 const msgText: EditorUIObject = {
   id: 'msg_text',
   name: 'textLabel',
   parentId: 'msg_bg',
   transform: {
-    x: 20, y: 20, width: 1240, height: 200,
+    x: 200, y: 16, width: 1060, height: 168,
     anchorX: 'left', anchorY: 'top',
     pivotX: 0, pivotY: 0,
     rotation: 0, scaleX: 1, scaleY: 1, visible: true,
@@ -77,13 +96,14 @@ const msgText: EditorUIObject = {
 const messageCanvas: EditorUICanvas = {
   id: 'message',
   name: 'メッセージ',
-  objects: [msgBg, msgText],
+  objects: [msgBg, msgFace, msgText],
   functions: [
     {
       id: 'fn_show',
       name: 'show',
       args: [
         { id: 'text', name: 'テキスト', fieldType: 'string', defaultValue: '' },
+        { id: 'face', name: '顔グラ', fieldType: 'image', defaultValue: '' },
       ],
       actions: [
         // テキスト設定
@@ -96,6 +116,16 @@ const messageCanvas: EditorUICanvas = {
             valueSource: { source: 'arg', argId: 'text' },
           },
         },
+        // 顔グラ設定
+        {
+          type: 'uiSetProperty',
+          data: {
+            targetId: 'msg_face',
+            component: 'image',
+            property: 'imageId',
+            valueSource: { source: 'arg', argId: 'face' },
+          },
+        },
         // 表示 + スライドイン
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: true } },
         { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideIn', wait: true } },
@@ -106,9 +136,10 @@ const messageCanvas: EditorUICanvas = {
       name: 'updateText',
       args: [
         { id: 'text', name: 'テキスト', fieldType: 'string', defaultValue: '' },
+        { id: 'face', name: '顔グラ', fieldType: 'image', defaultValue: '' },
       ],
       actions: [
-        // テキストだけ更新（アニメなし）
+        // テキスト更新
         {
           type: 'uiSetProperty',
           data: {
@@ -116,6 +147,16 @@ const messageCanvas: EditorUICanvas = {
             component: 'text',
             property: 'content',
             valueSource: { source: 'arg', argId: 'text' },
+          },
+        },
+        // 顔グラ更新
+        {
+          type: 'uiSetProperty',
+          data: {
+            targetId: 'msg_face',
+            component: 'image',
+            property: 'imageId',
+            valueSource: { source: 'arg', argId: 'face' },
           },
         },
       ],
@@ -142,9 +183,9 @@ const messageScript: Script = {
   type: 'event',
   content: `if (!UI["message"].isVisible()) {
   UI["message"].show();
-  await UI["message"].call("show", { text });
+  await UI["message"].call("show", { text, face });
 } else {
-  await UI["message"].call("updateText", { text });
+  await UI["message"].call("updateText", { text, face });
 }
 await Input.waitKey("confirm");
 if (currentEvent.nextAction?.scriptId !== "message") {
@@ -153,6 +194,7 @@ if (currentEvent.nextAction?.scriptId !== "message") {
 }`,
   args: [
     { id: 'text', name: 'テキスト', fieldType: 'string', required: true, defaultValue: '' },
+    { id: 'face', name: '顔グラ', fieldType: 'image', required: false, defaultValue: '' },
   ],
   returns: [],
   fields: [],
@@ -181,7 +223,16 @@ function createPlayerObject(x: number, y: number): MapObject {
   };
 }
 
-function createNpcObject(id: string, name: string, x: number, y: number, messages: string[]): MapObject {
+function createScriptActions(scriptId: string, argsList: Record<string, unknown>[]): ScriptAction[] {
+  return argsList.map((args) => {
+    const action = new ScriptAction();
+    action.scriptId = scriptId;
+    action.args = args;
+    return action;
+  });
+}
+
+function createNpcObject(id: string, name: string, x: number, y: number, actions: ScriptAction[]): MapObject {
   const transform = new TransformComponent();
   transform.x = x;
   transform.y = y;
@@ -193,12 +244,7 @@ function createNpcObject(id: string, name: string, x: number, y: number, message
   const talk = new TalkTriggerComponent();
   talk.direction = 'any';
   talk.facePlayer = true;
-  talk.actions = messages.map((text) => {
-    const action = new ScriptAction();
-    action.scriptId = 'message';
-    action.args = { text };
-    return action;
-  });
+  talk.actions = actions;
 
   return {
     id,
@@ -232,10 +278,10 @@ function createTestMap(): GameMap {
         chipsetIds: [],
         objects: [
           createPlayerObject(5, 5),
-          createNpcObject('npc_01', 'NPC', 7, 5, [
-            'こんにちは！',
-            'テストメッセージです。',
-          ]),
+          createNpcObject('npc_01', 'NPC', 7, 5, createScriptActions('message', [
+            { text: 'こんにちは！', face: '' },
+            { text: 'テストメッセージです。', face: '' },
+          ])),
         ],
       },
     ],
