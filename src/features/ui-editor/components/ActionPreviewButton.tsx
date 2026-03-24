@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { executeActionPreview } from '../utils/actionPreview';
 import type { EditableAction } from '@/types/ui/actions/UIAction';
 import type { FunctionArgDef } from '@/features/event-editor/registry/actionBlockRegistry';
+import { getArgField } from '@/features/event-editor/components/arg-fields';
+import '@/features/event-editor/components/arg-fields/register';
 
 interface ActionPreviewButtonProps {
   actions: EditableAction[];
@@ -24,7 +26,7 @@ interface ActionPreviewButtonProps {
 export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionPreviewButtonProps) {
   const [revertFn, setRevertFn] = useState<(() => void) | null>(null);
   const [executing, setExecuting] = useState(false);
-  const [testArgs, setTestArgs] = useState<Record<string, string>>({});
+  const [testArgs, setTestArgs] = useState<Record<string, unknown>>({});
 
   const hasArgs = functionArgs && functionArgs.length > 0;
 
@@ -32,18 +34,11 @@ export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionP
     if (actions.length === 0) return;
     setExecuting(true);
 
-    // テスト引数を型に応じて変換
+    // 値は arg-fields レンダラーが正しい型で保持しているのでそのまま渡す
     const resolvedArgs: Record<string, unknown> = {};
     if (functionArgs) {
       for (const arg of functionArgs) {
-        const raw = testArgs[arg.id] ?? '';
-        if (arg.fieldType === 'number') {
-          resolvedArgs[arg.id] = Number(raw) || 0;
-        } else if (arg.fieldType === 'boolean') {
-          resolvedArgs[arg.id] = raw === 'true';
-        } else {
-          resolvedArgs[arg.id] = raw;
-        }
+        resolvedArgs[arg.id] = testArgs[arg.id] ?? '';
       }
     }
 
@@ -67,21 +62,34 @@ export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionP
       {hasArgs && (
         <div className="space-y-1 rounded border border-dashed p-2">
           <Label className="text-[10px] text-muted-foreground">テスト引数</Label>
-          {functionArgs!.map((arg) => (
-            <div key={arg.id} className="flex items-center gap-1">
-              <Label className="w-16 shrink-0 truncate text-[10px]" title={arg.name}>
-                {arg.name}
-              </Label>
-              <Input
-                className="h-6 flex-1 text-[10px]"
-                placeholder={arg.fieldType}
-                value={testArgs[arg.id] ?? ''}
-                onChange={(e) =>
-                  setTestArgs((prev) => ({ ...prev, [arg.id]: e.target.value }))
-                }
-              />
-            </div>
-          ))}
+          {functionArgs!.map((arg) => {
+            const Renderer = getArgField(arg.fieldType);
+            return (
+              <div key={arg.id} className="flex items-center gap-1">
+                <Label className="w-16 shrink-0 truncate text-[10px]" title={arg.name}>
+                  {arg.name}
+                </Label>
+                {Renderer ? (
+                  <Renderer
+                    value={testArgs[arg.id]}
+                    onChange={(v) =>
+                      setTestArgs((prev) => ({ ...prev, [arg.id]: v }))
+                    }
+                    placeholder={arg.fieldType}
+                  />
+                ) : (
+                  <Input
+                    className="h-6 flex-1 text-[10px]"
+                    placeholder={arg.fieldType}
+                    value={String(testArgs[arg.id] ?? '')}
+                    onChange={(e) =>
+                      setTestArgs((prev) => ({ ...prev, [arg.id]: e.target.value }))
+                    }
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
