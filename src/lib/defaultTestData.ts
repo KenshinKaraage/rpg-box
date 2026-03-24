@@ -304,9 +304,9 @@ function createTestMap(): GameMap {
 export function loadDefaultTestData(): void {
   const state = useStore.getState();
 
-  // UICanvas
+  // UICanvas（structuredClone で渡して Immer との参照共有を防ぐ）
   if (!state.uiCanvases.find((c) => c.id === 'message')) {
-    state.addUICanvas(messageCanvas);
+    state.addUICanvas(structuredClone(messageCanvas));
   }
 
   // Script
