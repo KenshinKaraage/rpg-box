@@ -6246,6 +6246,105 @@ export function useAutoSave() {
 
 ---
 
+### コンポーネントランタイムスクリプト
+
+> 設計: `docs/superpowers/specs/2026-03-28-component-runtime-script-design.md`
+
+#### [T224d] Add generateRuntimeScript() to Component base class
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `Component.ts` に `generateRuntimeScript(): string | null` メソッド追加（デフォルト null）
+- [ ] ビジュアル系コンポーネントは変更不要（null を返す）
+
+**関連ファイル:**
+
+- `src/types/components/Component.ts`
+
+---
+
+#### [T224e] Add lifecycle dispatch to UICanvasManager
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `CompiledComponentRuntime` 型定義（onShow/onHide/onUpdate/onInput + customFunctions + state）
+- [ ] `compileComponentScripts(canvasId)` — generateRuntimeScript() → new Function() でコンパイル、`self` 注入
+- [ ] `dispatchShow(canvasId)` — showCanvas 時に全ランタイムの onShow 呼び出し
+- [ ] `dispatchHide(canvasId)` — hideCanvas 時に onHide 呼び出し + ランタイム破棄
+- [ ] `dispatchUpdate(canvasId, dt)` — 毎フレーム onUpdate 呼び出し
+- [ ] `dispatchInput(canvasId, button)` — 入力時 onInput 呼び出し
+- [ ] スクリプトからカスタム関数へのアクセス（UIObjectRuntimeProxy 経由）
+
+**関連ファイル:**
+
+- `src/engine/runtime/UICanvasManager.ts`
+
+---
+
+#### [T224f] Integrate lifecycle dispatch into GameRuntime
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] GameRuntime の update ループで dispatchInput / dispatchUpdate を呼ぶ
+- [ ] showCanvas / hideCanvas 時に compileComponentScripts / dispatchShow / dispatchHide を呼ぶ
+
+**関連ファイル:**
+
+- `src/engine/runtime/GameRuntime.ts`
+
+---
+
+#### [T224g] Implement NavigationComponent.generateRuntimeScript()
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] NavigationComponent に generateRuntimeScript() 実装
+  - onShow: 子 NavigationItem を収集、initialIndex でフォーカス初期化、カーソル位置更新
+  - onInput: direction/wrap/columns に基づくフォーカス移動、confirm で result 設定、cancel で null
+  - getResult(): self.state.result を返す
+- [ ] NavigationCursorComponent の offsetX/offsetY を反映
+- [ ] プロパティ値（direction, wrap, columns, initialIndex）をスクリプト内にリテラル埋め込み
+
+**関連ファイル:**
+
+- `src/types/ui/components/NavigationComponent.ts`
+
+---
+
+#### [T224h] Rewrite Script.choice() to use NavigationComponent
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] 選択肢 UICanvas を NavigationComponent + NavigationItem + NavigationCursor 構成に変更
+- [ ] Script.choice() スクリプトを書き直し: show → waitResult → hide
+- [ ] テストプレイで選択肢が動作確認
+
+**関連ファイル:**
+
+- `src/lib/defaultTestData.ts`
+
+---
+
 ### データ・変数・クラス連携テスト
 
 #### [T224a] [P] Add class-typed data/variable integration tests

@@ -23,7 +23,21 @@ import {
   type UIRendererContext,
 } from '@/features/ui-editor/renderer/UIRenderer';
 
+import { getUIComponent } from '@/types/ui';
+
 // ── Types ──
+
+/** コンパイル済みコンポーネントランタイム */
+interface CompiledComponentRuntime {
+  objectId: string;
+  componentType: string;
+  onShow?: () => void;
+  onHide?: () => void;
+  onUpdate?: (dt: number) => void;
+  onInput?: (button: string) => void;
+  customFunctions: Record<string, (...args: unknown[]) => unknown>;
+  state: Record<string, unknown>;
+}
 
 export interface UIFunctionData {
   id: string;
@@ -42,6 +56,8 @@ export interface UICanvasData {
 interface CanvasState {
   data: UICanvasData;
   visible: boolean;
+  /** コンパイル済みコンポーネントランタイム（show 時に構築、hide 時に破棄） */
+  runtimes: CompiledComponentRuntime[];
 }
 
 interface RuntimeAnimation {
@@ -119,18 +135,25 @@ export class UICanvasManager implements UIActionManager {
       this.canvases.set(canvas.id, {
         data: canvas,
         visible: false,
+        runtimes: [],
       });
     }
   }
 
   showCanvas(canvasId: string): void {
     const state = this.canvases.get(canvasId);
-    if (state) state.visible = true;
+    if (!state || state.visible) return;
+    state.visible = true;
+    this.compileComponentScripts(canvasId);
+    this.dispatchShow(canvasId);
   }
 
   hideCanvas(canvasId: string): void {
     const state = this.canvases.get(canvasId);
-    if (state) state.visible = false;
+    if (!state || !state.visible) return;
+    this.dispatchHide(canvasId);
+    state.visible = false;
+    state.runtimes = [];
   }
 
   isCanvasVisible(canvasId: string): boolean {
@@ -383,6 +406,172 @@ export class UICanvasManager implements UIActionManager {
     return proxies;
   }
 
+  // ── Component Lifecycle ──
+
+  /** 表示中のキャンバス一覧 */
+  getVisibleCanvasIds(): string[] {
+    const ids: string[] = [];
+    for (const state of Array.from(this.canvases.values())) {
+      if (state.visible) ids.push(state.data.id);
+    }
+    return ids;
+  }
+
+  /** キャンバス内の全コンポーネントの onUpdate(dt) を呼ぶ */
+  dispatchUpdate(canvasId: string, dt: number): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    for (const rt of state.runtimes) {
+      if (rt.onUpdate) {
+        try { rt.onUpdate(dt); } catch (e) { console.warn(`[UIRuntime] onUpdate error (${rt.componentType}):`, e); }
+      }
+    }
+  }
+
+  /** キャンバス内の全コンポーネントの onInput(button) を呼ぶ */
+  dispatchInput(canvasId: string, button: string): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    for (const rt of state.runtimes) {
+      if (rt.onInput) {
+        try { rt.onInput(button); } catch (e) { console.warn(`[UIRuntime] onInput error (${rt.componentType}):`, e); }
+      }
+    }
+  }
+
+  /** オブジェクトに紐づくランタイムのカスタム関数を取得 */
+  getComponentFunction(canvasId: string, objectId: string, functionName: string): ((...args: unknown[]) => unknown) | null {
+    const state = this.canvases.get(canvasId);
+    if (!state) return null;
+    for (const rt of state.runtimes) {
+      if (rt.objectId === objectId && rt.customFunctions[functionName]) {
+        return rt.customFunctions[functionName]!;
+      }
+    }
+    return null;
+  }
+
+  private compileComponentScripts(canvasId: string): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    state.runtimes = [];
+
+    for (const obj of state.data.objects) {
+      for (const comp of obj.components) {
+        // UIComponent レジストリからクラスを取得してインスタンス化
+        const CompClass = getUIComponent(comp.type);
+        if (!CompClass) continue;
+        const instance = new CompClass();
+        instance.deserialize(comp.data);
+
+        const script = instance.generateRuntimeScript();
+        if (!script) continue;
+
+        const rt = this.compileScript(canvasId, obj.id, comp.type, script);
+        if (rt) state.runtimes.push(rt);
+      }
+    }
+  }
+
+  private compileScript(
+    canvasId: string,
+    objectId: string,
+    componentType: string,
+    script: string
+  ): CompiledComponentRuntime | null {
+    const runtimeState: Record<string, unknown> = {};
+
+    // self コンテキスト構築
+    const selfCtx = {
+      canvas: null as unknown, // proxy は createProxies で別途作成されるため、ここでは簡易参照
+      object: this.createObjectProxyById(canvasId, objectId),
+      children: this.getChildProxies(canvasId, objectId),
+      state: runtimeState,
+    };
+
+    try {
+      // スクリプトをコンパイル: 全関数を定義してオブジェクトとして返す
+      const wrapped = `
+        const self = __self__;
+        ${script}
+        return {
+          onShow: typeof onShow === 'function' ? onShow : undefined,
+          onHide: typeof onHide === 'function' ? onHide : undefined,
+          onUpdate: typeof onUpdate === 'function' ? onUpdate : undefined,
+          onInput: typeof onInput === 'function' ? onInput : undefined,
+          __customs__: { ${this.extractCustomFunctionNames(script).map(n => `${n}: typeof ${n} === 'function' ? ${n} : undefined`).join(', ')} }
+        };
+      `;
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      const factory = new Function('__self__', wrapped);
+      const result = factory(selfCtx);
+
+      return {
+        objectId,
+        componentType,
+        onShow: result.onShow,
+        onHide: result.onHide,
+        onUpdate: result.onUpdate,
+        onInput: result.onInput,
+        customFunctions: result.__customs__ ?? {},
+        state: runtimeState,
+      };
+    } catch (e) {
+      console.error(`[UIRuntime] Failed to compile ${componentType} script:`, e);
+      return null;
+    }
+  }
+
+  /** スクリプト内の function 宣言名を抽出（ライフサイクル以外） */
+  private extractCustomFunctionNames(script: string): string[] {
+    const LIFECYCLE = new Set(['onShow', 'onHide', 'onUpdate', 'onInput']);
+    const names: string[] = [];
+    const re = /function\s+(\w+)\s*\(/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(script)) !== null) {
+      if (m[1] && !LIFECYCLE.has(m[1])) names.push(m[1]);
+    }
+    return names;
+  }
+
+  private dispatchShow(canvasId: string): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    for (const rt of state.runtimes) {
+      if (rt.onShow) {
+        try { rt.onShow(); } catch (e) { console.warn(`[UIRuntime] onShow error (${rt.componentType}):`, e); }
+      }
+    }
+  }
+
+  private dispatchHide(canvasId: string): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    for (const rt of state.runtimes) {
+      if (rt.onHide) {
+        try { rt.onHide(); } catch (e) { console.warn(`[UIRuntime] onHide error (${rt.componentType}):`, e); }
+      }
+    }
+  }
+
+  /** ID でオブジェクトプロキシを作成 */
+  private createObjectProxyById(canvasId: string, objectId: string): UIObjectRuntimeProxy | null {
+    const state = this.canvases.get(canvasId);
+    if (!state) return null;
+    const obj = state.data.objects.find((o) => o.id === objectId);
+    if (!obj) return null;
+    return this.wrapObjectProxy(canvasId, obj);
+  }
+
+  /** 子オブジェクトのプロキシ配列 */
+  private getChildProxies(canvasId: string, parentId: string): UIObjectRuntimeProxy[] {
+    const state = this.canvases.get(canvasId);
+    if (!state) return [];
+    return state.data.objects
+      .filter((o) => o.parentId === parentId)
+      .map((o) => this.wrapObjectProxy(canvasId, o));
+  }
+
   dispose(): void {
     this.textureCache.forEach((tex) => this.gl.deleteTexture(tex));
     this.textureCache.clear();
@@ -482,6 +671,16 @@ export class UICanvasManager implements UIActionManager {
         if (prop === 'name') return obj.name;
         if (TRANSFORM_KEYS.has(prop)) {
           return obj.transform[prop as keyof typeof obj.transform];
+        }
+        // コンポーネントのカスタム関数（getResult 等）
+        const fn = mgr.getComponentFunction(canvasId, obj.id, prop);
+        if (fn) return fn;
+        // コンポーネントデータの直接読み取り（type 指定でコンポーネントデータ取得）
+        if (prop === 'getComponentData') {
+          return (type: string) => {
+            const comp = obj.components.find((c) => c.type === type);
+            return comp ? { ...(comp.data as Record<string, unknown>) } : null;
+          };
         }
         return undefined;
       },

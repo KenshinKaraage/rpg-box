@@ -188,6 +188,22 @@ export abstract class UIComponent {
   renderPropertyPanel(): ReactNode {
     return null;
   }
+
+  /**
+   * ランタイムスクリプトを生成する。
+   *
+   * 非ビジュアル系コンポーネント（Navigation 等）がオーバーライドし、
+   * プロパティに基づいたライフサイクル関数を含む JS コードを返す。
+   *
+   * 標準ライフサイクル: onShow(), onHide(), onUpdate(dt), onInput(button)
+   * 独自関数も定義可能（例: getResult()）
+   *
+   * ビジュアル系コンポーネントは null（デフォルト）を返す。
+   * UICanvasManager がコンパイル・実行を担当する。
+   */
+  generateRuntimeScript(): string | null {
+    return null;
+  }
 }
 
 /**
