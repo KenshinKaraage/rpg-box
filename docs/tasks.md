@@ -4748,24 +4748,25 @@ export function useAutoSave() {
 
 #### [T172a] [US13] Add animFramePattern to SpriteComponent
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `SpriteComponent` に `animFramePattern: number[]` プロパティ追加
+- [x] `SpriteComponent` に `animFramePattern: number[]` プロパティ追加
   - 空配列 = 0,1,2,...の線形ループ（従来動作）
   - 指定時 = パターン通りに再生（例: `[0,1,0,2]` で RPG歩行チップ標準）
-- [ ] バリデーション: 値が 0〜`animFrameCount - 1` の範囲内であることを保証
-- [ ] serialize / deserialize / clone 対応
-- [ ] `SpriteRenderer` でパターン対応（パターンあり→パターン順、なし→線形ループ）
-- [ ] テスト追加
+- [x] バリデーション: deserialize 時に 0〜`animFrameCount - 1` 範囲外をフィルタ
+- [x] serialize / deserialize / clone 対応
+- [x] `SpriteRenderer` で `resolveFrameIndex()` ヘルパー追加（パターンあり→パターン順、なし→線形ループ）
+- [x] テストデータに `animFramePattern: [0,1,0,2]` 設定
 
 **関連ファイル:**
 
 - `src/types/components/SpriteComponent.tsx`
 - `src/engine/rendering/SpriteRenderer.ts`
+- `src/lib/defaultTestData.ts`
 
 ---
 

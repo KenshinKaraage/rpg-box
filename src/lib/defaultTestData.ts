@@ -245,6 +245,7 @@ function createWalkSprite(assetName: string, resolveAssetId: AssetNameToId): Spr
   sprite.frameHeight = 32;
   sprite.animFrameCount = 3;
   sprite.animIntervalMs = 200;
+  sprite.animFramePattern = [0, 1, 0, 2]; // RPG歩行チップ標準パターン
   return sprite;
 }
 

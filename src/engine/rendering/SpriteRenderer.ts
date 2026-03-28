@@ -111,6 +111,7 @@ export class SpriteRenderer {
     const frameHeight = (sprite.frameHeight as number) ?? 0;
     const animFrameCount = (sprite.animFrameCount as number) ?? 1;
     const animIntervalMs = (sprite.animIntervalMs as number) ?? 200;
+    const animFramePattern = (sprite.animFramePattern as number[]) ?? [];
 
     const texW = texMeta.width;
     const texH = texMeta.height;
@@ -123,9 +124,8 @@ export class SpriteRenderer {
       const DIR_ROW: Record<string, number> = { down: 0, left: 1, right: 2, up: 3 };
       const dirRow = DIR_ROW[obj.facing] ?? 0;
 
-      // Animate only while moving; static frame (0) when stopped
       const frameIndex = obj.isMoving
-        ? Math.floor(Date.now() / animIntervalMs) % animFrameCount
+        ? resolveFrameIndex(animFramePattern, animFrameCount, animIntervalMs)
         : 0;
 
       u0 = (frameIndex * frameWidth) / texW;
@@ -135,7 +135,7 @@ export class SpriteRenderer {
     } else if (spriteMode === 'single' && frameWidth > 0 && frameHeight > 0) {
       // Animated single sprite: only row 0, no direction
       const frameIndex = obj.isMoving
-        ? Math.floor(Date.now() / animIntervalMs) % animFrameCount
+        ? resolveFrameIndex(animFramePattern, animFrameCount, animIntervalMs)
         : 0;
 
       u0 = (frameIndex * frameWidth) / texW;
@@ -183,4 +183,18 @@ export class SpriteRenderer {
     });
     twgl.drawBufferInfo(gl, bufferInfo);
   }
+}
+
+/**
+ * パターン指定があればパターン順、なければ線形ループでフレームインデックスを返す。
+ */
+function resolveFrameIndex(
+  pattern: number[],
+  frameCount: number,
+  intervalMs: number
+): number {
+  if (pattern.length > 0) {
+    return pattern[Math.floor(Date.now() / intervalMs) % pattern.length]!;
+  }
+  return Math.floor(Date.now() / intervalMs) % frameCount;
 }

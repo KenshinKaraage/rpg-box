@@ -28,6 +28,8 @@ export class SpriteComponent extends Component {
   animFrameCount = 1;
   /** アニメーション間隔（ms） */
   animIntervalMs = 200;
+  /** フレーム再生順（例: [0,1,0,2]）。空配列 = 0,1,2,...の線形ループ */
+  animFramePattern: number[] = [];
 
   serialize(): Record<string, unknown> {
     return {
@@ -42,6 +44,7 @@ export class SpriteComponent extends Component {
       frameHeight: this.frameHeight,
       animFrameCount: this.animFrameCount,
       animIntervalMs: this.animIntervalMs,
+      animFramePattern: [...this.animFramePattern],
     };
   }
 
@@ -57,6 +60,11 @@ export class SpriteComponent extends Component {
     this.frameHeight = (data.frameHeight as number) ?? 0;
     this.animFrameCount = (data.animFrameCount as number) ?? 1;
     this.animIntervalMs = (data.animIntervalMs as number) ?? 200;
+    const rawPattern = (data.animFramePattern as number[]) ?? [];
+    // バリデーション: 0〜animFrameCount-1 の範囲外をフィルタ
+    this.animFramePattern = rawPattern.filter(
+      (v) => Number.isInteger(v) && v >= 0 && v < this.animFrameCount
+    );
   }
 
   clone(): SpriteComponent {
@@ -72,6 +80,7 @@ export class SpriteComponent extends Component {
     c.frameHeight = this.frameHeight;
     c.animFrameCount = this.animFrameCount;
     c.animIntervalMs = this.animIntervalMs;
+    c.animFramePattern = [...this.animFramePattern];
     return c;
   }
 
