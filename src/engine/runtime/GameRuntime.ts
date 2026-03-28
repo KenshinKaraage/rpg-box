@@ -7,6 +7,8 @@
 import type { ProjectData } from '@/lib/storage/types';
 import '@/engine/actions/register';
 import '@/engine/values/register';
+import '@/types/ui/register';
+import '@/types/ui/actions/register';
 import { getAction } from '@/engine/actions/index';
 import { EventRunner } from '@/engine/event/EventRunner';
 import { ScriptRunner } from '@/engine/core/ScriptRunner';
@@ -90,7 +92,7 @@ export class GameRuntime {
     this.mapRenderer = new MapRenderer(gl);
     this.spriteRenderer = new SpriteRenderer(gl);
     this.uiCanvasManager = new UICanvasManager(gl, (imageId) => {
-      const asset = projectData.assets.find((a) => a.id === imageId);
+      const asset = projectData.assets.find((a) => a.id === imageId || a.name === imageId);
       return (asset?.data as string) ?? null;
     });
     const resolveAudioAsset = (assetId: string) => {
