@@ -130,7 +130,7 @@ export interface InputAPI {
   /** 今フレームで押された生キー一覧（e.key そのまま: "a", "Backspace", "Enter" 等） */
   getJustPressedKeys(): string[];
   /** テキスト入力開始（隠し input にフォーカス、IME 対応） */
-  startTextInput(initialValue?: string): void;
+  startTextInput(initialValue?: string, screenX?: number, screenY?: number): void;
   /** テキスト入力終了 */
   stopTextInput(): void;
   /** 現在のテキスト入力値 */

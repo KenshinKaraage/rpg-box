@@ -66,7 +66,7 @@ export class InputManager {
     // 隠し input（IME 対応テキスト入力用）
     const input = document.createElement('input');
     input.type = 'text';
-    input.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
+    input.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0.01;font-size:16px;';
     input.addEventListener('keydown', this.onHiddenInputKeyDown);
     target.parentElement?.appendChild(input);
     this.hiddenInput = input;
@@ -147,13 +147,28 @@ export class InputManager {
   }
 
   /** テキスト入力を開始（隠し input にフォーカス） */
-  startTextInput(initialValue = ''): void {
+  startTextInput(initialValue = '', screenX?: number, screenY?: number): void {
     if (!this.hiddenInput) return;
     this._textInputActive = true;
     this._textValue = initialValue;
     this._textConfirmed = false;
     this._textCancelled = false;
     this.hiddenInput.value = initialValue;
+
+    // IME 候補ウィンドウの位置を合わせる
+    if (screenX !== undefined && screenY !== undefined) {
+      // canvas の画面上の位置を加算
+      const rect = this.target?.getBoundingClientRect();
+      this.hiddenInput.style.position = 'fixed';
+      this.hiddenInput.style.left = `${(rect?.left ?? 0) + screenX}px`;
+      this.hiddenInput.style.top = `${(rect?.top ?? 0) + screenY}px`;
+    } else if (this.target) {
+      // デフォルト: canvas の中央
+      const rect = this.target.getBoundingClientRect();
+      this.hiddenInput.style.position = 'fixed';
+      this.hiddenInput.style.left = `${rect.left + rect.width / 2}px`;
+      this.hiddenInput.style.top = `${rect.top + rect.height / 2}px`;
+    }
     this.hiddenInput.focus();
   }
 
