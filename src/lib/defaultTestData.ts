@@ -720,6 +720,31 @@ if (player) {
   isAsync: true,
 };
 
+// ── Script: オーディオテストスクリプト ──
+// AudioAPI テスト: BGM再生/停止 + SE再生
+
+const audioTestScript: Script = {
+  id: 'audio_test',
+  name: 'オーディオテスト',
+  callId: 'audio_test',
+  type: 'event',
+  content: `// BGM再生（フェードイン 1秒）
+Sound.playBGM("bgm_morning", { volume: 0.7, fadeIn: 1000 });
+await Script.message({ text: "BGM再生中: bgm_morning（フェードイン1秒）", face: "", close: false });
+
+// SE再生
+Sound.playSE("se_confirm");
+await Script.message({ text: "SE再生: se_confirm", face: "", close: false });
+
+// BGM停止（フェードアウト 2秒）
+Sound.stopBGM(2000);
+await Script.message({ text: "BGM停止（フェードアウト2秒）", face: "" });`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
 // ── Map: データ連携テスト用NPC追加 ──
 
 function createTestMap(resolveAssetId: AssetNameToId): GameMap {
@@ -760,6 +785,8 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createNpcObject('npc_map', 'マップ案内人', 13, 5, createScriptActions('map_info', [{}]), resolveAssetId),
           // オブジェクト操作 NPC（GameObjectAPI テスト）
           createNpcObject('npc_obj_test', 'テスト係', 15, 5, createScriptActions('obj_test', [{}]), resolveAssetId),
+          // オーディオ NPC（AudioAPI テスト）
+          createNpcObject('npc_audio', '楽師', 17, 5, createScriptActions('audio_test', [{}]), resolveAssetId),
         ],
       },
     ],
@@ -821,7 +848,7 @@ export async function loadDefaultTestData(): Promise<void> {
   }
 
   // Script
-  const scriptsToAdd = [messageScript, showStatusScript, shopScript, mapInfoScript, objTestScript];
+  const scriptsToAdd = [messageScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
       state.addScript(script);
