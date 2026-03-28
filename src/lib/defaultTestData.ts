@@ -211,7 +211,10 @@ const messageScript: Script = {
   name: 'メッセージ',
   callId: 'message',
   type: 'event',
-  content: `// 顔グラの有無でテキストレイアウトを切り替え
+  content: `// 変数埋め込み: \\v{name} → Variable["name"] の値に置換
+const resolved = text.replace(/\\\\v\\{(\\w+)\\}/g, (_, name) => String(Variable[name] ?? ""));
+
+// 顔グラの有無でテキストレイアウトを切り替え
 const hasFace = face && face !== "";
 const textObj = UI["message"].getObject("textLabel");
 const faceObj = UI["message"].getObject("faceImage");
@@ -230,11 +233,31 @@ if (faceObj) {
 
 if (!UI["message"].isVisible()) {
   UI["message"].show();
-  await UI["message"].call("show", { text, face: face || "" });
+  await UI["message"].call("show", { text: "", face: face || "" });
 } else {
-  await UI["message"].call("updateText", { text, face: face || "" });
+  await UI["message"].call("updateText", { text: "", face: face || "" });
 }
-await Input.waitKey("confirm");
+
+// タイプライター効果（1文字ずつ表示、確認キーでスキップ）
+if (typewriter !== false && textObj) {
+  let skipped = false;
+  for (let i = 1; i <= resolved.length; i++) {
+    textObj.setProperty("text", "content", resolved.slice(0, i));
+    await scriptAPI.waitFrames(typewriterSpeed || 2);
+    if (Input.isJustPressed("confirm")) {
+      skipped = true;
+      break;
+    }
+  }
+  textObj.setProperty("text", "content", resolved);
+  if (!skipped) {
+    await Input.waitKey("confirm");
+  }
+} else {
+  if (textObj) textObj.setProperty("text", "content", resolved);
+  await Input.waitKey("confirm");
+}
+
 if (close !== false) {
   await UI["message"].call("hide");
   UI["message"].hide();
@@ -243,6 +266,8 @@ if (close !== false) {
     { id: 'text', name: 'テキスト', fieldType: 'string', required: true, defaultValue: '' },
     { id: 'face', name: '顔グラ', fieldType: 'image', required: false, defaultValue: '' },
     { id: 'close', name: '閉じる', fieldType: 'boolean', required: false, defaultValue: true },
+    { id: 'typewriter', name: 'タイプライター', fieldType: 'boolean', required: false, defaultValue: true },
+    { id: 'typewriterSpeed', name: '文字速度(フレーム)', fieldType: 'number', required: false, defaultValue: 2 },
   ],
   returns: [],
   fields: [],
@@ -791,8 +816,8 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createPlayerObject(5, 5, resolveAssetId),
           // メッセージテスト NPC（close: false で連続表示）
           createNpcObject('npc_01', 'NPC', 7, 5, createScriptActions('message', [
-            { text: 'こんにちは！', face: '', close: false },
-            { text: 'テストメッセージです。', face: '' },
+            { text: 'こんにちは！所持金は \\v{gold} G だよ。', face: '', close: false },
+            { text: 'タイプライターのテストです。', face: '' },
           ]), resolveAssetId),
           // ステータス表示 NPC（Data + Variable → UI 連携テスト）
           createNpcObject('npc_status', 'ステータス確認', 9, 5, createScriptActions('show_status', [{}]), resolveAssetId),

@@ -6207,7 +6207,26 @@ export function useAutoSave() {
 
 ---
 
-#### [T224] [P] Create DialogueRunner
+#### [T224] [P] Message typewriter effect + variable embedding
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] メッセージスクリプトにタイプライター効果追加（1文字ずつ表示、確認キーでスキップ）
+- [x] `typewriter` パラメータ（デフォルト true）、`typewriterSpeed` パラメータ（デフォルト 2フレーム）
+- [x] 変数埋め込み: `\v{varName}` → `Variable["varName"]` の値に置換
+- [x] テストデータで `\v{gold}` の動作確認用メッセージ追加
+
+**関連ファイル:**
+
+- `src/lib/defaultTestData.ts`
+
+---
+
+#### [T224c] [P] Create choice script
 
 - **ステータス:** [ ] 未着手
 - **ブランチ:** -
@@ -6215,16 +6234,14 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/engine/event/DialogueRunner.ts` 作成
-- [ ] テキスト表示（タイプライター効果）
-- [ ] 選択肢表示
-- [ ] 変数埋め込み
-- [ ] テスト追加
+- [ ] 選択肢 UICanvas 作成（選択項目リスト + カーソル）
+- [ ] `Script.choice()` スクリプト作成（選択肢表示 → 選択待ち → インデックス返却）
+- [ ] 上下キーで選択、確認キーで決定
+- [ ] テストデータに選択肢テスト NPC 追加
 
 **関連ファイル:**
 
-- `src/engine/event/DialogueRunner.ts`
-- `src/engine/event/DialogueRunner.test.ts`
+- `src/lib/defaultTestData.ts`
 
 ---
 
