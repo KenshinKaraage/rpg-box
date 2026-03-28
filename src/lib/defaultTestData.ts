@@ -211,10 +211,7 @@ const messageScript: Script = {
   name: 'メッセージ',
   callId: 'message',
   type: 'event',
-  content: `// 変数埋め込み: \\v{name} → Variable["name"] の値に置換
-const resolved = text.replace(/\\\\v\\{(\\w+)\\}/g, (_, name) => String(Variable[name] ?? ""));
-
-// 顔グラの有無でテキストレイアウトを切り替え
+  content: `// 顔グラの有無でテキストレイアウトを切り替え
 const hasFace = face && face !== "";
 const textObj = UI["message"].getObject("textLabel");
 const faceObj = UI["message"].getObject("faceImage");
@@ -241,20 +238,20 @@ if (!UI["message"].isVisible()) {
 // タイプライター効果（1文字ずつ表示、確認キーでスキップ）
 if (typewriter !== false && textObj) {
   let skipped = false;
-  for (let i = 1; i <= resolved.length; i++) {
-    textObj.setProperty("text", "content", resolved.slice(0, i));
+  for (let i = 1; i <= text.length; i++) {
+    textObj.setProperty("text", "content", text.slice(0, i));
     await scriptAPI.waitFrames(typewriterSpeed || 2);
     if (Input.isJustPressed("confirm")) {
       skipped = true;
       break;
     }
   }
-  textObj.setProperty("text", "content", resolved);
+  textObj.setProperty("text", "content", text);
   if (!skipped) {
     await Input.waitKey("confirm");
   }
 } else {
-  if (textObj) textObj.setProperty("text", "content", resolved);
+  if (textObj) textObj.setProperty("text", "content", text);
   await Input.waitKey("confirm");
 }
 
@@ -1011,7 +1008,7 @@ if (selected === 0) {
       Variable["leader_stats"].hp + potion.effects[0].value,
       500
     );
-    await Script.message({ text: potion.name + "を買った！（残り \\v{gold} G）", face: "" });
+    await Script.message({ text: potion.name + "を買った！（残り " + Variable["gold"] + " G）", face: "" });
   } else {
     await Script.message({ text: "お金が足りない…（" + gold + " / " + price + " G）", face: "" });
   }
@@ -1144,7 +1141,7 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createPlayerObject(5, 5, resolveAssetId),
           // メッセージテスト NPC（close: false で連続表示）
           createNpcObject('npc_01', 'NPC', 7, 5, createScriptActions('message', [
-            { text: 'こんにちは！所持金は \\v{gold} G だよ。', face: '', close: false },
+            { text: 'こんにちは！', face: '', close: false },
             { text: 'タイプライターのテストです。', face: '' },
           ]), resolveAssetId),
           // ステータス表示 NPC（Data + Variable → UI 連携テスト）

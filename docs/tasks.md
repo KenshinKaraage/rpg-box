@@ -6207,7 +6207,7 @@ export function useAutoSave() {
 
 ---
 
-#### [T224] [P] Message typewriter effect + variable embedding
+#### [T224] [P] Message typewriter effect
 
 - **ステータス:** [x] 完了
 - **ブランチ:** main
@@ -6217,12 +6217,12 @@ export function useAutoSave() {
 
 - [x] メッセージスクリプトにタイプライター効果追加（1文字ずつ表示、確認キーでスキップ）
 - [x] `typewriter` パラメータ（デフォルト true）、`typewriterSpeed` パラメータ（デフォルト 2フレーム）
-- [x] 変数埋め込み: `\v{varName}` → `Variable["varName"]` の値に置換
-- [x] テストデータで `\v{gold}` の動作確認用メッセージ追加
 
 **関連ファイル:**
 
 - `src/lib/defaultTestData.ts`
+
+**備考:** 変数埋め込みは不要（スクリプト内で `Variable["name"]` に直接アクセス可能）
 
 ---
 
