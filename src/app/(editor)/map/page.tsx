@@ -224,14 +224,14 @@ export default function MapEditPage() {
             }
           }}
         >
-          <TabsList className="w-full shrink-0 overflow-x-auto overflow-y-hidden rounded-none border-b scrollbar-none">
-            <TabsTrigger value="map" className="shrink-0 px-3">
+          <TabsList className="flex h-auto w-full shrink-0 flex-wrap rounded-none border-b bg-transparent p-0">
+            <TabsTrigger value="map" className="px-3 py-1.5">
               マップ
             </TabsTrigger>
-            <TabsTrigger value="chipset" className="shrink-0 px-3">
+            <TabsTrigger value="chipset" className="px-3 py-1.5">
               チップセット
             </TabsTrigger>
-            <TabsTrigger value="object" className="shrink-0 px-3">
+            <TabsTrigger value="object" className="px-3 py-1.5">
               オブジェクト
             </TabsTrigger>
           </TabsList>

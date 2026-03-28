@@ -67,9 +67,9 @@ export default function UIScreenDesignPage() {
           onValueChange={(v) => setLeftPanelMode(v as LeftPanelMode)}
           className="flex h-full flex-col bg-muted/20"
         >
-          <TabsList className="w-full shrink-0 overflow-x-auto overflow-y-hidden rounded-none border-b scrollbar-none">
+          <TabsList className="flex h-auto w-full shrink-0 flex-wrap rounded-none border-b bg-transparent p-0">
             {LEFT_PANEL_OPTIONS.map((opt) => (
-              <TabsTrigger key={opt.value} value={opt.value} className="shrink-0 px-3 text-xs">
+              <TabsTrigger key={opt.value} value={opt.value} className="px-3 py-1.5 text-xs">
                 {opt.label}
               </TabsTrigger>
             ))}
