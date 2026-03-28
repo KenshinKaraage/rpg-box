@@ -45,6 +45,13 @@ export class InputManager {
   private justPressedKeys: string[] = [];
   private justPressedKeysBuffer: string[] = [];
 
+  /** テキスト入力用の隠し input 要素 */
+  private hiddenInput: HTMLInputElement | null = null;
+  private _textInputActive = false;
+  private _textValue = '';
+  private _textConfirmed = false;
+  private _textCancelled = false;
+
   constructor(keyMap?: Record<string, GameButton>) {
     this.keyMap = keyMap ?? { ...DEFAULT_KEY_MAP };
   }
@@ -55,6 +62,14 @@ export class InputManager {
     target.addEventListener('keydown', this.onKeyDown);
     target.addEventListener('keyup', this.onKeyUp);
     target.addEventListener('blur', this.onBlur);
+
+    // 隠し input（IME 対応テキスト入力用）
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
+    input.addEventListener('keydown', this.onHiddenInputKeyDown);
+    target.parentElement?.appendChild(input);
+    this.hiddenInput = input;
   }
 
   detach(): void {
@@ -64,10 +79,16 @@ export class InputManager {
       this.target.removeEventListener('blur', this.onBlur);
       this.target = null;
     }
+    if (this.hiddenInput) {
+      this.hiddenInput.removeEventListener('keydown', this.onHiddenInputKeyDown);
+      this.hiddenInput.remove();
+      this.hiddenInput = null;
+    }
     this.rawKeysDown.clear();
     this.currentState.clear();
     this.previousState.clear();
     this.waiters = [];
+    this._textInputActive = false;
   }
 
   /** Call at the start of each frame to latch state. */
@@ -124,6 +145,51 @@ export class InputManager {
       return true;
     });
   }
+
+  /** テキスト入力を開始（隠し input にフォーカス） */
+  startTextInput(initialValue = ''): void {
+    if (!this.hiddenInput) return;
+    this._textInputActive = true;
+    this._textValue = initialValue;
+    this._textConfirmed = false;
+    this._textCancelled = false;
+    this.hiddenInput.value = initialValue;
+    this.hiddenInput.focus();
+  }
+
+  /** テキスト入力を終了（canvas にフォーカスを戻す） */
+  stopTextInput(): void {
+    this._textInputActive = false;
+    if (this.hiddenInput) this.hiddenInput.blur();
+    if (this.target) this.target.focus();
+  }
+
+  /** 現在のテキスト値を取得 */
+  getTextValue(): string {
+    if (this._textInputActive && this.hiddenInput) {
+      this._textValue = this.hiddenInput.value;
+    }
+    return this._textValue;
+  }
+
+  /** Enter が押されたか */
+  isTextConfirmed(): boolean { return this._textConfirmed; }
+
+  /** Escape が押されたか */
+  isTextCancelled(): boolean { return this._textCancelled; }
+
+  get textInputActive(): boolean { return this._textInputActive; }
+
+  private onHiddenInputKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      this._textValue = this.hiddenInput?.value ?? '';
+      this._textConfirmed = true;
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      this._textCancelled = true;
+    }
+  };
 
   private onKeyDown = (e: KeyboardEvent): void => {
     // 生キー入力をバッファに蓄積（全キー）

@@ -678,58 +678,38 @@ const valueObj = UI["text_input"].getObject("value");
 if (bg) bg.visible = true;
 if (labelObj) labelObj.setProperty("text", "content", prompt || "テキストを入力");
 
-let text = initial || "";
-let cursorVisible = true;
-let frameCount = 0;
-
-function updateDisplay() {
-  if (valueObj) {
-    const cursor = cursorVisible ? "|" : "";
-    valueObj.setProperty("text", "content", text + cursor);
-  }
-}
-updateDisplay();
+// 隠し input を使ったテキスト入力（IME 対応）
+Input.startTextInput(initial || "");
 UI["text_input"].show();
+
+let frameCount = 0;
+let cursorVisible = true;
 
 while (true) {
   await scriptAPI.waitFrames(1);
   frameCount++;
 
-  // カーソル点滅（30フレームごと）
-  if (frameCount % 30 === 0) {
-    cursorVisible = !cursorVisible;
-    updateDisplay();
+  // 現在の入力値を取得して表示（IME 変換中も反映）
+  let text = Input.getTextValue();
+  if (maxLength && text.length > maxLength) {
+    text = text.slice(0, maxLength);
   }
 
-  // キー入力処理
-  const keys = Input.getJustPressedKeys();
-  let changed = false;
-  for (const key of keys) {
-    if (key === "Enter") {
-      UI["text_input"].hide();
-      return text;
-    }
-    if (key === "Escape") {
-      UI["text_input"].hide();
-      return initial || "";
-    }
-    if (key === "Backspace") {
-      if (text.length > 0) {
-        text = text.slice(0, -1);
-        changed = true;
-      }
-    } else if (key.length === 1) {
-      // maxLength チェック
-      if (!maxLength || text.length < maxLength) {
-        text += key;
-        changed = true;
-      }
-    }
+  // カーソル点滅
+  if (frameCount % 30 === 0) cursorVisible = !cursorVisible;
+  if (valueObj) {
+    valueObj.setProperty("text", "content", text + (cursorVisible ? "|" : " "));
   }
-  if (changed) {
-    cursorVisible = true;
-    frameCount = 0;
-    updateDisplay();
+
+  if (Input.isTextConfirmed()) {
+    Input.stopTextInput();
+    UI["text_input"].hide();
+    return text;
+  }
+  if (Input.isTextCancelled()) {
+    Input.stopTextInput();
+    UI["text_input"].hide();
+    return initial || "";
   }
 }`,
   args: [

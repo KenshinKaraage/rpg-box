@@ -147,6 +147,11 @@ export class GameRuntime {
       isDown: (button) => this.input.isDown(button),
       isJustPressed: (button) => this.input.isJustPressed(button),
       getJustPressedKeys: () => this.input.getJustPressedKeys(),
+      startTextInput: (initial) => this.input.startTextInput(initial),
+      stopTextInput: () => this.input.stopTextInput(),
+      getTextValue: () => this.input.getTextValue(),
+      isTextConfirmed: () => this.input.isTextConfirmed(),
+      isTextCancelled: () => this.input.isTextCancelled(),
     });
     this.context.setMapAPI({
       getCurrentId: () => this.world.getCurrentMap()?.id ?? null,
