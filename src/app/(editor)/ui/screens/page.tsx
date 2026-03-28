@@ -70,12 +70,12 @@ export default function UIScreenDesignPage() {
       left={
         <div className="flex h-full flex-col bg-muted/20">
           {/* Mode selector */}
-          <div className="shrink-0 border-b px-2 py-2">
+          <div className="shrink-0 overflow-x-auto overflow-y-hidden border-b px-2 py-2 scrollbar-none">
             <Select
               value={leftPanelMode}
               onValueChange={(v) => setLeftPanelMode(v as LeftPanelMode)}
             >
-              <SelectTrigger className="h-8 text-xs" aria-label="左パネルモード">
+              <SelectTrigger className="h-8 min-w-0 text-xs" aria-label="左パネルモード">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
