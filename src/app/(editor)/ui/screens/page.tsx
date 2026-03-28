@@ -7,13 +7,7 @@ import '@/engine/actions/register';
 import '@/features/event-editor/registry/register';
 import '@/features/ui-editor/registry/uiActionBlockRegister';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { useStore } from '@/stores';
 import { generateId } from '@/lib/utils';
@@ -68,46 +62,38 @@ export default function UIScreenDesignPage() {
   return (
     <ThreeColumnLayout
       left={
-        <div className="flex h-full flex-col bg-muted/20">
-          {/* Mode selector */}
-          <div className="shrink-0 overflow-x-auto overflow-y-hidden border-b px-2 py-2 scrollbar-none">
-            <Select
-              value={leftPanelMode}
-              onValueChange={(v) => setLeftPanelMode(v as LeftPanelMode)}
-            >
-              <SelectTrigger className="h-8 min-w-0 text-xs" aria-label="左パネルモード">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {LEFT_PANEL_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <Tabs
+          value={leftPanelMode}
+          onValueChange={(v) => setLeftPanelMode(v as LeftPanelMode)}
+          className="flex h-full flex-col bg-muted/20"
+        >
+          <TabsList className="w-full shrink-0 overflow-x-auto overflow-y-hidden rounded-none border-b scrollbar-none">
+            {LEFT_PANEL_OPTIONS.map((opt) => (
+              <TabsTrigger key={opt.value} value={opt.value} className="shrink-0 px-3 text-xs">
+                {opt.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-          {/* Panel content */}
-          <div className="min-h-0 flex-1 overflow-auto">
-            {leftPanelMode === 'canvasList' && (
-              <CanvasListPanel
-                canvases={uiCanvases}
-                selectedId={selectedCanvasId}
-                onSelect={selectUICanvas}
-                onAdd={handleAddCanvas}
-                onDelete={deleteUICanvas}
-              />
-            )}
-            {leftPanelMode === 'elements' && <ElementsPanel />}
-            {leftPanelMode === 'templates' && (
-              <TemplatesPanel templates={uiTemplates} />
-            )}
-            {leftPanelMode === 'functions' && (
-              <FunctionsPanel functions={selectedCanvas?.functions ?? []} />
-            )}
-          </div>
-        </div>
+          <TabsContent value="canvasList" className="mt-0 min-h-0 flex-1 overflow-auto">
+            <CanvasListPanel
+              canvases={uiCanvases}
+              selectedId={selectedCanvasId}
+              onSelect={selectUICanvas}
+              onAdd={handleAddCanvas}
+              onDelete={deleteUICanvas}
+            />
+          </TabsContent>
+          <TabsContent value="elements" className="mt-0 min-h-0 flex-1 overflow-auto">
+            <ElementsPanel />
+          </TabsContent>
+          <TabsContent value="templates" className="mt-0 min-h-0 flex-1 overflow-auto">
+            <TemplatesPanel templates={uiTemplates} />
+          </TabsContent>
+          <TabsContent value="functions" className="mt-0 min-h-0 flex-1 overflow-auto">
+            <FunctionsPanel functions={selectedCanvas?.functions ?? []} />
+          </TabsContent>
+        </Tabs>
       }
       center={
         <div className="flex h-full flex-col">
