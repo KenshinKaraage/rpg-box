@@ -282,7 +282,7 @@ const CHOICE_W = 300;
 function createChoiceObjects(): EditorUIObject[] {
   const objects: EditorUIObject[] = [];
 
-  // 背景
+  // 背景 + NavigationComponent（ナビゲーションの親）
   objects.push({
     id: 'choice_bg',
     name: 'background',
@@ -294,10 +294,11 @@ function createChoiceObjects(): EditorUIObject[] {
     },
     components: [
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
     ],
   });
 
-  // 各項目（テキスト + カーソル）
+  // 各項目（テキスト + NavigationItemComponent）
   for (let i = 0; i < CHOICE_MAX; i++) {
     objects.push({
       id: `choice_item_${i}`,
@@ -311,11 +312,12 @@ function createChoiceObjects(): EditorUIObject[] {
       },
       components: [
         createUIComponentData('text', { content: '', fontSize: 20, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+        createUIComponentData('navigationItem', { itemId: String(i) }),
       ],
     });
   }
 
-  // カーソル（▶）
+  // カーソル（▶）+ NavigationCursorComponent
   objects.push({
     id: 'choice_cursor',
     name: 'cursor',
@@ -328,6 +330,7 @@ function createChoiceObjects(): EditorUIObject[] {
     },
     components: [
       createUIComponentData('text', { content: '▶', fontSize: 18, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: 0, offsetY: 0 }),
     ],
   });
 
@@ -352,14 +355,12 @@ const choiceScript: Script = {
   content: `const count = Math.min(items.length, ${CHOICE_MAX});
 if (count === 0) return -1;
 
-// 背景サイズ調整
+// 背景サイズ調整 + 項目テキスト設定
 const bg = UI["choice"].getObject("background");
 if (bg) {
   bg.height = ${CHOICE_PAD} * 2 + count * ${CHOICE_ITEM_H};
   bg.visible = true;
 }
-
-// 項目テキスト設定 + 表示/非表示
 for (let i = 0; i < ${CHOICE_MAX}; i++) {
   const item = UI["choice"].getObject("item" + i);
   if (!item) continue;
@@ -371,38 +372,19 @@ for (let i = 0; i < ${CHOICE_MAX}; i++) {
   }
 }
 
+// show → NavigationComponent の onShow が発火してカーソル初期化
 UI["choice"].show();
 
-// カーソル制御
-const cursor = UI["choice"].getObject("cursor");
-let selected = 0;
-const updateCursor = () => {
-  if (cursor) cursor.y = ${CHOICE_PAD} + selected * ${CHOICE_ITEM_H};
-};
-updateCursor();
-
-// 入力ループ
+// NavigationComponent が onInput で result を設定するまで待つ
 while (true) {
   await scriptAPI.waitFrames(1);
-  if (Input.isJustPressed("up")) {
-    selected = (selected - 1 + count) % count;
-    updateCursor();
+  const result = UI["choice"].getObject("background").getResult();
+  if (result !== undefined) {
+    UI["choice"].hide();
+    // result は itemId (string "0","1",...) または null (cancel)
+    return result === null ? -1 : parseInt(result, 10);
   }
-  if (Input.isJustPressed("down")) {
-    selected = (selected + 1) % count;
-    updateCursor();
-  }
-  if (Input.isJustPressed("confirm")) {
-    break;
-  }
-  if (Input.isJustPressed("cancel")) {
-    selected = -1;
-    break;
-  }
-}
-
-UI["choice"].hide();
-return selected;`,
+}`,
   args: [
     { id: 'items', name: '選択肢', fieldType: 'string', required: true, isArray: true, defaultValue: [] },
   ],

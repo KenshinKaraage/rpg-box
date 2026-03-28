@@ -6250,9 +6250,9 @@ export function useAutoSave() {
 
 > 設計: `docs/superpowers/specs/2026-03-28-component-runtime-script-design.md`
 
-#### [T224d] Add generateRuntimeScript() to Component base class
+#### [T224d] Add generateRuntimeScript() to UIComponent base class
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
@@ -6269,7 +6269,7 @@ export function useAutoSave() {
 
 #### [T224e] Add lifecycle dispatch to UICanvasManager
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
@@ -6291,7 +6291,7 @@ export function useAutoSave() {
 
 #### [T224f] Integrate lifecycle dispatch into GameRuntime
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
@@ -6308,7 +6308,7 @@ export function useAutoSave() {
 
 #### [T224g] Implement NavigationComponent.generateRuntimeScript()
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
@@ -6329,7 +6329,7 @@ export function useAutoSave() {
 
 #### [T224h] Rewrite Script.choice() to use NavigationComponent
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
