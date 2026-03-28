@@ -654,6 +654,72 @@ if (gold >= price) {
   isAsync: true,
 };
 
+// ── Script: マップ情報スクリプト ──
+// MapAPI テスト: 現在のマップ情報を読み取ってメッセージ表示
+
+const mapInfoScript: Script = {
+  id: 'map_info',
+  name: 'マップ情報',
+  callId: 'map_info',
+  type: 'event',
+  content: `const mapId = Map.getCurrentId();
+const w = Map.getWidth();
+const h = Map.getHeight();
+
+// タイル情報の取得テスト
+const tile = Map.getTile(5, 5);
+const tileInfo = tile ? tile : "なし";
+
+await Script.message({ text: "マップ: " + mapId + " (" + w + "x" + h + ")\\nタイル(5,5): " + tileInfo, face: "" });`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
+// ── Script: オブジェクト操作スクリプト ──
+// GameObjectAPI テスト: NPC を検索・移動・向き変更・コンポーネント読み取り
+
+const objTestScript: Script = {
+  id: 'obj_test',
+  name: 'オブジェクト操作テスト',
+  callId: 'obj_test',
+  type: 'event',
+  content: `// GameObjectAPI: 名前で検索
+const npc = GameObject.find("NPC");
+if (!npc) {
+  await Script.message({ text: "NPCが見つかりません", face: "" });
+  return;
+}
+
+// 位置・向き読み取り
+const pos = npc.getPosition();
+const facing = npc.getFacing();
+await Script.message({ text: "NPC位置: (" + pos.x + "," + pos.y + ") 向き: " + facing, face: "", close: false });
+
+// コンポーネント読み取りテスト
+const sprite = npc.getComponent("sprite");
+const imgId = sprite ? sprite.imageId : "なし";
+await Script.message({ text: "スプライト画像: " + imgId, face: "", close: false });
+
+// NPC の向きを変更
+npc.setFacing("left");
+await Script.message({ text: "NPCの向きを left に変更しました", face: "", close: false });
+
+// プレイヤー情報（ControllerComponent 持ちを検索）
+const player = GameObject.find("プレイヤー");
+if (player) {
+  const pPos = player.getPosition();
+  await Script.message({ text: "プレイヤー位置: (" + pPos.x + "," + pPos.y + ")", face: "" });
+} else {
+  await Script.message({ text: "プレイヤーが見つかりません", face: "" });
+}`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
 // ── Map: データ連携テスト用NPC追加 ──
 
 function createTestMap(resolveAssetId: AssetNameToId): GameMap {
@@ -690,6 +756,10 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createNpcObject('npc_status', 'ステータス確認', 9, 5, createScriptActions('show_status', [{}]), resolveAssetId),
           // 商人 NPC（Data参照 + Variable操作 連携テスト）
           createNpcObject('npc_shop', '商人', 11, 5, createScriptActions('shop_buy', [{}]), resolveAssetId),
+          // マップ情報 NPC（MapAPI テスト）
+          createNpcObject('npc_map', 'マップ案内人', 13, 5, createScriptActions('map_info', [{}]), resolveAssetId),
+          // オブジェクト操作 NPC（GameObjectAPI テスト）
+          createNpcObject('npc_obj_test', 'テスト係', 15, 5, createScriptActions('obj_test', [{}]), resolveAssetId),
         ],
       },
     ],
@@ -751,7 +821,7 @@ export async function loadDefaultTestData(): Promise<void> {
   }
 
   // Script
-  const scriptsToAdd = [messageScript, showStatusScript, shopScript];
+  const scriptsToAdd = [messageScript, showStatusScript, shopScript, mapInfoScript, objTestScript];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
       state.addScript(script);
