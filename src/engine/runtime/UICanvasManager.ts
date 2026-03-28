@@ -443,7 +443,7 @@ export class UICanvasManager implements UIActionManager {
     for (const rt of state.runtimes) {
       const fn = rt.fns[name];
       if (typeof fn === 'function') {
-        try { (fn as Function)(...args); } catch (e) { console.warn(`[UIRuntime] ${name} error (${rt.componentType}):`, e); }
+        try { (fn as Function).call(rt.fns, ...args); } catch (e) { console.warn(`[UIRuntime] ${name} error (${rt.componentType}):`, e); }
       }
     }
   }
@@ -612,14 +612,12 @@ export class UICanvasManager implements UIActionManager {
         // getComponent("type") → ランタイム関数 + データをまとめたオブジェクト
         if (prop === 'getComponent') {
           return (type: string) => {
-            // ランタイム関数
+            // ランタイム関数（this バインド維持のため直接返す）
             const rt = state.runtimes.find((r) => r.objectId === obj.id && r.componentType === type);
-            const fns = rt?.fns ?? {};
-            // 静的データ
+            if (rt) return rt.fns;
+            // ランタイムなし → 静的データのみ
             const comp = obj.components.find((c) => c.type === type);
-            const data = comp ? (comp.data as Record<string, unknown>) : {};
-            // fns をベースに data をマージ（fns が優先）
-            return { ...data, ...fns };
+            return comp ? { ...(comp.data as Record<string, unknown>) } : null;
           };
         }
         // getComponentData("type") → 静的データのみ
