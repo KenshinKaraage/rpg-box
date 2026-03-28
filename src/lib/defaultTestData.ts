@@ -1092,6 +1092,32 @@ await Script.message({ text: "BGM停止（フェードアウト2秒）", face: "
   isAsync: true,
 };
 
+// ── Script: 入力テストスクリプト ──
+// 数字入力 + 文字列入力のテスト
+
+const inputTestScript: Script = {
+  id: 'input_test',
+  name: '入力テスト',
+  callId: 'input_test',
+  type: 'event',
+  content: `// 数字入力テスト
+const amount = await Script.input_number({ prompt: "いくつ寄付する？", initial: 10, min: 0, max: Variable["gold"], step: 10 });
+if (amount > 0) {
+  Variable["gold"] = Variable["gold"] - amount;
+  await Script.message({ text: amount + " G 寄付した！（残り " + Variable["gold"] + " G）", face: "" });
+} else {
+  await Script.message({ text: "けちだなぁ。", face: "" });
+}
+
+// 文字列入力テスト
+const name = await Script.input_text({ prompt: "あなたの名前は？", initial: "勇者" });
+await Script.message({ text: "よろしく、" + name + "！", face: "" });`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
 // ── Map: データ連携テスト用NPC追加 ──
 
 function createTestMap(resolveAssetId: AssetNameToId): GameMap {
@@ -1134,6 +1160,8 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createNpcObject('npc_obj_test', 'テスト係', 15, 5, createScriptActions('obj_test', [{}]), resolveAssetId),
           // オーディオ NPC（AudioAPI テスト）
           createNpcObject('npc_audio', '楽師', 17, 5, createScriptActions('audio_test', [{}]), resolveAssetId),
+          // 入力テスト NPC（数字入力 + 文字列入力）
+          createNpcObject('npc_input', '受付嬢', 7, 7, createScriptActions('input_test', [{}]), resolveAssetId),
         ],
       },
     ],
@@ -1204,7 +1232,7 @@ export async function loadDefaultTestData(): Promise<void> {
   }
 
   // Script
-  const scriptsToAdd = [messageScript, choiceScript, inputNumberScript, inputTextScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript];
+  const scriptsToAdd = [messageScript, choiceScript, inputNumberScript, inputTextScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript, inputTestScript];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
       state.addScript(script);
