@@ -184,14 +184,16 @@ declare const GameObject: {
   destroy(id: string): void;
 };
 
-/** サウンドAPI */
+/** サウンドAPI — BGM/SE の再生・停止 */
 declare const Sound: {
-  /** BGMを再生 */
-  playBGM(assetId: string, options?: { volume?: number; loop?: boolean }): void;
-  /** BGMを停止 */
-  stopBGM(): void;
+  /** BGMを再生（ループ、フェードイン対応） */
+  playBGM(assetId: string, options?: { volume?: number; loop?: boolean; fadeIn?: number }): void;
+  /** BGMを停止（fadeOut: ms） */
+  stopBGM(fadeOut?: number): void;
   /** 効果音を再生 */
   playSE(assetId: string, options?: { volume?: number }): void;
+  /** 全停止 */
+  stopAll(): void;
 };
 
 /** カメラAPI */

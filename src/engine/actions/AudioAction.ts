@@ -16,11 +16,21 @@ export class AudioAction extends EventAction {
   ): Promise<void> {
     switch (this.operation) {
       case 'playBGM':
+        if (this.audioId) {
+          context.sound.playBGM(this.audioId, {
+            volume: this.volume,
+            loop: true,
+            fadeIn: this.fadeIn,
+          });
+        }
+        break;
       case 'playSE':
-        if (this.audioId) context.sound.play(this.audioId);
+        if (this.audioId) {
+          context.sound.playSE(this.audioId, { volume: this.volume });
+        }
         break;
       case 'stopBGM':
-        context.sound.stopAll();
+        context.sound.stopBGM(this.fadeOut);
         break;
     }
   }

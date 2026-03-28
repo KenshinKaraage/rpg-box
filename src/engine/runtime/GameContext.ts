@@ -52,8 +52,13 @@ export interface GameScriptAPI {
 }
 
 export interface SoundAPI {
-  play(id: string): void;
-  stop(id: string): void;
+  /** BGM再生（ループ、フェードイン対応） */
+  playBGM(assetId: string, options?: { volume?: number; loop?: boolean; fadeIn?: number }): void;
+  /** BGM停止（フェードアウト対応） */
+  stopBGM(fadeOut?: number): void;
+  /** SE再生 */
+  playSE(assetId: string, options?: { volume?: number }): void;
+  /** 全停止 */
   stopAll(): void;
 }
 
@@ -149,7 +154,7 @@ export class GameContext {
   readonly scriptAPI: GameScriptAPI;
   readonly data: DataAPI;
   readonly variable: VariableAPI;
-  readonly sound: SoundAPI;
+  sound: SoundAPI;
   readonly camera: CameraAPI;
   readonly save: SaveAPI;
   readonly scriptRunner: ScriptRunner;
@@ -317,15 +322,10 @@ function createScriptAPI(variableAPI: VariableAPI, ctx: GameContext): GameScript
 
 function createSoundAPI(): SoundAPI {
   return {
-    play(_id: string): void {
-      // Stub
-    },
-    stop(_id: string): void {
-      // Stub
-    },
-    stopAll(): void {
-      // Stub
-    },
+    playBGM() { /* stub */ },
+    stopBGM() { /* stub */ },
+    playSE() { /* stub */ },
+    stopAll() { /* stub */ },
   };
 }
 

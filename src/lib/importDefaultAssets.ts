@@ -47,17 +47,30 @@ export async function importDefaultAssets(
         continue;
       }
 
-      const { width, height } = await measureImage(data);
+      const isAudio = /\.(mp3|wav|ogg)$/i.test(entry.path);
       const assetId = generateId('asset', allAssetIds);
       allAssetIds.push(assetId);
-      addAsset({
-        id: assetId,
-        name: entry.name,
-        type: 'image',
-        folderId: folder.id,
-        data,
-        metadata: { width, height, fileSize: blob.size },
-      });
+
+      if (isAudio) {
+        addAsset({
+          id: assetId,
+          name: entry.name,
+          type: 'audio',
+          folderId: folder.id,
+          data,
+          metadata: { fileSize: blob.size },
+        });
+      } else {
+        const { width, height } = await measureImage(data);
+        addAsset({
+          id: assetId,
+          name: entry.name,
+          type: 'image',
+          folderId: folder.id,
+          data,
+          metadata: { width, height, fileSize: blob.size },
+        });
+      }
       imported++;
     }
   }

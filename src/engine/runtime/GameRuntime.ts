@@ -21,6 +21,7 @@ import { TriggerSystem } from './TriggerSystem';
 import { MapRenderer } from './MapRenderer';
 import { SpriteRenderer } from '@/engine/rendering/SpriteRenderer';
 import { UICanvasManager, type UICanvasData } from './UICanvasManager';
+import { AudioManager } from './AudioManager';
 import * as twgl from 'twgl.js';
 
 // ── Constants ──
@@ -48,6 +49,7 @@ export class GameRuntime {
   private mapRenderer: MapRenderer;
   private spriteRenderer: SpriteRenderer;
   private uiCanvasManager: UICanvasManager;
+  private audioManager: AudioManager;
 
   private canvas: HTMLCanvasElement;
 
@@ -91,6 +93,12 @@ export class GameRuntime {
       const asset = projectData.assets.find((a) => a.id === imageId);
       return (asset?.data as string) ?? null;
     });
+    const resolveAudioAsset = (assetId: string) => {
+      // ID でもアセット名でも解決
+      const asset = projectData.assets.find((a) => a.id === assetId || a.name === assetId);
+      return (asset?.data as string) ?? null;
+    };
+    this.audioManager = new AudioManager(resolveAudioAsset);
 
     // Game loop
     this.gameLoop = new GameLoop({
@@ -129,6 +137,7 @@ export class GameRuntime {
     this.sharedScriptRunner = new ScriptRunner(this.projectData.scripts);
     this.context = new GameContext(engineData, this.sharedScriptRunner);
     this.context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
+    this.context.sound = this.audioManager.createSoundAPI();
     this.context.setUIProxies(this.uiCanvasManager.createProxies());
     this.context.setInputAPI({
       waitKey: (button) => this.input.pressed(button),
@@ -178,6 +187,7 @@ export class GameRuntime {
     this.mapRenderer.dispose();
     this.spriteRenderer.dispose();
     this.uiCanvasManager.dispose();
+    this.audioManager.dispose();
     // Resolve any pending frame waiters
     for (const waiter of this.frameWaiters) {
       waiter.resolve();

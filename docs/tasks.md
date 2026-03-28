@@ -6041,24 +6041,9 @@ export function useAutoSave() {
 
 #### [T217] [P] Implement PlayerAPI
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
+- **ステータス:** [-] 廃止
 
-**完了条件:**
-
-- [ ] GameContext に `player` プロパティ追加（PlayerAPI）
-- [ ] `Player.moveTo(x, y)` — 移動
-- [ ] `Player.teleport(mapId, x, y)` — テレポート（マップ切替含む）
-- [ ] `Player.face(direction)` — 方向変更
-- [ ] `Player.getPosition()` — 現在位置取得
-- [ ] ScriptRunner に `'Player'` 注入追加
-- [ ] テスト追加
-
-**関連ファイル:**
-
-- `src/engine/runtime/GameContext.ts`
-- `src/engine/runtime/GameWorld.ts`
+**廃止理由:** ControllerComponent を持つオブジェクトがプレイヤー。`GameObject.find("プレイヤー")` で取得して ObjectProxy 経由で操作可能（T216 で実装済み）。専用 API は不要。
 
 ---
 
@@ -6098,21 +6083,33 @@ export function useAutoSave() {
 
 #### [T219] [P] Implement AudioAPI
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] GameContext の SoundAPI スタブを実装に置換
-- [ ] Web Audio API でBGM再生/停止（ループ、フェード対応）
-- [ ] SE再生（ボリューム設定）
-- [ ] ScriptRunner に `'Sound'` 注入済み（確認のみ）
-- [ ] テスト追加
+- [x] `AudioManager` 作成（Web Audio API ベース）
+  - [x] BGM 再生/停止（ループ、フェードイン/フェードアウト対応）
+  - [x] SE 再生（ボリューム設定）
+  - [x] AudioBuffer キャッシュ
+  - [x] 全停止 + dispose
+- [x] `SoundAPI` インターフェース拡張（playBGM/stopBGM/playSE/stopAll）
+- [x] `GameRuntime` で AudioManager を初期化・注入（アセット名/ID 両対応）
+- [x] `AudioAction` を新 SoundAPI に対応（volume/fadeIn/fadeOut パラメータ）
+- [x] オーディオアセットを `public/assets/sounds/` にコピー + `defaultAssets.ts` に登録
+- [x] `importDefaultAssets` をオーディオ対応（拡張子判定で type: 'audio'）
+- [x] Monaco 補完定義更新
+- [x] テスト更新
 
 **関連ファイル:**
 
+- `src/engine/runtime/AudioManager.ts`
 - `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameRuntime.ts`
+- `src/engine/actions/AudioAction.ts`
+- `src/lib/defaultAssets.ts`
+- `src/lib/importDefaultAssets.ts`
 
 ---
 

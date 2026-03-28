@@ -60,4 +60,34 @@ export const DEFAULT_ASSET_GROUPS: DefaultAssetGroup[] = [
       { path: '/assets/images/character_walk/walk_x32y32_marguerite.png', name: 'walk_marguerite' },
     ],
   },
+  {
+    folderName: 'BGM',
+    assets: [
+      { path: '/assets/sounds/bgm/Morning.mp3', name: 'bgm_morning' },
+      { path: '/assets/sounds/bgm/Encounter.mp3', name: 'bgm_encounter' },
+      { path: '/assets/sounds/bgm/Do_not_go_against_me.mp3', name: 'bgm_battle' },
+      { path: '/assets/sounds/bgm/ほんわかぷっぷー.mp3', name: 'bgm_honwaka' },
+      { path: '/assets/sounds/bgm/向日葵.mp3', name: 'bgm_himawari' },
+      { path: '/assets/sounds/bgm/森のいざない.mp3', name: 'bgm_forest' },
+      { path: '/assets/sounds/bgm/戦いの旅路を征く.mp3', name: 'bgm_journey' },
+      { path: '/assets/sounds/bgm/抜け道.mp3', name: 'bgm_shortcut' },
+      { path: '/assets/sounds/bgm/リシュリュー～孤独な正義～.mp3', name: 'bgm_richelieu' },
+    ],
+  },
+  {
+    folderName: 'SE（システム）',
+    assets: [
+      { path: '/assets/sounds/se_system/決定ボタンを押す24.mp3', name: 'se_confirm' },
+      { path: '/assets/sounds/se_system/決定ボタンを押す34.mp3', name: 'se_confirm2' },
+      { path: '/assets/sounds/se_system/キャンセル5.mp3', name: 'se_cancel' },
+      { path: '/assets/sounds/se_system/カーソル移動4(1).mp3', name: 'se_cursor' },
+      { path: '/assets/sounds/se_system/ビープ音4.mp3', name: 'se_beep' },
+    ],
+  },
+  {
+    folderName: 'SE（エフェクト）',
+    assets: [
+      { path: '/assets/sounds/se_effect/ビシッとツッコミ2.mp3', name: 'se_hit' },
+    ],
+  },
 ];
