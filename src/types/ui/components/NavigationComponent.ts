@@ -62,6 +62,7 @@ export class NavigationComponent extends UIComponent {
     return `({
   activate() {
     const items = self.children.filter(c => {
+      if (!c.visible) return false;
       const d = c.getComponentData && c.getComponentData("navigationItem");
       return d !== null && d !== undefined;
     });
@@ -133,14 +134,19 @@ export class NavigationComponent extends UIComponent {
     if (!items) return;
     const focused = items[self.state.focusIndex];
     if (!focused) return;
+    console.log("[nav] _updateCursor idx:", self.state.focusIndex, "focused.y:", focused.y);
     const cursor = self.children.find(c => {
       const d = c.getComponentData && c.getComponentData("navigationCursor");
       return d !== null && d !== undefined;
     });
+    console.log("[nav] cursor found:", !!cursor, "children count:", self.children.length);
     if (cursor) {
       const d = cursor.getComponentData("navigationCursor") || {};
-      cursor.y = focused.y + (d.offsetY || 0);
-      cursor.x = focused.x + (d.offsetX || 0);
+      const newY = focused.y + (d.offsetY || 0);
+      const newX = focused.x + (d.offsetX || 0);
+      console.log("[nav] cursor moving to:", newX, newY, "from:", cursor.x, cursor.y);
+      cursor.y = newY;
+      cursor.x = newX;
     }
   },
 
