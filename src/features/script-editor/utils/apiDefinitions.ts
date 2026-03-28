@@ -141,6 +141,20 @@ declare const Variable: {
   [key: string]: unknown;
 };
 
+/** マップAPI */
+declare const Map: {
+  /** 現在のマップIDを取得 */
+  getCurrentId(): string | null;
+  /** マップ幅（タイル数） */
+  getWidth(): number;
+  /** マップ高さ（タイル数） */
+  getHeight(): number;
+  /** タイルデータ取得（"chipsetId:chipIndex" 文字列、空なら null） */
+  getTile(x: number, y: number, layerId?: string): string | null;
+  /** マップ切替（イベント完了後に実行される） */
+  changeMap(mapId: string, x?: number, y?: number): void;
+};
+
 /** サウンドAPI */
 declare const Sound: {
   /** BGMを再生 */

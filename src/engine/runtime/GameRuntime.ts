@@ -135,6 +135,29 @@ export class GameRuntime {
       isDown: (button) => this.input.isDown(button),
       isJustPressed: (button) => this.input.isJustPressed(button),
     });
+    this.context.setMapAPI({
+      getCurrentId: () => this.world.getCurrentMap()?.id ?? null,
+      getWidth: () => this.world.getCurrentMap()?.width ?? 0,
+      getHeight: () => this.world.getCurrentMap()?.height ?? 0,
+      getTile: (x, y, layerId) => {
+        const map = this.world.getCurrentMap();
+        if (!map) return null;
+        for (const layer of map.layers) {
+          if (layer.type !== 'tile' || !layer.tiles) continue;
+          if (layerId && layer.id !== layerId) continue;
+          const row = layer.tiles[y];
+          if (!row) return null;
+          const tile = row[x];
+          return tile ?? null;
+        }
+        return null;
+      },
+      changeMap: (mapId, x, y) => {
+        if (this.context) {
+          this.context.pendingMapChange = { mapId, x: x ?? 0, y: y ?? 0 };
+        }
+      },
+    });
 
     // Camera follows active controller
     this.camera.followTarget(() => {
@@ -325,6 +348,7 @@ export class GameRuntime {
       .finally(() => {
         this.eventRunning = false;
         this.world.setEventRunning(false);
+        this.consumePendingMapChange();
       });
   }
 
@@ -368,7 +392,25 @@ export class GameRuntime {
       .finally(() => {
         this.eventRunning = false;
         this.world.setEventRunning(false);
+        this.consumePendingMapChange();
       });
+  }
+
+  /** イベント完了後に pendingMapChange があればマップ切替を実行 */
+  private consumePendingMapChange(): void {
+    if (!this.context?.pendingMapChange) return;
+    const { mapId, x, y } = this.context.pendingMapChange;
+    this.context.pendingMapChange = null;
+    this.loadMap(mapId).then(() => {
+      // プレイヤーを指定位置にテレポート
+      const player = this.world.activeController;
+      if (player) {
+        player.gridX = x;
+        player.gridY = y;
+        player.pixelX = x * TILE_SIZE;
+        player.pixelY = y * TILE_SIZE;
+      }
+    });
   }
 
   private buildEngineProjectData() {

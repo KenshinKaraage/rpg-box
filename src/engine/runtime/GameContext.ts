@@ -67,6 +67,19 @@ export interface SaveAPI {
   load(slotId: string): void;
 }
 
+export interface MapAPI {
+  /** 現在のマップID */
+  getCurrentId(): string | null;
+  /** マップ幅（タイル数） */
+  getWidth(): number;
+  /** マップ高さ（タイル数） */
+  getHeight(): number;
+  /** タイルデータ取得 (chipsetId:chipIndex 文字列、空なら null) */
+  getTile(x: number, y: number, layerId?: string): string | null;
+  /** マップ切替（イベント完了後に実行） */
+  changeMap(mapId: string, x?: number, y?: number): void;
+}
+
 export interface InputAPI {
   waitKey(button: GameButton): Promise<void>;
   isDown(button: GameButton): boolean;
@@ -102,6 +115,9 @@ export class GameContext {
   readonly camera: CameraAPI;
   readonly save: SaveAPI;
   readonly scriptRunner: ScriptRunner;
+
+  /** Map API — スクリプト内で Map.getCurrentId() 等で使用 */
+  map: MapAPI = createStubMapAPI();
 
   /** UI canvas proxies — スクリプト内で UI["canvasName"].functionName() として使用 */
   ui: Record<string, UICanvasRuntimeProxy> = {};
@@ -139,6 +155,11 @@ export class GameContext {
   /** Inject Input API backed by a real InputManager (called by GameRuntime). */
   setInputAPI(api: InputAPI): void {
     this.input = api;
+  }
+
+  /** Inject Map API backed by GameWorld (called by GameRuntime). */
+  setMapAPI(api: MapAPI): void {
+    this.map = api;
   }
 
   /** Set next action info (called by EventRunner each iteration). */
@@ -281,6 +302,16 @@ function createSaveAPI(): SaveAPI {
     load(_slotId: string): void {
       // Stub
     },
+  };
+}
+
+function createStubMapAPI(): MapAPI {
+  return {
+    getCurrentId() { return null; },
+    getWidth() { return 0; },
+    getHeight() { return 0; },
+    getTile() { return null; },
+    changeMap() { /* stub */ },
   };
 }
 
