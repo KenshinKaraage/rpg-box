@@ -3,6 +3,8 @@ import type { GameContext } from '@/engine/runtime/GameContext';
 
 export interface ComponentPanelProps {
   onChange: (updates: Record<string, unknown>) => void;
+  /** 親オブジェクトID（コンポーネント切替時のリセットに使用） */
+  objectId?: string;
 }
 
 /**

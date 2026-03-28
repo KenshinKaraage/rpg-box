@@ -49,6 +49,6 @@ export class TalkTriggerComponent extends Component {
   }
 
   renderPropertyPanel(props: ComponentPanelProps): ReactNode {
-    return <TriggerPropertyPanel component={this} onChange={props.onChange} />;
+    return <TriggerPropertyPanel component={this} onChange={props.onChange} objectId={props.objectId} />;
   }
 }

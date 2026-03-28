@@ -144,7 +144,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
       {/* Component list */}
       <div className="min-h-0 flex-1 overflow-auto">
         {obj.components.map((comp, index) => (
-          <div key={comp.type} className="border-b">
+          <div key={`${obj.id}-${comp.type}`} className="border-b">
             <div
               className="flex cursor-pointer items-center justify-between px-4 py-2 hover:bg-accent"
               onClick={() => toggleCollapsed(comp.type)}
@@ -176,6 +176,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
               <div className="px-4 pb-3">
                 {comp.renderPropertyPanel({
                   onChange: (updates) => handleComponentChange(index, updates),
+                  objectId: obj.id,
                 })}
               </div>
             )}

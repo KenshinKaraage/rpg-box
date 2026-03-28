@@ -32,9 +32,11 @@ type TriggerComponent =
 
 interface Props extends ComponentPanelProps {
   component: TriggerComponent;
+  /** 親オブジェクトID（モーダルの key に使用、オブジェクト切替時にリセット） */
+  objectId?: string;
 }
 
-export function TriggerPropertyPanel({ component, onChange }: Props) {
+export function TriggerPropertyPanel({ component, onChange, objectId }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const eventTemplates = useStore((s) => s.eventTemplates);
 
@@ -151,8 +153,9 @@ export function TriggerPropertyPanel({ component, onChange }: Props) {
         </div>
       )}
 
-      {/* イベント編集モーダル */}
+      {/* イベント編集モーダル — key でオブジェクト切替時にリセット */}
       <EventEditorModal
+        key={objectId ?? component.type}
         open={modalOpen}
         onOpenChange={setModalOpen}
         actions={component.actions ?? ([] as EditableAction[])}
