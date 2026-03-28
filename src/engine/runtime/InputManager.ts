@@ -41,6 +41,9 @@ export class InputManager {
   private rawKeysDown = new Set<string>();
   private target: HTMLElement | null = null;
   private waiters: ButtonWaiter[] = [];
+  /** 今フレームで押されたキー（e.key そのまま） */
+  private justPressedKeys: string[] = [];
+  private justPressedKeysBuffer: string[] = [];
 
   constructor(keyMap?: Record<string, GameButton>) {
     this.keyMap = keyMap ?? { ...DEFAULT_KEY_MAP };
@@ -75,6 +78,14 @@ export class InputManager {
       const button = this.keyMap[key];
       if (button) this.currentState.add(button);
     });
+    // 生キー入力をフレーム単位で確定
+    this.justPressedKeys = this.justPressedKeysBuffer;
+    this.justPressedKeysBuffer = [];
+  }
+
+  /** 今フレームで押されたキー一覧（e.key そのまま） */
+  getJustPressedKeys(): string[] {
+    return this.justPressedKeys;
   }
 
   isDown(button: GameButton): boolean {
@@ -115,6 +126,8 @@ export class InputManager {
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
+    // 生キー入力をバッファに蓄積（全キー）
+    this.justPressedKeysBuffer.push(e.key);
     if (this.keyMap[e.key]) {
       e.preventDefault();
       this.rawKeysDown.add(e.key);

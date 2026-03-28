@@ -393,54 +393,102 @@ return selected === null ? -1 : parseInt(selected, 10);`,
 
 // ── UICanvas: 数字入力画面 ──
 
-const numberInputBg: EditorUIObject = {
-  id: 'numinput_bg',
-  name: 'background',
-  transform: {
-    x: 0, y: 0, width: 280, height: 120,
-    anchorX: 'center', anchorY: 'center',
-    pivotX: 0.5, pivotY: 0.5,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: false,
-  },
-  components: [
-    createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
-  ],
-};
+const NUM_DIGITS = 4;
+const DIGIT_W = 36;
+const DIGIT_GAP = 4;
+const NUM_TOTAL_W = NUM_DIGITS * DIGIT_W + (NUM_DIGITS - 1) * DIGIT_GAP + 32;
 
-const numberInputLabel: EditorUIObject = {
-  id: 'numinput_label',
-  name: 'label',
-  parentId: 'numinput_bg',
-  transform: {
-    x: 16, y: 8, width: 248, height: 32,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
-  },
-  components: [
-    createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
-  ],
-};
+function createNumberInputObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
 
-const numberInputValue: EditorUIObject = {
-  id: 'numinput_value',
-  name: 'value',
-  parentId: 'numinput_bg',
-  transform: {
-    x: 16, y: 44, width: 248, height: 48,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
-  },
-  components: [
-    createUIComponentData('text', { content: '0', fontSize: 36, color: '#ffffff', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
-  ],
-};
+  // 背景
+  objects.push({
+    id: 'numinput_bg',
+    name: 'background',
+    transform: {
+      x: 0, y: 0, width: NUM_TOTAL_W, height: 140,
+      anchorX: 'center', anchorY: 'center',
+      pivotX: 0.5, pivotY: 0.5,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+    ],
+  });
+
+  // ラベル
+  objects.push({
+    id: 'numinput_label',
+    name: 'label',
+    parentId: 'numinput_bg',
+    transform: {
+      x: 16, y: 8, width: NUM_TOTAL_W - 32, height: 28,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '', fontSize: 14, color: '#aaaaaa', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // 各桁: ▲ + 数字 + ▼
+  for (let i = 0; i < NUM_DIGITS; i++) {
+    const dx = 16 + i * (DIGIT_W + DIGIT_GAP);
+
+    // ▲ 矢印
+    objects.push({
+      id: `numinput_up_${i}`,
+      name: `up${i}`,
+      parentId: 'numinput_bg',
+      transform: {
+        x: dx, y: 38, width: DIGIT_W, height: 20,
+        anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0,
+        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      },
+      components: [
+        createUIComponentData('text', { content: '▲', fontSize: 14, color: '#666666', align: 'center', verticalAlign: 'middle', lineHeight: 1 }),
+      ],
+    });
+
+    // 桁数字
+    objects.push({
+      id: `numinput_digit_${i}`,
+      name: `digit${i}`,
+      parentId: 'numinput_bg',
+      transform: {
+        x: dx, y: 60, width: DIGIT_W, height: 36,
+        anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0,
+        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      },
+      components: [
+        createUIComponentData('text', { content: '0', fontSize: 28, color: '#ffffff', align: 'center', verticalAlign: 'middle', lineHeight: 1 }),
+      ],
+    });
+
+    // ▼ 矢印
+    objects.push({
+      id: `numinput_down_${i}`,
+      name: `down${i}`,
+      parentId: 'numinput_bg',
+      transform: {
+        x: dx, y: 98, width: DIGIT_W, height: 20,
+        anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0,
+        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      },
+      components: [
+        createUIComponentData('text', { content: '▼', fontSize: 14, color: '#666666', align: 'center', verticalAlign: 'middle', lineHeight: 1 }),
+      ],
+    });
+  }
+
+  return objects;
+}
 
 const numberInputCanvas: EditorUICanvas = {
   id: 'number_input',
   name: '数字入力',
-  objects: [numberInputBg, numberInputLabel, numberInputValue],
+  objects: createNumberInputObjects(),
   functions: [],
 };
 
@@ -452,56 +500,111 @@ const inputNumberScript: Script = {
   name: '数字入力',
   callId: 'input_number',
   type: 'event',
-  content: `const labelObj = UI["number_input"].getObject("label");
-const valueObj = UI["number_input"].getObject("value");
+  content: `const DIGITS = ${NUM_DIGITS};
+const lo = min ?? 0;
+const hi = max ?? 9999;
+const numDigits = Math.max(1, String(hi).length);
+
+// UI 設定
 const bg = UI["number_input"].getObject("background");
+const labelObj = UI["number_input"].getObject("label");
 if (bg) bg.visible = true;
 if (labelObj) labelObj.setProperty("text", "content", prompt || "数値を入力");
 
-let value = initial || 0;
-const lo = min ?? 0;
-const hi = max ?? 9999;
-const s = step || 1;
+// 桁配列を初期化（右詰め）
+let digits = [];
+let val = Math.max(lo, Math.min(hi, initial || 0));
+for (let i = 0; i < DIGITS; i++) {
+  const power = Math.pow(10, DIGITS - 1 - i);
+  digits[i] = Math.floor(val / power) % 10;
+}
 
-const update = () => {
-  if (valueObj) valueObj.setProperty("text", "content", String(value));
-};
-update();
+let cursor = DIGITS - numDigits; // 最上位桁にカーソル
+
+// 表示更新
+const ACTIVE_COLOR = "#ffdd44";
+const NORMAL_COLOR = "#ffffff";
+const ARROW_ACTIVE = "#ffdd44";
+const ARROW_NORMAL = "#666666";
+
+function updateDisplay() {
+  for (let i = 0; i < DIGITS; i++) {
+    const d = UI["number_input"].getObject("digit" + i);
+    const up = UI["number_input"].getObject("up" + i);
+    const down = UI["number_input"].getObject("down" + i);
+    if (i < DIGITS - numDigits) {
+      // 使わない桁は非表示
+      if (d) d.visible = false;
+      if (up) up.visible = false;
+      if (down) down.visible = false;
+    } else {
+      if (d) {
+        d.visible = true;
+        d.setProperty("text", "content", String(digits[i]));
+        d.setProperty("text", "color", i === cursor ? ACTIVE_COLOR : NORMAL_COLOR);
+      }
+      if (up) {
+        up.visible = true;
+        up.setProperty("text", "color", i === cursor ? ARROW_ACTIVE : ARROW_NORMAL);
+      }
+      if (down) {
+        down.visible = true;
+        down.setProperty("text", "color", i === cursor ? ARROW_ACTIVE : ARROW_NORMAL);
+      }
+    }
+  }
+}
+
+updateDisplay();
 UI["number_input"].show();
 
 while (true) {
   await scriptAPI.waitFrames(1);
-  if (Input.isJustPressed("up")) {
-    value = Math.min(value + s, hi);
-    update();
-  }
-  if (Input.isJustPressed("down")) {
-    value = Math.max(value - s, lo);
-    update();
+
+  if (Input.isJustPressed("left")) {
+    cursor = Math.max(DIGITS - numDigits, cursor - 1);
+    updateDisplay();
   }
   if (Input.isJustPressed("right")) {
-    value = Math.min(value + s * 10, hi);
-    update();
+    cursor = Math.min(DIGITS - 1, cursor + 1);
+    updateDisplay();
   }
-  if (Input.isJustPressed("left")) {
-    value = Math.max(value - s * 10, lo);
-    update();
+  if (Input.isJustPressed("up")) {
+    digits[cursor] = (digits[cursor] + 1) % 10;
+    // clamp
+    let v = 0;
+    for (let i = 0; i < DIGITS; i++) v = v * 10 + digits[i];
+    if (v > hi) { digits[cursor] = (digits[cursor] - 1 + 10) % 10; }
+    updateDisplay();
+  }
+  if (Input.isJustPressed("down")) {
+    digits[cursor] = (digits[cursor] - 1 + 10) % 10;
+    let v = 0;
+    for (let i = 0; i < DIGITS; i++) v = v * 10 + digits[i];
+    if (v < lo) { digits[cursor] = (digits[cursor] + 1) % 10; }
+    updateDisplay();
   }
   if (Input.isJustPressed("confirm")) break;
   if (Input.isJustPressed("cancel")) {
-    value = initial || 0;
+    // 初期値に戻す
+    val = Math.max(lo, Math.min(hi, initial || 0));
+    for (let i = 0; i < DIGITS; i++) {
+      const power = Math.pow(10, DIGITS - 1 - i);
+      digits[i] = Math.floor(val / power) % 10;
+    }
     break;
   }
 }
 
+let result = 0;
+for (let i = 0; i < DIGITS; i++) result = result * 10 + digits[i];
 UI["number_input"].hide();
-return value;`,
+return result;`,
   args: [
     { id: 'prompt', name: 'ラベル', fieldType: 'string', required: false, defaultValue: '数値を入力' },
     { id: 'initial', name: '初期値', fieldType: 'number', required: false, defaultValue: 0 },
     { id: 'min', name: '最小値', fieldType: 'number', required: false, defaultValue: 0 },
     { id: 'max', name: '最大値', fieldType: 'number', required: false, defaultValue: 9999 },
-    { id: 'step', name: '刻み', fieldType: 'number', required: false, defaultValue: 1 },
   ],
   returns: [{ id: 'value', name: '入力値', fieldType: 'number', isArray: false }],
   fields: [],
@@ -562,22 +665,81 @@ const textInputCanvas: EditorUICanvas = {
 };
 
 // ── Script: 文字列入力 ──
-// ブラウザの prompt() を使用（ゲーム内キーボードは MVP 外）
+// Input.getJustPressedKeys() でキーボード直接入力
 
 const inputTextScript: Script = {
   id: 'input_text',
   name: '文字列入力',
   callId: 'input_text',
   type: 'event',
-  content: `const result = window.prompt(prompt || "テキストを入力", initial || "");
-return result ?? initial ?? "";`,
+  content: `const bg = UI["text_input"].getObject("background");
+const labelObj = UI["text_input"].getObject("label");
+const valueObj = UI["text_input"].getObject("value");
+if (bg) bg.visible = true;
+if (labelObj) labelObj.setProperty("text", "content", prompt || "テキストを入力");
+
+let text = initial || "";
+let cursorVisible = true;
+let frameCount = 0;
+
+function updateDisplay() {
+  if (valueObj) {
+    const cursor = cursorVisible ? "|" : "";
+    valueObj.setProperty("text", "content", text + cursor);
+  }
+}
+updateDisplay();
+UI["text_input"].show();
+
+while (true) {
+  await scriptAPI.waitFrames(1);
+  frameCount++;
+
+  // カーソル点滅（30フレームごと）
+  if (frameCount % 30 === 0) {
+    cursorVisible = !cursorVisible;
+    updateDisplay();
+  }
+
+  // キー入力処理
+  const keys = Input.getJustPressedKeys();
+  let changed = false;
+  for (const key of keys) {
+    if (key === "Enter") {
+      UI["text_input"].hide();
+      return text;
+    }
+    if (key === "Escape") {
+      UI["text_input"].hide();
+      return initial || "";
+    }
+    if (key === "Backspace") {
+      if (text.length > 0) {
+        text = text.slice(0, -1);
+        changed = true;
+      }
+    } else if (key.length === 1) {
+      // maxLength チェック
+      if (!maxLength || text.length < maxLength) {
+        text += key;
+        changed = true;
+      }
+    }
+  }
+  if (changed) {
+    cursorVisible = true;
+    frameCount = 0;
+    updateDisplay();
+  }
+}`,
   args: [
     { id: 'prompt', name: 'ラベル', fieldType: 'string', required: false, defaultValue: 'テキストを入力' },
     { id: 'initial', name: '初期値', fieldType: 'string', required: false, defaultValue: '' },
+    { id: 'maxLength', name: '最大文字数', fieldType: 'number', required: false, defaultValue: 20 },
   ],
   returns: [{ id: 'text', name: '入力値', fieldType: 'string', isArray: false }],
   fields: [],
-  isAsync: false,
+  isAsync: true,
 };
 
 // ── Map helpers ──

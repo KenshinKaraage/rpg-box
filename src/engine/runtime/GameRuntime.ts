@@ -146,6 +146,7 @@ export class GameRuntime {
       waitKey: (button) => this.input.pressed(button),
       isDown: (button) => this.input.isDown(button),
       isJustPressed: (button) => this.input.isJustPressed(button),
+      getJustPressedKeys: () => this.input.getJustPressedKeys(),
     });
     this.context.setMapAPI({
       getCurrentId: () => this.world.getCurrentMap()?.id ?? null,

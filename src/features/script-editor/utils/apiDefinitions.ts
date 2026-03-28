@@ -184,6 +184,18 @@ declare const GameObject: {
   destroy(id: string): void;
 };
 
+/** 入力API */
+declare const Input: {
+  /** ボタンが押されるまで待機 */
+  waitKey(button: 'up' | 'down' | 'left' | 'right' | 'confirm' | 'cancel' | 'menu'): Promise<void>;
+  /** ボタンが押されているか */
+  isDown(button: string): boolean;
+  /** ボタンが今フレームで押されたか */
+  isJustPressed(button: string): boolean;
+  /** 今フレームで押された生キー一覧（"a", "Backspace", "Enter" 等） */
+  getJustPressedKeys(): string[];
+};
+
 /** サウンドAPI — BGM/SE の再生・停止 */
 declare const Sound: {
   /** BGMを再生（ループ、フェードイン対応） */

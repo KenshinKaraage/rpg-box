@@ -127,6 +127,8 @@ export interface InputAPI {
   waitKey(button: GameButton): Promise<void>;
   isDown(button: GameButton): boolean;
   isJustPressed(button: GameButton): boolean;
+  /** 今フレームで押された生キー一覧（e.key そのまま: "a", "Backspace", "Enter" 等） */
+  getJustPressedKeys(): string[];
 }
 
 export interface NextActionInfo {
@@ -381,6 +383,9 @@ function createStubInputAPI(): InputAPI {
     },
     isJustPressed(_button: GameButton): boolean {
       return false;
+    },
+    getJustPressedKeys(): string[] {
+      return [];
     },
   };
 }
