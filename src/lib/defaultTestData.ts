@@ -211,11 +211,28 @@ const messageScript: Script = {
   name: 'メッセージ',
   callId: 'message',
   type: 'event',
-  content: `if (!UI["message"].isVisible()) {
+  content: `// 顔グラの有無でテキストレイアウトを切り替え
+const hasFace = face && face !== "";
+const textObj = UI["message"].getObject("textLabel");
+const faceObj = UI["message"].getObject("faceImage");
+if (textObj) {
+  if (hasFace) {
+    textObj.x = 200;
+    textObj.width = 1060;
+  } else {
+    textObj.x = 16;
+    textObj.width = 1248;
+  }
+}
+if (faceObj) {
+  faceObj.visible = !!hasFace;
+}
+
+if (!UI["message"].isVisible()) {
   UI["message"].show();
-  await UI["message"].call("show", { text, face });
+  await UI["message"].call("show", { text, face: face || "" });
 } else {
-  await UI["message"].call("updateText", { text, face });
+  await UI["message"].call("updateText", { text, face: face || "" });
 }
 await Input.waitKey("confirm");
 if (close !== false) {
