@@ -155,6 +155,35 @@ declare const Map: {
   changeMap(mapId: string, x?: number, y?: number): void;
 };
 
+/** オブジェクトプロキシ — find() 等で取得したオブジェクトの操作 */
+interface GameObjectProxy {
+  readonly id: string;
+  readonly name: string;
+  getPosition(): { x: number; y: number };
+  setPosition(x: number, y: number): void;
+  getFacing(): string;
+  setFacing(direction: string): void;
+  isMoving(): boolean;
+  getComponent(type: string): Record<string, unknown> | null;
+  setComponent(type: string, data: Record<string, unknown>): void;
+  setVisible(visible: boolean): void;
+  destroy(): void;
+}
+
+/** ゲームオブジェクトAPI — オブジェクトの検索・生成・破棄 */
+declare const GameObject: {
+  /** 名前でオブジェクト検索 */
+  find(name: string): GameObjectProxy | null;
+  /** IDでオブジェクト検索 */
+  findById(id: string): GameObjectProxy | null;
+  /** 指定タイルのオブジェクト検索 */
+  findAtTile(x: number, y: number): GameObjectProxy | null;
+  /** プレハブからオブジェクト生成 */
+  create(prefabId: string, x: number, y: number): GameObjectProxy | null;
+  /** IDでオブジェクト破棄 */
+  destroy(id: string): void;
+};
+
 /** サウンドAPI */
 declare const Sound: {
   /** BGMを再生 */

@@ -5986,47 +5986,56 @@ export function useAutoSave() {
 
 #### [T215] [P] Implement MapAPI
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] GameContext に `map` プロパティ追加（MapAPI）
-- [ ] `Map.load(id)` — マップ切り替え
-- [ ] `Map.getTile(x, y, layer)` — タイル取得
-- [ ] `Map.setTile(x, y, layer, tileId)` — タイル変更
-- [ ] `Map.getCurrentId()` — 現在マップID取得
-- [ ] ScriptRunner に `'Map'` 注入追加
-- [ ] テスト追加
+- [x] GameContext に `map` プロパティ追加（MapAPI）
+- [x] `Map.getCurrentId()` — 現在マップID取得
+- [x] `Map.getWidth()` / `Map.getHeight()` — マップサイズ取得
+- [x] `Map.getTile(x, y, layerId?)` — タイルデータ取得
+- [x] `Map.changeMap(mapId, x?, y?)` — マップ切替（pendingMapChange 経由）
+- [x] GameRuntime で pendingMapChange 消費（イベント完了後にマップロード + プレイヤーテレポート）
+- [x] ScriptRunner に `'Map'` 注入追加
+- [x] Monaco 補完定義追加
 
 **関連ファイル:**
 
 - `src/engine/runtime/GameContext.ts`
 - `src/engine/runtime/GameRuntime.ts`
+- `src/engine/core/ScriptRunner.ts`
+- `src/features/script-editor/utils/apiDefinitions.ts`
 
 ---
 
 #### [T216] [P] Implement ObjectAPI
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] GameContext に `object` プロパティ追加（ObjectAPI）
-- [ ] `Object.create(prefabId, x, y)` — プレハブからオブジェクト生成
-- [ ] `Object.destroy(id)` — オブジェクト破棄
-- [ ] `Object.find(name)` — 名前でオブジェクト検索
-- [ ] `Object.getComponent(objectId, type)` — コンポーネント取得
-- [ ] ScriptRunner に `'Object'` 注入追加
-- [ ] テスト追加
+- [x] GameContext に `object` プロパティ追加（ObjectAPI + ObjectProxy）
+- [x] `GameObject.find(name)` — 名前でオブジェクト検索
+- [x] `GameObject.findById(id)` — IDで検索
+- [x] `GameObject.findAtTile(x, y)` — タイル上のオブジェクト検索
+- [x] `GameObject.create(prefabId, x, y)` — プレハブからオブジェクト動的生成
+- [x] `GameObject.destroy(id)` — オブジェクト破棄
+- [x] ObjectProxy: getPosition/setPosition, getFacing/setFacing, isMoving, getComponent/setComponent, setVisible, destroy
+- [x] GameWorld に findByName/findById/removeObject/spawnFromPrefab 追加
+- [x] ScriptRunner に `'GameObject'` 注入追加
+- [x] Monaco 補完定義追加
 
 **関連ファイル:**
 
 - `src/engine/runtime/GameContext.ts`
 - `src/engine/runtime/GameWorld.ts`
+- `src/engine/runtime/GameRuntime.ts`
+- `src/engine/core/ScriptRunner.ts`
+- `src/features/script-editor/utils/apiDefinitions.ts`
 
 ---
 

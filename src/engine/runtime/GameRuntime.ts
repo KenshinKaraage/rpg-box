@@ -159,6 +159,8 @@ export class GameRuntime {
       },
     });
 
+    this.context.setObjectAPI(this.createObjectAPI());
+
     // Camera follows active controller
     this.camera.followTarget(() => {
       const ctrl = this.world.activeController;
@@ -411,6 +413,63 @@ export class GameRuntime {
         player.pixelY = y * TILE_SIZE;
       }
     });
+  }
+
+  private createObjectAPI(): import('./GameContext').ObjectAPI {
+    const world = this.world;
+    const projectData = this.projectData;
+
+    const wrapObject = (obj: import('./GameWorld').RuntimeObject): import('./GameContext').ObjectProxy => ({
+      id: obj.id,
+      name: obj.name,
+      getPosition: () => ({ x: obj.gridX, y: obj.gridY }),
+      setPosition: (x, y) => {
+        obj.gridX = x;
+        obj.gridY = y;
+        obj.pixelX = x * TILE_SIZE;
+        obj.pixelY = y * TILE_SIZE;
+        obj.isMoving = false;
+        obj.moveProgress = 0;
+      },
+      getFacing: () => obj.facing,
+      setFacing: (dir) => { obj.facing = dir as import('./GameWorld').Direction; },
+      isMoving: () => obj.isMoving,
+      getComponent: (type) => {
+        const comp = obj.components[type];
+        return comp ? { ...comp } : null;
+      },
+      setComponent: (type, data) => {
+        if (!obj.components[type]) obj.components[type] = {};
+        Object.assign(obj.components[type]!, data);
+      },
+      setVisible: (visible) => {
+        if (!obj.components['sprite']) obj.components['sprite'] = {};
+        obj.components['sprite']!.opacity = visible ? 1 : 0;
+      },
+      destroy: () => { world.removeObject(obj.id); },
+    });
+
+    return {
+      find: (name) => {
+        const obj = world.findByName(name);
+        return obj ? wrapObject(obj) : null;
+      },
+      findById: (id) => {
+        const obj = world.findById(id);
+        return obj ? wrapObject(obj) : null;
+      },
+      findAtTile: (x, y) => {
+        const obj = world.getObjectAtTile(x, y);
+        return obj ? wrapObject(obj) : null;
+      },
+      create: (prefabId, x, y) => {
+        const prefab = projectData.prefabs.find((p) => p.id === prefabId);
+        if (!prefab) return null;
+        const obj = world.spawnFromPrefab(prefab, x, y);
+        return obj ? wrapObject(obj) : null;
+      },
+      destroy: (id) => { world.removeObject(id); },
+    };
   }
 
   private buildEngineProjectData() {

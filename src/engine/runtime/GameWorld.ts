@@ -157,6 +157,47 @@ export class GameWorld {
     return this.objects.find((o) => o.gridX === x && o.gridY === y) ?? null;
   }
 
+  findByName(name: string): RuntimeObject | null {
+    return this.objects.find((o) => o.name === name) ?? null;
+  }
+
+  findById(id: string): RuntimeObject | null {
+    return this.objects.find((o) => o.id === id) ?? null;
+  }
+
+  removeObject(id: string): void {
+    this.objects = this.objects.filter((o) => o.id !== id);
+    if (this.activeController?.id === id) {
+      this.activeController = null;
+    }
+  }
+
+  /** プレハブからオブジェクトを動的生成してワールドに追加 */
+  spawnFromPrefab(prefab: Prefab, x: number, y: number): RuntimeObject | null {
+    if (!this.currentMap) return null;
+    // オブジェクトレイヤーを探す（最初の object レイヤー）
+    const objLayer = this.currentMap.layers.find((l) => l.type === 'object');
+    if (!objLayer) return null;
+
+    const mapObj: MapObject = {
+      id: `spawned_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: prefab.name,
+      prefabId: prefab.id,
+      components: [],
+    };
+    const resolved = this.resolveObject(mapObj, [prefab]);
+
+    // Transform を上書き
+    const rtObj = this.createRuntimeObject(resolved, objLayer.id);
+    rtObj.gridX = x;
+    rtObj.gridY = y;
+    rtObj.pixelX = x * TILE_SIZE;
+    rtObj.pixelY = y * TILE_SIZE;
+
+    this.objects.push(rtObj);
+    return rtObj;
+  }
+
   // ── Private: Direction resolution ──
 
   private resolveDirection(obj: RuntimeObject, input: InputManager): Direction | null {

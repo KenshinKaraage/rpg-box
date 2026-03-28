@@ -67,6 +67,44 @@ export interface SaveAPI {
   load(slotId: string): void;
 }
 
+export interface ObjectProxy {
+  /** オブジェクトID */
+  readonly id: string;
+  /** オブジェクト名 */
+  readonly name: string;
+  /** グリッド座標 */
+  getPosition(): { x: number; y: number };
+  /** グリッド座標を設定（即座にテレポート） */
+  setPosition(x: number, y: number): void;
+  /** 向き */
+  getFacing(): string;
+  /** 向きを変更 */
+  setFacing(direction: string): void;
+  /** 移動中かどうか */
+  isMoving(): boolean;
+  /** コンポーネントデータ取得（読み取り専用コピー） */
+  getComponent(type: string): Record<string, unknown> | null;
+  /** コンポーネントデータ更新（部分上書き） */
+  setComponent(type: string, data: Record<string, unknown>): void;
+  /** 表示/非表示（sprite.opacity で制御） */
+  setVisible(visible: boolean): void;
+  /** オブジェクトを破棄 */
+  destroy(): void;
+}
+
+export interface ObjectAPI {
+  /** 名前でオブジェクト検索 */
+  find(name: string): ObjectProxy | null;
+  /** IDでオブジェクト検索 */
+  findById(id: string): ObjectProxy | null;
+  /** 指定タイルのオブジェクト検索 */
+  findAtTile(x: number, y: number): ObjectProxy | null;
+  /** プレハブからオブジェクト生成 */
+  create(prefabId: string, x: number, y: number): ObjectProxy | null;
+  /** IDでオブジェクト破棄 */
+  destroy(id: string): void;
+}
+
 export interface MapAPI {
   /** 現在のマップID */
   getCurrentId(): string | null;
@@ -119,6 +157,9 @@ export class GameContext {
   /** Map API — スクリプト内で Map.getCurrentId() 等で使用 */
   map: MapAPI = createStubMapAPI();
 
+  /** Object API — スクリプト内で GameObj.find("NPC") 等で使用 */
+  object: ObjectAPI = createStubObjectAPI();
+
   /** UI canvas proxies — スクリプト内で UI["canvasName"].functionName() として使用 */
   ui: Record<string, UICanvasRuntimeProxy> = {};
 
@@ -160,6 +201,11 @@ export class GameContext {
   /** Inject Map API backed by GameWorld (called by GameRuntime). */
   setMapAPI(api: MapAPI): void {
     this.map = api;
+  }
+
+  /** Inject Object API backed by GameWorld (called by GameRuntime). */
+  setObjectAPI(api: ObjectAPI): void {
+    this.object = api;
   }
 
   /** Set next action info (called by EventRunner each iteration). */
@@ -302,6 +348,16 @@ function createSaveAPI(): SaveAPI {
     load(_slotId: string): void {
       // Stub
     },
+  };
+}
+
+function createStubObjectAPI(): ObjectAPI {
+  return {
+    find() { return null; },
+    findById() { return null; },
+    findAtTile() { return null; },
+    create() { return null; },
+    destroy() { /* stub */ },
   };
 }
 

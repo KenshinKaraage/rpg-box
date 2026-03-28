@@ -26,6 +26,7 @@ const INJECTED_PARAM_NAMES = [
   'UI',
   'Input',
   'Map',
+  'GameObject',
   'currentEvent',
 ] as const;
 
@@ -206,6 +207,7 @@ export class ScriptRunner {
       context.ui,
       context.input,
       context.map,
+      context.object,
       context.currentEvent,
       ...internalNames.map((name) => internalFns[name]),
       ...argParamValues,
