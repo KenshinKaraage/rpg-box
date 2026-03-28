@@ -126,7 +126,10 @@ declare const scriptAPI: {
   setVar(variableId: string, value: unknown): void;
 };
 
-/** 変数API - ゲーム変数の読み書き */
+/** 変数API - ゲーム変数の読み書き
+ * Variable["name"] または Variable.name で直接アクセス可能。
+ * Variable.get("name") / Variable.set("name", value) も使用可。
+ */
 declare const Variable: {
   /** 変数の値を取得 */
   get(name: string): unknown;
@@ -134,6 +137,8 @@ declare const Variable: {
   set(name: string, value: unknown): void;
   /** 全変数を取得 */
   getAll(): Record<string, unknown>;
+  /** 直接アクセス: Variable["name"] */
+  [key: string]: unknown;
 };
 
 /** サウンドAPI */

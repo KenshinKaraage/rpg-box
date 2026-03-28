@@ -26,6 +26,8 @@ export interface ScriptArg {
   fieldType: string;
   /** 必須かどうか */
   required: boolean;
+  /** 配列かどうか */
+  isArray?: boolean;
   /** デフォルト値 */
   defaultValue?: unknown;
 }

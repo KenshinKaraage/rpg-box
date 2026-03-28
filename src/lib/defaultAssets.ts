@@ -51,4 +51,13 @@ export const DEFAULT_ASSET_GROUPS: DefaultAssetGroup[] = [
       { path: '/assets/images/map_chip/t_town04.png', name: 't_town04' },
     ],
   },
+  {
+    folderName: '歩行キャラ',
+    assets: [
+      { path: '/assets/images/character_walk/walk_x32y32_alice.png', name: 'walk_alice' },
+      { path: '/assets/images/character_walk/walk_x32y32_ian.png', name: 'walk_ian' },
+      { path: '/assets/images/character_walk/walk_x32y32_lex.png', name: 'walk_lex' },
+      { path: '/assets/images/character_walk/walk_x32y32_marguerite.png', name: 'walk_marguerite' },
+    ],
+  },
 ];

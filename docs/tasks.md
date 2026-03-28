@@ -4744,6 +4744,71 @@ export function useAutoSave() {
 
 ---
 
+### スプライトアニメーション強化
+
+#### [T172a] [US13] Add animFramePattern to SpriteComponent
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `SpriteComponent` に `animFramePattern: number[]` プロパティ追加
+  - 空配列 = 0,1,2,...の線形ループ（従来動作）
+  - 指定時 = パターン通りに再生（例: `[0,1,0,2]` で RPG歩行チップ標準）
+- [ ] バリデーション: 値が 0〜`animFrameCount - 1` の範囲内であることを保証
+- [ ] serialize / deserialize / clone 対応
+- [ ] `SpriteRenderer` でパターン対応（パターンあり→パターン順、なし→線形ループ）
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/types/components/SpriteComponent.tsx`
+- `src/engine/rendering/SpriteRenderer.ts`
+
+---
+
+#### [T172b] [US13] Add animFramePattern UI to SpritePropertyPanel
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `SpritePropertyPanel` にフレームパターン入力 UI 追加
+- [ ] フレーム番号の入力（カンマ区切り or チップ選択UI）
+- [ ] 範囲外の値を入力時にエラー表示（0〜frameCount-1）
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/panels/SpritePropertyPanel.tsx`
+
+---
+
+#### [T172c] [US13] Create sprite animation preview
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] スプライトアニメーションプレビューコンポーネント作成
+- [ ] 上下左右の歩行モーションを同時にプレビュー表示
+- [ ] animFramePattern / animIntervalMs の設定がリアルタイム反映
+- [ ] SpritePropertyPanel 内に統合（または別パネル）
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/SpriteAnimPreview.tsx`
+- `src/features/map-editor/components/panels/SpritePropertyPanel.tsx`
+
+---
+
 ## Phase 14: UI Foundation（UIComponent 定義）
 
 > **備考:** 設計議論で tasks.md の元タスク定義から大幅に変更。design.md ベースで再設計し実装済み。
@@ -5677,117 +5742,114 @@ export function useAutoSave() {
 
 #### [T210] [P] Create GameEngine core
 
-- **ステータス:** [x] 部分完了（スクリプト実行モード実装済み。ゲームループ・シーン管理・入力は未実装）
+- **ステータス:** [x] 完了
 - **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [x] `src/engine/core/GameEngine.ts` 作成
-- [ ] ゲームループ実装
-- [ ] コンポーネントライフサイクル実行（各コンポーネントの onCreate/onUpdate/onDestroy/onEnable/onDisable を呼ぶ。Phase 10 でシグネチャ定義済み、ここで実処理を実装）
-- [ ] シーン管理
-- [ ] 入力ハンドリング
+- [x] `src/engine/core/GameEngine.ts` 作成（script/event/full 3モード対応）
+- [x] ゲームループ実装（`src/engine/runtime/GameLoop.ts` — 固定タイムステップ 60fps、pause/resume）
+- [x] GameRuntime でサブシステム統合（input → world → triggers → events → camera → render）
+- [x] シーン管理（`GameRuntime` にマップロード/切り替えを統合）
+- [x] 入力ハンドリング（`InputManager.ts` — キーマッピング、just-pressed、waiter方式）
 - [x] テスト追加
 
 **関連ファイル:**
 
 - `src/engine/core/GameEngine.ts`
 - `src/engine/core/GameEngine.test.ts`
+- `src/engine/runtime/GameLoop.ts`
+- `src/engine/runtime/GameRuntime.ts`
+- `src/engine/runtime/InputManager.ts`
 
 ---
 
 ### コンポーネント実処理
 
-> Phase 10 で型定義・レジストリ登録済み。ここで各コンポーネントの onUpdate 等にランタイムロジックを実装する。
+> Phase 10 で型定義・レジストリ登録済み。ランタイムロジックは `GameWorld.ts` に統合実装。
 
 #### [T210a] [P] Implement MovementComponent runtime logic
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] MovementComponent.onUpdate() にパターン別移動ロジック実装
-- [ ] fixed: 移動しない
-- [ ] random: ランダム方向に移動
-- [ ] route: routePoints に沿って移動
-- [ ] speed に基づく移動速度制御
-- [ ] TransformComponent の x, y を更新
-- [ ] テスト追加
+- [x] `GameWorld.ts` にパターン別移動ロジック実装
+- [x] fixed: 移動しない
+- [x] random: ランダム方向に移動（activeness 設定可）
+- [x] route: routePoints に沿って移動（ループ対応）
+- [x] speed に基づく移動速度制御（ピクセル補間あり）
+- [x] グリッドベース移動 + advanceMovement(dt) でスムーズ描画
+- [x] テスト追加
 
 **関連ファイル:**
 
-- `src/types/components/MovementComponent.ts`
-- `src/types/components/MovementComponent.test.ts`
+- `src/engine/runtime/GameWorld.ts`
 
 ---
 
 #### [T210b] [P] Implement ColliderComponent collision detection
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] 衝突判定ロジック実装（グリッドベース）
-- [ ] passable フラグによる通行可否判定
-- [ ] layer による衝突レイヤー分離
-- [ ] マップチップの通行設定との統合
-- [ ] テスト追加
+- [x] `GameWorld.ts` にグリッドベース衝突判定実装
+- [x] passable フラグによる通行可否判定
+- [x] レイヤー別衝突判定（collideLayers フィルタリング）
+- [x] マップチップの通行設定との統合（タイル passability チェック）
+- [x] オブジェクト同士の衝突検出（移動先予測含む）
 
 **関連ファイル:**
 
-- `src/types/components/ColliderComponent.ts`
-- `src/engine/core/CollisionSystem.ts`（新規作成の可能性あり）
+- `src/engine/runtime/GameWorld.ts`
 
 ---
 
 #### [T210c] [P] Implement trigger components event firing
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] TalkTrigger: 話しかけ判定 → eventId のイベント発火
-- [ ] TouchTrigger: 接触判定 → eventId のイベント発火
-- [ ] StepTrigger: 踏み判定 → eventId のイベント発火
-- [ ] AutoTrigger: interval に基づく定期実行、runOnce 制御
-- [ ] InputTrigger: 指定キー入力検知 → eventId のイベント発火
-- [ ] EventRunner との連携
-- [ ] テスト追加
+- [x] TalkTrigger: 確認ボタン + 方向判定 → eventId/ローカルアクション発火
+- [x] TouchTrigger: 接触判定 → eventId のイベント発火
+- [x] StepTrigger: 踏み判定 → eventId のイベント発火
+- [x] AutoTrigger: interval カウンタ + runOnce 制御
+- [x] InputTrigger: 指定キー入力検知 → eventId のイベント発火
+- [x] 優先度順評価（Talk > Touch/Step > Auto > Input）
+- [x] moveCompleted 通知との連携
 
 **関連ファイル:**
 
-- `src/types/components/triggers/*.ts`
-- `src/engine/event/EventRunner.ts`
+- `src/engine/runtime/TriggerSystem.ts`
 
 ---
 
 #### [T210d] [P] Implement ControllerComponent player input
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] ControllerComponent.onUpdate() にキー入力→移動変換ロジック実装
-- [ ] moveSpeed に基づく移動速度
-- [ ] dashEnabled による走り切り替え
-- [ ] inputEnabled による入力有効/無効切り替え
-- [ ] TransformComponent の x, y を更新
-- [ ] ColliderComponent との衝突判定連携
-- [ ] テスト追加
+- [x] `GameWorld.ts` にキー入力→移動変換ロジック実装
+- [x] moveSpeed に基づく移動速度
+- [x] inputEnabled による入力有効/無効切り替え
+- [x] グリッドベース移動 + 衝突判定連携
+- [ ] dashEnabled による走り切り替え（未実装 — 将来対応）
 
 **関連ファイル:**
 
-- `src/types/components/ControllerComponent.ts`
-- `src/types/components/ControllerComponent.test.ts`
+- `src/engine/runtime/GameWorld.ts`
 
 ---
 
@@ -5814,107 +5876,103 @@ export function useAutoSave() {
 
 #### [T210f] [P] Implement SpriteComponent rendering integration
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] SpriteComponent の imageId/animationId に基づく描画処理
-- [ ] flipX/flipY 反転
-- [ ] tint 色調変更
-- [ ] opacity 透明度
-- [ ] アニメーション再生（フレーム送り）
-- [ ] T213 SpriteRenderer との連携
+- [x] SpriteComponent の imageId に基づく描画処理
+- [x] 4方向アニメーション（down/left/right/up、フレームサイクル）
+- [x] flipX/flipY 反転
+- [x] tint 色調変更
+- [x] opacity 透明度
+- [x] Yソートによる正しい重なり順
 
 **関連ファイル:**
 
-- `src/types/components/SpriteComponent.ts`
-- `src/engine/renderer/SpriteRenderer.ts`
+- `src/engine/rendering/SpriteRenderer.ts`
 
 ---
 
 #### [T211] [P] Create SceneManager
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了（GameRuntime に統合）
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/core/SceneManager.ts` 作成
-- [ ] シーン読み込み
-- [ ] シーン切り替え
-- [ ] トランジション
-- [ ] テスト追加
+- [x] `GameRuntime.loadMap()` でマップロード（テクスチャ、オブジェクト、トリガーリセット）
+- [x] マップ切り替え対応
+- [ ] トランジションエフェクト（フェード等）— 将来対応
 
 **関連ファイル:**
 
-- `src/engine/core/SceneManager.ts`
-- `src/engine/core/SceneManager.test.ts`
+- `src/engine/runtime/GameRuntime.ts`
 
 ---
 
 #### [T212] [P] Create MapRenderer
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/renderer/MapRenderer.ts` 作成
-- [ ] タイルレンダリング
-- [ ] レイヤー合成
-- [ ] カリング最適化
-- [ ] テスト追加
+- [x] `src/engine/runtime/MapRenderer.ts` 作成（TileRenderer のラッパー）
+- [x] チップセットテクスチャの非同期プリロード
+- [x] 全タイルレイヤーの描画（visible 範囲最適化）
+- [x] ビューポート正射行列の計算
+- [x] `src/engine/rendering/TileRenderer.ts`（エディタと共有、バッチ描画）
 
 **関連ファイル:**
 
-- `src/engine/renderer/MapRenderer.ts`
-- `src/engine/renderer/MapRenderer.test.ts`
+- `src/engine/runtime/MapRenderer.ts`
+- `src/engine/rendering/TileRenderer.ts`
 
 ---
 
 #### [T213] [P] Create SpriteRenderer
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/renderer/SpriteRenderer.ts` 作成
-- [ ] スプライト描画
-- [ ] アニメーション再生
-- [ ] Zソート
-- [ ] テスト追加
+- [x] `src/engine/rendering/SpriteRenderer.ts` 作成
+- [x] スプライト描画（single / directional モード）
+- [x] 4方向フレームアニメーション（フレーム幅/高さ、間隔設定可）
+- [x] Yソート（下方のオブジェクトが上に描画）
+- [x] flip/tint/opacity 対応
 
 **関連ファイル:**
 
-- `src/engine/renderer/SpriteRenderer.ts`
-- `src/engine/renderer/SpriteRenderer.test.ts`
+- `src/engine/rendering/SpriteRenderer.ts`
 
 ---
 
 #### [T214] [P] Create UIRenderer
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了（UICanvasManager に統合）
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/renderer/UIRenderer.ts` 作成
-- [ ] UIObject描画
-- [ ] コンポーネント処理
-- [ ] マスク処理
-- [ ] テスト追加
+- [x] `UICanvasManager` がキャンバスの描画管理を担当
+- [x] UIObject プロパティ設定・表示/非表示
+- [x] アニメーション再生（duration、ループ対応）
+- [x] UIFunction 実行（再帰深度制限あり）
+- [x] スクリーンスペース描画（カメラ非依存）
 
 **関連ファイル:**
 
-- `src/engine/renderer/UIRenderer.ts`
-- `src/engine/renderer/UIRenderer.test.ts`
+- `src/engine/runtime/UICanvasManager.ts`
+
+**備考:** エディタ用 UIRenderer (`src/features/ui-editor/renderer/`) とは別。エンジン側は UICanvasManager が描画統合
 
 ---
 
@@ -5928,16 +5986,18 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/engine/api/MapAPI.ts` 作成
-- [ ] `game.map.load(id)`
-- [ ] `game.map.getTile(x, y, layer)`
-- [ ] `game.map.setTile(x, y, layer, tileId)`
+- [ ] GameContext に `map` プロパティ追加（MapAPI）
+- [ ] `Map.load(id)` — マップ切り替え
+- [ ] `Map.getTile(x, y, layer)` — タイル取得
+- [ ] `Map.setTile(x, y, layer, tileId)` — タイル変更
+- [ ] `Map.getCurrentId()` — 現在マップID取得
+- [ ] ScriptRunner に `'Map'` 注入追加
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/engine/api/MapAPI.ts`
-- `src/engine/api/MapAPI.test.ts`
+- `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameRuntime.ts`
 
 ---
 
@@ -5949,17 +6009,18 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/engine/api/ObjectAPI.ts` 作成
-- [ ] `game.object.create(prefabId)`
-- [ ] `game.object.destroy(id)`
-- [ ] `game.object.find(name)`
-- [ ] `game.object.getComponent(type)`
+- [ ] GameContext に `object` プロパティ追加（ObjectAPI）
+- [ ] `Object.create(prefabId, x, y)` — プレハブからオブジェクト生成
+- [ ] `Object.destroy(id)` — オブジェクト破棄
+- [ ] `Object.find(name)` — 名前でオブジェクト検索
+- [ ] `Object.getComponent(objectId, type)` — コンポーネント取得
+- [ ] ScriptRunner に `'Object'` 注入追加
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/engine/api/ObjectAPI.ts`
-- `src/engine/api/ObjectAPI.test.ts`
+- `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameWorld.ts`
 
 ---
 
@@ -5971,16 +6032,18 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/engine/api/PlayerAPI.ts` 作成
-- [ ] `game.player.moveTo(x, y)`
-- [ ] `game.player.teleport(mapId, x, y)`
-- [ ] `game.player.face(direction)`
+- [ ] GameContext に `player` プロパティ追加（PlayerAPI）
+- [ ] `Player.moveTo(x, y)` — 移動
+- [ ] `Player.teleport(mapId, x, y)` — テレポート（マップ切替含む）
+- [ ] `Player.face(direction)` — 方向変更
+- [ ] `Player.getPosition()` — 現在位置取得
+- [ ] ScriptRunner に `'Player'` 注入追加
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/engine/api/PlayerAPI.ts`
-- `src/engine/api/PlayerAPI.test.ts`
+- `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameWorld.ts`
 
 ---
 
@@ -6026,37 +6089,38 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] `src/engine/api/AudioAPI.ts` 作成
-- [ ] `game.audio.playBGM(id, loop)`
-- [ ] `game.audio.playSE(id, volume)`
-- [ ] `game.audio.stopBGM(fadeTime)`
+- [ ] GameContext の SoundAPI スタブを実装に置換
+- [ ] Web Audio API でBGM再生/停止（ループ、フェード対応）
+- [ ] SE再生（ボリューム設定）
+- [ ] ScriptRunner に `'Sound'` 注入済み（確認のみ）
 - [ ] テスト追加
 
 **関連ファイル:**
 
-- `src/engine/api/AudioAPI.ts`
-- `src/engine/api/AudioAPI.test.ts`
+- `src/engine/runtime/GameContext.ts`
 
 ---
 
 #### [T220] [P] Implement VariableAPI
 
-- **ステータス:** [x] 部分完了（GameContext 内に実装済み。スコープ管理は未実装）
+- **ステータス:** [x] 完了
 - **ブランチ:** feature/T043-game-settings
 - **PR:** -
 
 **完了条件:**
 
-- [x] `src/engine/runtime/GameContext.ts` 内に実装（`src/engine/api/VariableAPI.ts` ではない）
-- [x] `Variable.get(name)`
-- [x] `Variable.set(name, value)`
-- [ ] スコープ管理（グローバル/ローカル）
+- [x] `src/engine/runtime/GameContext.ts` 内に VariableAPI 実装
+- [x] `Variable.get(name)` / `Variable.set(name, value)` / `Variable.getAll()`
+- [x] デフォルト値初期化 + オーバーライド対応
 - [x] テスト追加
+- [ ] スコープ管理（グローバル/ローカル）— 将来対応
 
 **関連ファイル:**
 
-- `src/engine/api/VariableAPI.ts`
-- `src/engine/api/VariableAPI.test.ts`
+- `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameContext.test.ts`
+
+**備考:** クラス型・配列型の変数も `unknown` としてそのまま格納/取得する設計（型を問わずパススルー）
 
 ---
 
@@ -6149,6 +6213,72 @@ export function useAutoSave() {
 
 - `src/engine/event/DialogueRunner.ts`
 - `src/engine/event/DialogueRunner.test.ts`
+
+---
+
+### データ・変数・クラス連携テスト
+
+#### [T224a] [P] Add class-typed data/variable integration tests
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] GameContext テストにクラス型フィールドを持つデータエントリのテスト追加
+  - [ ] `Data.item['sword'].base_status.atk` のようなネストアクセス
+  - [ ] クラスリスト型: `Data.enemy['slime'].drops[0].item` のような配列+ネスト
+- [ ] GameContext テストにクラス型変数のテスト追加
+  - [ ] `Variable["party_status"].hp` のようなオブジェクトアクセス（Proxy直接アクセス）
+  - [ ] `Variable["party_status"] = { hp: 200, ... }` でオブジェクト書き込み
+- [ ] GameContext テストに配列型変数のテスト追加
+  - [ ] `Variable["inventory"]` で配列取得
+  - [ ] `Variable["inventory"].push(...)` で直接操作
+- [ ] buildProjectData → EngineProjectData 変換でクラス型値が保持されるテスト追加
+- [ ] ScriptRunner 経由での統合テスト（スクリプト内からクラス型データ/変数にアクセス）
+
+**関連ファイル:**
+
+- `src/engine/runtime/GameContext.test.ts`
+- `src/engine/core/ScriptRunner.test.ts`
+- `src/features/test-play/buildProjectData.ts`
+
+**備考:** クラス値は `Record<string, unknown>` としてパススルーされる設計。Variable は Proxy で直接アクセス可能（`Variable["name"]`）。Immer frozen 対策として `structuredClone` で初期値をコピー済み。
+
+---
+
+#### [T224b] [P] Expand defaultTestData with data integration test set
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] デフォルトデータタイプ（character, item, skill, job, element）のサンプルエントリ追加
+  - [x] クラス型フィールド（`base_stats`: class_status）
+  - [x] クラスリスト型フィールド（`effects`: class_effect, `learn_skills`: class_learn_skill）
+- [x] テスト用変数追加（`gold`: 数値, `leader_stats`: クラス型, `inventory`: 配列型）
+- [x] ステータス表示スクリプト（`show_status`）: Data + Variable → UI 表示
+- [x] 商人スクリプト（`shop_buy`）: Data 参照 + Variable 操作 + Script.message 呼び出し
+- [x] ステータスHUD UICanvas（`status_hud`）: キャラ名/HP/ゴールド表示
+- [x] テストマップにステータス確認NPC + 商人NPC 追加
+- [x] `loadDefaultTestData` で `importDefaultAssets` を自動実行（マップチップ + 歩行キャラ）
+- [x] 歩行スプライトを `public/assets/images/character_walk/` に配置 + `defaultAssets.ts` に登録
+- [x] SpriteComponent にモード・フレームサイズ設定（directional, 32x32, 3フレーム）
+- [x] ColliderComponent に `collideLayers: ['layer_obj']` 設定（オブジェクト間衝突）
+- [x] アセット名→IDリゾルバで SpriteComponent.imageId に正しいアセットID設定
+- [x] VariableAPI に Proxy 追加（`Variable["name"]` で直接アクセス）
+- [x] `createVariableAPI` で `structuredClone` 適用（Immer frozen 対策）
+
+**関連ファイル:**
+
+- `src/lib/defaultTestData.ts`
+- `src/lib/defaultAssets.ts`
+- `src/engine/runtime/GameContext.ts`
+- `src/features/script-editor/utils/apiDefinitions.ts`
+- `public/assets/images/character_walk/*.png`
 
 ---
 

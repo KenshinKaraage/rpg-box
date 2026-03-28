@@ -33,6 +33,8 @@ export interface VariableAPI {
   get(name: string): unknown;
   set(name: string, value: unknown): void;
   getAll(): Record<string, unknown>;
+  /** Proxy: Variable["name"] で直接アクセス可能 */
+  [key: string]: unknown;
 }
 
 export interface DataAPI {
@@ -46,6 +48,7 @@ export interface GameScriptAPI {
   showChoice(choices: string[]): Promise<number>;
   showNumberInput(prompt: string): Promise<number>;
   showTextInput(prompt: string): Promise<string>;
+  waitFrames(frames: number): Promise<void>;
 }
 
 export interface SoundAPI {
@@ -122,7 +125,7 @@ export class GameContext {
     this.scriptRunner = scriptRunner;
     this.variable = createVariableAPI(projectData, overrides);
     this.data = createDataAPI(projectData);
-    this.scriptAPI = createScriptAPI(this.variable);
+    this.scriptAPI = createScriptAPI(this.variable, this);
     this.sound = createSoundAPI();
     this.camera = createCameraAPI();
     this.save = createSaveAPI();
@@ -166,9 +169,9 @@ function createVariableAPI(
 ): VariableAPI {
   const store: Record<string, unknown> = {};
 
-  // Initialize from defaults
+  // Initialize from defaults (structuredClone to unfreeze Immer proxies)
   for (const v of projectData.variables) {
-    store[v.name] = v.defaultValue;
+    store[v.name] = v.defaultValue !== undefined ? structuredClone(v.defaultValue) : undefined;
   }
 
   // Apply overrides
@@ -178,7 +181,7 @@ function createVariableAPI(
     }
   }
 
-  return {
+  const api: VariableAPI = {
     get(name: string): unknown {
       return store[name];
     },
@@ -189,6 +192,19 @@ function createVariableAPI(
       return { ...store };
     },
   };
+
+  // Proxy: Variable["gold"] で直接アクセス可能にする
+  // get/set/getAll メソッドも引き続き使用可能
+  return new Proxy(api, {
+    get(target, prop: string) {
+      if (prop in target) return (target as Record<string, unknown>)[prop];
+      return store[prop];
+    },
+    set(_target, prop: string, value: unknown) {
+      store[prop] = value;
+      return true;
+    },
+  });
 }
 
 function createDataAPI(projectData: EngineProjectData): DataAPI {
@@ -203,7 +219,7 @@ function createDataAPI(projectData: EngineProjectData): DataAPI {
   return api;
 }
 
-function createScriptAPI(variableAPI: VariableAPI): GameScriptAPI {
+function createScriptAPI(variableAPI: VariableAPI, ctx: GameContext): GameScriptAPI {
   return {
     getVar(name: string): unknown {
       return variableAPI.get(name);
@@ -225,6 +241,9 @@ function createScriptAPI(variableAPI: VariableAPI): GameScriptAPI {
     async showTextInput(_prompt: string): Promise<string> {
       // Stub: returns empty string
       return '';
+    },
+    async waitFrames(frames: number): Promise<void> {
+      await ctx.waitFrames(frames);
     },
   };
 }

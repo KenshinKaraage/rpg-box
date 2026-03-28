@@ -244,17 +244,31 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                           ))}
                         </SelectContent>
                       </Select>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`required-${arg.id}`}
-                          checked={arg.required}
-                          onCheckedChange={(checked) =>
-                            handleUpdateArg(arg.id, { required: checked === true })
-                          }
-                        />
-                        <Label htmlFor={`required-${arg.id}`} className="text-sm">
-                          必須
-                        </Label>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`required-${arg.id}`}
+                            checked={arg.required}
+                            onCheckedChange={(checked) =>
+                              handleUpdateArg(arg.id, { required: checked === true })
+                            }
+                          />
+                          <Label htmlFor={`required-${arg.id}`} className="text-sm">
+                            必須
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`isArray-${arg.id}`}
+                            checked={arg.isArray ?? false}
+                            onCheckedChange={(checked) =>
+                              handleUpdateArg(arg.id, { isArray: checked === true })
+                            }
+                          />
+                          <Label htmlFor={`isArray-${arg.id}`} className="text-sm">
+                            配列
+                          </Label>
+                        </div>
                       </div>
                     </li>
                   ))}
