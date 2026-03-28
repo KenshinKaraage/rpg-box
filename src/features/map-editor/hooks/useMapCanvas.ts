@@ -38,6 +38,9 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   // テクスチャロード完了時に再レンダーをトリガーするカウンタ
   const [textureGen, setTextureGen] = useState(0);
 
+  // コンテナリサイズ時に再描画をトリガーするカウンタ
+  const [resizeGen, setResizeGen] = useState(0);
+
   // WebGL 初期化（一度だけ）
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,6 +54,11 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     tileRendererRef.current = new TileRenderer(gl);
     gridProgramRef.current = twgl.createProgramInfo(gl, [GRID_VERT, GRID_FRAG]);
     spriteProgramRef.current = twgl.createProgramInfo(gl, [TEXTURED_VERT, TEXTURED_FRAG]);
+
+    // パネルリサイズ検知 → canvas 内部解像度を更新して再描画
+    const observer = new ResizeObserver(() => setResizeGen((g) => g + 1));
+    observer.observe(canvas);
+    return () => observer.disconnect();
   }, [canvasRef]);
 
   // レンダリング（状態変化ごとに1回実行）
@@ -308,5 +316,5 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         }
       }
     }
-  }, [maps, chipsets, assets, viewport, showGrid, mapId, canvasRef, textureGen, objectFrameColor, selectedObjectId]);
+  }, [maps, chipsets, assets, viewport, showGrid, mapId, canvasRef, textureGen, resizeGen, objectFrameColor, selectedObjectId]);
 }

@@ -34,6 +34,8 @@ export function UICanvas() {
 
   // テクスチャロード完了時に再レンダーをトリガー
   const [textureGen, setTextureGen] = useState(0);
+  // コンテナリサイズ時に再描画をトリガー
+  const [resizeGen, setResizeGen] = useState(0);
 
   const {
     viewport,
@@ -110,6 +112,11 @@ export function UICanvas() {
       getAssetData: () => null,
       onTextureLoaded: () => setTextureGen((t) => t + 1),
     };
+
+    // パネルリサイズ検知 → canvas 内部解像度を更新して再描画
+    const observer = new ResizeObserver(() => setResizeGen((g) => g + 1));
+    observer.observe(canvas);
+    return () => observer.disconnect();
   }, []);
 
   // ホイールイベント（passive:false 必須）
@@ -235,6 +242,7 @@ export function UICanvas() {
     selectedObjectIds,
     assets,
     textureGen,
+    resizeGen,
   ]);
 
   return (
