@@ -6226,18 +6226,19 @@ export function useAutoSave() {
 
 ---
 
-#### [T224c] [P] Create choice script
+#### [T224c] [P] Create choice / number input / text input scripts
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] 選択肢 UICanvas 作成（選択項目リスト + カーソル）
-- [ ] `Script.choice()` スクリプト作成（選択肢表示 → 選択待ち → インデックス返却）
-- [ ] 上下キーで選択、確認キーで決定
-- [ ] テストデータに選択肢テスト NPC 追加
+- [x] **選択肢**: UICanvas（最大6項目、カーソル▶）+ `Script.choice({ items })` → インデックス返却（キャンセル = -1）
+- [x] **数字入力**: UICanvas（ラベル+数値表示）+ `Script.input_number({ prompt, initial, min, max, step })` → 数値返却
+  - 上下キーで ±step、左右キーで ±step*10
+- [x] **文字列入力**: `Script.input_text({ prompt, initial })` → `window.prompt()` で文字列返却（ゲーム内キーボードは MVP 外）
+- [x] 商人スクリプトに選択肢テスト組み込み
 
 **関連ファイル:**
 

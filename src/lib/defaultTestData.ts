@@ -274,6 +274,335 @@ if (close !== false) {
   isAsync: true,
 };
 
+// ── UICanvas: 選択肢画面 ──
+// 最大6項目。各項目はテキスト + カーソル（▶）で構成
+
+const CHOICE_MAX = 6;
+const CHOICE_ITEM_H = 36;
+const CHOICE_PAD = 12;
+const CHOICE_W = 300;
+
+function createChoiceObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  // 背景
+  objects.push({
+    id: 'choice_bg',
+    name: 'background',
+    transform: {
+      x: 0, y: 0, width: CHOICE_W, height: CHOICE_PAD * 2 + CHOICE_ITEM_H * CHOICE_MAX,
+      anchorX: 'center', anchorY: 'center',
+      pivotX: 0.5, pivotY: 0.5,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+    ],
+  });
+
+  // 各項目（テキスト + カーソル）
+  for (let i = 0; i < CHOICE_MAX; i++) {
+    objects.push({
+      id: `choice_item_${i}`,
+      name: `item${i}`,
+      parentId: 'choice_bg',
+      transform: {
+        x: 32, y: CHOICE_PAD + i * CHOICE_ITEM_H, width: CHOICE_W - 48, height: CHOICE_ITEM_H,
+        anchorX: 'left', anchorY: 'top',
+        pivotX: 0, pivotY: 0,
+        rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+      },
+      components: [
+        createUIComponentData('text', { content: '', fontSize: 20, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      ],
+    });
+  }
+
+  // カーソル（▶）
+  objects.push({
+    id: 'choice_cursor',
+    name: 'cursor',
+    parentId: 'choice_bg',
+    transform: {
+      x: 10, y: CHOICE_PAD, width: 20, height: CHOICE_ITEM_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 18, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  return objects;
+}
+
+const choiceCanvas: EditorUICanvas = {
+  id: 'choice',
+  name: '選択肢',
+  objects: createChoiceObjects(),
+  functions: [],
+};
+
+// ── Script: 選択肢 ──
+// items: string[] → 選択インデックスを返す（キャンセル = -1）
+
+const choiceScript: Script = {
+  id: 'choice',
+  name: '選択肢',
+  callId: 'choice',
+  type: 'event',
+  content: `const count = Math.min(items.length, ${CHOICE_MAX});
+if (count === 0) return -1;
+
+// 背景サイズ調整
+const bg = UI["choice"].getObject("background");
+if (bg) {
+  bg.height = ${CHOICE_PAD} * 2 + count * ${CHOICE_ITEM_H};
+  bg.visible = true;
+}
+
+// 項目テキスト設定 + 表示/非表示
+for (let i = 0; i < ${CHOICE_MAX}; i++) {
+  const item = UI["choice"].getObject("item" + i);
+  if (!item) continue;
+  if (i < count) {
+    item.setProperty("text", "content", items[i]);
+    item.visible = true;
+  } else {
+    item.visible = false;
+  }
+}
+
+UI["choice"].show();
+
+// カーソル制御
+const cursor = UI["choice"].getObject("cursor");
+let selected = 0;
+const updateCursor = () => {
+  if (cursor) cursor.y = ${CHOICE_PAD} + selected * ${CHOICE_ITEM_H};
+};
+updateCursor();
+
+// 入力ループ
+while (true) {
+  await scriptAPI.waitFrames(1);
+  if (Input.isJustPressed("up")) {
+    selected = (selected - 1 + count) % count;
+    updateCursor();
+  }
+  if (Input.isJustPressed("down")) {
+    selected = (selected + 1) % count;
+    updateCursor();
+  }
+  if (Input.isJustPressed("confirm")) {
+    break;
+  }
+  if (Input.isJustPressed("cancel")) {
+    selected = -1;
+    break;
+  }
+}
+
+UI["choice"].hide();
+return selected;`,
+  args: [
+    { id: 'items', name: '選択肢', fieldType: 'string', required: true, isArray: true, defaultValue: [] },
+  ],
+  returns: [{ id: 'selected', name: '選択インデックス', fieldType: 'number', isArray: false }],
+  fields: [],
+  isAsync: true,
+};
+
+// ── UICanvas: 数字入力画面 ──
+
+const numberInputBg: EditorUIObject = {
+  id: 'numinput_bg',
+  name: 'background',
+  transform: {
+    x: 0, y: 0, width: 280, height: 120,
+    anchorX: 'center', anchorY: 'center',
+    pivotX: 0.5, pivotY: 0.5,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+  },
+  components: [
+    createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+  ],
+};
+
+const numberInputLabel: EditorUIObject = {
+  id: 'numinput_label',
+  name: 'label',
+  parentId: 'numinput_bg',
+  transform: {
+    x: 16, y: 8, width: 248, height: 32,
+    anchorX: 'left', anchorY: 'top',
+    pivotX: 0, pivotY: 0,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+  },
+  components: [
+    createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+  ],
+};
+
+const numberInputValue: EditorUIObject = {
+  id: 'numinput_value',
+  name: 'value',
+  parentId: 'numinput_bg',
+  transform: {
+    x: 16, y: 44, width: 248, height: 48,
+    anchorX: 'left', anchorY: 'top',
+    pivotX: 0, pivotY: 0,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+  },
+  components: [
+    createUIComponentData('text', { content: '0', fontSize: 36, color: '#ffffff', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+  ],
+};
+
+const numberInputCanvas: EditorUICanvas = {
+  id: 'number_input',
+  name: '数字入力',
+  objects: [numberInputBg, numberInputLabel, numberInputValue],
+  functions: [],
+};
+
+// ── Script: 数字入力 ──
+// 上下キーで増減、確認キーで決定
+
+const inputNumberScript: Script = {
+  id: 'input_number',
+  name: '数字入力',
+  callId: 'input_number',
+  type: 'event',
+  content: `const labelObj = UI["number_input"].getObject("label");
+const valueObj = UI["number_input"].getObject("value");
+const bg = UI["number_input"].getObject("background");
+if (bg) bg.visible = true;
+if (labelObj) labelObj.setProperty("text", "content", prompt || "数値を入力");
+
+let value = initial || 0;
+const lo = min ?? 0;
+const hi = max ?? 9999;
+const s = step || 1;
+
+const update = () => {
+  if (valueObj) valueObj.setProperty("text", "content", String(value));
+};
+update();
+UI["number_input"].show();
+
+while (true) {
+  await scriptAPI.waitFrames(1);
+  if (Input.isJustPressed("up")) {
+    value = Math.min(value + s, hi);
+    update();
+  }
+  if (Input.isJustPressed("down")) {
+    value = Math.max(value - s, lo);
+    update();
+  }
+  if (Input.isJustPressed("right")) {
+    value = Math.min(value + s * 10, hi);
+    update();
+  }
+  if (Input.isJustPressed("left")) {
+    value = Math.max(value - s * 10, lo);
+    update();
+  }
+  if (Input.isJustPressed("confirm")) break;
+  if (Input.isJustPressed("cancel")) {
+    value = initial || 0;
+    break;
+  }
+}
+
+UI["number_input"].hide();
+return value;`,
+  args: [
+    { id: 'prompt', name: 'ラベル', fieldType: 'string', required: false, defaultValue: '数値を入力' },
+    { id: 'initial', name: '初期値', fieldType: 'number', required: false, defaultValue: 0 },
+    { id: 'min', name: '最小値', fieldType: 'number', required: false, defaultValue: 0 },
+    { id: 'max', name: '最大値', fieldType: 'number', required: false, defaultValue: 9999 },
+    { id: 'step', name: '刻み', fieldType: 'number', required: false, defaultValue: 1 },
+  ],
+  returns: [{ id: 'value', name: '入力値', fieldType: 'number', isArray: false }],
+  fields: [],
+  isAsync: true,
+};
+
+// ── UICanvas: 文字列入力画面 ──
+
+const textInputBg: EditorUIObject = {
+  id: 'textinput_bg',
+  name: 'background',
+  transform: {
+    x: 0, y: 0, width: 400, height: 100,
+    anchorX: 'center', anchorY: 'center',
+    pivotX: 0.5, pivotY: 0.5,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+  },
+  components: [
+    createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+  ],
+};
+
+const textInputLabel: EditorUIObject = {
+  id: 'textinput_label',
+  name: 'label',
+  parentId: 'textinput_bg',
+  transform: {
+    x: 16, y: 8, width: 368, height: 28,
+    anchorX: 'left', anchorY: 'top',
+    pivotX: 0, pivotY: 0,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+  },
+  components: [
+    createUIComponentData('text', { content: '', fontSize: 14, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+  ],
+};
+
+const textInputValue: EditorUIObject = {
+  id: 'textinput_value',
+  name: 'value',
+  parentId: 'textinput_bg',
+  transform: {
+    x: 16, y: 40, width: 368, height: 44,
+    anchorX: 'left', anchorY: 'top',
+    pivotX: 0, pivotY: 0,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+  },
+  components: [
+    createUIComponentData('text', { content: '', fontSize: 24, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+  ],
+};
+
+const textInputCanvas: EditorUICanvas = {
+  id: 'text_input',
+  name: '文字列入力',
+  objects: [textInputBg, textInputLabel, textInputValue],
+  functions: [],
+};
+
+// ── Script: 文字列入力 ──
+// ブラウザの prompt() を使用（ゲーム内キーボードは MVP 外）
+
+const inputTextScript: Script = {
+  id: 'input_text',
+  name: '文字列入力',
+  callId: 'input_text',
+  type: 'event',
+  content: `const result = window.prompt(prompt || "テキストを入力", initial || "");
+return result ?? initial ?? "";`,
+  args: [
+    { id: 'prompt', name: 'ラベル', fieldType: 'string', required: false, defaultValue: 'テキストを入力' },
+    { id: 'initial', name: '初期値', fieldType: 'string', required: false, defaultValue: '' },
+  ],
+  returns: [{ id: 'text', name: '入力値', fieldType: 'string', isArray: false }],
+  fields: [],
+  isAsync: false,
+};
+
 // ── Map helpers ──
 
 /** アセット名→IDのマッピング（importDefaultAssets 後に構築） */
@@ -665,30 +994,29 @@ const shopScript: Script = {
   name: '商人',
   callId: 'shop_buy',
   type: 'event',
-  content: `// Data連携: アイテムデータ参照（クラスリスト型 effects 含む）
-const potion = Data.item["potion_hp"];
-const price = potion.price;  // 100
-const gold = Variable["gold"];
+  content: `await Script.message({ text: "いらっしゃい！何がほしい？", face: "", close: false });
 
-if (gold >= price) {
-  // Variable操作: 数値の直接代入
-  Variable["gold"] = gold - price;
+// 選択肢テスト
+const selected = await Script.choice({ items: ["HPポーション（100G）", "何もいらない"] });
 
-  // Variable操作: 配列変数に追加
-  Variable["inventory"].push("potion_hp");
+if (selected === 0) {
+  const potion = Data.item["potion_hp"];
+  const price = potion.price;
+  const gold = Variable["gold"];
 
-  // Variable操作: クラス型変数のフィールド更新
-  Variable["leader_stats"].hp = Math.min(
-    Variable["leader_stats"].hp + potion.effects[0].value,  // クラスリスト→ネストアクセス
-    500
-  );
-
-  // メッセージスクリプトを再利用して結果表示
-  await Script.message({ text: potion.name + "を買った！（残り " + Variable["gold"] + " G）", face: "" });
+  if (gold >= price) {
+    Variable["gold"] = gold - price;
+    Variable["inventory"].push("potion_hp");
+    Variable["leader_stats"].hp = Math.min(
+      Variable["leader_stats"].hp + potion.effects[0].value,
+      500
+    );
+    await Script.message({ text: potion.name + "を買った！（残り \\v{gold} G）", face: "" });
+  } else {
+    await Script.message({ text: "お金が足りない…（" + gold + " / " + price + " G）", face: "" });
+  }
 } else {
-  // 連続メッセージテスト: close: false で開きっぱなし、最後だけ閉じる
-  await Script.message({ text: "あ？金を持ってない？（" + gold + " / " + price + " G）", face: "", close: false });
-  await Script.message({ text: "視界から失せろ。この貧乏人が", face: "" });
+  await Script.message({ text: "またな。", face: "" });
 }`,
   args: [],
   returns: [],
@@ -888,9 +1216,18 @@ export async function loadDefaultTestData(): Promise<void> {
   if (!state.uiCanvases.find((c) => c.id === 'status_hud')) {
     state.addUICanvas(structuredClone(statusCanvas));
   }
+  if (!state.uiCanvases.find((c) => c.id === 'choice')) {
+    state.addUICanvas(structuredClone(choiceCanvas));
+  }
+  if (!state.uiCanvases.find((c) => c.id === 'number_input')) {
+    state.addUICanvas(structuredClone(numberInputCanvas));
+  }
+  if (!state.uiCanvases.find((c) => c.id === 'text_input')) {
+    state.addUICanvas(structuredClone(textInputCanvas));
+  }
 
   // Script
-  const scriptsToAdd = [messageScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript];
+  const scriptsToAdd = [messageScript, choiceScript, inputNumberScript, inputTextScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
       state.addScript(script);
