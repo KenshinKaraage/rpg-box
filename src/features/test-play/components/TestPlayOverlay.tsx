@@ -45,7 +45,10 @@ export function TestPlayOverlay({ projectData, onClose }: TestPlayOverlayProps) 
       return;
     }
 
-    runtime.start().catch((err) => {
+    runtime.start().then(() => {
+      // start() 完了後に確実にフォーカスを当てる（入力を受け付けるために必須）
+      requestAnimationFrame(() => canvas.focus());
+    }).catch((err) => {
       console.error('[TestPlay] Failed to start game:', err);
     });
 
@@ -98,7 +101,8 @@ export function TestPlayOverlay({ projectData, onClose }: TestPlayOverlayProps) 
       {/* Game canvas */}
       <canvas
         ref={canvasRef}
-        className="block max-h-full max-w-full"
+        tabIndex={0}
+        className="block max-h-full max-w-full outline-none"
         style={{ imageRendering: 'pixelated', objectFit: 'contain' }}
       />
     </div>
