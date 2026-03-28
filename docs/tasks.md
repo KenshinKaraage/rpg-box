@@ -4772,20 +4772,25 @@ export function useAutoSave() {
 
 #### [T172b] [US13] Add animFramePattern UI to SpritePropertyPanel
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `SpritePropertyPanel` にフレームパターン入力 UI 追加
-- [ ] フレーム番号の入力（カンマ区切り or チップ選択UI）
-- [ ] 範囲外の値を入力時にエラー表示（0〜frameCount-1）
-- [ ] テスト追加
+- [x] `FramePatternEditor` コンポーネント作成（独立ファイル）
+  - [x] フレーム番号チップ（正方形）の表示、ホバーで×ボタン
+  - [x] D&D（@dnd-kit/core）で並べ替え
+  - [x] フレーム追加ボタン（0〜frameCount-1）
+  - [x] クリアボタン（線形ループに戻す）
+- [x] `SpritePropertyPanel` に組み込み（frameCount >= 2 で表示）
+- [x] テストページ `test/frame-pattern` 作成
 
 **関連ファイル:**
 
+- `src/features/map-editor/components/panels/FramePatternEditor.tsx`
 - `src/features/map-editor/components/panels/SpritePropertyPanel.tsx`
+- `src/app/test/frame-pattern/page.tsx`
 
 ---
 

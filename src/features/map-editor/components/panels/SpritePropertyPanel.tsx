@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
+import { FramePatternEditor } from './FramePatternEditor';
 import type { SpriteComponent, SpriteMode } from '@/types/components/SpriteComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
 
@@ -99,6 +100,15 @@ export function SpritePropertyPanel({ component, onChange }: Props) {
           />
         </div>
       </div>
+
+      {/* フレームパターン（フレーム数2以上で表示） */}
+      {component.animFrameCount >= 2 && (
+        <FramePatternEditor
+          pattern={component.animFramePattern}
+          frameCount={component.animFrameCount}
+          onChange={(pattern) => onChange({ animFramePattern: pattern })}
+        />
+      )}
 
       {isDirectional && (
         <div className="text-xs text-muted-foreground">
