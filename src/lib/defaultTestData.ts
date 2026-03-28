@@ -372,19 +372,17 @@ for (let i = 0; i < ${CHOICE_MAX}; i++) {
   }
 }
 
-// show → NavigationComponent の onShow が発火してカーソル初期化
+// show → コンポーネントスクリプトがコンパイルされる
 UI["choice"].show();
 
-// NavigationComponent が onInput で result を設定するまで待つ
-while (true) {
-  await scriptAPI.waitFrames(1);
-  const result = UI["choice"].getObject("background").getResult();
-  if (result !== undefined) {
-    UI["choice"].hide();
-    // result は itemId (string "0","1",...) または null (cancel)
-    return result === null ? -1 : parseInt(result, 10);
-  }
-}`,
+// ナビゲーション activate → result で選択待ち
+const nav = UI["choice"].getObject("background").getComponent("navigation");
+nav.activate();
+const selected = await nav.result();
+
+UI["choice"].hide();
+// selected は itemId (string "0","1",...) または null (cancel)
+return selected === null ? -1 : parseInt(selected, 10);`,
   args: [
     { id: 'items', name: '選択肢', fieldType: 'string', required: true, isArray: true, defaultValue: [] },
   ],

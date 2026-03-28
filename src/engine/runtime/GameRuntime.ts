@@ -140,6 +140,7 @@ export class GameRuntime {
     this.context = new GameContext(engineData, this.sharedScriptRunner);
     this.context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
     this.context.sound = this.audioManager.createSoundAPI();
+    this.uiCanvasManager.setWaitFrames(this.createWaitFrames());
     this.context.setUIProxies(this.uiCanvasManager.createProxies());
     this.context.setInputAPI({
       waitKey: (button) => this.input.pressed(button),

@@ -110,6 +110,8 @@ export class UICanvasManager implements UIActionManager {
   private canvases = new Map<string, CanvasState>();
   private runningAnimations: RuntimeAnimation[] = [];
   private needsRedraw = false;
+  /** self.waitFrames に注入するコールバック（GameRuntime が設定） */
+  private waitFramesCallback: ((frames: number) => Promise<void>) | null = null;
 
   constructor(
     gl: WebGLRenderingContext,
@@ -465,6 +467,7 @@ export class UICanvasManager implements UIActionManager {
             object: this.wrapObjectProxyById(canvasId, obj.id),
             children: this.getChildProxies(canvasId, obj.id),
             state: {} as Record<string, unknown>,
+            waitFrames: (frames: number) => this.waitFramesCallback?.(frames) ?? Promise.resolve(),
           };
           // generateRuntimeScript() はオブジェクトリテラルを返す:
           // ({ onShow() {}, onInput(button) {}, getResult() {} })
@@ -499,6 +502,11 @@ export class UICanvasManager implements UIActionManager {
     return state.data.objects
       .filter((o) => o.parentId === parentId)
       .map((o) => this.wrapObjectProxy(canvasId, o));
+  }
+
+  /** self.waitFrames 用コールバックを設定（GameRuntime から呼ぶ） */
+  setWaitFrames(fn: (frames: number) => Promise<void>): void {
+    this.waitFramesCallback = fn;
   }
 
   dispose(): void {
@@ -601,10 +609,20 @@ export class UICanvasManager implements UIActionManager {
         if (TRANSFORM_KEYS.has(prop)) {
           return obj.transform[prop as keyof typeof obj.transform];
         }
-        // コンポーネントのカスタム関数（getResult 等）
-        const fn = mgr.getComponentFunction(canvasId, obj.id, prop);
-        if (fn) return fn;
-        // コンポーネントデータの直接読み取り（type 指定でコンポーネントデータ取得）
+        // getComponent("type") → ランタイム関数 + データをまとめたオブジェクト
+        if (prop === 'getComponent') {
+          return (type: string) => {
+            // ランタイム関数
+            const rt = state.runtimes.find((r) => r.objectId === obj.id && r.componentType === type);
+            const fns = rt?.fns ?? {};
+            // 静的データ
+            const comp = obj.components.find((c) => c.type === type);
+            const data = comp ? (comp.data as Record<string, unknown>) : {};
+            // fns をベースに data をマージ（fns が優先）
+            return { ...data, ...fns };
+          };
+        }
+        // getComponentData("type") → 静的データのみ
         if (prop === 'getComponentData') {
           return (type: string) => {
             const comp = obj.components.find((c) => c.type === type);

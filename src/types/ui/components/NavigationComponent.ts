@@ -60,37 +60,47 @@ export class NavigationComponent extends UIComponent {
     const cols = this.columns ?? 1;
 
     return `({
-  onShow() {
+  activate() {
     const items = self.children.filter(c => {
       const d = c.getComponentData && c.getComponentData("navigationItem");
       return d !== null && d !== undefined;
     });
     self.state.items = items;
-    self.state.focusIndex = Math.min(${initialIndex}, items.length - 1);
-    self.state.result = undefined;
+    self.state.focusIndex = Math.min(${initialIndex}, Math.max(0, items.length - 1));
+    self.state._result = undefined;
+    self.state.active = true;
     this._updateCursor();
   },
 
+  async result() {
+    while (self.state._result === undefined) {
+      await self.waitFrames(1);
+    }
+    const r = self.state._result;
+    self.state._result = undefined;
+    self.state.active = false;
+    return r;
+  },
+
   onInput(button) {
+    if (!self.state.active) return;
     const items = self.state.items;
     if (!items || items.length === 0) return;
     const count = items.length;
     let idx = self.state.focusIndex;
-    const dir = ${dir};
-    const cols = ${cols};
     let delta = 0;
 
-    if (dir === "vertical") {
+    if (${dir} === "vertical") {
       if (button === "up") delta = -1;
       if (button === "down") delta = 1;
-    } else if (dir === "horizontal") {
+    } else if (${dir} === "horizontal") {
       if (button === "left") delta = -1;
       if (button === "right") delta = 1;
-    } else if (dir === "grid") {
+    } else if (${dir} === "grid") {
       if (button === "left") delta = -1;
       if (button === "right") delta = 1;
-      if (button === "up") delta = -cols;
-      if (button === "down") delta = cols;
+      if (button === "up") delta = -${cols};
+      if (button === "down") delta = ${cols};
     }
 
     if (delta !== 0) {
@@ -110,11 +120,11 @@ export class NavigationComponent extends UIComponent {
       const item = items[self.state.focusIndex];
       if (item) {
         const d = item.getComponentData && item.getComponentData("navigationItem");
-        self.state.result = (d && d.itemId) || String(self.state.focusIndex);
+        self.state._result = (d && d.itemId) || String(self.state.focusIndex);
       }
     }
     if (button === "cancel") {
-      self.state.result = null;
+      self.state._result = null;
     }
   },
 
@@ -132,10 +142,6 @@ export class NavigationComponent extends UIComponent {
       cursor.y = focused.y + (d.offsetY || 0);
       cursor.x = focused.x + (d.offsetX || 0);
     }
-  },
-
-  getResult() {
-    return self.state.result;
   },
 
   getFocusIndex() {
