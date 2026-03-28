@@ -107,14 +107,20 @@ export class ScriptRunner {
    * 呼び出し引数を位置引数 or オブジェクト引数から Record<string, unknown> に変換
    */
   private resolveCallArgs(script: Script, callArgs: unknown[]): Record<string, unknown> {
+    // オブジェクト引数: Script.foo({ arg1: val1, arg2: val2 })
+    // 条件: 引数1つ、オブジェクト、かつキーがスクリプト引数名と一致
     if (
       callArgs.length === 1 &&
       callArgs[0] !== null &&
       typeof callArgs[0] === 'object' &&
-      !Array.isArray(callArgs[0]) &&
-      script.args.length > 1
+      !Array.isArray(callArgs[0])
     ) {
-      return callArgs[0] as Record<string, unknown>;
+      const obj = callArgs[0] as Record<string, unknown>;
+      const argIds = new Set(script.args.map((a) => a.id));
+      const isNamedArgs = Object.keys(obj).some((k) => argIds.has(k));
+      if (isNamedArgs) {
+        return obj;
+      }
     }
     const argsObj: Record<string, unknown> = {};
     for (let i = 0; i < script.args.length; i++) {
