@@ -31,12 +31,8 @@ import { getUIComponent } from '@/types/ui';
 interface CompiledComponentRuntime {
   objectId: string;
   componentType: string;
-  onShow?: () => void;
-  onHide?: () => void;
-  onUpdate?: (dt: number) => void;
-  onInput?: (button: string) => void;
-  customFunctions: Record<string, (...args: unknown[]) => unknown>;
-  state: Record<string, unknown>;
+  /** generateRuntimeScript() が返したオブジェクトの全プロパティ */
+  fns: Record<string, unknown>;
 }
 
 export interface UIFunctionData {
@@ -408,7 +404,7 @@ export class UICanvasManager implements UIActionManager {
 
   // ── Component Lifecycle ──
 
-  /** 表示中のキャンバス一覧 */
+  /** 表示中のキャンバスID一覧 */
   getVisibleCanvasIds(): string[] {
     const ids: string[] = [];
     for (const state of Array.from(this.canvases.values())) {
@@ -417,38 +413,37 @@ export class UICanvasManager implements UIActionManager {
     return ids;
   }
 
-  /** キャンバス内の全コンポーネントの onUpdate(dt) を呼ぶ */
+  /** 全コンポーネントの onUpdate を呼ぶ */
   dispatchUpdate(canvasId: string, dt: number): void {
-    const state = this.canvases.get(canvasId);
-    if (!state) return;
-    for (const rt of state.runtimes) {
-      if (rt.onUpdate) {
-        try { rt.onUpdate(dt); } catch (e) { console.warn(`[UIRuntime] onUpdate error (${rt.componentType}):`, e); }
-      }
-    }
+    this.callLifecycle(canvasId, 'onUpdate', dt);
   }
 
-  /** キャンバス内の全コンポーネントの onInput(button) を呼ぶ */
+  /** 全コンポーネントの onInput を呼ぶ */
   dispatchInput(canvasId: string, button: string): void {
-    const state = this.canvases.get(canvasId);
-    if (!state) return;
-    for (const rt of state.runtimes) {
-      if (rt.onInput) {
-        try { rt.onInput(button); } catch (e) { console.warn(`[UIRuntime] onInput error (${rt.componentType}):`, e); }
-      }
-    }
+    this.callLifecycle(canvasId, 'onInput', button);
   }
 
-  /** オブジェクトに紐づくランタイムのカスタム関数を取得 */
-  getComponentFunction(canvasId: string, objectId: string, functionName: string): ((...args: unknown[]) => unknown) | null {
+  /** オブジェクトに紐づくランタイム関数を取得 */
+  getComponentFunction(canvasId: string, objectId: string, name: string): ((...args: unknown[]) => unknown) | null {
     const state = this.canvases.get(canvasId);
     if (!state) return null;
     for (const rt of state.runtimes) {
-      if (rt.objectId === objectId && rt.customFunctions[functionName]) {
-        return rt.customFunctions[functionName]!;
+      if (rt.objectId === objectId && typeof rt.fns[name] === 'function') {
+        return rt.fns[name] as (...args: unknown[]) => unknown;
       }
     }
     return null;
+  }
+
+  private callLifecycle(canvasId: string, name: string, ...args: unknown[]): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    for (const rt of state.runtimes) {
+      const fn = rt.fns[name];
+      if (typeof fn === 'function') {
+        try { (fn as Function)(...args); } catch (e) { console.warn(`[UIRuntime] ${name} error (${rt.componentType}):`, e); }
+      }
+    }
   }
 
   private compileComponentScripts(canvasId: string): void {
@@ -458,112 +453,46 @@ export class UICanvasManager implements UIActionManager {
 
     for (const obj of state.data.objects) {
       for (const comp of obj.components) {
-        // UIComponent レジストリからクラスを取得してインスタンス化
         const CompClass = getUIComponent(comp.type);
         if (!CompClass) continue;
         const instance = new CompClass();
         instance.deserialize(comp.data);
-
         const script = instance.generateRuntimeScript();
         if (!script) continue;
 
-        const rt = this.compileScript(canvasId, obj.id, comp.type, script);
-        if (rt) state.runtimes.push(rt);
+        try {
+          const selfCtx = {
+            object: this.wrapObjectProxyById(canvasId, obj.id),
+            children: this.getChildProxies(canvasId, obj.id),
+            state: {} as Record<string, unknown>,
+          };
+          // generateRuntimeScript() はオブジェクトリテラルを返す:
+          // ({ onShow() {}, onInput(button) {}, getResult() {} })
+          // eslint-disable-next-line @typescript-eslint/no-implied-eval
+          const fns = new Function('self', `return (${script})`)(selfCtx) as Record<string, unknown>;
+          state.runtimes.push({ objectId: obj.id, componentType: comp.type, fns });
+        } catch (e) {
+          console.error(`[UIRuntime] compile error (${comp.type}):`, e);
+        }
       }
     }
-  }
-
-  private compileScript(
-    canvasId: string,
-    objectId: string,
-    componentType: string,
-    script: string
-  ): CompiledComponentRuntime | null {
-    const runtimeState: Record<string, unknown> = {};
-
-    // self コンテキスト構築
-    const selfCtx = {
-      canvas: null as unknown, // proxy は createProxies で別途作成されるため、ここでは簡易参照
-      object: this.createObjectProxyById(canvasId, objectId),
-      children: this.getChildProxies(canvasId, objectId),
-      state: runtimeState,
-    };
-
-    try {
-      // スクリプトをコンパイル: 全関数を定義してオブジェクトとして返す
-      const wrapped = `
-        const self = __self__;
-        ${script}
-        return {
-          onShow: typeof onShow === 'function' ? onShow : undefined,
-          onHide: typeof onHide === 'function' ? onHide : undefined,
-          onUpdate: typeof onUpdate === 'function' ? onUpdate : undefined,
-          onInput: typeof onInput === 'function' ? onInput : undefined,
-          __customs__: { ${this.extractCustomFunctionNames(script).map(n => `${n}: typeof ${n} === 'function' ? ${n} : undefined`).join(', ')} }
-        };
-      `;
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
-      const factory = new Function('__self__', wrapped);
-      const result = factory(selfCtx);
-
-      return {
-        objectId,
-        componentType,
-        onShow: result.onShow,
-        onHide: result.onHide,
-        onUpdate: result.onUpdate,
-        onInput: result.onInput,
-        customFunctions: result.__customs__ ?? {},
-        state: runtimeState,
-      };
-    } catch (e) {
-      console.error(`[UIRuntime] Failed to compile ${componentType} script:`, e);
-      return null;
-    }
-  }
-
-  /** スクリプト内の function 宣言名を抽出（ライフサイクル以外） */
-  private extractCustomFunctionNames(script: string): string[] {
-    const LIFECYCLE = new Set(['onShow', 'onHide', 'onUpdate', 'onInput']);
-    const names: string[] = [];
-    const re = /function\s+(\w+)\s*\(/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(script)) !== null) {
-      if (m[1] && !LIFECYCLE.has(m[1])) names.push(m[1]);
-    }
-    return names;
   }
 
   private dispatchShow(canvasId: string): void {
-    const state = this.canvases.get(canvasId);
-    if (!state) return;
-    for (const rt of state.runtimes) {
-      if (rt.onShow) {
-        try { rt.onShow(); } catch (e) { console.warn(`[UIRuntime] onShow error (${rt.componentType}):`, e); }
-      }
-    }
+    this.callLifecycle(canvasId, 'onShow');
   }
 
   private dispatchHide(canvasId: string): void {
-    const state = this.canvases.get(canvasId);
-    if (!state) return;
-    for (const rt of state.runtimes) {
-      if (rt.onHide) {
-        try { rt.onHide(); } catch (e) { console.warn(`[UIRuntime] onHide error (${rt.componentType}):`, e); }
-      }
-    }
+    this.callLifecycle(canvasId, 'onHide');
   }
 
-  /** ID でオブジェクトプロキシを作成 */
-  private createObjectProxyById(canvasId: string, objectId: string): UIObjectRuntimeProxy | null {
+  private wrapObjectProxyById(canvasId: string, objectId: string): UIObjectRuntimeProxy | null {
     const state = this.canvases.get(canvasId);
     if (!state) return null;
     const obj = state.data.objects.find((o) => o.id === objectId);
-    if (!obj) return null;
-    return this.wrapObjectProxy(canvasId, obj);
+    return obj ? this.wrapObjectProxy(canvasId, obj) : null;
   }
 
-  /** 子オブジェクトのプロキシ配列 */
   private getChildProxies(canvasId: string, parentId: string): UIObjectRuntimeProxy[] {
     const state = this.canvases.get(canvasId);
     if (!state) return [];

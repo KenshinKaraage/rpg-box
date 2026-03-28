@@ -267,6 +267,17 @@ export class GameRuntime {
     // UI animation update (dt is in seconds, animations use ms)
     this.uiCanvasManager.updateAnimations(dt * 1000);
 
+    // UI component lifecycle: dispatch input + update for visible canvases
+    const BUTTONS = ['up', 'down', 'left', 'right', 'confirm', 'cancel'] as const;
+    for (const canvasId of this.uiCanvasManager.getVisibleCanvasIds()) {
+      for (const button of BUTTONS) {
+        if (this.input.isJustPressed(button)) {
+          this.uiCanvasManager.dispatchInput(canvasId, button);
+        }
+      }
+      this.uiCanvasManager.dispatchUpdate(canvasId, dt);
+    }
+
     // Notify trigger system of completed moves
     for (const { obj, fromX, fromY } of completions) {
       this.triggerSystem.notifyMoveCompleted(obj, fromX, fromY);
