@@ -357,13 +357,13 @@ export class UICanvasManager implements UIActionManager {
     this.callLifecycle(canvasId, 'onInput', button);
   }
 
-  /** オブジェクトに紐づくランタイム関数を取得 */
+  /** オブジェクトに紐づくランタイム関数を取得（this を rt.fns にバインド） */
   getComponentFunction(canvasId: string, objectId: string, name: string): ((...args: unknown[]) => unknown) | null {
     const state = this.canvases.get(canvasId);
     if (!state) return null;
     for (const rt of state.runtimes) {
       if (rt.objectId === objectId && typeof rt.fns[name] === 'function') {
-        return rt.fns[name] as (...args: unknown[]) => unknown;
+        return (rt.fns[name] as Function).bind(rt.fns);
       }
     }
     return null;
