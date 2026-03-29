@@ -204,17 +204,20 @@ function resolveProperty(
   obj: Record<string, unknown>,
   property: string
 ): { getter: () => number; setter: (v: number) => void } {
-  if (TRANSFORM_KEYS.has(property)) {
+  // "transform.y" → "y" に正規化
+  const dot = property.indexOf('.');
+  const compType = dot > 0 ? property.slice(0, dot) : '';
+  const key = dot > 0 ? property.slice(dot + 1) : property;
+  const resolvedKey = compType === 'transform' ? key : property;
+
+  if (TRANSFORM_KEYS.has(resolvedKey)) {
     return {
-      getter: () => (obj[property] as number) ?? 0,
-      setter: (v) => { obj[property] = v; },
+      getter: () => (obj[resolvedKey] as number) ?? 0,
+      setter: (v) => { obj[resolvedKey] = v; },
     };
   }
-  // "component.key" パス
-  const dot = property.indexOf('.');
+  // "component.key" パス（transform 以外）
   if (dot > 0) {
-    const compType = property.slice(0, dot);
-    const key = property.slice(dot + 1);
     const setProperty = obj['setProperty'] as ((type: string, key: string, value: unknown) => void) | undefined;
     const getComponentData = obj['getComponentData'] as ((type: string) => Record<string, unknown> | null) | undefined;
     return {
