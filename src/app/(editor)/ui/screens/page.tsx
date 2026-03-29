@@ -2,6 +2,7 @@
 
 // Side-effect: レジストリ登録
 import '@/types/ui/register';
+import '@/features/ui-editor/renderer/registerRenderers';
 import '@/types/ui/actions/register';
 import '@/engine/actions/register';
 import '@/features/event-editor/registry/register';

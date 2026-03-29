@@ -12,20 +12,11 @@ import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSli
 import { resolveAllTransforms } from './transformResolver';
 import type { WorldRect } from './transformResolver';
 import { SOLID_VERT, SOLID_FRAG, TEXTURED_VERT, TEXTURED_FRAG } from '../utils/shaders';
-import { renderShape } from './shapeRenderer';
-import type { ShapeData } from './shapeRenderer';
-import { renderLine } from './lineRenderer';
-import type { LineData } from './lineRenderer';
-import { renderImage } from './imageRenderer';
-import type { ImageData } from './imageRenderer';
-import { renderText } from './textRenderer';
-import type { TextData } from './textRenderer';
 import { drawFillRegion } from './fillMaskRenderer';
 import type { FillMaskData } from './fillMaskRenderer';
 import { renderColorMask } from './colorMaskRenderer';
 import type { ColorMaskData } from './colorMaskRenderer';
-import { renderEffect } from './effectRenderer';
-import type { EffectData } from './effectRenderer';
+import { getComponentRenderer, isVisualComponent } from './rendererRegistry';
 
 // Re-exports for external consumers
 export { parseColor } from './renderUtils';
@@ -122,9 +113,7 @@ function renderObject(
 ): void {
   const fillMaskComp = obj.components.find((c) => c.type === 'fillMask');
   const colorMaskComp = obj.components.find((c) => c.type === 'colorMask');
-  const visuals = obj.components.filter(
-    (c) => c.type === 'shape' || c.type === 'line' || c.type === 'image' || c.type === 'text'
-  );
+  const visuals = obj.components.filter((c) => isVisualComponent(c.type));
 
   if (visuals.length === 0) return;
 
@@ -188,21 +177,6 @@ function renderVisualComponent(
   worldRect: WorldRect,
   gl: WebGLRenderingContext
 ): void {
-  switch (comp.type) {
-    case 'shape':
-      renderShape(ctx, comp.data as ShapeData, worldRect, gl);
-      break;
-    case 'line':
-      renderLine(ctx, comp.data as LineData, worldRect, gl);
-      break;
-    case 'image':
-      renderImage(ctx, comp.data as ImageData, worldRect, gl);
-      break;
-    case 'text':
-      renderText(ctx, comp.data as TextData, worldRect, gl);
-      break;
-    case 'effect':
-      renderEffect(ctx, comp.data as EffectData, worldRect, gl);
-      break;
-  }
+  const renderer = getComponentRenderer(comp.type);
+  if (renderer) renderer(ctx, comp.data, worldRect, gl);
 }

@@ -9,6 +9,7 @@ import '@/engine/actions/register';
 import '@/engine/values/register';
 import '@/types/ui/register';
 import '@/types/ui/actions/register';
+import '@/features/ui-editor/renderer/registerRenderers';
 import { getAction } from '@/engine/actions/index';
 import { EventRunner } from '@/engine/event/EventRunner';
 import { ScriptRunner } from '@/engine/core/ScriptRunner';
