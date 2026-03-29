@@ -281,9 +281,6 @@ export class GameRuntime {
     // Tween update (dt is in seconds, tweens use ms)
     this.tweenManager.update(dt * 1000);
 
-    // UI animation update (dt is in seconds, animations use ms)
-    this.uiCanvasManager.updateAnimations(dt * 1000);
-
     // UI component lifecycle: dispatch input + update for visible canvases
     const BUTTONS = ['up', 'down', 'left', 'right', 'confirm', 'cancel'] as const;
     for (const canvasId of this.uiCanvasManager.getVisibleCanvasIds()) {

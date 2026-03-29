@@ -10,9 +10,6 @@ import * as twgl from 'twgl.js';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';
 import type { SerializedAction } from '@/types/ui/components/ActionTypes';
 import type { TemplateArg } from '@/types/event';
-import type { NamedAnimation } from '@/types/ui/components/AnimationComponent';
-import { computeTimelineDuration } from '@/types/ui/components/AnimationComponent';
-import { evaluateTimeline } from '@/features/ui-editor/renderer/animationResolver';
 import type { UIActionManager } from '@/types/ui/actions/UIAction';
 import { UIAction } from '@/types/ui/actions/UIAction';
 import { getUIAction } from '@/types/ui/actions';
@@ -54,16 +51,6 @@ interface CanvasState {
   visible: boolean;
   /** コンパイル済みコンポーネントランタイム（show 時に構築、hide 時に破棄） */
   runtimes: CompiledComponentRuntime[];
-}
-
-interface RuntimeAnimation {
-  canvasId: string;
-  objectId: string;
-  animation: NamedAnimation;
-  elapsed: number;
-  totalDuration: number;
-  loop: boolean;
-  resolve: (() => void) | null;
 }
 
 
@@ -108,7 +95,6 @@ export class UICanvasManager implements UIActionManager {
   private imageSizeCache = new Map<string, { w: number; h: number }>();
   private getAssetData: (assetId: string) => string | null;
   private canvases = new Map<string, CanvasState>();
-  private runningAnimations: RuntimeAnimation[] = [];
   private needsRedraw = false;
   /** self.waitFrames に注入するコールバック（GameRuntime が設定） */
   private waitFramesCallback: ((frames: number) => Promise<void>) | null = null;
@@ -222,9 +208,7 @@ export class UICanvasManager implements UIActionManager {
   }
 
   /**
-   * Play a named animation on an object.
-   * Returns a promise that resolves when the animation completes.
-   * For looping animations, resolves immediately (infinite loops can't be awaited).
+   * Play a named animation via AnimationComponent's runtime script.
    */
   async playAnimation(
     canvasId: string,
@@ -232,67 +216,14 @@ export class UICanvasManager implements UIActionManager {
     animationName: string,
     options?: { wait?: boolean }
   ): Promise<void> {
-    const obj = this.findObjectById(canvasId, objectId);
-    if (!obj) return;
+    const playFn = this.getComponentFunction(canvasId, objectId, 'play');
+    if (!playFn) return;
 
-    const animComp = obj.components.find((c) => c.type === 'animation');
-    if (!animComp) return;
-
-    const animData = animComp.data as { animations?: NamedAnimation[] };
-    const namedAnim = animData.animations?.find((a) => a.name === animationName);
-    if (!namedAnim || namedAnim.timeline.tracks.length === 0) return;
-
-    const totalDuration = computeTimelineDuration(
-      namedAnim.timeline.tracks,
-      namedAnim.timeline.loopCount,
-      namedAnim.timeline.loopType
-    );
-    const isInfinite = !isFinite(totalDuration);
-
-    const entry: RuntimeAnimation = {
-      canvasId,
-      objectId,
-      animation: namedAnim,
-      elapsed: 0,
-      totalDuration,
-      loop: isInfinite,
-      resolve: null,
-    };
-
-    if (options?.wait && !isInfinite) {
-      const promise = new Promise<void>((resolve) => {
-        entry.resolve = resolve;
-      });
-      this.runningAnimations.push(entry);
-      return promise;
+    if (options?.wait) {
+      await (playFn as (name: string) => Promise<void>)(animationName);
+    } else {
+      (playFn as (name: string) => Promise<void>)(animationName);
     }
-
-    this.runningAnimations.push(entry);
-  }
-
-  /**
-   * Update all running animations. Called by GameRuntime each frame.
-   */
-  updateAnimations(deltaMs: number): void {
-    this.runningAnimations = this.runningAnimations.filter((anim) => {
-      anim.elapsed += deltaMs;
-
-      const obj = this.findObjectById(anim.canvasId, anim.objectId);
-      if (!obj) {
-        anim.resolve?.();
-        return false;
-      }
-
-      const values = evaluateTimeline(anim.animation.timeline, anim.elapsed, anim.loop);
-      this.applyAnimatedValues(obj, values);
-
-      if (!anim.loop && anim.elapsed >= anim.totalDuration) {
-        anim.resolve?.();
-        return false;
-      }
-
-      return true;
-    });
   }
 
   /** Set visibility of an object (by ID). */
@@ -552,27 +483,6 @@ export class UICanvasManager implements UIActionManager {
     }
   }
 
-  /**
-   * Apply animated property values directly to an object's data.
-   * Property paths: 'transform.x', 'text.content', 'image.opacity', etc.
-   */
-  private applyAnimatedValues(obj: EditorUIObject, values: Map<string, number | string>): void {
-    values.forEach((value, path) => {
-      const dotIdx = path.indexOf('.');
-      if (dotIdx < 0) return;
-      const compType = path.slice(0, dotIdx);
-      const propKey = path.slice(dotIdx + 1);
-
-      if (compType === 'transform') {
-        (obj.transform as unknown as Record<string, unknown>)[propKey] = value;
-      } else {
-        const comp = obj.components.find((c) => c.type === compType);
-        if (comp) {
-          (comp.data as Record<string, unknown>)[propKey] = value;
-        }
-      }
-    });
-  }
 
   private createObjectProxy(canvasId: string, objectName: string): UIObjectRuntimeProxy | null {
     const state = this.canvases.get(canvasId);

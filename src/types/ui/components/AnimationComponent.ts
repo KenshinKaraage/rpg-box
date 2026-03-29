@@ -133,4 +133,87 @@ export class AnimationComponent extends UIComponent {
     c.loop = this.loop;
     return c;
   }
+
+  generateRuntimeScript(): string | null {
+    if (this.animations.length === 0) return null;
+
+    const animsJson = JSON.stringify(this.animations);
+    const autoPlay = this.autoPlay;
+    const firstAnimName = this.animations[0]?.name ?? '';
+
+    return `({
+  onShow() {
+    self.state._animations = ${animsJson};
+    self.state._playing = null;
+    ${autoPlay ? `this.play(${JSON.stringify(firstAnimName)});` : ''}
+  },
+
+  async play(name) {
+    const anims = self.state._animations;
+    const anim = anims && anims.find(a => a.name === name);
+    if (!anim || !anim.timeline || !anim.timeline.tracks) return;
+
+    self.state._playing = name;
+    const tl = anim.timeline;
+    const loopType = tl.loopType || "none";
+    const loopCount = tl.loopCount ?? 1;
+    let iteration = 0;
+
+    do {
+      await this._playOnce(tl.tracks, loopType === "pingpong" && iteration % 2 === 1);
+      iteration++;
+      if (loopType === "none") break;
+      if (loopCount > 0 && iteration >= loopCount) break;
+    } while (self.state._playing === name);
+
+    if (self.state._playing === name) self.state._playing = null;
+  },
+
+  async _playOnce(tracks, reverse) {
+    // startTime でグループ化して並行実行
+    const promises = tracks.map(track => {
+      return new Promise(async (resolve) => {
+        if (track.startTime > 0) {
+          await self.waitFrames(Math.max(1, Math.round(track.startTime / 16.67)));
+        }
+        if (self.state._playing === null) { resolve(); return; }
+
+        const prop = track.property;
+        const dur = track.duration;
+        const easing = track.easing || "linear";
+        const from = reverse ? track.to : track.from;
+        const to = reverse ? track.from : track.to;
+
+        if (track.valueType === "color") {
+          const fromC = reverse ? (track.toColor || "#000000") : (track.fromColor || "#000000");
+          const toC = reverse ? (track.fromColor || "#000000") : (track.toColor || "#000000");
+          // 色の開始値を設定してから補間
+          self.object.setProperty(prop.split(".")[0], prop.split(".")[1] || prop, fromC);
+          await self.tween.toColor(self.object, prop, toC, dur, easing);
+        } else {
+          // 数値の開始値を設定してから補間
+          const parts = prop.split(".");
+          if (parts.length === 2) {
+            self.object.setProperty(parts[0], parts[1], from);
+          } else {
+            self.object[prop] = from;
+          }
+          await self.tween.to(self.object, prop, to, dur, easing);
+        }
+        resolve();
+      });
+    });
+    await Promise.all(promises);
+  },
+
+  stop() {
+    self.state._playing = null;
+    self.tween.kill(self.object);
+  },
+
+  isPlaying() {
+    return self.state._playing !== null;
+  }
+})`;
+  }
 }
