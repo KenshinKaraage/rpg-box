@@ -1260,6 +1260,89 @@ await Script.message({ text: "よろしく、" + name + "！", face: "" });`,
   isAsync: true,
 };
 
+// ── UICanvas: エフェクトテスト画面 ──
+
+const effectTestCanvas: EditorUICanvas = {
+  id: 'effect_test',
+  name: 'エフェクトテスト',
+  objects: [
+    {
+      id: 'effect_display',
+      name: 'effectDisplay',
+      transform: {
+        x: 0, y: 0, width: 120, height: 120,
+        anchorX: 'center', anchorY: 'center',
+        pivotX: 0.5, pivotY: 0.5,
+        rotation: 0, scaleX: 2, scaleY: 2, visible: false,
+      },
+      components: [
+        createUIComponentData('effect', {
+          effectId: '', // スクリプトで動的に設定
+          frameWidth: 120,
+          frameHeight: 120,
+          frameCount: 8,
+          intervalMs: 80,
+          loop: false,
+          onComplete: 'hide',
+        }),
+      ],
+    },
+  ],
+  functions: [],
+};
+
+// ── Script: エフェクトテスト ──
+// 選択肢でエフェクトを選んで再生
+
+const EFFECT_LIST = [
+  { name: '炎', id: 'effect_fire', frames: 8 },
+  { name: '氷', id: 'effect_ice', frames: 8 },
+  { name: '雷', id: 'effect_thunder', frames: 8 },
+  { name: '毒', id: 'effect_poison', frames: 8 },
+  { name: '打撃', id: 'effect_hit', frames: 5 },
+  { name: '爆弾', id: 'effect_firebomb', frames: 7 },
+];
+
+const effectTestScript: Script = {
+  id: 'effect_test',
+  name: 'エフェクトテスト',
+  callId: 'effect_test',
+  type: 'event',
+  content: `const effects = ${JSON.stringify(EFFECT_LIST)};
+const names = effects.map(e => e.name);
+
+const idx = await Script.choice({ items: names });
+if (idx < 0) return;
+
+const eff = effects[idx];
+const display = UI["effect_test"].getObject("effectDisplay");
+if (!display) return;
+
+// エフェクト画像とフレーム数を設定
+display.setProperty("effect", "effectId", eff.id);
+display.setProperty("effect", "frameCount", eff.frames);
+display.visible = true;
+
+// エフェクトキャンバスを表示 → onShow でタイマー開始
+UI["effect_test"].show();
+
+// エフェクトの getComponent でリセット+完了待ち
+const effectComp = display.getComponent("effect");
+if (effectComp && effectComp.reset) effectComp.reset();
+
+// 完了待ち
+while (effectComp && !effectComp.isFinished()) {
+  await scriptAPI.waitFrames(1);
+}
+
+UI["effect_test"].hide();
+await Script.message({ text: eff.name + " エフェクトを再生しました！", face: "" });`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
 // ── Map: データ連携テスト用NPC追加 ──
 
 function createTestMap(resolveAssetId: AssetNameToId): GameMap {
@@ -1304,6 +1387,8 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createNpcObject('npc_audio', '楽師', 17, 5, createScriptActions('audio_test', [{}]), resolveAssetId),
           // 入力テスト NPC（数字入力 + 文字列入力）
           createNpcObject('npc_input', '受付嬢', 7, 7, createScriptActions('input_test', [{}]), resolveAssetId),
+          // エフェクトテスト NPC
+          createNpcObject('npc_effect', '魔法使い', 9, 7, createScriptActions('effect_test', [{}]), resolveAssetId),
         ],
       },
     ],
@@ -1372,9 +1457,12 @@ export async function loadDefaultTestData(): Promise<void> {
   if (!state.uiCanvases.find((c) => c.id === 'text_input')) {
     state.addUICanvas(structuredClone(textInputCanvas));
   }
+  if (!state.uiCanvases.find((c) => c.id === 'effect_test')) {
+    state.addUICanvas(structuredClone(effectTestCanvas));
+  }
 
   // Script
-  const scriptsToAdd = [messageScript, choiceScript, inputNumberScript, inputTextScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript, inputTestScript];
+  const scriptsToAdd = [messageScript, choiceScript, inputNumberScript, inputTextScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript, inputTestScript, effectTestScript];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
       state.addScript(script);

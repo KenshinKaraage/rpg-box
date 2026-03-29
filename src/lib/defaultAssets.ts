@@ -61,6 +61,19 @@ export const DEFAULT_ASSET_GROUPS: DefaultAssetGroup[] = [
     ],
   },
   {
+    folderName: 'エフェクト',
+    assets: [
+      { path: '/assets/images/effect/effect_fire.png', name: 'effect_fire' },
+      { path: '/assets/images/effect/effect_ice.png', name: 'effect_ice' },
+      { path: '/assets/images/effect/effect_thunder.png', name: 'effect_thunder' },
+      { path: '/assets/images/effect/effect_poison.png', name: 'effect_poison' },
+      { path: '/assets/images/effect/effect_hit.png', name: 'effect_hit' },
+      { path: '/assets/images/effect/effect_firebomb.png', name: 'effect_firebomb' },
+      { path: '/assets/images/effect/effect_up.png', name: 'effect_up' },
+      { path: '/assets/images/effect/effect_down.png', name: 'effect_down' },
+    ],
+  },
+  {
     folderName: 'BGM',
     assets: [
       { path: '/assets/sounds/bgm/Morning.mp3', name: 'bgm_morning' },
