@@ -24,6 +24,8 @@ import { drawFillRegion } from './fillMaskRenderer';
 import type { FillMaskData } from './fillMaskRenderer';
 import { renderColorMask } from './colorMaskRenderer';
 import type { ColorMaskData } from './colorMaskRenderer';
+import { renderEffect } from './effectRenderer';
+import type { EffectData } from './effectRenderer';
 
 // Re-exports for external consumers
 export { parseColor } from './renderUtils';
@@ -198,6 +200,9 @@ function renderVisualComponent(
       break;
     case 'text':
       renderText(ctx, comp.data as TextData, worldRect, gl);
+      break;
+    case 'effect':
+      renderEffect(ctx, comp.data as EffectData, worldRect, gl);
       break;
   }
 }

@@ -13,6 +13,7 @@ import { NavigationCursorComponent } from './components/NavigationCursorComponen
 import { AnimationComponent } from './components/AnimationComponent';
 import { TemplateControllerComponent } from './components/TemplateControllerComponent';
 import { RepeaterComponent } from './components/RepeaterComponent';
+import { EffectComponent } from './components/EffectComponent';
 
 registerUIComponent('image', ImageComponent);
 registerUIComponent('text', TextComponent);
@@ -28,3 +29,4 @@ registerUIComponent('navigationCursor', NavigationCursorComponent);
 registerUIComponent('animation', AnimationComponent);
 registerUIComponent('templateController', TemplateControllerComponent);
 registerUIComponent('repeater', RepeaterComponent);
+registerUIComponent('effect', EffectComponent);

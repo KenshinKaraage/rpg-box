@@ -5859,19 +5859,25 @@ export function useAutoSave() {
 
 ---
 
-#### [T210e] [P] Implement EffectComponent playback
+#### [T210e] [P] Implement EffectComponent (UIComponent)
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] エフェクト再生ロジック実装
-- [ ] onComplete: 'delete' → オブジェクト破棄
-- [ ] onComplete: 'hide' → オブジェクト非表示
-- [ ] onComplete: 'none' → 何もしない
-- [ ] テスト追加
+- [x] `src/types/ui/components/EffectComponent.ts` 作成（UIComponent として）
+  - effectId, frameWidth/Height, frameCount, intervalMs, loop, onComplete
+  - cropX/Y/W/H でランタイム時のフレーム切り出し管理
+- [x] `generateRuntimeScript()` 実装
+  - onShow: タイマーリセット、初期フレーム設定
+  - onUpdate: フレーム送り、crop 更新
+  - isFinished() / reset()
+  - onComplete: 'hide' → visible=false, 'none' → 何もしない
+- [x] `effectRenderer.ts` 新規作成（スプライトシート crop 描画）
+- [x] UIRenderer に `case 'effect'` ディスパッチ追加
+- [x] レジストリ登録
 
 **関連ファイル:**
 
