@@ -6146,18 +6146,18 @@ export function useAutoSave() {
 
 > 設計: `docs/superpowers/specs/2026-03-29-tween-api-design.md`
 
-- **ステータス:** [ ] 進行中
+- **ステータス:** [x] 完了（T221e エディタプレビューは後回し）
 - **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] T221a: TweenManager コア作成（to/toColor/all/sequence/kill）
-- [ ] T221b: GameRuntime + ScriptRunner に統合（Tween 注入）
-- [ ] T221c: AnimationComponent に generateRuntimeScript() 実装
-- [ ] T221d: UICanvasManager から旧アニメーション処理を削除
-- [ ] T221e: エディタプレビューを TweenManager ベースに書き換え
-- [ ] T221f: PlayAnimationAction 書き換え
+- [x] T221a: TweenManager コア作成（to/toColor/all/sequence/kill）
+- [x] T221b: GameRuntime + ScriptRunner に統合（Tween 注入）
+- [x] T221c: AnimationComponent に generateRuntimeScript() 実装
+- [x] T221d: UICanvasManager から旧アニメーション処理を削除
+- [ ] T221e: エディタプレビューを TweenManager ベースに書き換え（後回し）
+- [x] T221f: PlayAnimationAction（既存の manager.playAnimation → component.play() で自動対応）
 
 **関連ファイル:**
 
