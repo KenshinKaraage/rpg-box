@@ -25,6 +25,7 @@ import { MapRenderer } from './MapRenderer';
 import { SpriteRenderer } from '@/engine/rendering/SpriteRenderer';
 import { UICanvasManager, type UICanvasData } from './UICanvasManager';
 import { AudioManager } from './AudioManager';
+import { TweenManager } from '@/engine/tween/TweenManager';
 import * as twgl from 'twgl.js';
 
 // ── Constants ──
@@ -53,6 +54,7 @@ export class GameRuntime {
   private spriteRenderer: SpriteRenderer;
   private uiCanvasManager: UICanvasManager;
   private audioManager: AudioManager;
+  private tweenManager: TweenManager;
 
   private canvas: HTMLCanvasElement;
 
@@ -102,6 +104,7 @@ export class GameRuntime {
       return (asset?.data as string) ?? null;
     };
     this.audioManager = new AudioManager(resolveAudioAsset);
+    this.tweenManager = new TweenManager();
 
     // Game loop
     this.gameLoop = new GameLoop({
@@ -141,6 +144,9 @@ export class GameRuntime {
     this.context = new GameContext(engineData, this.sharedScriptRunner);
     this.context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
     this.context.sound = this.audioManager.createSoundAPI();
+    const tweenAPI = this.tweenManager.createScriptAPI();
+    this.context.tween = tweenAPI;
+    this.uiCanvasManager.setTweenAPI(tweenAPI);
     this.uiCanvasManager.setWaitFrames(this.createWaitFrames());
     this.context.setUIProxies(this.uiCanvasManager.createProxies());
     this.context.setInputAPI({
@@ -271,6 +277,9 @@ export class GameRuntime {
 
     // World update — returns objects that finished a grid move this frame
     const completions = this.world.update(dt, this.input);
+
+    // Tween update (dt is in seconds, tweens use ms)
+    this.tweenManager.update(dt * 1000);
 
     // UI animation update (dt is in seconds, animations use ms)
     this.uiCanvasManager.updateAnimations(dt * 1000);

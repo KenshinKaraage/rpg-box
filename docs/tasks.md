@@ -6144,18 +6144,20 @@ export function useAutoSave() {
 
 #### [T221] [P] Implement TweenAPI
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+> 設計: `docs/superpowers/specs/2026-03-29-tween-api-design.md`
+
+- **ステータス:** [ ] 進行中
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/api/TweenAPI.ts` 作成
-- [ ] `game.tween.to(target, props, duration, easing)`
-- [ ] `game.tween.from(target, props, duration, easing)`
-- [ ] チェーン/シーケンス
-- [ ] コールバック（onComplete, onUpdate）
-- [ ] テスト追加
+- [ ] T221a: TweenManager コア作成（to/toColor/all/sequence/kill）
+- [ ] T221b: GameRuntime + ScriptRunner に統合（Tween 注入）
+- [ ] T221c: AnimationComponent に generateRuntimeScript() 実装
+- [ ] T221d: UICanvasManager から旧アニメーション処理を削除
+- [ ] T221e: エディタプレビューを TweenManager ベースに書き換え
+- [ ] T221f: PlayAnimationAction 書き換え
 
 **関連ファイル:**
 

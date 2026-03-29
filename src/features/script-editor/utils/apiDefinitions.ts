@@ -184,6 +184,20 @@ declare const GameObject: {
   destroy(id: string): void;
 };
 
+/** TweenAPI — プロパティ補間 */
+declare const Tween: {
+  /** 数値プロパティを補間（"x", "image.opacity" 等） */
+  to(obj: unknown, property: string, target: number, durationMs: number, easing?: string): Promise<void>;
+  /** 色プロパティを補間（"text.color" 等、hex形式） */
+  toColor(obj: unknown, property: string, target: string, durationMs: number, easing?: string): Promise<void>;
+  /** 複数プロパティを同時に補間 */
+  all(obj: unknown, properties: Record<string, number>, durationMs: number, easing?: string): Promise<void>;
+  /** 順番に実行 */
+  sequence(fns: (() => Promise<void>)[]): Promise<void>;
+  /** オブジェクトの全 tween を停止 */
+  kill(obj: unknown): void;
+};
+
 /** 入力API */
 declare const Input: {
   /** ボタンが押されるまで待機 */

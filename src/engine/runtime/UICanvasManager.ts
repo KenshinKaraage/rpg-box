@@ -112,6 +112,7 @@ export class UICanvasManager implements UIActionManager {
   private needsRedraw = false;
   /** self.waitFrames に注入するコールバック（GameRuntime が設定） */
   private waitFramesCallback: ((frames: number) => Promise<void>) | null = null;
+  private tweenAPI: unknown = null;
 
   constructor(
     gl: WebGLRenderingContext,
@@ -468,6 +469,7 @@ export class UICanvasManager implements UIActionManager {
             children: this.getChildProxies(canvasId, obj.id),
             state: {} as Record<string, unknown>,
             waitFrames: (frames: number) => this.waitFramesCallback?.(frames) ?? Promise.resolve(),
+            tween: this.tweenAPI,
           };
           // generateRuntimeScript() はオブジェクトリテラルを返す:
           // ({ onShow() {}, onInput(button) {}, getResult() {} })
@@ -507,6 +509,11 @@ export class UICanvasManager implements UIActionManager {
   /** self.waitFrames 用コールバックを設定（GameRuntime から呼ぶ） */
   setWaitFrames(fn: (frames: number) => Promise<void>): void {
     this.waitFramesCallback = fn;
+  }
+
+  /** self.tween 用の TweenScriptAPI を設定（GameRuntime から呼ぶ） */
+  setTweenAPI(api: unknown): void {
+    this.tweenAPI = api;
   }
 
   dispose(): void {

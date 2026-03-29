@@ -9,6 +9,7 @@ import type { ScriptRunner } from '../core/ScriptRunner';
 import type { EngineProjectData } from '../types';
 import type { UICanvasRuntimeProxy } from './UICanvasManager';
 import type { GameButton } from './InputManager';
+import type { TweenScriptAPI } from '../tween/TweenManager';
 
 // =============================================================================
 // Runtime Extension Types (set by GameRuntime for action integration)
@@ -176,6 +177,9 @@ export class GameContext {
 
   /** Object API — スクリプト内で GameObj.find("NPC") 等で使用 */
   object: ObjectAPI = createStubObjectAPI();
+
+  /** Tween API — スクリプト内で Tween.to() 等で使用 */
+  tween: TweenScriptAPI | null = null;
 
   /** UI canvas proxies — スクリプト内で UI["canvasName"].functionName() として使用 */
   ui: Record<string, UICanvasRuntimeProxy> = {};
