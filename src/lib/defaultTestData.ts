@@ -695,10 +695,13 @@ while (true) {
     text = text.slice(0, maxLength);
   }
 
-  // カーソル点滅
+  // カーソル点滅（カーソル位置に挿入）
   if (frameCount % 30 === 0) cursorVisible = !cursorVisible;
   if (valueObj) {
-    valueObj.setProperty("text", "content", text + (cursorVisible ? "|" : " "));
+    const pos = Input.getTextCursorPos();
+    const cursor = cursorVisible ? "|" : " ";
+    const display = text.slice(0, pos) + cursor + text.slice(pos);
+    valueObj.setProperty("text", "content", display);
   }
 
   if (Input.isTextConfirmed()) {

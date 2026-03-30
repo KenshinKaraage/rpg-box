@@ -140,6 +140,8 @@ export interface InputAPI {
   isTextConfirmed(): boolean;
   /** Escape でキャンセルされたか */
   isTextCancelled(): boolean;
+  /** テキストカーソル位置 */
+  getTextCursorPos(): number;
 }
 
 export interface NextActionInfo {
@@ -406,5 +408,6 @@ function createStubInputAPI(): InputAPI {
     getTextValue() { return ''; },
     isTextConfirmed() { return false; },
     isTextCancelled() { return false; },
+    getTextCursorPos() { return 0; },
   };
 }

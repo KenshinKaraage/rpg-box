@@ -159,6 +159,7 @@ export class GameRuntime {
       getTextValue: () => this.input.getTextValue(),
       isTextConfirmed: () => this.input.isTextConfirmed(),
       isTextCancelled: () => this.input.isTextCancelled(),
+      getTextCursorPos: () => this.input.getTextCursorPos(),
     });
     this.context.setMapAPI({
       getCurrentId: () => this.world.getCurrentMap()?.id ?? null,

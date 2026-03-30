@@ -187,6 +187,11 @@ export class InputManager {
     return this._textValue;
   }
 
+  /** カーソル位置（selectionStart） */
+  getTextCursorPos(): number {
+    return this.hiddenInput?.selectionStart ?? this._textValue.length;
+  }
+
   /** Enter が押されたか */
   isTextConfirmed(): boolean { return this._textConfirmed; }
 
