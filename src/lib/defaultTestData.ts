@@ -644,7 +644,7 @@ const textInputLabel: EditorUIObject = {
 
 const textInputValue: EditorUIObject = {
   id: 'textinput_value',
-  name: 'value',
+  name: 'inputField',
   parentId: 'textinput_bg',
   transform: {
     x: 16, y: 40, width: 368, height: 44,
@@ -654,28 +654,14 @@ const textInputValue: EditorUIObject = {
   },
   components: [
     createUIComponentData('text', { content: '', fontSize: 24, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
-  ],
-};
-
-const textInputCursor: EditorUIObject = {
-  id: 'textinput_cursor',
-  name: 'cursor',
-  parentId: 'textinput_bg',
-  transform: {
-    x: 16, y: 40, width: 368, height: 44,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
-  },
-  components: [
-    createUIComponentData('text', { content: '', fontSize: 24, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    createUIComponentData('inputField', { maxLength: 20, cursorColor: '#ffdd44', placeholder: '' }),
   ],
 };
 
 const textInputCanvas: EditorUICanvas = {
   id: 'text_input',
   name: '文字列入力',
-  objects: [textInputBg, textInputLabel, textInputValue, textInputCursor],
+  objects: [textInputBg, textInputLabel, textInputValue],
   functions: [],
 };
 
@@ -689,56 +675,22 @@ const inputTextScript: Script = {
   type: 'event',
   content: `const bg = UI["text_input"].getObject("background");
 const labelObj = UI["text_input"].getObject("label");
-const valueObj = UI["text_input"].getObject("value");
-const cursorObj = UI["text_input"].getObject("cursor");
 if (bg) bg.visible = true;
 if (labelObj) labelObj.setProperty("text", "content", prompt || "テキストを入力");
 
-// 隠し input を使ったテキスト入力（IME 対応）
-Input.startTextInput(initial || "");
 UI["text_input"].show();
 
-let frameCount = 0;
-let cursorVisible = true;
+// InputFieldComponent の activate/result で入力制御
+const field = UI["text_input"].getObject("inputField");
+const input = field.getComponent("inputField");
+input.activate(initial || "");
+const result = await input.result();
 
-while (true) {
-  await scriptAPI.waitFrames(1);
-  frameCount++;
-
-  // 現在の入力値を取得して表示（IME 変換中も反映）
-  let text = Input.getTextValue();
-  if (maxLength && text.length > maxLength) {
-    text = text.slice(0, maxLength);
-  }
-
-  // テキスト層: そのまま表示
-  if (valueObj) {
-    valueObj.setProperty("text", "content", text);
-  }
-
-  // カーソル層: 全角スペースで埋めて "|" をカーソル位置に表示
-  if (frameCount % 30 === 0) cursorVisible = !cursorVisible;
-  if (cursorObj) {
-    const pos = Input.getTextCursorPos();
-    const pad = "\u3000".repeat(pos);
-    cursorObj.setProperty("text", "content", cursorVisible ? pad + "|" : "");
-  }
-
-  if (Input.isTextConfirmed()) {
-    Input.stopTextInput();
-    UI["text_input"].hide();
-    return text;
-  }
-  if (Input.isTextCancelled()) {
-    Input.stopTextInput();
-    UI["text_input"].hide();
-    return initial || "";
-  }
-}`,
+UI["text_input"].hide();
+return result ?? initial ?? "";`,
   args: [
     { id: 'prompt', name: 'ラベル', fieldType: 'string', required: false, defaultValue: 'テキストを入力' },
     { id: 'initial', name: '初期値', fieldType: 'string', required: false, defaultValue: '' },
-    { id: 'maxLength', name: '最大文字数', fieldType: 'number', required: false, defaultValue: 20 },
   ],
   returns: [{ id: 'text', name: '入力値', fieldType: 'string', isArray: false }],
   fields: [],

@@ -14,6 +14,7 @@ import { AnimationComponent } from './components/AnimationComponent';
 import { TemplateControllerComponent } from './components/TemplateControllerComponent';
 import { RepeaterComponent } from './components/RepeaterComponent';
 import { EffectComponent } from './components/EffectComponent';
+import { InputFieldComponent } from './components/InputFieldComponent';
 
 registerUIComponent('image', ImageComponent);
 registerUIComponent('text', TextComponent);
@@ -30,3 +31,4 @@ registerUIComponent('animation', AnimationComponent);
 registerUIComponent('templateController', TemplateControllerComponent);
 registerUIComponent('repeater', RepeaterComponent);
 registerUIComponent('effect', EffectComponent);
+registerUIComponent('inputField', InputFieldComponent);
