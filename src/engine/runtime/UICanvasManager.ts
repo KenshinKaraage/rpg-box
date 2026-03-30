@@ -99,6 +99,7 @@ export class UICanvasManager implements UIActionManager {
   /** self.waitFrames に注入するコールバック（GameRuntime が設定） */
   private waitFramesCallback: ((frames: number) => Promise<void>) | null = null;
   private tweenAPI: unknown = null;
+  private inputAPI: unknown = null;
 
   constructor(
     gl: WebGLRenderingContext,
@@ -401,11 +402,12 @@ export class UICanvasManager implements UIActionManager {
             state: {} as Record<string, unknown>,
             waitFrames: (frames: number) => this.waitFramesCallback?.(frames) ?? Promise.resolve(),
             tween: this.tweenAPI,
+            input: this.inputAPI,
           };
           // generateRuntimeScript() はオブジェクトリテラルを返す:
           // ({ onShow() {}, onInput(button) {}, getResult() {} })
           // eslint-disable-next-line @typescript-eslint/no-implied-eval
-          const fns = new Function('self', `return (${script})`)(selfCtx) as Record<string, unknown>;
+          const fns = new Function('self', `const Input = self.input; const Tween = self.tween; return (${script})`)(selfCtx) as Record<string, unknown>;
           state.runtimes.push({ objectId: obj.id, componentType: comp.type, fns });
         } catch (e) {
           console.error(`[UIRuntime] compile error (${comp.type}):`, e);
@@ -445,6 +447,11 @@ export class UICanvasManager implements UIActionManager {
   /** self.tween 用の TweenScriptAPI を設定（GameRuntime から呼ぶ） */
   setTweenAPI(api: unknown): void {
     this.tweenAPI = api;
+  }
+
+  /** self.input 用の InputAPI を設定（GameRuntime から呼ぶ） */
+  setInputAPI(api: unknown): void {
+    this.inputAPI = api;
   }
 
   dispose(): void {

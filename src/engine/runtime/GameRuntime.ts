@@ -149,18 +149,20 @@ export class GameRuntime {
     this.uiCanvasManager.setTweenAPI(tweenAPI);
     this.uiCanvasManager.setWaitFrames(this.createWaitFrames());
     this.context.setUIProxies(this.uiCanvasManager.createProxies());
-    this.context.setInputAPI({
-      waitKey: (button) => this.input.pressed(button),
-      isDown: (button) => this.input.isDown(button),
-      isJustPressed: (button) => this.input.isJustPressed(button),
+    const inputAPI = {
+      waitKey: (button: import('./InputManager').GameButton) => this.input.pressed(button),
+      isDown: (button: import('./InputManager').GameButton) => this.input.isDown(button),
+      isJustPressed: (button: import('./InputManager').GameButton) => this.input.isJustPressed(button),
       getJustPressedKeys: () => this.input.getJustPressedKeys(),
-      startTextInput: (initial, sx, sy) => this.input.startTextInput(initial, sx, sy),
+      startTextInput: (initial?: string, sx?: number, sy?: number) => this.input.startTextInput(initial, sx, sy),
       stopTextInput: () => this.input.stopTextInput(),
       getTextValue: () => this.input.getTextValue(),
       isTextConfirmed: () => this.input.isTextConfirmed(),
       isTextCancelled: () => this.input.isTextCancelled(),
       getTextCursorPos: () => this.input.getTextCursorPos(),
-    });
+    };
+    this.context.setInputAPI(inputAPI);
+    this.uiCanvasManager.setInputAPI(inputAPI);
     this.context.setMapAPI({
       getCurrentId: () => this.world.getCurrentMap()?.id ?? null,
       getWidth: () => this.world.getCurrentMap()?.width ?? 0,
