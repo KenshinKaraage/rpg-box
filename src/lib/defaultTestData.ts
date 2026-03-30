@@ -657,10 +657,25 @@ const textInputValue: EditorUIObject = {
   ],
 };
 
+const textInputCursor: EditorUIObject = {
+  id: 'textinput_cursor',
+  name: 'cursor',
+  parentId: 'textinput_bg',
+  transform: {
+    x: 16, y: 40, width: 368, height: 44,
+    anchorX: 'left', anchorY: 'top',
+    pivotX: 0, pivotY: 0,
+    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+  },
+  components: [
+    createUIComponentData('text', { content: '', fontSize: 24, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+  ],
+};
+
 const textInputCanvas: EditorUICanvas = {
   id: 'text_input',
   name: '文字列入力',
-  objects: [textInputBg, textInputLabel, textInputValue],
+  objects: [textInputBg, textInputLabel, textInputValue, textInputCursor],
   functions: [],
 };
 
@@ -675,6 +690,7 @@ const inputTextScript: Script = {
   content: `const bg = UI["text_input"].getObject("background");
 const labelObj = UI["text_input"].getObject("label");
 const valueObj = UI["text_input"].getObject("value");
+const cursorObj = UI["text_input"].getObject("cursor");
 if (bg) bg.visible = true;
 if (labelObj) labelObj.setProperty("text", "content", prompt || "テキストを入力");
 
@@ -695,13 +711,17 @@ while (true) {
     text = text.slice(0, maxLength);
   }
 
-  // カーソル点滅（カーソル位置に挿入）
-  if (frameCount % 30 === 0) cursorVisible = !cursorVisible;
+  // テキスト層: そのまま表示
   if (valueObj) {
+    valueObj.setProperty("text", "content", text);
+  }
+
+  // カーソル層: 全角スペースで埋めて "|" をカーソル位置に表示
+  if (frameCount % 30 === 0) cursorVisible = !cursorVisible;
+  if (cursorObj) {
     const pos = Input.getTextCursorPos();
-    const cursor = cursorVisible ? "|" : " ";
-    const display = text.slice(0, pos) + cursor + text.slice(pos);
-    valueObj.setProperty("text", "content", display);
+    const pad = "\u3000".repeat(pos);
+    cursorObj.setProperty("text", "content", cursorVisible ? pad + "|" : "");
   }
 
   if (Input.isTextConfirmed()) {
