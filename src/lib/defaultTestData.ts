@@ -28,6 +28,9 @@ import { ControllerComponent } from '@/types/components/ControllerComponent';
 import { TalkTriggerComponent } from '@/types/components/triggers/TalkTriggerComponent';
 import { ScriptAction } from '@/engine/actions/ScriptAction';
 import { SwitchAction } from '@/engine/actions/SwitchAction';
+import { CameraAction } from '@/engine/actions/CameraAction';
+import { ObjectAction } from '@/engine/actions/ObjectAction';
+import { WaitAction } from '@/engine/actions/WaitAction';
 import { VariableOpAction } from '@/engine/actions/VariableOpAction';
 import { VariablesComponent } from '@/types/components/VariablesComponent';
 import '@/types/ui/register';
@@ -1600,6 +1603,124 @@ function createFortunetellerObject(x: number, y: number, resolveAssetId: AssetNa
   };
 }
 
+// ── 操作テストNPC: イベントブロックで Camera/Object/Map アクションをテスト ──
+
+function createActionTestObject(x: number, y: number, resolveAssetId: AssetNameToId): MapObject {
+  const transform = new TransformComponent();
+  transform.x = x;
+  transform.y = y;
+
+  const collider = new ColliderComponent();
+  collider.width = 1;
+  collider.height = 1;
+  collider.collideLayers = [OBJ_LAYER_ID];
+
+  const sprite = createWalkSprite('walk_lex', resolveAssetId);
+
+  // --- イベントブロック構築 ---
+
+  // 1. メッセージ「操作テスト開始！」
+  const msgStart = new ScriptAction();
+  msgStart.scriptId = 'message';
+  msgStart.args = { text: '操作テストを開始します。', face: '', close: false };
+
+  // 2. ObjectAction: self の向きを右に
+  const faceRight = new ObjectAction();
+  faceRight.operation = 'face';
+  faceRight.targetName = 'self';
+  faceRight.direction = 'right';
+
+  // 3. メッセージ
+  const msgFace = new ScriptAction();
+  msgFace.scriptId = 'message';
+  msgFace.args = { text: '自分の向きを右に変えました。', face: '', close: false };
+
+  // 4. ObjectAction: self の向きを下に戻す
+  const faceDown = new ObjectAction();
+  faceDown.operation = 'face';
+  faceDown.targetName = 'self';
+  faceDown.direction = 'down';
+
+  // 5. ObjectAction: NPC を非表示
+  const hideNpc = new ObjectAction();
+  hideNpc.operation = 'visible';
+  hideNpc.targetName = 'NPC';
+  hideNpc.visible = false;
+
+  // 6. メッセージ
+  const msgHide = new ScriptAction();
+  msgHide.scriptId = 'message';
+  msgHide.args = { text: 'NPCを非表示にしました。', face: '', close: false };
+
+  // 7. ObjectAction: NPC を再表示
+  const showNpc = new ObjectAction();
+  showNpc.operation = 'visible';
+  showNpc.targetName = 'NPC';
+  showNpc.visible = true;
+
+  // 8. メッセージ
+  const msgShow = new ScriptAction();
+  msgShow.scriptId = 'message';
+  msgShow.args = { text: 'NPCを再表示しました。', face: '', close: false };
+
+  // 9. CameraAction: シェイク
+  const shake = new CameraAction();
+  shake.operation = 'effect';
+  shake.effect = 'shake';
+  shake.intensity = 8;
+  shake.duration = 30;
+
+  // 10. WaitAction: シェイク待ち
+  const wait = new WaitAction();
+  wait.frames = 30;
+
+  // 11. メッセージ
+  const msgShake = new ScriptAction();
+  msgShake.scriptId = 'message';
+  msgShake.args = { text: 'カメラシェイクしました。', face: '', close: false };
+
+  // 12. ObjectAction: NPC を移動
+  const moveNpc = new ObjectAction();
+  moveNpc.operation = 'move';
+  moveNpc.targetName = 'NPC';
+  moveNpc.x = 9;
+  moveNpc.y = 5;
+
+  // 13. メッセージ
+  const msgMove = new ScriptAction();
+  msgMove.scriptId = 'message';
+  msgMove.args = { text: 'NPCを (9,5) に移動しました。', face: '', close: false };
+
+  // 14. ObjectAction: NPC を元の位置に戻す
+  const moveNpcBack = new ObjectAction();
+  moveNpcBack.operation = 'move';
+  moveNpcBack.targetName = 'NPC';
+  moveNpcBack.x = 7;
+  moveNpcBack.y = 5;
+
+  // 15. 完了メッセージ
+  const msgDone = new ScriptAction();
+  msgDone.scriptId = 'message';
+  msgDone.args = { text: '操作テスト完了！', face: '' };
+
+  const talk = new TalkTriggerComponent();
+  talk.direction = 'any';
+  talk.facePlayer = true;
+  talk.actions = [
+    msgStart, faceRight, msgFace, faceDown,
+    hideNpc, msgHide, showNpc, msgShow,
+    shake, wait, msgShake,
+    moveNpc, msgMove, moveNpcBack,
+    msgDone,
+  ];
+
+  return {
+    id: 'npc_action_test',
+    name: '操作テスト係',
+    components: [transform, collider, sprite, talk],
+  };
+}
+
 // ── Map: データ連携テスト用NPC追加 ──
 
 function createTestMap(resolveAssetId: AssetNameToId): GameMap {
@@ -1650,6 +1771,8 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createNpcObject('npc_anim', 'アニメーター', 11, 7, createScriptActions('anim_test', [{}]), resolveAssetId),
           // イベントブロック + VariablesComponent テスト NPC
           createFortunetellerObject(13, 7, resolveAssetId),
+          // 操作テスト NPC（イベントブロックで Camera/Object アクション）
+          createActionTestObject(15, 7, resolveAssetId),
         ],
       },
     ],

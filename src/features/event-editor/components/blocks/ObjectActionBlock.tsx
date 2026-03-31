@@ -16,9 +16,16 @@ import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { ObjectAction } from '@/engine/actions/ObjectAction';
 
 const OPERATIONS = [
-  { value: 'move', label: '移動' },
-  { value: 'rotate', label: '回転' },
-  { value: 'autoWalk', label: '自動歩行' },
+  { value: 'move', label: '移動（テレポート）' },
+  { value: 'face', label: '向き変更' },
+  { value: 'visible', label: '表示/非表示' },
+] as const;
+
+const DIRECTIONS = [
+  { value: 'up', label: '上' },
+  { value: 'down', label: '下' },
+  { value: 'left', label: '左' },
+  { value: 'right', label: '右' },
 ] as const;
 
 function cloneAction(action: ObjectAction): ObjectAction {
@@ -28,29 +35,9 @@ function cloneAction(action: ObjectAction): ObjectAction {
 export function ObjectActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const objAction = action as ObjectAction;
 
-  const handleTargetIdChange = (targetId: string) => {
+  const handleChange = (updates: Partial<ObjectAction>) => {
     const updated = cloneAction(objAction);
-    updated.targetId = targetId;
-    onChange(updated);
-  };
-
-  const handleOperationChange = (operation: string) => {
-    const updated = cloneAction(objAction);
-    updated.operation = operation as ObjectAction['operation'];
-    onChange(updated);
-  };
-
-  const handleNumberChange = (field: keyof ObjectAction, value: string) => {
-    const num = parseFloat(value);
-    if (isNaN(num)) return;
-    const updated = cloneAction(objAction);
-    (updated as unknown as Record<string, unknown>)[field] = num;
-    onChange(updated);
-  };
-
-  const handleEnabledChange = (checked: boolean) => {
-    const updated = cloneAction(objAction);
-    updated.enabled = checked;
+    Object.assign(updated, updates);
     onChange(updated);
   };
 
@@ -58,124 +45,84 @@ export function ObjectActionBlock({ action, onChange, onDelete }: ActionBlockPro
     <div className="rounded-md border p-3">
       <div className="flex items-center justify-between">
         <Label className="text-sm font-semibold">オブジェクト操作</Label>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onDelete}
-          aria-label="削除"
-          data-testid="delete-action"
-        >
+        <Button size="sm" variant="ghost" onClick={onDelete} aria-label="削除">
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
       <div className="mt-2 space-y-2">
+        {/* 対象オブジェクト名 */}
         <div className="flex items-center gap-2">
-          <Label className="w-16 text-xs text-muted-foreground">対象ID</Label>
+          <Label className="w-16 text-xs text-muted-foreground">対象</Label>
           <Input
-            value={objAction.targetId}
-            onChange={(e) => handleTargetIdChange(e.target.value)}
-            placeholder="対象ID"
-            className="flex-1"
-            data-testid="target-id-input"
+            value={objAction.targetName}
+            onChange={(e) => handleChange({ targetName: e.target.value })}
+            placeholder="オブジェクト名（self = 自分）"
+            className="flex-1 h-7 text-xs"
           />
         </div>
+
+        {/* 操作 */}
         <div className="flex items-center gap-2">
           <Label className="w-16 text-xs text-muted-foreground">操作</Label>
-          <Select value={objAction.operation} onValueChange={handleOperationChange}>
-            <SelectTrigger className="w-32" data-testid="operation-select">
+          <Select value={objAction.operation} onValueChange={(v) => handleChange({ operation: v as ObjectAction['operation'] })}>
+            <SelectTrigger className="h-7 flex-1 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {OPERATIONS.map((op) => (
-                <SelectItem key={op.value} value={op.value}>
-                  {op.label}
-                </SelectItem>
+                <SelectItem key={op.value} value={op.value}>{op.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
+        {/* move: X, Y */}
         {objAction.operation === 'move' && (
-          <>
-            <div className="flex items-center gap-2">
-              <Label className="w-16 text-xs text-muted-foreground">X</Label>
-              <Input
-                type="number"
-                value={objAction.x ?? ''}
-                onChange={(e) => handleNumberChange('x', e.target.value)}
-                className="w-24"
-                data-testid="x-input"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="w-16 text-xs text-muted-foreground">Y</Label>
-              <Input
-                type="number"
-                value={objAction.y ?? ''}
-                onChange={(e) => handleNumberChange('y', e.target.value)}
-                className="w-24"
-                data-testid="y-input"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="w-16 text-xs text-muted-foreground">速度</Label>
-              <Input
-                type="number"
-                value={objAction.speed ?? ''}
-                onChange={(e) => handleNumberChange('speed', e.target.value)}
-                className="w-24"
-                data-testid="speed-input"
-              />
-            </div>
-          </>
+          <div className="flex items-center gap-2">
+            <Label className="w-16 text-xs text-muted-foreground">位置</Label>
+            <Input
+              type="number"
+              value={objAction.x ?? ''}
+              onChange={(e) => handleChange({ x: parseInt(e.target.value) || 0 })}
+              placeholder="X"
+              className="w-16 h-7 text-xs"
+            />
+            <Input
+              type="number"
+              value={objAction.y ?? ''}
+              onChange={(e) => handleChange({ y: parseInt(e.target.value) || 0 })}
+              placeholder="Y"
+              className="w-16 h-7 text-xs"
+            />
+          </div>
         )}
 
-        {objAction.operation === 'rotate' && (
-          <>
-            <div className="flex items-center gap-2">
-              <Label className="w-16 text-xs text-muted-foreground">角度</Label>
-              <Input
-                type="number"
-                value={objAction.angle ?? ''}
-                onChange={(e) => handleNumberChange('angle', e.target.value)}
-                className="w-24"
-                data-testid="angle-input"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="w-16 text-xs text-muted-foreground">時間</Label>
-              <Input
-                type="number"
-                value={objAction.duration ?? ''}
-                onChange={(e) => handleNumberChange('duration', e.target.value)}
-                className="w-24"
-                data-testid="duration-input"
-              />
-            </div>
-          </>
+        {/* face: direction */}
+        {objAction.operation === 'face' && (
+          <div className="flex items-center gap-2">
+            <Label className="w-16 text-xs text-muted-foreground">向き</Label>
+            <Select value={objAction.direction ?? 'down'} onValueChange={(v) => handleChange({ direction: v as ObjectAction['direction'] })}>
+              <SelectTrigger className="h-7 flex-1 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DIRECTIONS.map((d) => (
+                  <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
 
-        {objAction.operation === 'autoWalk' && (
-          <>
-            <div className="flex items-center gap-2">
-              <Label className="w-16 text-xs text-muted-foreground">有効</Label>
-              <Checkbox
-                checked={objAction.enabled ?? false}
-                onCheckedChange={(checked) => handleEnabledChange(checked === true)}
-                data-testid="enabled-checkbox"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="w-16 text-xs text-muted-foreground">速度</Label>
-              <Input
-                type="number"
-                value={objAction.speed ?? ''}
-                onChange={(e) => handleNumberChange('speed', e.target.value)}
-                className="w-24"
-                data-testid="speed-input"
-              />
-            </div>
-          </>
+        {/* visible: checkbox */}
+        {objAction.operation === 'visible' && (
+          <div className="flex items-center gap-2">
+            <Label className="w-16 text-xs text-muted-foreground">表示</Label>
+            <Checkbox
+              checked={objAction.visible ?? true}
+              onCheckedChange={(v) => handleChange({ visible: v === true })}
+            />
+          </div>
         )}
       </div>
     </div>

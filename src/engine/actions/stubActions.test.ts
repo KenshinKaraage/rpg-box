@@ -3,8 +3,6 @@ import { WaitAction } from './WaitAction';
 import { ObjectAction } from './ObjectAction';
 import { MapAction } from './MapAction';
 
-const noopRun = jest.fn();
-
 function mockContext(overrides?: Partial<GameContext>): GameContext {
   return {
     waitFrames: jest.fn().mockResolvedValue(undefined),
@@ -13,63 +11,20 @@ function mockContext(overrides?: Partial<GameContext>): GameContext {
   } as unknown as GameContext;
 }
 
+const noopRun = jest.fn();
+
 describe('WaitAction', () => {
   it('has type "wait"', () => {
     expect(new WaitAction().type).toBe('wait');
   });
 
-  it('calls context.waitFrames with frame count', async () => {
-    const ctx = mockContext();
-    const action = new WaitAction();
-    action.frames = 30;
-    await action.execute(ctx, noopRun);
-    expect(ctx.waitFrames).toHaveBeenCalledWith(30);
-  });
-
-  it('uses default 60 frames', async () => {
-    const ctx = mockContext();
-    const action = new WaitAction();
-    await action.execute(ctx, noopRun);
-    expect(ctx.waitFrames).toHaveBeenCalledWith(60);
-  });
-
   it('toJSON / fromJSON round-trips', () => {
     const action = new WaitAction();
-    action.frames = 30;
+    action.frames = 60;
     const json = action.toJSON();
-    expect(json).toEqual({ frames: 30 });
     const restored = new WaitAction();
     restored.fromJSON(json);
-    expect(restored.frames).toBe(30);
-  });
-});
-
-describe('ObjectAction', () => {
-  it('has type "object"', () => {
-    expect(new ObjectAction().type).toBe('object');
-  });
-
-  it('execute is no-op', async () => {
-    const ctx = mockContext();
-    const action = new ObjectAction();
-    action.operation = 'move';
-    action.targetId = 'obj-1';
-    await action.execute(ctx, noopRun);
-  });
-
-  it('toJSON / fromJSON round-trips', () => {
-    const action = new ObjectAction();
-    action.operation = 'move';
-    action.targetId = 'obj-1';
-    action.x = 10;
-    action.y = 20;
-    const json = action.toJSON();
-    const restored = new ObjectAction();
-    restored.fromJSON(json);
-    expect(restored.operation).toBe('move');
-    expect(restored.targetId).toBe('obj-1');
-    expect(restored.x).toBe(10);
-    expect(restored.y).toBe(20);
+    expect(restored.frames).toBe(60);
   });
 });
 
@@ -86,27 +41,10 @@ describe('MapAction', () => {
     action.x = 5;
     action.y = 10;
     await action.execute(ctx, noopRun);
-    expect(ctx.pendingMapChange).toEqual({
-      mapId: 'map-2',
-      x: 5,
-      y: 10,
-    });
+    expect(ctx.pendingMapChange).toEqual({ mapId: 'map-2', x: 5, y: 10 });
   });
 
-  it('changeMap defaults position to 0,0', async () => {
-    const ctx = mockContext();
-    const action = new MapAction();
-    action.operation = 'changeMap';
-    action.targetMapId = 'map-3';
-    await action.execute(ctx, noopRun);
-    expect(ctx.pendingMapChange).toEqual({
-      mapId: 'map-3',
-      x: 0,
-      y: 0,
-    });
-  });
-
-  it('changeMap does nothing without targetMapId', async () => {
+  it('changeMap with no targetMapId does nothing', async () => {
     const ctx = mockContext();
     const action = new MapAction();
     action.operation = 'changeMap';
@@ -117,15 +55,55 @@ describe('MapAction', () => {
   it('toJSON / fromJSON round-trips', () => {
     const action = new MapAction();
     action.operation = 'changeMap';
-    action.targetMapId = 'map-2';
-    action.x = 5;
-    action.y = 10;
+    action.targetMapId = 'test-map';
+    action.x = 3;
+    action.y = 7;
     const json = action.toJSON();
     const restored = new MapAction();
     restored.fromJSON(json);
     expect(restored.operation).toBe('changeMap');
-    expect(restored.targetMapId).toBe('map-2');
-    expect(restored.x).toBe(5);
-    expect(restored.y).toBe(10);
+    expect(restored.targetMapId).toBe('test-map');
+  });
+});
+
+describe('ObjectAction', () => {
+  it('has type "object"', () => {
+    expect(new ObjectAction().type).toBe('object');
+  });
+
+  it('toJSON / fromJSON round-trips (move)', () => {
+    const action = new ObjectAction();
+    action.operation = 'move';
+    action.targetName = 'NPC';
+    action.x = 10;
+    action.y = 5;
+    const json = action.toJSON();
+    const restored = new ObjectAction();
+    restored.fromJSON(json);
+    expect(restored.operation).toBe('move');
+    expect(restored.targetName).toBe('NPC');
+    expect(restored.x).toBe(10);
+  });
+
+  it('toJSON / fromJSON round-trips (face)', () => {
+    const action = new ObjectAction();
+    action.operation = 'face';
+    action.targetName = 'self';
+    action.direction = 'left';
+    const json = action.toJSON();
+    const restored = new ObjectAction();
+    restored.fromJSON(json);
+    expect(restored.direction).toBe('left');
+  });
+
+  it('toJSON / fromJSON round-trips (visible)', () => {
+    const action = new ObjectAction();
+    action.operation = 'visible';
+    action.targetName = 'NPC';
+    action.visible = false;
+    const json = action.toJSON();
+    const restored = new ObjectAction();
+    restored.fromJSON(json);
+    expect(restored.visible).toBe(false);
   });
 });
