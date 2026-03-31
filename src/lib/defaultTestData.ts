@@ -27,7 +27,7 @@ import { ColliderComponent } from '@/types/components/ColliderComponent';
 import { ControllerComponent } from '@/types/components/ControllerComponent';
 import { TalkTriggerComponent } from '@/types/components/triggers/TalkTriggerComponent';
 import { ScriptAction } from '@/engine/actions/ScriptAction';
-import { ConditionalAction } from '@/engine/actions/ConditionalAction';
+import { SwitchAction } from '@/engine/actions/SwitchAction';
 import { VariableOpAction } from '@/engine/actions/VariableOpAction';
 import { VariablesComponent } from '@/types/components/VariablesComponent';
 import '@/types/ui/register';
@@ -1541,64 +1541,37 @@ function createFortunetellerObject(x: number, y: number, resolveAssetId: AssetNa
   incAction.value = { type: 'literal', value: 1 };
   incAction.target = { scope: 'object', objectName: '占い師' };
 
-  // 3. ConditionalAction: job_choice == 0 → "剣士"
-  const cond0 = new ConditionalAction();
-  cond0.condition = {
-    left: { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' },
-    operator: '==',
-    right: { type: 'literal', value: 0 },
-  };
+  // 3. SwitchAction: job_choice の値で分岐
+  const switchAction = new SwitchAction();
+  switchAction.operand = { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' };
+
   const msg0 = new ScriptAction();
   msg0.scriptId = 'message';
-  msg0.args = { text: 'あなたは「剣士」を選びましたね。', face: '', close: false };
-  cond0.thenActions = [msg0];
+  msg0.args = { text: 'あなたは「剣士」を選びましたね。', face: '' };
 
-  // job_choice == 1 → "魔法使い"
-  const cond1 = new ConditionalAction();
-  cond1.condition = {
-    left: { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' },
-    operator: '==',
-    right: { type: 'literal', value: 1 },
-  };
   const msg1 = new ScriptAction();
   msg1.scriptId = 'message';
-  msg1.args = { text: 'あなたは「魔法使い」を選びましたね。', face: '', close: false };
-  cond1.thenActions = [msg1];
+  msg1.args = { text: 'あなたは「魔法使い」を選びましたね。', face: '' };
 
-  // else → "盗賊"
   const msg2 = new ScriptAction();
   msg2.scriptId = 'message';
-  msg2.args = { text: 'あなたは「盗賊」を選びましたね。', face: '', close: false };
-  cond1.elseActions = [msg2];
+  msg2.args = { text: 'あなたは「盗賊」を選びましたね。', face: '' };
 
-  cond0.elseActions = [cond1];
+  switchAction.cases = [
+    { value: 0, actions: [msg0] },
+    { value: 1, actions: [msg1] },
+    { value: 2, actions: [msg2] },
+  ];
 
-  // 4. ScriptAction: talk_count を表示するメッセージ
-  // （オブジェクト変数の読み取りはスクリプトで — イベントブロックの message は固定テキストのみ）
-  const countMsg = new ScriptAction();
-  countMsg.scriptId = 'message';
-  countMsg.args = { text: '（talk_count の表示はスクリプト参照が必要）', face: '' };
-  // 代わりに小さなスクリプトで表示
-  // → 実際にはスクリプトブロックの中で GameObject.find で取得するしかない
-  // ここではイベントブロックの能力テストとして条件分岐まで
-
-  // キャンセル時の分岐
-  const cancelCond = new ConditionalAction();
-  cancelCond.condition = {
-    left: { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' },
-    operator: '==',
-    right: { type: 'literal', value: -1 },
-  };
   const cancelMsg = new ScriptAction();
   cancelMsg.scriptId = 'message';
   cancelMsg.args = { text: 'キャンセルしましたね。', face: '' };
-  cancelCond.thenActions = [cancelMsg];
-  cancelCond.elseActions = [cond0, countMsg];
+  switchAction.defaultActions = [cancelMsg];
 
   const talk = new TalkTriggerComponent();
   talk.direction = 'any';
   talk.facePlayer = true;
-  talk.actions = [choiceAction, incAction, cancelCond];
+  talk.actions = [choiceAction, incAction, switchAction];
 
   return {
     id: 'npc_fortune',
