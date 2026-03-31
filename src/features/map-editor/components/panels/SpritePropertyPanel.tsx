@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
 import { FramePatternEditor } from './FramePatternEditor';
+import { SpriteAnimPreview } from '../SpriteAnimPreview';
 import type { SpriteComponent, SpriteMode } from '@/types/components/SpriteComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
 
@@ -114,6 +115,19 @@ export function SpritePropertyPanel({ component, onChange }: Props) {
         <div className="text-xs text-muted-foreground">
           4方向: 行0=下, 行1=左, 行2=右, 行3=上
         </div>
+      )}
+
+      {/* アニメーションプレビュー */}
+      {component.imageId && component.frameWidth > 0 && component.frameHeight > 0 && (
+        <SpriteAnimPreview
+          imageId={component.imageId}
+          spriteMode={component.spriteMode}
+          frameWidth={component.frameWidth}
+          frameHeight={component.frameHeight}
+          animFrameCount={component.animFrameCount}
+          animIntervalMs={component.animIntervalMs}
+          animFramePattern={component.animFramePattern}
+        />
       )}
 
       {/* 反転・不透明度 */}
