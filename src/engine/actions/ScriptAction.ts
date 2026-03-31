@@ -1,5 +1,5 @@
 import type { GameContext } from '../runtime/GameContext';
-import { EventAction } from './EventAction';
+import { EventAction, type EventExecuteOptions } from './EventAction';
 
 /** 返り値の代入先 */
 export interface ScriptResultTarget {
@@ -20,11 +20,12 @@ export class ScriptAction extends EventAction {
 
   async execute(
     context: GameContext,
-    _run: (actions: EventAction[]) => Promise<void>
+    _run: (actions: EventAction[]) => Promise<void>,
+    options?: EventExecuteOptions
   ): Promise<void> {
     const script = context.scriptRunner.findById(this.scriptId);
     if (!script) return;
-    const result = context.scriptRunner.executeById(this.scriptId, context, this.args);
+    const result = context.scriptRunner.executeById(this.scriptId, context, this.args, options?.selfObject);
     const value = script.isAsync ? await result : result;
 
     // 返り値を変数に代入

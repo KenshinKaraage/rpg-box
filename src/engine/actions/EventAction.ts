@@ -6,6 +6,12 @@ import type { GameContext } from '../runtime/GameContext';
  * Each action type extends this to implement execute(), toJSON(), fromJSON().
  * Editor UI for actions lives separately in src/features/event-editor/.
  */
+/** イベント実行時のオプション（トリガー元オブジェクト等） */
+export interface EventExecuteOptions {
+  /** トリガー元オブジェクトの ObjectProxy */
+  selfObject?: unknown;
+}
+
 export abstract class EventAction {
   abstract readonly type: string;
 
@@ -13,10 +19,12 @@ export abstract class EventAction {
    * Execute the action.
    * @param context Game context (state & API access)
    * @param run Callback to execute child actions (for Conditional, Loop, etc.)
+   * @param options Optional: trigger object reference etc.
    */
   abstract execute(
     context: GameContext,
-    run: (actions: EventAction[]) => Promise<void>
+    run: (actions: EventAction[]) => Promise<void>,
+    options?: EventExecuteOptions
   ): Promise<void>;
 
   /** Serialize to JSON for saving */

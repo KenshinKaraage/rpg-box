@@ -28,6 +28,7 @@ const INJECTED_PARAM_NAMES = [
   'Map',
   'GameObject',
   'Tween',
+  'self_object',
   'currentEvent',
 ] as const;
 
@@ -47,7 +48,7 @@ export class ScriptRunner {
    *
    * isAsync scripts return Promise<unknown>, sync scripts return unknown directly.
    */
-  execute(script: Script, context: GameContext, argValues?: Record<string, unknown>): unknown {
+  execute(script: Script, context: GameContext, argValues?: Record<string, unknown>, selfObject?: unknown): unknown {
     const internalFns = this.resolveInternalScripts(script.id, context);
     const ns = this.getScriptNamespace(context);
     return this.compileAndRun(
@@ -56,7 +57,8 @@ export class ScriptRunner {
       ns,
       internalFns,
       script.args,
-      argValues
+      argValues,
+      selfObject
     );
   }
 
@@ -72,12 +74,12 @@ export class ScriptRunner {
   executeById(
     scriptId: string,
     context: GameContext,
-    argValues?: Record<string, unknown>
+    argValues?: Record<string, unknown>,
+    selfObject?: unknown
   ): unknown {
-    console.log(`[ScriptRunner] executeById: "${scriptId}", args=`, argValues);
     const script = this.findById(scriptId);
     if (!script) throw new Error(`Script "${scriptId}" not found`);
-    return this.execute(script, context, argValues);
+    return this.execute(script, context, argValues, selfObject);
   }
 
   /**
@@ -178,7 +180,8 @@ export class ScriptRunner {
     scriptNamespace: Record<string, (...args: unknown[]) => unknown>,
     internalFns: Record<string, (...args: unknown[]) => unknown>,
     scriptArgs?: ScriptArg[],
-    argValues?: Record<string, unknown> | unknown[]
+    argValues?: Record<string, unknown> | unknown[],
+    selfObject?: unknown
   ): unknown {
     const internalNames = Object.keys(internalFns);
 
@@ -216,6 +219,7 @@ export class ScriptRunner {
       context.map,
       context.object,
       context.tween,
+      selfObject ?? null,
       context.currentEvent,
       ...internalNames.map((name) => internalFns[name]),
       ...argParamValues,

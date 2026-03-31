@@ -1,5 +1,5 @@
 import type { GameContext } from '../runtime/GameContext';
-import type { EventAction } from '../actions/EventAction';
+import type { EventAction, EventExecuteOptions } from '../actions/EventAction';
 import type { ScriptAction } from '../actions/ScriptAction';
 
 const MAX_ITERATIONS = 100_000;
@@ -10,12 +10,13 @@ export class EventRunner {
   /**
    * Run actions sequentially.
    * @param parentNextAction The next action after this block ends (from parent scope).
-   *   Used to populate context.currentEvent.nextAction for the last action in a block.
+   * @param options Optional: trigger object reference etc. Passed to every action.
    */
   async run(
     actions: EventAction[],
     context: GameContext,
-    parentNextAction: EventAction | null = null
+    parentNextAction: EventAction | null = null,
+    options?: EventExecuteOptions
   ): Promise<void> {
     for (let i = 0; i < actions.length; i++) {
       this.iterationCount++;
@@ -30,9 +31,10 @@ export class EventRunner {
       const localNext = i + 1 < actions.length ? actions[i + 1]! : parentNextAction;
       context.setNextAction(summarizeAction(localNext));
 
-      // 子ブロック（Conditional/Loop）には localNext を伝播
+      // 子ブロック（Conditional/Loop）には localNext + options を伝播
       await actions[i]!.execute(context, (children) =>
-        this.run(children, context, localNext)
+        this.run(children, context, localNext, options),
+        options
       );
     }
   }

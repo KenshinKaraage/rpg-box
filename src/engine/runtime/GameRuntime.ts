@@ -345,11 +345,12 @@ export class GameRuntime {
         }
 
         // Check for local actions on the trigger component
+        const selfObjectProxy = this.createObjectProxyForRuntime(triggerResult.targetObject);
         const localActions = this.getLocalActionsFromTrigger(triggerResult.targetObject);
         if (localActions && localActions.length > 0) {
-          this.executeLocalActions(localActions);
+          this.executeLocalActions(localActions, selfObjectProxy);
         } else if (triggerResult.eventId) {
-          this.executeTriggeredEvent(triggerResult.eventId);
+          this.executeTriggeredEvent(triggerResult.eventId, selfObjectProxy);
         }
       }
     }
@@ -381,7 +382,7 @@ export class GameRuntime {
    * Find an event template by ID, deserialize its actions, and run them.
    * Runs asynchronously — the game loop continues (for waitFrames support).
    */
-  private executeTriggeredEvent(eventId: string): void {
+  private executeTriggeredEvent(eventId: string, selfObject?: unknown): void {
     const template = this.projectData.eventTemplates.find((t) => t.id === eventId);
     if (!template) {
       console.warn(`[GameRuntime] Event template not found: ${eventId}`);
@@ -409,7 +410,7 @@ export class GameRuntime {
     this.world.setEventRunning(true);
     const eventRunner = new EventRunner();
     eventRunner
-      .run(actions, this.context)
+      .run(actions, this.context, null, selfObject ? { selfObject } : undefined)
       .catch((err) => {
         console.error(`[GameRuntime] Event error (${eventId}):`, err);
       })
@@ -434,7 +435,7 @@ export class GameRuntime {
   }
 
   /** Execute locally-defined actions (not from a template). */
-  private executeLocalActions(rawActions: unknown[]): void {
+  private executeLocalActions(rawActions: unknown[], selfObject?: unknown): void {
     if (!this.context) {
       console.error('[GameRuntime] GameContext not initialized');
       return;
@@ -453,7 +454,7 @@ export class GameRuntime {
     this.world.setEventRunning(true);
     const eventRunner = new EventRunner();
     eventRunner
-      .run(actions, this.context)
+      .run(actions, this.context, null, selfObject ? { selfObject } : undefined)
       .catch((err) => {
         console.error('[GameRuntime] Local event error:', err);
       })
@@ -479,6 +480,45 @@ export class GameRuntime {
         player.pixelY = y * TILE_SIZE;
       }
     });
+  }
+
+  /** RuntimeObject から ObjectProxy を作成 */
+  private createObjectProxyForRuntime(obj: import('./GameWorld').RuntimeObject): import('./GameContext').ObjectProxy {
+    return this.wrapRuntimeObject(obj);
+  }
+
+  private wrapRuntimeObject(obj: import('./GameWorld').RuntimeObject): import('./GameContext').ObjectProxy {
+    const world = this.world;
+    const TILE_SIZE = 32;
+    return {
+      id: obj.id,
+      name: obj.name,
+      getPosition: () => ({ x: obj.gridX, y: obj.gridY }),
+      setPosition: (x, y) => {
+        obj.gridX = x;
+        obj.gridY = y;
+        obj.pixelX = x * TILE_SIZE;
+        obj.pixelY = y * TILE_SIZE;
+        obj.isMoving = false;
+        obj.moveProgress = 0;
+      },
+      getFacing: () => obj.facing,
+      setFacing: (dir) => { obj.facing = dir as import('./GameWorld').Direction; },
+      isMoving: () => obj.isMoving,
+      getComponent: (type) => {
+        const comp = obj.components[type];
+        return comp ? { ...comp } : null;
+      },
+      setComponent: (type, data) => {
+        if (!obj.components[type]) obj.components[type] = {};
+        Object.assign(obj.components[type]!, data);
+      },
+      setVisible: (visible) => {
+        if (!obj.components['sprite']) obj.components['sprite'] = {};
+        obj.components['sprite']!.opacity = visible ? 1 : 0;
+      },
+      destroy: () => { world.removeObject(obj.id); },
+    };
   }
 
   private createObjectAPI(): import('./GameContext').ObjectAPI {
