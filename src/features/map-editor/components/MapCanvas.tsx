@@ -59,6 +59,8 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     const { tx, ty } = screenToTile(sx, sy, viewport, TILE_SIZE);
     const obj = objPlacement.getObjectAtTile(tx, ty);
     if (!obj) return;
+    // ドラッグをキャンセル
+    objPlacement.handleMouseUp();
     setEventModalObject(obj);
     setEventModalOpen(true);
   }, [isObjectLayer, selectedLayerId, viewport, objPlacement]);
@@ -126,7 +128,10 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
         <EventEditorModal
           key={eventModalObject.id}
           open={eventModalOpen}
-          onOpenChange={setEventModalOpen}
+          onOpenChange={(open) => {
+            setEventModalOpen(open);
+            if (!open) setEventModalObject(null);
+          }}
           object={eventModalObject}
           onSave={handleEventSave}
         />
