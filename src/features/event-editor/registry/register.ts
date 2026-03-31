@@ -15,6 +15,7 @@ import { CallTemplateActionBlock } from '../components/blocks/CallTemplateAction
 import { MapActionBlock } from '../components/blocks/MapActionBlock';
 import { ObjectActionBlock } from '../components/blocks/ObjectActionBlock';
 import { LogActionBlock } from '../components/blocks/LogActionBlock';
+import { SwitchActionBlock } from '../components/blocks/SwitchActionBlock';
 
 // ロジック
 registerActionBlock({
@@ -36,6 +37,13 @@ registerActionBlock({
   label: 'ループ',
   category: 'logic',
   BlockComponent: LoopActionBlock,
+});
+
+registerActionBlock({
+  type: 'switch',
+  label: 'スイッチ',
+  category: 'logic',
+  BlockComponent: SwitchActionBlock,
 });
 
 // 基礎

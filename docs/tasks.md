@@ -3570,7 +3570,7 @@ export function useAutoSave() {
 
 #### [T122l] [P] Implement SwitchAction
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 

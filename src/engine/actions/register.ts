@@ -10,6 +10,7 @@ import { WaitAction } from './WaitAction';
 import { ObjectAction } from './ObjectAction';
 import { MapAction } from './MapAction';
 import { LogAction } from './LogAction';
+import { SwitchAction } from './SwitchAction';
 
 registerAction('variableOp', VariableOpAction);
 registerAction('conditional', ConditionalAction);
@@ -22,3 +23,4 @@ registerAction('wait', WaitAction);
 registerAction('object', ObjectAction);
 registerAction('map', MapAction);
 registerAction('log', LogAction);
+registerAction('switch', SwitchAction);
