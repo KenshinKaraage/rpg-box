@@ -8,7 +8,6 @@ import { TILE_SIZE } from '../utils/constants';
 import { generateId } from '@/lib/utils';
 import { TransformComponent } from '@/types/components/TransformComponent';
 import type { MapObject } from '@/types/map';
-import type { Component } from '@/types/components/Component';
 
 /**
  * オブジェクト配置・選択・移動・削除を処理するフック。
@@ -67,63 +66,51 @@ export function useObjectPlacement(mapId: string, layerId: string) {
       if (!map) return;
       if (tx < 0 || tx >= map.width || ty < 0 || ty >= map.height) return;
 
-      // 選択ツール: オブジェクト選択 + ドラッグ開始（最優先）
-      if (currentTool === 'select') {
-        const obj = getObjectAtTile(tx, ty);
-        if (obj) {
-          selectObject(obj.id);
-          dragRef.current = {
-            objectId: obj.id,
-            startGridX: tx,
-            startGridY: ty,
+      switch (currentTool) {
+        case 'select': {
+          const obj = getObjectAtTile(tx, ty);
+          if (obj) {
+            selectObject(obj.id);
+            dragRef.current = { objectId: obj.id, startGridX: tx, startGridY: ty };
+          } else {
+            selectObject(null);
+            dragRef.current = null;
+          }
+          break;
+        }
+        case 'eraser': {
+          const obj = getObjectAtTile(tx, ty);
+          if (obj) {
+            deleteObject(mapId, layerId, obj.id);
+            pushUndo({ type: 'deleteObject', mapId, layerId, object: obj });
+            if (selectedObjectId === obj.id) selectObject(null);
+          }
+          break;
+        }
+        case 'pen': {
+          const existingObj = getObjectAtTile(tx, ty);
+          if (existingObj) {
+            selectObject(existingObj.id);
+            break;
+          }
+          const prefabId = placementPrefabId || EMPTY_OBJECT_PREFAB_ID;
+          const isEmpty = prefabId === EMPTY_OBJECT_PREFAB_ID;
+          const layer = getLayer();
+          const existingIds = layer?.objects?.map((o) => o.id) ?? [];
+          const transform = new TransformComponent();
+          transform.x = tx;
+          transform.y = ty;
+          const newObj: MapObject = {
+            id: generateId('obj', existingIds),
+            name: 'オブジェクト',
+            prefabId: isEmpty ? undefined : prefabId,
+            components: [transform],
           };
-        } else {
-          selectObject(null);
-          dragRef.current = null;
+          addObject(mapId, layerId, newObj);
+          pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
+          selectObject(newObj.id);
+          break;
         }
-        return;
-      }
-
-      // 消しゴム: そのタイルのオブジェクトを削除
-      if (currentTool === 'eraser') {
-        const obj = getObjectAtTile(tx, ty);
-        if (obj) {
-          deleteObject(mapId, layerId, obj.id);
-          pushUndo({ type: 'deleteObject', mapId, layerId, object: obj });
-          if (selectedObjectId === obj.id) selectObject(null);
-        }
-        return;
-      }
-
-      // ペン: 空なら配置、既存なら選択
-      if (currentTool === 'pen') {
-        const existingObj = getObjectAtTile(tx, ty);
-        if (existingObj) {
-          selectObject(existingObj.id);
-          return;
-        }
-
-        const prefabId = placementPrefabId || EMPTY_OBJECT_PREFAB_ID;
-        const isEmpty = prefabId === EMPTY_OBJECT_PREFAB_ID;
-        const layer = getLayer();
-        const existingIds = layer?.objects?.map((o) => o.id) ?? [];
-
-        const transform = new TransformComponent();
-        transform.x = tx;
-        transform.y = ty;
-
-        const components: Component[] = [transform];
-
-        const newObj: MapObject = {
-          id: generateId('obj', existingIds),
-          name: 'オブジェクト',
-          prefabId: isEmpty ? undefined : prefabId,
-          components,
-        };
-
-        addObject(mapId, layerId, newObj);
-        pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
-        selectObject(newObj.id);
       }
     },
     [
