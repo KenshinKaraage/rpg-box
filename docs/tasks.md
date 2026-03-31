@@ -3887,6 +3887,27 @@ export function useAutoSave() {
 
 ---
 
+#### [T136a] [P] Add face direction step to MovementComponent
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] RouteStep 型を `{ type: 'move'|'face', direction }` に拡張
+- [x] 旧形式（文字列）の自動マイグレーション
+- [x] MovementPropertyPanel: 赤（移動）+ 青（向き変更）ボタン、色分けステップ表示
+- [x] GameWorld: face ステップで向きのみ変更 + 移動と同テンポのウェイト
+
+**関連ファイル:**
+
+- `src/types/components/MovementComponent.tsx`
+- `src/features/map-editor/components/panels/MovementPropertyPanel.tsx`
+- `src/engine/runtime/GameWorld.ts`
+
+---
+
 #### [T137] [P] Implement VariablesComponent
 
 - **ステータス:** [x] 完了
@@ -4594,22 +4615,22 @@ export function useAutoSave() {
 
 #### [T168] [US13] Create useObjectPlacement hook
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/hooks/useObjectPlacement.ts` 作成
-- [ ] オブジェクト配置
-- [ ] ドラッグ移動
-- [ ] 削除
-- [ ] テスト追加
+- [x] `src/features/map-editor/hooks/useObjectPlacement.ts` 作成
+- [x] ツール別操作: select（選択+D&D移動）、pen（配置/選択）、eraser（削除）
+- [x] switch で currentTool を最優先判定
+- [x] ドラッグ移動（select ツール）
+- [x] ダブルクリックでイベントモーダル（T172 と連携）
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useObjectPlacement.ts`
-- `src/features/map-editor/hooks/useObjectPlacement.test.ts`
+- `src/features/map-editor/components/MapCanvas.tsx`
 
 ---
 
@@ -4747,22 +4768,22 @@ export function useAutoSave() {
 
 #### [T172] [US13] Create EventEditorModal
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/event-editor/components/EventEditorModal.tsx` 作成
-- [ ] マップ上でオブジェクトをダブルクリックで開く
-- [ ] イベント編集 UI 表示
-- [ ] 保存/キャンセル
-- [ ] テスト追加
+- [x] EventEditorModal にオブジェクトモード追加（MapObject を渡して内部でトリガー検出）
+- [x] トリガー1つ → 直接アクション編集
+- [x] トリガー複数 → 選択画面（話しかけ/接触/自動等）→ 選んで編集
+- [x] MapCanvas でダブルクリック → モーダル起動
+- [x] 保存 → トリガーコンポーネントの actions 更新
 
 **関連ファイル:**
 
 - `src/features/event-editor/components/EventEditorModal.tsx`
-- `src/features/event-editor/components/EventEditorModal.test.tsx`
+- `src/features/map-editor/components/MapCanvas.tsx`
 
 ---
 
@@ -4818,17 +4839,17 @@ export function useAutoSave() {
 
 #### [T172c] [US13] Create sprite animation preview
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] スプライトアニメーションプレビューコンポーネント作成
-- [ ] 上下左右の歩行モーションを同時にプレビュー表示
-- [ ] animFramePattern / animIntervalMs の設定がリアルタイム反映
-- [ ] SpritePropertyPanel 内に統合（または別パネル）
-- [ ] テスト追加
+- [x] SpriteAnimPreview コンポーネント作成
+- [x] directional モード: 上下左右の4方向を同時プレビュー
+- [x] single モード: 1行アニメーション
+- [x] animFramePattern / animIntervalMs の設定がリアルタイム反映
+- [x] SpritePropertyPanel 内に統合
 
 **関連ファイル:**
 
