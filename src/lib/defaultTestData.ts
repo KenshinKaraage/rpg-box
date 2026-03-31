@@ -223,8 +223,12 @@ text = text.replace(/\\{obj:([^:}]+):([^}]+)\\}/g, (_, objName, varName) => {
   // "self" はトリガー元オブジェクト
   const obj = objName === "self" ? self_object : GameObject.find(objName);
   if (!obj) return "";
-  const vars = obj.getComponent("variables");
-  return vars ? String(vars[varName] ?? "") : "";
+  const comp = obj.getComponent("variables");
+  if (!comp || !comp.variables) return "";
+  const entry = comp.variables[varName];
+  // 新形式 { fieldType, value } か旧形式（直値）か
+  if (entry && typeof entry === "object" && "value" in entry) return String(entry.value ?? "");
+  return String(entry ?? "");
 }).replace(/\\{([^:}]+)\\}/g, (_, name) => String(Variable[name] ?? ""));
 
 // 顔グラの有無でテキストレイアウトを切り替え
