@@ -3568,6 +3568,32 @@ export function useAutoSave() {
 
 ---
 
+#### [T122l] [P] Implement SwitchAction
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `src/engine/actions/SwitchAction.ts` 作成
+  - 変数（ゲーム変数 / オブジェクト変数）の値で多分岐
+  - `cases: { value: unknown, actions: EventAction[] }[]` + `defaultActions: EventAction[]`
+- [ ] レジストリに登録
+- [ ] `SwitchActionBlock.tsx` エディタ UI 作成
+  - 対象変数のスコープ選択（ゲーム / オブジェクト）
+  - ケース追加/削除
+  - 各ケースのアクションブロック編集
+  - デフォルトケース
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/engine/actions/SwitchAction.ts`
+- `src/features/event-editor/components/blocks/SwitchActionBlock.tsx`
+
+---
+
 ## Phase 9: スクリプトエディタ（大）
 
 ### US10: スクリプトページ
