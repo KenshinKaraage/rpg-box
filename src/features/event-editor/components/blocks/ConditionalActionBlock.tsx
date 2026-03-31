@@ -113,13 +113,15 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
     onChange(updated);
   };
 
-  const handleLeftTypeChange = (operandType: string) => {
+  const handleLeftScopeChange = (scope: string) => {
     const newLeft: ConditionOperand =
-      operandType === 'variable'
-        ? { type: 'variable', variableId: '' }
-        : { type: 'literal', value: 0 };
+      scope === 'object'
+        ? { type: 'objectVariable', objectName: '', variableName: '' }
+        : { type: 'variable', variableId: '' };
     handleConditionChange({ left: newLeft });
   };
+
+  // handleLeftTypeChange は削除済み（左辺は常に変数）
 
   const handleRightTypeChange = (operandType: string) => {
     const newRight: ConditionOperand =
@@ -137,12 +139,7 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
     handleConditionChange({ right: { type: 'variable', variableId } });
   };
 
-  const handleLeftLiteralChange = (valueStr: string) => {
-    const num = parseFloat(valueStr);
-    handleConditionChange({
-      left: { type: 'literal', value: isNaN(num) ? valueStr : num },
-    });
-  };
+  // handleLeftLiteralChange は削除済み（左辺は常に変数）
 
   const handleRightLiteralChange = (valueStr: string) => {
     const num = parseFloat(valueStr);
@@ -174,34 +171,45 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
 
       {/* Condition row */}
       <div className="mt-2 space-y-2">
-        {/* Left operand */}
+        {/* Left operand: always a variable (game or object) */}
         <div className="flex items-center gap-2">
-          <Select value={condAction.condition.left.type} onValueChange={handleLeftTypeChange}>
-            <SelectTrigger className="w-20" data-testid="left-type-select">
+          <Select
+            value={condAction.condition.left.type === 'objectVariable' ? 'object' : 'game'}
+            onValueChange={handleLeftScopeChange}
+          >
+            <SelectTrigger className="w-24" data-testid="left-scope-select">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {OPERAND_TYPES.map((ot) => (
-                <SelectItem key={ot.value} value={ot.value}>
-                  {ot.label}
-                </SelectItem>
-              ))}
+              <SelectItem value="game">ゲーム変数</SelectItem>
+              <SelectItem value="object">OBJ変数</SelectItem>
             </SelectContent>
           </Select>
-          {condAction.condition.left.type === 'variable' ? (
+          {condAction.condition.left.type === 'objectVariable' ? (
+            <>
+              <Input
+                className="h-7 w-20 text-xs"
+                placeholder="OBJ名"
+                value={condAction.condition.left.objectName}
+                onChange={(e) => handleConditionChange({
+                  left: { ...condAction.condition.left, objectName: e.target.value } as ConditionOperand,
+                })}
+              />
+              <Input
+                className="h-7 flex-1 text-xs"
+                placeholder="変数名"
+                value={condAction.condition.left.variableName}
+                onChange={(e) => handleConditionChange({
+                  left: { ...condAction.condition.left, variableName: e.target.value } as ConditionOperand,
+                })}
+              />
+            </>
+          ) : (
             <VariableSelect
-              value={condAction.condition.left.variableId}
+              value={condAction.condition.left.type === 'variable' ? condAction.condition.left.variableId : ''}
               variables={leftVariables}
               onValueChange={handleLeftVariableChange}
               testId="left-variable-select"
-            />
-          ) : (
-            <Input
-              value={String(condAction.condition.left.type === 'literal' ? condAction.condition.left.value ?? '' : '')}
-              onChange={(e) => handleLeftLiteralChange(e.target.value)}
-              placeholder="値"
-              className="flex-1"
-              data-testid="left-literal-input"
             />
           )}
         </div>
