@@ -24,7 +24,7 @@ const DIR_ARROW = { up: '↑', down: '↓', left: '←', right: '→' };
 const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
 
 function stepLabel(step: RouteStep): string {
-  return `${step.type === 'face' ? '👁' : ''}${DIR_ARROW[step.direction]}`;
+  return DIR_ARROW[step.direction];
 }
 
 export function MovementPropertyPanel({ component, onChange }: Props) {
