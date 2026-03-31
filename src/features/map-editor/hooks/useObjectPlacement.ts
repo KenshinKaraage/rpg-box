@@ -67,6 +67,23 @@ export function useObjectPlacement(mapId: string, layerId: string) {
       if (!map) return;
       if (tx < 0 || tx >= map.width || ty < 0 || ty >= map.height) return;
 
+      // 選択ツール: オブジェクト選択 + ドラッグ開始（最優先）
+      if (currentTool === 'select') {
+        const obj = getObjectAtTile(tx, ty);
+        if (obj) {
+          selectObject(obj.id);
+          dragRef.current = {
+            objectId: obj.id,
+            startGridX: tx,
+            startGridY: ty,
+          };
+        } else {
+          selectObject(null);
+          dragRef.current = null;
+        }
+        return;
+      }
+
       // 消しゴム: そのタイルのオブジェクトを削除
       if (currentTool === 'eraser') {
         const obj = getObjectAtTile(tx, ty);
@@ -79,14 +96,13 @@ export function useObjectPlacement(mapId: string, layerId: string) {
       }
 
       // ペン: 空なら配置、既存なら選択
-      if (currentTool === 'pen' || placementPrefabId) {
+      if (currentTool === 'pen') {
         const existingObj = getObjectAtTile(tx, ty);
         if (existingObj) {
           selectObject(existingObj.id);
           return;
         }
 
-        // プレハブ未選択時は空オブジェクトを配置
         const prefabId = placementPrefabId || EMPTY_OBJECT_PREFAB_ID;
         const isEmpty = prefabId === EMPTY_OBJECT_PREFAB_ID;
         const layer = getLayer();
@@ -108,23 +124,6 @@ export function useObjectPlacement(mapId: string, layerId: string) {
         addObject(mapId, layerId, newObj);
         pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
         selectObject(newObj.id);
-        return;
-      }
-
-      // 選択ツール: オブジェクト選択 + ドラッグ開始
-      if (currentTool === 'select') {
-        const obj = getObjectAtTile(tx, ty);
-        if (obj) {
-          selectObject(obj.id);
-          dragRef.current = {
-            objectId: obj.id,
-            startGridX: tx,
-            startGridY: ty,
-          };
-        } else {
-          selectObject(null);
-          dragRef.current = null;
-        }
       }
     },
     [
