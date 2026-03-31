@@ -214,7 +214,18 @@ const messageScript: Script = {
   name: 'メッセージ',
   callId: 'message',
   type: 'event',
-  content: `// 顔グラの有無でテキストレイアウトを切り替え
+  content: `// テキスト内変数展開（イベントブロックから固定テキストで渡された場合に便利）
+// {変数名}          → ゲーム変数 Variable["変数名"]
+// {obj:OBJ名:変数名} → オブジェクト変数（VariablesComponent）
+// スクリプトから呼ぶ場合は文字列結合で直接値を埋められるので不要
+text = text.replace(/\\{obj:([^:}]+):([^}]+)\\}/g, (_, objName, varName) => {
+  const obj = GameObject.find(objName);
+  if (!obj) return "";
+  const vars = obj.getComponent("variables");
+  return vars ? String(vars[varName] ?? "") : "";
+}).replace(/\\{([^:}]+)\\}/g, (_, name) => String(Variable[name] ?? ""));
+
+// 顔グラの有無でテキストレイアウトを切り替え
 const hasFace = face && face !== "";
 const textObj = UI["message"].getObject("textLabel");
 const faceObj = UI["message"].getObject("faceImage");
@@ -1545,17 +1556,20 @@ function createFortunetellerObject(x: number, y: number, resolveAssetId: AssetNa
   const switchAction = new SwitchAction();
   switchAction.operand = { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' };
 
+  // メッセージに変数展開を使用:
+  // {obj:占い師:talk_count} → オブジェクト変数 talk_count の値
+  // {gold} → ゲーム変数 gold の値
   const msg0 = new ScriptAction();
   msg0.scriptId = 'message';
-  msg0.args = { text: 'あなたは「剣士」を選びましたね。', face: '' };
+  msg0.args = { text: 'あなたは「剣士」を選びましたね。（{obj:占い師:talk_count}回目, 所持金:{gold}G）', face: '' };
 
   const msg1 = new ScriptAction();
   msg1.scriptId = 'message';
-  msg1.args = { text: 'あなたは「魔法使い」を選びましたね。', face: '' };
+  msg1.args = { text: 'あなたは「魔法使い」を選びましたね。（{obj:占い師:talk_count}回目）', face: '' };
 
   const msg2 = new ScriptAction();
   msg2.scriptId = 'message';
-  msg2.args = { text: 'あなたは「盗賊」を選びましたね。', face: '' };
+  msg2.args = { text: 'あなたは「盗賊」を選びましたね。（{obj:占い師:talk_count}回目）', face: '' };
 
   switchAction.cases = [
     { value: 0, actions: [msg0] },
