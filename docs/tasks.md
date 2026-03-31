@@ -3571,26 +3571,22 @@ export function useAutoSave() {
 #### [T122l] [P] Implement SwitchAction
 
 - **ステータス:** [x] 完了
-- **ブランチ:** -
+- **ブランチ:** main
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/engine/actions/SwitchAction.ts` 作成
-  - 変数（ゲーム変数 / オブジェクト変数）の値で多分岐
-  - `cases: { value: unknown, actions: EventAction[] }[]` + `defaultActions: EventAction[]`
-- [ ] レジストリに登録
-- [ ] `SwitchActionBlock.tsx` エディタ UI 作成
-  - 対象変数のスコープ選択（ゲーム / オブジェクト）
-  - ケース追加/削除
-  - 各ケースのアクションブロック編集
-  - デフォルトケース
-- [ ] テスト追加
+- [x] `src/engine/actions/SwitchAction.ts` 作成（変数の値で多分岐、ゲーム/オブジェクト変数対応）
+- [x] レジストリに登録
+- [x] `SwitchActionBlock.tsx` エディタ UI 作成（スコープ選択、ケース追加/削除、デフォルト）
+- [x] テストデータ（占い師NPC）で動作確認
 
 **関連ファイル:**
 
 - `src/engine/actions/SwitchAction.ts`
 - `src/features/event-editor/components/blocks/SwitchActionBlock.tsx`
+- `src/features/event-editor/registry/register.ts`
+- `src/engine/actions/register.ts`
 
 ---
 
@@ -5089,11 +5085,25 @@ export function useAutoSave() {
 
 ---
 
-#### [T185] InputFieldComponent — 後回し
+#### [T185] InputFieldComponent
 
-- **ステータス:** [ ] 後回し
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
 
-**備考:** ゲーム内テキスト入力は MVP 外。必要になったフェーズで実装
+**完了条件:**
+
+- [x] `InputFieldComponent` (UIComponent): activate/result パターン
+- [x] `inputFieldRenderer.ts`: Canvas2D measureText でカーソル位置計算、2px 矩形描画
+- [x] 隠し `<input>` 要素による IME 対応テキスト入力
+- [x] InputManager: getTextValue/getTextCursorPos/startTextInput/stopTextInput/isTextConfirmed/isTextCancelled
+- [x] レジストリ登録（UIComponent + レンダラー）
+
+**関連ファイル:**
+
+- `src/types/ui/components/InputFieldComponent.ts`
+- `src/features/ui-editor/renderer/inputFieldRenderer.ts`
+- `src/engine/runtime/InputManager.ts`
 
 ---
 
@@ -6375,6 +6385,97 @@ export function useAutoSave() {
 
 **関連ファイル:**
 
+- `src/lib/defaultTestData.ts`
+
+---
+
+#### [T224i] ScriptActionBlock array arg UI
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] `isArray: true` の引数をリスト形式で表示（追加/削除/各項目入力）
+
+**関連ファイル:**
+
+- `src/features/event-editor/components/blocks/ScriptActionBlock.tsx`
+
+---
+
+#### [T224j] VariablesComponent typed variables + editor UI
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] `VariablesComponent.variables` を `Record<string, ObjectVariable>` に変更
+- [x] `ObjectVariable = { fieldType, value, classId? }`（number/string/boolean/class）
+- [x] VariablesPropertyPanel: 変数追加/編集/削除/型選択 UI
+- [x] 旧形式（直値）の自動マイグレーション
+
+**関連ファイル:**
+
+- `src/types/components/VariablesComponent.tsx`
+- `src/features/map-editor/components/panels/VariablesPropertyPanel.tsx`
+
+---
+
+#### [T224k] Object variable support in event blocks
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] GameContext: getObjectVariable/setObjectVariable コールバック
+- [x] ConditionalAction: `objectVariable` オペランド（objectName + variableName）
+- [x] VariableOpAction: `target: { scope: 'object', objectName }`
+- [x] ScriptAction: `resultTarget: { type: 'object', objectName, variableName }`
+- [x] エディタ UI: 全ブロックにオブジェクト変数ドロップダウン
+- [x] 条件分岐ブロック: 左辺は常に変数（ゲーム/オブジェクト選択）
+
+**関連ファイル:**
+
+- `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameRuntime.ts`
+- `src/engine/actions/ConditionalAction.ts`
+- `src/engine/actions/VariableOpAction.ts`
+- `src/engine/actions/ScriptAction.ts`
+- `src/features/event-editor/components/blocks/ConditionalActionBlock.tsx`
+- `src/features/event-editor/components/blocks/VariableOpActionBlock.tsx`
+- `src/features/event-editor/components/blocks/ScriptActionBlock.tsx`
+
+---
+
+#### [T224l] self_object injection + message variable embedding
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] EventExecuteOptions { selfObject } を EventAction.execute 第3引数に追加
+- [x] EventRunner → ScriptAction → ScriptRunner に selfObject を伝播
+- [x] ScriptRunner: `self_object` を INJECTED_PARAM_NAMES に追加
+- [x] ObjectProxyFactory: RuntimeObject → ObjectProxy 変換を一元化
+- [x] メッセージスクリプト: `{変数名}`, `{obj:OBJ名:変数名}`, `{obj:self:変数名}` 展開
+- [x] 占い師テストNPC: SwitchAction + VariablesComponent + self_object
+
+**関連ファイル:**
+
+- `src/engine/actions/EventAction.ts`
+- `src/engine/event/EventRunner.ts`
+- `src/engine/actions/ScriptAction.ts`
+- `src/engine/core/ScriptRunner.ts`
+- `src/engine/runtime/ObjectProxyFactory.ts`
+- `src/engine/runtime/GameRuntime.ts`
 - `src/lib/defaultTestData.ts`
 
 ---
