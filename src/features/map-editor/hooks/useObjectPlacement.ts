@@ -55,7 +55,11 @@ export function useObjectPlacement(mapId: string, layerId: string) {
     [getLayer]
   );
 
-  /** mousedown: 配置 or 選択+ドラッグ開始 */
+  /** mousedown: ツールに応じた操作
+   * - 消しゴム: そのタイルのオブジェクトを削除
+   * - ペン: 空なら配置、既存なら選択
+   * - 選択: 選択 + ドラッグ開始
+   */
   const handleMouseDown = useCallback(
     (screenX: number, screenY: number) => {
       const { tx, ty } = screenToTile(screenX, screenY, viewport, TILE_SIZE);
@@ -63,16 +67,28 @@ export function useObjectPlacement(mapId: string, layerId: string) {
       if (!map) return;
       if (tx < 0 || tx >= map.width || ty < 0 || ty >= map.height) return;
 
-      // 配置モード: プレハブが選択されている場合
-      if (placementPrefabId) {
-        // 同じ位置にオブジェクトが既にある場合は選択のみ
+      // 消しゴム: そのタイルのオブジェクトを削除
+      if (currentTool === 'eraser') {
+        const obj = getObjectAtTile(tx, ty);
+        if (obj) {
+          deleteObject(mapId, layerId, obj.id);
+          pushUndo({ type: 'deleteObject', mapId, layerId, object: obj });
+          if (selectedObjectId === obj.id) selectObject(null);
+        }
+        return;
+      }
+
+      // ペン: 空なら配置、既存なら選択
+      if (currentTool === 'pen' || placementPrefabId) {
         const existingObj = getObjectAtTile(tx, ty);
         if (existingObj) {
           selectObject(existingObj.id);
           return;
         }
 
-        const isEmpty = placementPrefabId === EMPTY_OBJECT_PREFAB_ID;
+        // プレハブ未選択時は空オブジェクトを配置
+        const prefabId = placementPrefabId || EMPTY_OBJECT_PREFAB_ID;
+        const isEmpty = prefabId === EMPTY_OBJECT_PREFAB_ID;
         const layer = getLayer();
         const existingIds = layer?.objects?.map((o) => o.id) ?? [];
 
@@ -84,20 +100,18 @@ export function useObjectPlacement(mapId: string, layerId: string) {
 
         const newObj: MapObject = {
           id: generateId('obj', existingIds),
-          name: isEmpty ? 'オブジェクト' : 'オブジェクト',
-          prefabId: isEmpty ? undefined : placementPrefabId,
+          name: 'オブジェクト',
+          prefabId: isEmpty ? undefined : prefabId,
           components,
         };
 
-        console.log('[ObjectPlacement] placing object:', { newObj, mapId, layerId });
         addObject(mapId, layerId, newObj);
         pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
         selectObject(newObj.id);
-        console.log('[ObjectPlacement] object placed and selected:', newObj.id);
         return;
       }
 
-      // selectツール: オブジェクト選択 + ドラッグ開始
+      // 選択ツール: オブジェクト選択 + ドラッグ開始
       if (currentTool === 'select') {
         const obj = getObjectAtTile(tx, ty);
         if (obj) {
