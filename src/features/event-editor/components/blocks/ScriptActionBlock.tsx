@@ -127,28 +127,27 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
                   <SelectItem value="object">オブジェクト変数</SelectItem>
                 </SelectContent>
               </Select>
+              {scriptAction.resultTarget?.type === 'object' && (
+                <Input
+                  className="h-6 w-24 text-[10px]"
+                  placeholder="オブジェクト名"
+                  value={scriptAction.resultTarget.objectName ?? ''}
+                  onChange={(e) => handleResultTargetChange({
+                    ...scriptAction.resultTarget!,
+                    objectName: e.target.value,
+                  })}
+                />
+              )}
               {scriptAction.resultTarget && (
-                <Select
-                  value={scriptAction.resultTarget.variableName || '__none__'}
-                  onValueChange={(v) => {
-                    handleResultTargetChange({
-                      ...scriptAction.resultTarget!,
-                      variableName: v === '__none__' ? '' : v,
-                    });
-                  }}
-                >
-                  <SelectTrigger className="h-6 flex-1 text-[10px]">
-                    <SelectValue placeholder="変数を選択..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">（選択なし）</SelectItem>
-                    {scriptAction.resultTarget.type === 'game' &&
-                      variables.map((v) => (
-                        <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>
-                      ))
-                    }
-                  </SelectContent>
-                </Select>
+                <Input
+                  className="h-6 flex-1 text-[10px]"
+                  placeholder="変数名"
+                  value={scriptAction.resultTarget.variableName ?? ''}
+                  onChange={(e) => handleResultTargetChange({
+                    ...scriptAction.resultTarget!,
+                    variableName: e.target.value,
+                  })}
+                />
               )}
             </div>
           </div>
