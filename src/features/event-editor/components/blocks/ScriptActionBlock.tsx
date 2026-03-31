@@ -1,6 +1,6 @@
 'use client';
 
-import { Trash2 } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -97,6 +97,10 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
 
 /** 引数1行: ラベル + fieldType に応じた入力UI */
 function ArgFieldRow({ arg, value, onChange }: { arg: ScriptArg; value: unknown; onChange: (v: unknown) => void }) {
+  if (arg.isArray) {
+    return <ArrayArgField arg={arg} value={value} onChange={onChange} />;
+  }
+
   const Renderer = getArgField(arg.fieldType);
 
   return (
@@ -113,6 +117,61 @@ function ArgFieldRow({ arg, value, onChange }: { arg: ScriptArg; value: unknown;
           value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
         />
+      )}
+    </div>
+  );
+}
+
+/** 配列引数: リスト形式で追加/削除 */
+function ArrayArgField({ arg, value, onChange }: { arg: ScriptArg; value: unknown; onChange: (v: unknown) => void }) {
+  const items = Array.isArray(value) ? value : [];
+  const Renderer = getArgField(arg.fieldType);
+
+  const handleAdd = () => {
+    const defaultVal = arg.fieldType === 'number' ? 0 : arg.fieldType === 'boolean' ? false : '';
+    onChange([...items, defaultVal]);
+  };
+
+  const handleRemove = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  const handleItemChange = (index: number, v: unknown) => {
+    const updated = [...items];
+    updated[index] = v;
+    onChange(updated);
+  };
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <Label className="truncate text-[10px]" title={`${arg.name} (${arg.fieldType}[])`}>
+          {arg.name}[]
+        </Label>
+        <Button size="sm" variant="ghost" className="h-5 px-1" onClick={handleAdd}>
+          <Plus className="h-3 w-3" />
+        </Button>
+      </div>
+      {items.map((item, i) => (
+        <div key={i} className="flex items-center gap-1 pl-2">
+          <span className="w-4 shrink-0 text-right text-[9px] text-muted-foreground">{i}</span>
+          {Renderer ? (
+            <Renderer value={item} onChange={(v: unknown) => handleItemChange(i, v)} placeholder={arg.fieldType} />
+          ) : (
+            <Input
+              className="h-6 flex-1 text-[10px]"
+              placeholder={arg.fieldType}
+              value={String(item ?? '')}
+              onChange={(e) => handleItemChange(i, e.target.value)}
+            />
+          )}
+          <Button size="sm" variant="ghost" className="h-5 w-5 shrink-0 p-0" onClick={() => handleRemove(i)}>
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      ))}
+      {items.length === 0 && (
+        <div className="pl-2 text-[9px] text-muted-foreground">（空の配列）</div>
       )}
     </div>
   );
