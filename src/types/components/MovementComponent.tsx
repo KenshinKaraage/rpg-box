@@ -5,8 +5,18 @@ import { Component } from './Component';
 import type { ComponentPanelProps } from './Component';
 import { MovementPropertyPanel } from '@/features/map-editor/components/panels/MovementPropertyPanel';
 
-/** ルートの1ステップ（移動方向） */
-export type RouteStep = 'up' | 'down' | 'left' | 'right';
+/** ルートの1ステップ: 移動 or 向き変更 */
+export type RouteStep =
+  | { type: 'move'; direction: 'up' | 'down' | 'left' | 'right' }
+  | { type: 'face'; direction: 'up' | 'down' | 'left' | 'right' };
+
+/** 旧形式（文字列）との互換 */
+export function normalizeRouteStep(step: unknown): RouteStep {
+  if (typeof step === 'string') {
+    return { type: 'move', direction: step as 'up' | 'down' | 'left' | 'right' };
+  }
+  return step as RouteStep;
+}
 
 export class MovementComponent extends Component {
   readonly type = 'movement';
@@ -34,7 +44,7 @@ export class MovementComponent extends Component {
     this.pattern = (data.pattern as 'fixed' | 'random' | 'route') ?? 'fixed';
     this.speed = (data.speed as number) ?? 1;
     this.activeness = (data.activeness as number) ?? 3;
-    this.routeSteps = (data.routeSteps as RouteStep[]) ?? [];
+    this.routeSteps = ((data.routeSteps as unknown[]) ?? []).map(normalizeRouteStep);
     this.routeLoop = (data.routeLoop as boolean) ?? true;
   }
 

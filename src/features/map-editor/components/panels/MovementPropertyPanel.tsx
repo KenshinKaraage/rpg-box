@@ -19,19 +19,13 @@ interface Props extends ComponentPanelProps {
   component: MovementComponent;
 }
 
-const STEP_ICON: Record<RouteStep, typeof ArrowUp> = {
-  up: ArrowUp,
-  down: ArrowDown,
-  left: ArrowLeft,
-  right: ArrowRight,
-};
+const DIR_ICON = { up: ArrowUp, down: ArrowDown, left: ArrowLeft, right: ArrowRight };
+const DIR_ARROW = { up: '↑', down: '↓', left: '←', right: '→' };
+const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
 
-const STEP_LABEL: Record<RouteStep, string> = {
-  up: '↑',
-  down: '↓',
-  left: '←',
-  right: '→',
-};
+function stepLabel(step: RouteStep): string {
+  return `${step.type === 'face' ? '👁' : ''}${DIR_ARROW[step.direction]}`;
+}
 
 export function MovementPropertyPanel({ component, onChange }: Props) {
   const isRandom = component.pattern === 'random';
@@ -78,9 +72,7 @@ export function MovementPropertyPanel({ component, onChange }: Props) {
       {/* 活発さ（ランダム時のみ） */}
       {isRandom && (
         <div className="space-y-1">
-          <Label className="text-xs">
-            活発さ（{component.activeness}）
-          </Label>
+          <Label className="text-xs">活発さ（{component.activeness}）</Label>
           <input
             type="range"
             min={1}
@@ -101,36 +93,65 @@ export function MovementPropertyPanel({ component, onChange }: Props) {
         <div className="space-y-2">
           <Label className="text-xs">ルート</Label>
 
-          {/* 方向追加ボタン */}
-          <div className="flex gap-1">
-            {(['up', 'down', 'left', 'right'] as RouteStep[]).map((step) => {
-              const Icon = STEP_ICON[step];
-              return (
-                <Button
-                  key={step}
-                  variant="outline"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleAddStep(step)}
-                  aria-label={`${STEP_LABEL[step]}を追加`}
-                >
-                  <Icon className="h-4 w-4" />
-                </Button>
-              );
-            })}
+          {/* 移動追加ボタン（赤） */}
+          <div className="space-y-1">
+            <div className="text-[10px] text-red-400">移動</div>
+            <div className="flex gap-1">
+              {DIRECTIONS.map((dir) => {
+                const Icon = DIR_ICON[dir];
+                return (
+                  <Button
+                    key={`move-${dir}`}
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 border-red-400/50 text-red-400 hover:bg-red-400/10"
+                    onClick={() => handleAddStep({ type: 'move', direction: dir })}
+                    aria-label={`移動${DIR_ARROW[dir]}を追加`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 向き変更追加ボタン（青） */}
+          <div className="space-y-1">
+            <div className="text-[10px] text-blue-400">向き変更</div>
+            <div className="flex gap-1">
+              {DIRECTIONS.map((dir) => {
+                const Icon = DIR_ICON[dir];
+                return (
+                  <Button
+                    key={`face-${dir}`}
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 border-blue-400/50 text-blue-400 hover:bg-blue-400/10"
+                    onClick={() => handleAddStep({ type: 'face', direction: dir })}
+                    aria-label={`向き${DIR_ARROW[dir]}を追加`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </Button>
+                );
+              })}
+            </div>
           </div>
 
           {/* ステップ一覧 */}
           {component.routeSteps.length === 0 ? (
-            <div className="text-xs text-muted-foreground">矢印ボタンでルートを追加</div>
+            <div className="text-xs text-muted-foreground">ボタンでルートを追加</div>
           ) : (
             <div className="flex flex-wrap gap-1">
               {component.routeSteps.map((step, index) => (
                 <div
                   key={index}
-                  className="group flex items-center gap-0.5 rounded border bg-muted/50 px-1 py-0.5 text-xs"
+                  className={`group flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-xs ${
+                    step.type === 'move'
+                      ? 'border-red-400/50 bg-red-400/10 text-red-300'
+                      : 'border-blue-400/50 bg-blue-400/10 text-blue-300'
+                  }`}
                 >
-                  <span>{STEP_LABEL[step]}</span>
+                  <span>{stepLabel(step)}</span>
                   <button
                     className="hidden h-3 w-3 items-center justify-center group-hover:flex"
                     onClick={() => handleDeleteStep(index)}

@@ -55,6 +55,10 @@ export class GameWorld {
   private eventRunning = false;
   /** ルート移動の現在ステップインデックス（オブジェクトID → index） */
   private routeIndices = new Map<string, number>();
+  /** エフェクト再生の経過時間（オブジェクトID → elapsed ms） */
+  private effectTimers = new Map<string, number>();
+  /** 向き変更ウェイト（オブジェクトID → elapsed）。移動1歩分の時間が経つまで次のステップを待つ */
+  private faceWaitTimers = new Map<string, number>();
 
   loadMap(map: GameMap, chipsets: Chipset[], prefabs: Prefab[]): void {
     this.currentMap = map;
@@ -62,6 +66,7 @@ export class GameWorld {
     this.objects = [];
     this.activeController = null;
     this.routeIndices.clear();
+    this.faceWaitTimers.clear();
 
     for (const layer of map.layers) {
       if (layer.type !== 'object' || !layer.objects) continue;
@@ -88,6 +93,19 @@ export class GameWorld {
     const completions: { obj: RuntimeObject; fromX: number; fromY: number }[] = [];
 
     for (const obj of this.objects) {
+      // 向き変更ウェイト中: 移動1歩分の時間が経つまでスキップ
+      const faceWait = this.faceWaitTimers.get(obj.id);
+      if (faceWait !== undefined) {
+        const speed = (obj.components['movement']?.speed as number) ?? 1;
+        const moveTime = 1 / (speed * 4); // advanceMovement と同じ速度計算
+        const elapsed = faceWait + dt;
+        if (elapsed < moveTime) {
+          this.faceWaitTimers.set(obj.id, elapsed);
+          continue;
+        }
+        this.faceWaitTimers.delete(obj.id);
+      }
+
       if (obj.isMoving) {
         const fromX = obj.gridX;
         const fromY = obj.gridY;
@@ -221,7 +239,7 @@ export class GameWorld {
     }
 
     if (movement.pattern === 'route') {
-      const steps = (movement.routeSteps as Direction[]) ?? [];
+      const steps = (movement.routeSteps as unknown[]) ?? [];
       if (steps.length === 0) return null;
 
       let currentIndex = this.routeIndices.get(obj.id) ?? 0;
@@ -232,8 +250,21 @@ export class GameWorld {
         this.routeIndices.set(obj.id, 0);
       }
 
-      // インデックスは進めない。移動成功後に advanceRouteIndex() で進める
-      return steps[currentIndex]!;
+      const step = steps[currentIndex]!;
+      // 新形式: { type, direction } or 旧形式: string
+      const stepType = typeof step === 'object' && step !== null ? (step as { type: string }).type : 'move';
+      const stepDir = typeof step === 'string' ? step : (step as { direction: string }).direction;
+
+      if (stepType === 'face') {
+        // 向き変更: 移動せず向きだけ変える
+        // 移動と同じテンポにするため、ウェイトをセット
+        obj.facing = stepDir as Direction;
+        this.faceWaitTimers.set(obj.id, 0);
+        this.routeIndices.set(obj.id, currentIndex + 1);
+        return null;
+      }
+
+      return stepDir as Direction;
     }
 
     return null;
