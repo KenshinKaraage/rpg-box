@@ -163,6 +163,32 @@ export class GameRuntime {
     };
     this.context.setInputAPI(inputAPI);
     this.uiCanvasManager.setInputAPI(inputAPI);
+    // オブジェクト変数アクセス
+    this.context.getObjectVariable = (objectName, varName) => {
+      const obj = this.world.findByName(objectName);
+      if (!obj) return undefined;
+      const vars = obj.components['variables'];
+      if (!vars?.variables) return undefined;
+      const entry = (vars.variables as Record<string, unknown>)[varName];
+      // 新形式 { fieldType, value } か旧形式（直値）か
+      if (entry && typeof entry === 'object' && 'value' in (entry as Record<string, unknown>)) {
+        return (entry as Record<string, unknown>).value;
+      }
+      return entry;
+    };
+    this.context.setObjectVariable = (objectName, varName, value) => {
+      const obj = this.world.findByName(objectName);
+      if (!obj) return;
+      if (!obj.components['variables']) obj.components['variables'] = { variables: {} };
+      const vars = obj.components['variables'].variables as Record<string, unknown>;
+      const existing = vars[varName];
+      if (existing && typeof existing === 'object' && 'fieldType' in (existing as Record<string, unknown>)) {
+        (existing as Record<string, unknown>).value = value;
+      } else {
+        vars[varName] = value;
+      }
+    };
+
     this.context.setMapAPI({
       getCurrentId: () => this.world.getCurrentMap()?.id ?? null,
       getWidth: () => this.world.getCurrentMap()?.width ?? 0,

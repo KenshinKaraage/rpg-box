@@ -59,10 +59,12 @@ function resolveOperandType(operand: ConditionOperand, variables: Variable[]): s
     return v?.fieldType.type ?? null;
   }
   // literal
-  const val = operand.value;
-  if (typeof val === 'number') return 'number';
-  if (typeof val === 'string') return 'string';
-  if (typeof val === 'boolean') return 'boolean';
+  if (operand.type === 'literal') {
+    const val = operand.value;
+    if (typeof val === 'number') return 'number';
+    if (typeof val === 'string') return 'string';
+    if (typeof val === 'boolean') return 'boolean';
+  }
   return null;
 }
 
@@ -195,7 +197,7 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
             />
           ) : (
             <Input
-              value={String(condAction.condition.left.value ?? '')}
+              value={String(condAction.condition.left.type === 'literal' ? condAction.condition.left.value ?? '' : '')}
               onChange={(e) => handleLeftLiteralChange(e.target.value)}
               placeholder="値"
               className="flex-1"
@@ -248,7 +250,7 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
             />
           ) : (
             <Input
-              value={String(condAction.condition.right.value ?? '')}
+              value={String(condAction.condition.right.type === 'literal' ? condAction.condition.right.value ?? '' : '')}
               onChange={(e) => handleRightLiteralChange(e.target.value)}
               placeholder="値"
               className="flex-1"

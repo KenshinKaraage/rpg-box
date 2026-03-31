@@ -195,6 +195,10 @@ export class GameContext {
   /** Set by MapAction, consumed by GameRuntime after event execution. */
   pendingMapChange: MapChangeRequest | null = null;
 
+  /** オブジェクト変数アクセス（GameRuntime が注入） */
+  getObjectVariable: (objectName: string, varName: string) => unknown = () => undefined;
+  setObjectVariable: (objectName: string, varName: string, value: unknown) => void = () => {};
+
   private runtimeCallbacks: RuntimeCallbacks | null = null;
 
   constructor(

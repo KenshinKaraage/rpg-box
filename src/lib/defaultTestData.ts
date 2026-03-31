@@ -27,6 +27,9 @@ import { ColliderComponent } from '@/types/components/ColliderComponent';
 import { ControllerComponent } from '@/types/components/ControllerComponent';
 import { TalkTriggerComponent } from '@/types/components/triggers/TalkTriggerComponent';
 import { ScriptAction } from '@/engine/actions/ScriptAction';
+import { ConditionalAction } from '@/engine/actions/ConditionalAction';
+import { VariableOpAction } from '@/engine/actions/VariableOpAction';
+import { VariablesComponent } from '@/types/components/VariablesComponent';
 import '@/types/ui/register';
 import { getUIComponent } from '@/types/ui';
 import { SpriteComponent } from '@/types/components/SpriteComponent';
@@ -1503,6 +1506,107 @@ await Script.message({ text: ANIMS[idx] + " 完了！", face: "" });`,
   isAsync: true,
 };
 
+// ── 占い師NPC: イベントブロック + VariablesComponent テスト ──
+
+function createFortunetellerObject(x: number, y: number, resolveAssetId: AssetNameToId): MapObject {
+  const transform = new TransformComponent();
+  transform.x = x;
+  transform.y = y;
+
+  const collider = new ColliderComponent();
+  collider.width = 1;
+  collider.height = 1;
+  collider.collideLayers = [OBJ_LAYER_ID];
+
+  const sprite = createWalkSprite('walk_marguerite', resolveAssetId);
+
+  // VariablesComponent: オブジェクト変数
+  const vars = new VariablesComponent();
+  vars.variables = {
+    talk_count: { fieldType: 'number', value: 0 },
+    job_choice: { fieldType: 'number', value: -1 },
+  };
+
+  // イベントブロック構築
+  // 1. ScriptAction: choice → 返り値をオブジェクト変数 job_choice に代入
+  const choiceAction = new ScriptAction();
+  choiceAction.scriptId = 'choice';
+  choiceAction.args = { items: ['剣士', '魔法使い', '盗賊'] };
+  choiceAction.resultTarget = { type: 'object', objectName: '占い師', variableName: 'job_choice' };
+
+  // 2. VariableOpAction: オブジェクト変数 talk_count を +1
+  const incAction = new VariableOpAction();
+  incAction.variableId = 'talk_count';
+  incAction.operation = 'add';
+  incAction.value = { type: 'literal', value: 1 };
+  incAction.target = { scope: 'object', objectName: '占い師' };
+
+  // 3. ConditionalAction: job_choice == 0 → "剣士"
+  const cond0 = new ConditionalAction();
+  cond0.condition = {
+    left: { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' },
+    operator: '==',
+    right: { type: 'literal', value: 0 },
+  };
+  const msg0 = new ScriptAction();
+  msg0.scriptId = 'message';
+  msg0.args = { text: 'あなたは「剣士」を選びましたね。', face: '', close: false };
+  cond0.thenActions = [msg0];
+
+  // job_choice == 1 → "魔法使い"
+  const cond1 = new ConditionalAction();
+  cond1.condition = {
+    left: { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' },
+    operator: '==',
+    right: { type: 'literal', value: 1 },
+  };
+  const msg1 = new ScriptAction();
+  msg1.scriptId = 'message';
+  msg1.args = { text: 'あなたは「魔法使い」を選びましたね。', face: '', close: false };
+  cond1.thenActions = [msg1];
+
+  // else → "盗賊"
+  const msg2 = new ScriptAction();
+  msg2.scriptId = 'message';
+  msg2.args = { text: 'あなたは「盗賊」を選びましたね。', face: '', close: false };
+  cond1.elseActions = [msg2];
+
+  cond0.elseActions = [cond1];
+
+  // 4. ScriptAction: talk_count を表示するメッセージ
+  // （オブジェクト変数の読み取りはスクリプトで — イベントブロックの message は固定テキストのみ）
+  const countMsg = new ScriptAction();
+  countMsg.scriptId = 'message';
+  countMsg.args = { text: '（talk_count の表示はスクリプト参照が必要）', face: '' };
+  // 代わりに小さなスクリプトで表示
+  // → 実際にはスクリプトブロックの中で GameObject.find で取得するしかない
+  // ここではイベントブロックの能力テストとして条件分岐まで
+
+  // キャンセル時の分岐
+  const cancelCond = new ConditionalAction();
+  cancelCond.condition = {
+    left: { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' },
+    operator: '==',
+    right: { type: 'literal', value: -1 },
+  };
+  const cancelMsg = new ScriptAction();
+  cancelMsg.scriptId = 'message';
+  cancelMsg.args = { text: 'キャンセルしましたね。', face: '' };
+  cancelCond.thenActions = [cancelMsg];
+  cancelCond.elseActions = [cond0, countMsg];
+
+  const talk = new TalkTriggerComponent();
+  talk.direction = 'any';
+  talk.facePlayer = true;
+  talk.actions = [choiceAction, incAction, cancelCond];
+
+  return {
+    id: 'npc_fortune',
+    name: '占い師',
+    components: [transform, collider, sprite, vars, talk],
+  };
+}
+
 // ── Map: データ連携テスト用NPC追加 ──
 
 function createTestMap(resolveAssetId: AssetNameToId): GameMap {
@@ -1551,6 +1655,8 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createNpcObject('npc_effect', '魔法使い', 9, 7, createScriptActions('effect_test', [{}]), resolveAssetId),
           // アニメーションテスト NPC
           createNpcObject('npc_anim', 'アニメーター', 11, 7, createScriptActions('anim_test', [{}]), resolveAssetId),
+          // イベントブロック + VariablesComponent テスト NPC
+          createFortunetellerObject(13, 7, resolveAssetId),
         ],
       },
     ],

@@ -5,7 +5,8 @@ import { deserializeActions } from './index';
 
 export type ConditionOperand =
   | { type: 'literal'; value: number | string | boolean }
-  | { type: 'variable'; variableId: string };
+  | { type: 'variable'; variableId: string }
+  | { type: 'objectVariable'; objectName: string; variableName: string };
 
 export interface Condition {
   left: ConditionOperand;
@@ -43,6 +44,8 @@ export class ConditionalAction extends EventAction {
         return operand.value;
       case 'variable':
         return context.variable.get(operand.variableId);
+      case 'objectVariable':
+        return context.getObjectVariable(operand.objectName, operand.variableName);
     }
   }
 

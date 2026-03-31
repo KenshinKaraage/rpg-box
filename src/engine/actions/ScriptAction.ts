@@ -7,6 +7,8 @@ export interface ScriptResultTarget {
   type: 'game' | 'object';
   /** 変数名 */
   variableName: string;
+  /** オブジェクト名（type === 'object' の場合） */
+  objectName?: string;
 }
 
 export class ScriptAction extends EventAction {
@@ -29,8 +31,9 @@ export class ScriptAction extends EventAction {
     if (this.resultTarget && value !== undefined) {
       if (this.resultTarget.type === 'game') {
         context.variable.set(this.resultTarget.variableName, value);
+      } else if (this.resultTarget.type === 'object' && this.resultTarget.objectName) {
+        context.setObjectVariable(this.resultTarget.objectName, this.resultTarget.variableName, value);
       }
-      // 'object' タイプはトリガー元オブジェクトの変数に代入（将来対応）
     }
   }
 
