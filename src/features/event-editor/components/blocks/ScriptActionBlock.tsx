@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -138,14 +139,32 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
                   })}
                 />
               )}
-              {scriptAction.resultTarget && (
-                <Input
-                  className="h-6 flex-1 text-[10px]"
-                  placeholder="変数名"
-                  value={scriptAction.resultTarget.variableName ?? ''}
-                  onChange={(e) => handleResultTargetChange({
+              {scriptAction.resultTarget?.type === 'game' && (
+                <Select
+                  value={scriptAction.resultTarget.variableName || '__none__'}
+                  onValueChange={(v) => handleResultTargetChange({
                     ...scriptAction.resultTarget!,
-                    variableName: e.target.value,
+                    variableName: v === '__none__' ? '' : v,
+                  })}
+                >
+                  <SelectTrigger className="h-6 flex-1 text-[10px]">
+                    <SelectValue placeholder="変数を選択..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">（選択なし）</SelectItem>
+                    {variables.map((v) => (
+                      <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {scriptAction.resultTarget?.type === 'object' && (
+                <ResultObjectVariableSelect
+                  objectName={scriptAction.resultTarget.objectName ?? ''}
+                  value={scriptAction.resultTarget.variableName ?? ''}
+                  onValueChange={(v) => handleResultTargetChange({
+                    ...scriptAction.resultTarget!,
+                    variableName: v,
                   })}
                 />
               )}
@@ -236,5 +255,66 @@ function ArrayArgField({ arg, value, onChange }: { arg: ScriptArg; value: unknow
         <div className="pl-2 text-[9px] text-muted-foreground">（空の配列）</div>
       )}
     </div>
+  );
+}
+
+/** オブジェクト変数ドロップダウン（マップオブジェクトの VariablesComponent から取得） */
+function ResultObjectVariableSelect({
+  objectName,
+  value,
+  onValueChange,
+}: {
+  objectName: string;
+  value: string;
+  onValueChange: (name: string) => void;
+}) {
+  const maps = useStore((s) => s.maps);
+
+  const objVars = useMemo(() => {
+    if (!objectName) return [];
+    for (const map of maps) {
+      for (const layer of map.layers) {
+        if (layer.type !== 'object' || !layer.objects) continue;
+        const obj = layer.objects.find((o) => o.name === objectName);
+        if (!obj) continue;
+        const varsComp = obj.components.find((c) => c.type === 'variables');
+        if (!varsComp) continue;
+        const data = typeof (varsComp as unknown as { serialize?: () => unknown }).serialize === 'function'
+          ? (varsComp as unknown as { serialize: () => Record<string, unknown> }).serialize()
+          : (varsComp as unknown as { data: Record<string, unknown> }).data ?? {};
+        const variables = data.variables as Record<string, unknown> | undefined;
+        if (!variables) return [];
+        return Object.entries(variables).map(([name, v]) => {
+          const isNew = v && typeof v === 'object' && 'fieldType' in (v as Record<string, unknown>);
+          const fieldType = isNew ? (v as Record<string, unknown>).fieldType as string : typeof v;
+          return { name, fieldType };
+        });
+      }
+    }
+    return [];
+  }, [maps, objectName]);
+
+  return objVars.length > 0 ? (
+    <Select value={value || '__none__'} onValueChange={(v) => onValueChange(v === '__none__' ? '' : v)}>
+      <SelectTrigger className="h-6 flex-1 text-[10px]">
+        <SelectValue placeholder="変数を選択..." />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="__none__">（選択なし）</SelectItem>
+        {objVars.map((v) => (
+          <SelectItem key={v.name} value={v.name}>
+            <span className="mr-1 text-[9px] text-muted-foreground">{v.fieldType}</span>
+            {v.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  ) : (
+    <Input
+      className="h-6 flex-1 text-[10px]"
+      placeholder="変数名"
+      value={value}
+      onChange={(e) => onValueChange(e.target.value)}
+    />
   );
 }
