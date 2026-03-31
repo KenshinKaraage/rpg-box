@@ -14,6 +14,7 @@ import { getAction } from '@/engine/actions/index';
 import { EventRunner } from '@/engine/event/EventRunner';
 import { ScriptRunner } from '@/engine/core/ScriptRunner';
 import { GameContext } from './GameContext';
+import { createObjectProxy } from './ObjectProxyFactory';
 import { GameLoop } from './GameLoop';
 import { InputManager } from './InputManager';
 import { Camera } from './Camera';
@@ -345,7 +346,7 @@ export class GameRuntime {
         }
 
         // Check for local actions on the trigger component
-        const selfObjectProxy = this.createObjectProxyForRuntime(triggerResult.targetObject);
+        const selfObjectProxy = createObjectProxy(triggerResult.targetObject, this.world);
         const localActions = this.getLocalActionsFromTrigger(triggerResult.targetObject);
         if (localActions && localActions.length > 0) {
           this.executeLocalActions(localActions, selfObjectProxy);
@@ -482,97 +483,28 @@ export class GameRuntime {
     });
   }
 
-  /** RuntimeObject から ObjectProxy を作成 */
-  private createObjectProxyForRuntime(obj: import('./GameWorld').RuntimeObject): import('./GameContext').ObjectProxy {
-    return this.wrapRuntimeObject(obj);
-  }
-
-  private wrapRuntimeObject(obj: import('./GameWorld').RuntimeObject): import('./GameContext').ObjectProxy {
-    const world = this.world;
-    const TILE_SIZE = 32;
-    return {
-      id: obj.id,
-      name: obj.name,
-      getPosition: () => ({ x: obj.gridX, y: obj.gridY }),
-      setPosition: (x, y) => {
-        obj.gridX = x;
-        obj.gridY = y;
-        obj.pixelX = x * TILE_SIZE;
-        obj.pixelY = y * TILE_SIZE;
-        obj.isMoving = false;
-        obj.moveProgress = 0;
-      },
-      getFacing: () => obj.facing,
-      setFacing: (dir) => { obj.facing = dir as import('./GameWorld').Direction; },
-      isMoving: () => obj.isMoving,
-      getComponent: (type) => {
-        const comp = obj.components[type];
-        return comp ? { ...comp } : null;
-      },
-      setComponent: (type, data) => {
-        if (!obj.components[type]) obj.components[type] = {};
-        Object.assign(obj.components[type]!, data);
-      },
-      setVisible: (visible) => {
-        if (!obj.components['sprite']) obj.components['sprite'] = {};
-        obj.components['sprite']!.opacity = visible ? 1 : 0;
-      },
-      destroy: () => { world.removeObject(obj.id); },
-    };
-  }
-
   private createObjectAPI(): import('./GameContext').ObjectAPI {
     const world = this.world;
     const projectData = this.projectData;
 
-    const wrapObject = (obj: import('./GameWorld').RuntimeObject): import('./GameContext').ObjectProxy => ({
-      id: obj.id,
-      name: obj.name,
-      getPosition: () => ({ x: obj.gridX, y: obj.gridY }),
-      setPosition: (x, y) => {
-        obj.gridX = x;
-        obj.gridY = y;
-        obj.pixelX = x * TILE_SIZE;
-        obj.pixelY = y * TILE_SIZE;
-        obj.isMoving = false;
-        obj.moveProgress = 0;
-      },
-      getFacing: () => obj.facing,
-      setFacing: (dir) => { obj.facing = dir as import('./GameWorld').Direction; },
-      isMoving: () => obj.isMoving,
-      getComponent: (type) => {
-        const comp = obj.components[type];
-        return comp ? { ...comp } : null;
-      },
-      setComponent: (type, data) => {
-        if (!obj.components[type]) obj.components[type] = {};
-        Object.assign(obj.components[type]!, data);
-      },
-      setVisible: (visible) => {
-        if (!obj.components['sprite']) obj.components['sprite'] = {};
-        obj.components['sprite']!.opacity = visible ? 1 : 0;
-      },
-      destroy: () => { world.removeObject(obj.id); },
-    });
-
     return {
       find: (name) => {
         const obj = world.findByName(name);
-        return obj ? wrapObject(obj) : null;
+        return obj ? createObjectProxy(obj, world) : null;
       },
       findById: (id) => {
         const obj = world.findById(id);
-        return obj ? wrapObject(obj) : null;
+        return obj ? createObjectProxy(obj, world) : null;
       },
       findAtTile: (x, y) => {
         const obj = world.getObjectAtTile(x, y);
-        return obj ? wrapObject(obj) : null;
+        return obj ? createObjectProxy(obj, world) : null;
       },
       create: (prefabId, x, y) => {
         const prefab = projectData.prefabs.find((p) => p.id === prefabId);
         if (!prefab) return null;
         const obj = world.spawnFromPrefab(prefab, x, y);
-        return obj ? wrapObject(obj) : null;
+        return obj ? createObjectProxy(obj, world) : null;
       },
       destroy: (id) => { world.removeObject(id); },
     };
