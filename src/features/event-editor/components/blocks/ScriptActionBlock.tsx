@@ -15,7 +15,7 @@ import { useStore } from '@/stores';
 import { getArgField } from '../arg-fields';
 import '../arg-fields/register';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
-import type { ScriptAction } from '@/engine/actions/ScriptAction';
+import type { ScriptAction, ScriptResultTarget } from '@/engine/actions/ScriptAction';
 import type { ScriptArg } from '@/types/script';
 
 function cloneAction(action: ScriptAction): ScriptAction {
@@ -25,20 +25,29 @@ function cloneAction(action: ScriptAction): ScriptAction {
 export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const scriptAction = action as ScriptAction;
   const scripts = useStore((s) => s.scripts);
+  const variables = useStore((s) => s.variables);
 
   const eventScripts = scripts.filter((s) => s.type === 'event');
   const selectedScript = scripts.find((s) => s.id === scriptAction.scriptId);
+  const hasReturns = selectedScript && selectedScript.returns.length > 0;
 
   const handleScriptChange = (scriptId: string) => {
     const updated = cloneAction(scriptAction);
     updated.scriptId = scriptId === '__none__' ? '' : scriptId;
     updated.args = {};
+    updated.resultTarget = undefined;
     onChange(updated);
   };
 
   const handleArgChange = (argId: string, value: unknown) => {
     const updated = cloneAction(scriptAction);
     updated.args = { ...updated.args, [argId]: value };
+    onChange(updated);
+  };
+
+  const handleResultTargetChange = (target: ScriptResultTarget | undefined) => {
+    const updated = cloneAction(scriptAction);
+    updated.resultTarget = target;
     onChange(updated);
   };
 
@@ -88,6 +97,60 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
                 onChange={(v) => handleArgChange(arg.id, v)}
               />
             ))}
+          </div>
+        )}
+
+        {/* 返り値代入先 */}
+        {hasReturns && (
+          <div className="space-y-1 rounded border border-dashed p-2">
+            <Label className="text-[10px] text-muted-foreground">返り値の代入先</Label>
+            <div className="flex items-center gap-1">
+              <Select
+                value={scriptAction.resultTarget?.type ?? '__none__'}
+                onValueChange={(v) => {
+                  if (v === '__none__') {
+                    handleResultTargetChange(undefined);
+                  } else {
+                    handleResultTargetChange({
+                      type: v as 'game' | 'object',
+                      variableName: scriptAction.resultTarget?.variableName ?? '',
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger className="h-6 w-24 text-[10px]">
+                  <SelectValue placeholder="なし" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">なし</SelectItem>
+                  <SelectItem value="game">ゲーム変数</SelectItem>
+                  <SelectItem value="object">オブジェクト変数</SelectItem>
+                </SelectContent>
+              </Select>
+              {scriptAction.resultTarget && (
+                <Select
+                  value={scriptAction.resultTarget.variableName || '__none__'}
+                  onValueChange={(v) => {
+                    handleResultTargetChange({
+                      ...scriptAction.resultTarget!,
+                      variableName: v === '__none__' ? '' : v,
+                    });
+                  }}
+                >
+                  <SelectTrigger className="h-6 flex-1 text-[10px]">
+                    <SelectValue placeholder="変数を選択..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">（選択なし）</SelectItem>
+                    {scriptAction.resultTarget.type === 'game' &&
+                      variables.map((v) => (
+                        <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         )}
       </div>
