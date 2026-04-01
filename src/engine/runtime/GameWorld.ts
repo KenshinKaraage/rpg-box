@@ -350,7 +350,7 @@ export class GameWorld {
     if (!prefab) return obj;
 
     const mergedComponents: SerializedComponent[] = [
-      ...prefab.components.map((pc) => ({ type: pc.scriptId ?? '', data: pc.fieldValues ?? {} })),
+      ...prefab.prefab.components,
     ];
     for (const oc of obj.components) {
       const idx = mergedComponents.findIndex((c) => c.type === oc.type);

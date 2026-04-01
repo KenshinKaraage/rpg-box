@@ -5,7 +5,7 @@ import type { Prefab } from '@/types/map';
 const prefab: Prefab = {
   id: 'p1',
   name: 'スライム',
-  components: [],
+  prefab: { components: [] },
 };
 
 describe('PrefabPreview', () => {

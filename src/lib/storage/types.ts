@@ -6,8 +6,6 @@
  * - StorageProvider: ストレージ操作の抽象インターフェース
  */
 
-import type { PrefabComponent } from '@/types/map';
-
 // =============================================================================
 // プロジェクトデータ構造
 // =============================================================================
@@ -143,12 +141,13 @@ export interface ChipProperty {
 
 /**
  * プレハブ（再利用可能なオブジェクトテンプレート）
- * PrefabComponent はプレーンオブジェクトのためシリアライズ変換不要
  */
 export interface Prefab {
   id: string;
   name: string;
-  components: PrefabComponent[];
+  prefab: {
+    components: SerializedComponent[];
+  };
 }
 
 /**

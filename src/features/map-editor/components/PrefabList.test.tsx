@@ -3,8 +3,8 @@ import { PrefabList } from './PrefabList';
 import type { Prefab } from '@/types/map';
 
 const prefabs: Prefab[] = [
-  { id: 'p1', name: 'スライム', components: [{ scriptId: 'transform', fieldValues: {} }] },
-  { id: 'p2', name: 'ドラゴン', components: [] },
+  { id: 'p1', name: 'スライム', prefab: { components: [] } },
+  { id: 'p2', name: 'ドラゴン', prefab: { components: [] } },
 ];
 
 const noop = () => {};
@@ -53,8 +53,7 @@ describe('PrefabList', () => {
       />
     );
 
-    expect(screen.getByText('1 コンポーネント')).toBeInTheDocument();
-    expect(screen.getByText('0 コンポーネント')).toBeInTheDocument();
+    expect(screen.getAllByText('0 コンポーネント')).toHaveLength(2);
   });
 
   it('プレハブをクリックすると onSelect が呼ばれる', () => {

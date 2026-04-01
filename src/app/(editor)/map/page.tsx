@@ -135,7 +135,7 @@ export default function MapEditPage() {
       'prefab',
       prefabs.map((p) => p.id)
     );
-    const newPrefab: Prefab = { id, name: '新しいプレハブ', components: [] };
+    const newPrefab: Prefab = { id, name: '新しいプレハブ', prefab: { components: [] } };
     addPrefab(newPrefab);
     selectPrefab(id);
   };
@@ -151,7 +151,7 @@ export default function MapEditPage() {
       ...original,
       id: newId,
       name: `${original.name} のコピー`,
-      components: original.components.map((c) => ({ ...c })),
+      prefab: { components: original.prefab.components.map((c) => c.clone()) },
     };
     addPrefab(duplicated);
     selectPrefab(newId);

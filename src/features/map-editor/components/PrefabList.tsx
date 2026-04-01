@@ -104,7 +104,7 @@ export function PrefabList({
                 >
                   <div className="font-medium">{prefab.name}</div>
                   <div className="text-xs text-muted-foreground">
-                    {prefab.components.length} コンポーネント
+                    {prefab.prefab.components.length} コンポーネント
                   </div>
                 </li>
               </ContextMenuTrigger>

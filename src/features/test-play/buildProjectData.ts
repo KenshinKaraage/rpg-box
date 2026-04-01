@@ -20,9 +20,18 @@ export function buildProjectData(): ProjectData {
     variables: state.variables,
 
     // Maps
-    maps: state.maps,
+    maps: state.maps as unknown as ProjectData['maps'],
     chipsets: state.chipsets,
-    prefabs: state.prefabs,
+    prefabs: state.prefabs.map((p) => ({
+      id: p.id,
+      name: p.name,
+      prefab: {
+        components: p.prefab.components.map((c) => ({
+          type: c.type,
+          data: c.serialize() as Record<string, unknown>,
+        })),
+      },
+    })),
 
     // Events (stored on map objects, top-level list not used yet)
     events: [],

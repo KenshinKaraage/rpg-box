@@ -38,7 +38,7 @@ export default function PrefabPage() {
     const newPrefab: Prefab = {
       id,
       name: '新しいプレハブ',
-      components: [],
+      prefab: { components: [] },
     };
     addPrefab(newPrefab);
     selectPrefab(id);
@@ -56,7 +56,7 @@ export default function PrefabPage() {
       ...original,
       id: newId,
       name: `${original.name} のコピー`,
-      components: original.components.map((c) => ({ ...c, fieldValues: { ...c.fieldValues } })),
+      prefab: { components: original.prefab.components.map((c) => c.clone()) },
     };
     addPrefab(duplicated);
     selectPrefab(newId);

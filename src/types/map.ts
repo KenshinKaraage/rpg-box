@@ -3,14 +3,11 @@ import type { FieldType } from './fields/FieldType';
 import { hydrateFields } from './fields';
 
 /**
- * プレハブに付与されたコンポーネントのインスタンス
- * スクリプトID とフィールドの現在値を保持する
+ * プレハブのコンポーネントデータ
+ * Component[] を保持し、配置時にオブジェクトにコピーされる
  */
 export interface PrefabComponent {
-  /** コンポーネントスクリプトの ID（Script.id） */
-  scriptId: string;
-  /** フィールド名 → 現在値 のマップ */
-  fieldValues: Record<string, unknown>;
+  components: Component[];
 }
 
 export interface GameMap {
@@ -65,7 +62,7 @@ export interface ChipProperty {
 export interface Prefab {
   id: string;
   name: string;
-  components: PrefabComponent[];
+  prefab: PrefabComponent;
 }
 
 /**
