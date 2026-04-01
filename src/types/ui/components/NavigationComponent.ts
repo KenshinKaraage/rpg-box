@@ -67,7 +67,13 @@ export class NavigationComponent extends UIComponent {
       return d !== null && d !== undefined;
     });
     self.state.items = items;
-    self.state.focusIndex = Math.min(${initialIndex}, Math.max(0, items.length - 1));
+    // 前回の位置を維持（初回は initialIndex）
+    const prevIndex = self.state.focusIndex;
+    if (prevIndex !== undefined && prevIndex >= 0 && prevIndex < items.length) {
+      self.state.focusIndex = prevIndex;
+    } else {
+      self.state.focusIndex = Math.min(${initialIndex}, Math.max(0, items.length - 1));
+    }
     self.state._result = undefined;
     self.state.active = true;
     // 1フレーム待ってレイアウト適用後の位置でカーソルを配置

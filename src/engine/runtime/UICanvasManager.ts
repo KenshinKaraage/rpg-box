@@ -67,6 +67,8 @@ interface CanvasState {
   visible: boolean;
   /** コンパイル済みコンポーネントランタイム（show 時に構築、hide 時に破棄） */
   runtimes: CompiledComponentRuntime[];
+  /** show した順番（大きいほど前面） */
+  showOrder: number;
 }
 
 
@@ -112,6 +114,7 @@ export class UICanvasManager implements UIActionManager {
   private getAssetData: (assetId: string) => string | null;
   private canvases = new Map<string, CanvasState>();
   private needsRedraw = false;
+  private showOrderCounter = 0;
   /** self.waitFrames に注入するコールバック（GameRuntime が設定） */
   private waitFramesCallback: ((frames: number) => Promise<void>) | null = null;
   private tweenAPI: unknown = null;
@@ -138,6 +141,7 @@ export class UICanvasManager implements UIActionManager {
         data: canvas,
         visible: false,
         runtimes: [],
+        showOrder: 0,
       });
     }
   }
@@ -146,6 +150,7 @@ export class UICanvasManager implements UIActionManager {
     const state = this.canvases.get(canvasId);
     if (!state || state.visible) return;
     state.visible = true;
+    state.showOrder = ++this.showOrderCounter;
     this.compileComponentScripts(canvasId);
     this.dispatchShow(canvasId);
     this.alignLayouts(canvasId);
@@ -374,8 +379,11 @@ export class UICanvasManager implements UIActionManager {
       },
     };
 
-    for (const state of Array.from(this.canvases.values())) {
-      if (!state.visible) continue;
+    // showOrder 順に描画（後に show したものが前面）
+    const visibleCanvases = Array.from(this.canvases.values())
+      .filter((s) => s.visible)
+      .sort((a, b) => a.showOrder - b.showOrder);
+    for (const state of visibleCanvases) {
       renderUIObjects(ctx, state.data.objects, screenWidth, screenHeight);
     }
   }
