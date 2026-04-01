@@ -103,7 +103,7 @@ const msgFace: EditorUIObject = {
   name: 'faceImage',
   parentId: 'msg_bg',
   transform: {
-    x: 16, y: 16, width: 168, height: 168,
+    x: 32, y: 32, width: 128, height: 128,
     anchorX: 'left', anchorY: 'top',
     pivotX: 0, pivotY: 0,
     rotation: 0, scaleX: 1, scaleY: 1, visible: true,
