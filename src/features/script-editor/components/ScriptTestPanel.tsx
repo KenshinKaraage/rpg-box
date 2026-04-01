@@ -177,9 +177,12 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     (runtime: GameRuntime) => {
       if (!script) return;
       const args = buildArgs();
-      runtime.executeScript(script.id, args).catch((err) => {
-        console.error('[ScriptTest] Runtime execution error:', err);
-      });
+      runtime.executeScript(script.id, args)
+        .then(() => { setUiTestData(null); })
+        .catch((err) => {
+          console.error('[ScriptTest] Runtime execution error:', err);
+          setUiTestData(null);
+        });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [script?.id, argValues]
