@@ -174,7 +174,7 @@ export function PrefabList({
                           if (img.complete) draw();
                           else img.onload = draw;
                         }
-                        e.dataTransfer.setDragImage(canvas, sz / 2, sz / 2);
+                        e.dataTransfer.setDragImage(canvas, 0, 0);
                       }
                     }
                   }}
