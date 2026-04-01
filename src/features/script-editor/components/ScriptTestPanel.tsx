@@ -24,6 +24,7 @@ interface ScriptTestPanelProps {
 /** 空マップを持つ ProjectData を生成 */
 function buildProjectDataWithEmptyMap(): ProjectData {
   const data = buildProjectData();
+  data.maps = [...data.maps]; // Immer frozen 解除
 
   const emptyMapId = '__script_test_map__';
   if (!data.maps.some((m) => m.id === emptyMapId)) {
