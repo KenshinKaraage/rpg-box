@@ -38,20 +38,30 @@ function PrefabThumbnail({ prefab, assets, size }: {
     return <img src={src} alt="" className="shrink-0" style={{ width: size, height: size, objectFit: 'contain', imageRendering: 'pixelated' }} />;
   }
 
-  // 1フレーム切り出し: background-size で高さを size に合わせ、位置 (0,0) で左上フレームを表示
+  // 1フレーム切り出し: フレームサイズを size にスケールし、overflow で切り出す
+  const scale = size / fh;
   return (
     <div
-      className="shrink-0"
+      className="shrink-0 overflow-hidden"
       style={{
         width: size,
         height: size,
-        backgroundImage: `url(${src})`,
-        backgroundSize: `auto ${size}px`,
-        backgroundPosition: '0 0',
-        backgroundRepeat: 'no-repeat',
         imageRendering: 'pixelated',
       }}
-    />
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        style={{
+          display: 'block',
+          width: 'auto',
+          height: 'auto',
+          transform: `scale(${scale})`,
+          transformOrigin: '0 0',
+        }}
+      />
+    </div>
   );
 }
 

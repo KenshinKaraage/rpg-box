@@ -29,19 +29,25 @@ function ObjectThumbnail({ obj, size }: { obj: MapObject; size: number }) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt="" className="shrink-0" style={{ width: size, height: size, objectFit: 'contain', imageRendering: 'pixelated' }} />;
   }
+  const scale = size / fh;
   return (
     <div
-      className="shrink-0"
-      style={{
-        width: size,
-        height: size,
-        backgroundImage: `url(${src})`,
-        backgroundSize: `auto ${size}px`,
-        backgroundPosition: '0 0',
-        backgroundRepeat: 'no-repeat',
-        imageRendering: 'pixelated',
-      }}
-    />
+      className="shrink-0 overflow-hidden"
+      style={{ width: size, height: size, imageRendering: 'pixelated' }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        style={{
+          display: 'block',
+          width: 'auto',
+          height: 'auto',
+          transform: `scale(${scale})`,
+          transformOrigin: '0 0',
+        }}
+      />
+    </div>
   );
 }
 
