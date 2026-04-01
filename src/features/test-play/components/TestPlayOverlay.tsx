@@ -47,8 +47,9 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
       return;
     }
 
+    let stopped = false;
     runtime.start().then(() => {
-      // start() 完了後に確実にフォーカスを当てる（入力を受け付けるために必須）
+      if (stopped) return; // StrictMode cleanup 後は実行しない
       requestAnimationFrame(() => canvas.focus());
       onStarted?.(runtime);
     }).catch((err) => {
@@ -56,6 +57,7 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
     });
 
     return () => {
+      stopped = true;
       runtime.stop();
       runtimeRef.current = null;
     };
