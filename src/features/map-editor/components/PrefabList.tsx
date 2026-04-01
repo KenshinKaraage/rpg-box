@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { Plus, Trash2, Copy, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,7 +10,9 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
+import { useStore } from '@/stores';
 import type { Prefab } from '@/types/map';
+import type { SpriteComponent } from '@/types/components/SpriteComponent';
 import { EMPTY_OBJECT_PREFAB_ID } from '@/stores/mapEditorSlice';
 
 interface PrefabListProps {
@@ -42,6 +45,8 @@ export function PrefabList({
   onSelectForPlacement,
 }: PrefabListProps) {
   const isPlacementMode = !!onSelectForPlacement;
+  const assets = useStore((s) => s.assets);
+  const dragImageRef = useRef<HTMLImageElement | null>(null);
 
   const handleItemClick = (id: string) => {
     if (isPlacementMode) {
@@ -103,6 +108,17 @@ export function PrefabList({
                   onDragStart={(e) => {
                     e.dataTransfer.setData('application/rpg-prefab-id', prefab.id);
                     e.dataTransfer.effectAllowed = 'copy';
+                    // スプライト画像があればドラッグイメージとして使用
+                    const sprite = prefab.prefab.components.find((c) => c.type === 'sprite') as SpriteComponent | undefined;
+                    if (sprite?.imageId) {
+                      const asset = assets.find((a) => a.id === sprite.imageId);
+                      if (asset?.data) {
+                        const img = new Image();
+                        img.src = asset.data as string;
+                        dragImageRef.current = img;
+                        e.dataTransfer.setDragImage(img, 16, 16);
+                      }
+                    }
                   }}
                   onClick={() => handleItemClick(prefab.id)}
                   data-testid={`prefab-item-${prefab.id}`}
