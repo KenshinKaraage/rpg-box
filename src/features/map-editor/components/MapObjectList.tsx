@@ -1,13 +1,48 @@
 'use client';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useStore } from '@/stores';
 import type { MapObject } from '@/types/map';
+import type { SpriteComponent } from '@/types/components/SpriteComponent';
 
 interface MapObjectListProps {
   objects: MapObject[];
   selectedObjectId: string | null;
   onSelectObject: (id: string) => void;
   onDeleteObject: (id: string) => void;
+}
+
+function ObjectThumbnail({ obj, size }: { obj: MapObject; size: number }) {
+  const assets = useStore((s) => s.assets);
+  const sprite = obj.components.find((c) => c.type === 'sprite') as SpriteComponent | undefined;
+  if (!sprite?.imageId) {
+    return <Square className="shrink-0 text-muted-foreground" style={{ width: size, height: size }} />;
+  }
+  const asset = assets.find((a) => a.id === sprite.imageId);
+  const src = asset?.data as string | undefined;
+  if (!src) {
+    return <Square className="shrink-0 text-muted-foreground" style={{ width: size, height: size }} />;
+  }
+  const fw = sprite.frameWidth || 0;
+  const fh = sprite.frameHeight || 0;
+  if (fw === 0 || fh === 0) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt="" className="shrink-0" style={{ width: size, height: size, objectFit: 'contain', imageRendering: 'pixelated' }} />;
+  }
+  return (
+    <div
+      className="shrink-0"
+      style={{
+        width: size,
+        height: size,
+        backgroundImage: `url(${src})`,
+        backgroundSize: `auto ${size}px`,
+        backgroundPosition: '0 0',
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'pixelated',
+      }}
+    />
+  );
 }
 
 export function MapObjectList({
@@ -29,6 +64,7 @@ export function MapObjectList({
             ${selectedObjectId === obj.id ? 'bg-accent' : 'hover:bg-muted'}`}
           onClick={() => onSelectObject(obj.id)}
         >
+          <ObjectThumbnail obj={obj} size={20} />
           <span className="flex-1 truncate">{obj.name}</span>
           <Button
             variant="ghost"
