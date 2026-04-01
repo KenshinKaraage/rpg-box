@@ -99,6 +99,11 @@ export function PrefabList({
                     'cursor-pointer px-3 py-2 hover:bg-accent',
                     getItemHighlight(prefab.id) && 'bg-accent'
                   )}
+                  draggable={isPlacementMode}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('application/rpg-prefab-id', prefab.id);
+                    e.dataTransfer.effectAllowed = 'copy';
+                  }}
                   onClick={() => handleItemClick(prefab.id)}
                   data-testid={`prefab-item-${prefab.id}`}
                 >

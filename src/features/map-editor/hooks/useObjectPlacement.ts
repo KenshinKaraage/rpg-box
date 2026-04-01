@@ -181,10 +181,40 @@ export function useObjectPlacement(mapId: string, layerId: string) {
     selectObject(null);
   }, [selectedObjectId, mapId, layerId, getLayer, deleteObject, pushUndo, selectObject]);
 
+  /** D&D ドロップ: プレハブをタイルに配置 */
+  const handleDropPrefab = useCallback(
+    (screenX: number, screenY: number, prefabId: string) => {
+      const { tx, ty } = screenToTile(screenX, screenY, viewport, TILE_SIZE);
+      const map = maps.find((m) => m.id === mapId);
+      if (!map) return;
+      if (tx < 0 || tx >= map.width || ty < 0 || ty >= map.height) return;
+
+      // 既にオブジェクトがある場合はブロック
+      if (getObjectAtTile(tx, ty)) return;
+
+      const layer = getLayer();
+      const existingIds = layer?.objects?.map((o) => o.id) ?? [];
+      const transform = new TransformComponent();
+      transform.x = tx;
+      transform.y = ty;
+      const newObj: MapObject = {
+        id: generateId('obj', existingIds),
+        name: 'オブジェクト',
+        prefabId: prefabId,
+        components: [transform],
+      };
+      addObject(mapId, layerId, newObj);
+      pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
+      selectObject(newObj.id);
+    },
+    [viewport, maps, mapId, layerId, getLayer, getObjectAtTile, addObject, pushUndo, selectObject]
+  );
+
   return {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
+    handleDropPrefab,
     deleteSelectedObject,
     getObjectAtTile,
   };

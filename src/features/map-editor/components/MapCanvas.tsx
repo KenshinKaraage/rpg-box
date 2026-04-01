@@ -169,6 +169,21 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
         onMouseMove={handleCanvasMouseMove}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
+        onDragOver={(e) => {
+          if (e.dataTransfer.types.includes('application/rpg-prefab-id')) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          const prefabId = e.dataTransfer.getData('application/rpg-prefab-id');
+          if (!prefabId || !isObjectLayer) return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          objPlacement.handleDropPrefab(sx, sy, prefabId);
+        }}
         onMouseUp={(e) => {
           handleMouseUp();
           if (isObjectLayer) {
