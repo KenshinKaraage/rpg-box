@@ -6809,6 +6809,48 @@ export function useAutoSave() {
 
 ---
 
+#### [T218g] EffectComponent.play() + メッセージタイプライタースキップ修正
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] EffectComponent に `play()` async メソッド追加（Promise で完了待ち）
+- [x] エフェクトテストスクリプトを `await effectComp.play()` に置き換え（waitFrames ポーリング廃止）
+- [x] メッセージスクリプト: タイプライタースキップ後に全文表示 → 確認待ち（即閉じを修正）
+
+**関連ファイル:**
+
+- `src/types/ui/components/EffectComponent.ts`
+- `src/lib/defaultTestData.ts`
+
+---
+
+#### [T218h] ContentFitComponent（親サイズの自動調整）
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] ContentFitComponent 新規作成: `fit()` で子の範囲に合わせて親の width/height を調整
+- [x] fitWidth / fitHeight で軸ごとに有効化
+- [x] layoutGroup の padding を参照（なければ自身の padding を使用）
+- [x] showCanvas で alignLayouts → fitContents の順に自動実行
+- [x] 選択肢 UI / パーティステータスから手動 height 設定を削除
+
+**関連ファイル:**
+
+- `src/types/ui/components/ContentFitComponent.ts`
+- `src/types/ui/register.ts`
+- `src/engine/runtime/UICanvasManager.ts`
+- `src/lib/defaultTestData.ts`
+
+---
+
 ## Phase 19: Test Play
 
 ### テストプレイ機能
