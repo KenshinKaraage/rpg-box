@@ -43,6 +43,12 @@ export function TemplateControllerEditor({ data, onChange }: TemplateControllerE
 
   const fieldTypeOptions = useMemo(() => getFieldTypeOptions(ARG_FIELD_TYPES), []);
 
+  // ActionBlockEditor に渡す functionArgs（引数 → 値ソース選択で使用）
+  const functionArgDefs = useMemo(
+    () => args.map((a) => ({ id: a.id, name: a.name, fieldType: a.fieldType ?? 'string' })),
+    [args]
+  );
+
   // ── Arg handlers ──
 
   const handleAddArg = () => {
@@ -143,6 +149,7 @@ export function TemplateControllerEditor({ data, onChange }: TemplateControllerE
           <ActionBlockEditor
             actions={deserializeActions(onSpawnActions)}
             onChange={handleSpawnActionsChange}
+            functionArgs={functionArgDefs}
           />
         </div>
       </div>
@@ -154,6 +161,7 @@ export function TemplateControllerEditor({ data, onChange }: TemplateControllerE
           <ActionBlockEditor
             actions={deserializeActions(onApplyActions)}
             onChange={handleApplyActionsChange}
+            functionArgs={functionArgDefs}
           />
         </div>
       </div>

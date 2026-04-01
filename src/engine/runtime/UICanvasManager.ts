@@ -22,6 +22,22 @@ import {
 
 import { getUIComponent } from '@/types/ui';
 
+// ── Helpers ──
+
+/** アクションの targetId を idMap でリマップ（クローン用） */
+function remapActionTargetIds(
+  action: SerializedAction,
+  idMap: Record<string, string>
+): SerializedAction {
+  const data = action.data as Record<string, unknown> | undefined;
+  if (!data) return action;
+  const targetId = data.targetId as string | undefined;
+  if (targetId && idMap[targetId]) {
+    return { ...action, data: { ...data, targetId: idMap[targetId] } };
+  }
+  return action;
+}
+
 // ── Types ──
 
 /** コンパイル済みコンポーネントランタイム */
@@ -132,6 +148,7 @@ export class UICanvasManager implements UIActionManager {
     state.visible = true;
     this.compileComponentScripts(canvasId);
     this.dispatchShow(canvasId);
+    this.alignLayouts(canvasId);
   }
 
   hideCanvas(canvasId: string): void {
@@ -206,6 +223,71 @@ export class UICanvasManager implements UIActionManager {
     if (comp) {
       (comp.data as Record<string, unknown>)[key] = value;
     }
+  }
+
+  /**
+   * オブジェクトとその子孫をディープクローンし、新しい親の下に追加する。
+   * @returns { rootId, idMap } — rootId はクローンされたルートのID、idMap は元ID→新IDのマッピング
+   */
+  cloneObject(canvasId: string, sourceId: string, newParentId: string, idPrefix?: string): { rootId: string; idMap: Record<string, string> } | null {
+    const state = this.canvases.get(canvasId);
+    if (!state) return null;
+    const source = state.data.objects.find((o) => o.id === sourceId);
+    if (!source) return null;
+
+    const idMap = new Map<string, string>();
+    const clones: EditorUIObject[] = [];
+    let subIdx = 0;
+
+    // ソースとその子孫を収集してクローン
+    const collectAndClone = (objId: string, parentId: string) => {
+      const obj = state.data.objects.find((o) => o.id === objId);
+      if (!obj) return;
+      const newId = idPrefix ? `${idPrefix}_${subIdx++}` : `${obj.id}_${Date.now()}_${subIdx++}`;
+      idMap.set(obj.id, newId);
+      clones.push({
+        ...structuredClone(obj),
+        id: newId,
+        parentId,
+      });
+      // 子を再帰クローン
+      for (const child of state.data.objects.filter((o) => o.parentId === objId)) {
+        collectAndClone(child.id, newId);
+      }
+    };
+
+    collectAndClone(sourceId, newParentId);
+
+    // キャンバスに追加
+    for (const clone of clones) {
+      state.data.objects.push(clone);
+    }
+
+    const rootId = idMap.get(sourceId);
+    if (!rootId) return null;
+
+    const mapObj: Record<string, string> = {};
+    idMap.forEach((v, k) => { mapObj[k] = v; });
+    return { rootId, idMap: mapObj };
+  }
+
+  /**
+   * オブジェクトとその子孫をキャンバスから削除する。
+   */
+  removeObject(canvasId: string, objectId: string): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    const toRemove = new Set<string>();
+    const collect = (id: string) => {
+      toRemove.add(id);
+      for (const child of state.data.objects.filter((o) => o.parentId === id)) {
+        collect(child.id);
+      }
+    };
+    collect(objectId);
+    state.data.objects = state.data.objects.filter((o) => !toRemove.has(o.id));
+    // ランタイムも削除
+    state.runtimes = state.runtimes.filter((r) => !toRemove.has(r.objectId));
   }
 
   /**
@@ -396,17 +478,38 @@ export class UICanvasManager implements UIActionManager {
         if (!script) continue;
 
         try {
+          // eslint-disable-next-line @typescript-eslint/no-this-alias
+          const mgr = this;
+          const objId = obj.id;
           const selfCtx = {
-            object: this.wrapObjectProxyById(canvasId, obj.id),
-            children: this.getChildProxies(canvasId, obj.id),
+            object: this.wrapObjectProxyById(canvasId, objId),
+            get children() { return mgr.getChildProxies(canvasId, objId); },
             state: {} as Record<string, unknown>,
             waitFrames: (frames: number) => this.waitFramesCallback?.(frames) ?? Promise.resolve(),
             tween: this.tweenAPI,
             input: this.inputAPI,
+            /** オブジェクトクローン（TemplateController 用） */
+            cloneObject: (sourceId: string, parentId: string, idPrefix?: string) => mgr.cloneObject(canvasId, sourceId, parentId, idPrefix),
+            /** オブジェクト削除 */
+            removeObject: (objectId: string) => mgr.removeObject(canvasId, objectId),
+            /** クローンされたオブジェクトのプロキシを取得 */
+            getObjectById: (objectId: string) => mgr.wrapObjectProxyById(canvasId, objectId),
+            /** UIAction リストを実行（idMap で targetId をリマップ） */
+            executeActions: async (actions: SerializedAction[], args: Record<string, unknown>, idMap?: Record<string, string>) => {
+              for (const action of actions) {
+                const remapped = idMap ? remapActionTargetIds(action, idMap) : action;
+                await mgr.executeAction(canvasId, remapped, args, 0);
+              }
+            },
           };
           // generateRuntimeScript() はオブジェクトリテラルを返す:
           // ({ onShow() {}, onInput(button) {}, getResult() {} })
           // eslint-disable-next-line @typescript-eslint/no-implied-eval
+          // templateController はテンプレートの親IDを state に注入
+          if (comp.type === 'templateController') {
+            selfCtx.state._templateParentId = obj.parentId ?? undefined;
+            selfCtx.state._instances = [];
+          }
           const fns = new Function('self', `const Input = self.input; const Tween = self.tween; return (${script})`)(selfCtx) as Record<string, unknown>;
           state.runtimes.push({ objectId: obj.id, componentType: comp.type, fns });
         } catch (e) {
@@ -422,6 +525,20 @@ export class UICanvasManager implements UIActionManager {
 
   private dispatchHide(canvasId: string): void {
     this.callLifecycle(canvasId, 'onHide');
+  }
+
+  /** layoutGroup コンポーネントの align() を全て呼び出す */
+  private alignLayouts(canvasId: string): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    for (const rt of state.runtimes) {
+      if (rt.componentType === 'layoutGroup') {
+        const fns = rt.fns as Record<string, unknown>;
+        if (typeof fns.align === 'function') {
+          (fns.align as () => void).call(fns);
+        }
+      }
+    }
   }
 
   private wrapObjectProxyById(canvasId: string, objectId: string): UIObjectRuntimeProxy | null {

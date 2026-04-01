@@ -46,7 +46,6 @@ export function UICanvas() {
   } = useUIViewport(canvasRef);
 
   const { handleCanvasClick, selectedObjectIds, objects: selectionObjects } = useUISelection();
-  const layoutObjectsRef = useRef<typeof selectionObjects>(selectionObjects);
 
   // 左クリック: パンでなければ選択処理を行う
   const isPanningRef = useRef(false);
@@ -196,18 +195,13 @@ export function UICanvas() {
         const asset = assets.find((a) => a.id === assetId);
         return (asset?.data as string) ?? null;
       };
-      // Immer frozen 解除: レイアウトが transform を直接変更するため浅コピー
-      const mutableObjects = selectedCanvas.objects.map((o) => ({ ...o, transform: { ...o.transform } }));
-      renderUIObjects(rendererCtx, mutableObjects, resW, resH);
+      renderUIObjects(rendererCtx, selectedCanvas.objects, resW, resH);
 
-      // ── 9-slice ガイドライン（レイアウト適用後のオブジェクトを使用） ──
-      renderNineSliceGuides(rendererCtx, mutableObjects, selectedObjectIds, resW, resH);
+      // ── 9-slice ガイドライン ──
+      renderNineSliceGuides(rendererCtx, selectedCanvas.objects, selectedObjectIds, resW, resH);
 
-      // ── 選択枠（レイアウト適用後のオブジェクトを使用） ──
-      renderSelectionOutlines(rendererCtx, mutableObjects, selectedObjectIds, resW, resH);
-
-      // TransformHandles 用にレイアウト後のオブジェクトを保存
-      layoutObjectsRef.current = mutableObjects;
+      // ── 選択枠 ──
+      renderSelectionOutlines(rendererCtx, selectedCanvas.objects, selectedObjectIds, resW, resH);
     }
 
     // ── 解像度プレビュー枠（青い外枠） ──
@@ -274,7 +268,7 @@ export function UICanvas() {
         style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
       >
         <TransformHandles
-          objects={layoutObjectsRef.current}
+          objects={selectionObjects}
           selectedObjectIds={selectedObjectIds}
           viewport={viewport}
           canvasId={selectedCanvasId}

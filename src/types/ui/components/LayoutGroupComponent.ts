@@ -67,6 +67,63 @@ export class LayoutGroupComponent extends UIComponent {
     this.reverseOrder = (data.reverseOrder as boolean) ?? false;
   }
 
+  generateRuntimeScript(): string | null {
+    const dir = JSON.stringify(this.direction);
+    const spacing = this.spacing;
+    const padTop = this.paddingTop;
+    const padLeft = this.paddingLeft;
+    const padRight = this.paddingRight;
+    const padBottom = this.paddingBottom;
+    const alignment = JSON.stringify(this.alignment);
+    const reverse = this.reverseOrder;
+
+    return `({
+  align() {
+    const direction = ${dir};
+    const spacing = ${spacing};
+    const padTop = ${padTop};
+    const padLeft = ${padLeft};
+    const padRight = ${padRight};
+    const padBottom = ${padBottom};
+    const alignment = ${alignment};
+    const reverse = ${reverse};
+
+    const parentW = self.object.width;
+    const parentH = self.object.height;
+    const innerW = parentW - padLeft - padRight;
+    const innerH = parentH - padTop - padBottom;
+
+    const children = reverse ? [...self.children].reverse() : self.children;
+    let cursor = direction === "vertical" ? padTop : padLeft;
+
+    for (const child of children) {
+      // 非表示の子はスキップ（テンプレート元など）
+      if (!child.visible) continue;
+      const le = child.getComponentData && child.getComponentData("layoutElement");
+      if (le && le.participate === false) continue;
+
+      const w = child.width;
+      const h = child.height;
+      const extra = (le && le.space) || 0;
+
+      if (direction === "vertical") {
+        child.y = cursor;
+        if (alignment === "center") child.x = padLeft + (innerW - w) / 2;
+        else if (alignment === "end") child.x = padLeft + innerW - w;
+        else child.x = padLeft;
+        cursor += h + spacing + extra;
+      } else {
+        child.x = cursor;
+        if (alignment === "center") child.y = padTop + (innerH - h) / 2;
+        else if (alignment === "end") child.y = padTop + innerH - h;
+        else child.y = padTop;
+        cursor += w + spacing + extra;
+      }
+    }
+  }
+})`;
+  }
+
   clone(): LayoutGroupComponent {
     const c = new LayoutGroupComponent();
     c.direction = this.direction;

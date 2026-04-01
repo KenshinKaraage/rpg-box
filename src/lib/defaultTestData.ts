@@ -977,6 +977,19 @@ function createTestVariables(): Variable[] {
       initialValue: ['potion_hp', 'iron_sword'],
       description: '所持アイテムIDリスト（配列変数テスト）',
     },
+    {
+      id: 'var_party',
+      name: 'party',
+      fieldType: Object.assign(createFieldTypeInstance('class')!, { classId: 'class_party_member' }),
+      isArray: true,
+      initialValue: [
+        { name: '勇者', level: 10, stats: { hp: 250, mp: 40, atk: 30, def: 25, matk: 10, mdef: 15, spd: 20, luk: 12 } },
+        { name: '魔法使い', level: 8, stats: { hp: 120, mp: 180, atk: 8, def: 10, matk: 45, mdef: 35, spd: 18, luk: 10 } },
+        { name: '戦士', level: 12, stats: { hp: 350, mp: 15, atk: 48, def: 40, matk: 5, mdef: 12, spd: 15, luk: 8 } },
+        { name: '僧侶', level: 9, stats: { hp: 180, mp: 150, atk: 12, def: 20, matk: 30, mdef: 40, spd: 16, luk: 20 } },
+      ],
+      description: 'パーティメンバー配列（TemplateController テスト）',
+    },
   ];
 }
 
@@ -1528,6 +1541,180 @@ await Script.message({ text: ANIMS[idx] + " 完了！", face: "" });`,
   isAsync: true,
 };
 
+// ── UICanvas: パーティステータス（TemplateController + LayoutGroup テスト） ──
+
+const PARTY_MEMBER_H = 48;
+
+function createPartyStatusObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  // 背景 + LayoutGroup (vertical)
+  objects.push({
+    id: 'party_bg',
+    name: 'background',
+    transform: {
+      x: 0, y: 0, width: 320, height: 280,
+      anchorX: 'center', anchorY: 'center',
+      pivotX: 0.5, pivotY: 0.5,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+    ],
+  });
+
+  // タイトル
+  objects.push({
+    id: 'party_title',
+    name: 'title',
+    parentId: 'party_bg',
+    transform: {
+      x: 0, y: 0, width: 288, height: 28,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: 'パーティ', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('layoutElement', { participate: true, space: 4 }),
+    ],
+  });
+
+  // メンバーテンプレート（非表示、TemplateController がクローンする）
+  objects.push({
+    id: 'party_member_template',
+    name: 'memberTemplate',
+    parentId: 'party_bg',
+    transform: {
+      x: 0, y: 0, width: 288, height: PARTY_MEMBER_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'hp', name: 'HP', fieldType: 'string', defaultValue: '' },
+          { id: 'mp', name: 'MP', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'party_member_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          { type: 'uiSetProperty', data: { targetId: 'party_member_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'party_member_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
+        ],
+      }),
+    ],
+  });
+
+  // テンプレートの子: 名前テキスト
+  objects.push({
+    id: 'party_member_name',
+    name: 'name',
+    parentId: 'party_member_template',
+    transform: {
+      x: 8, y: 4, width: 120, height: 20,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '---', fontSize: 16, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // テンプレートの子: HP テキスト
+  objects.push({
+    id: 'party_member_hp',
+    name: 'hp',
+    parentId: 'party_member_template',
+    transform: {
+      x: 8, y: 24, width: 120, height: 18,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: 'HP: ---', fontSize: 14, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // テンプレートの子: MP テキスト
+  objects.push({
+    id: 'party_member_mp',
+    name: 'mp',
+    parentId: 'party_member_template',
+    transform: {
+      x: 140, y: 24, width: 120, height: 18,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: 'MP: ---', fontSize: 14, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  return objects;
+}
+
+const partyStatusCanvas: EditorUICanvas = {
+  id: 'party_status',
+  name: 'パーティステータス',
+  objects: createPartyStatusObjects(),
+  functions: [],
+};
+
+// ── Script: パーティステータス表示 ──
+
+const partyStatusScript: Script = {
+  id: 'party_status',
+  name: 'パーティステータス表示',
+  callId: 'party_status',
+  type: 'event',
+  content: `// パーティ配列を取得
+const party = Variable["party"];
+if (!party || !Array.isArray(party)) {
+  await Script.message({ text: "パーティデータがありません。", face: "" });
+  return;
+}
+
+// ステータスをフォーマット
+const formatted = party.map(m => ({
+  name: (m.name || "???") + "  Lv." + (m.level ?? 1),
+  hp: "HP: " + (m.stats?.hp ?? 0),
+  mp: "MP: " + (m.stats?.mp ?? 0),
+}));
+
+// UI表示
+const bg = UI["party_status"].getObject("background");
+if (bg) bg.visible = true;
+UI["party_status"].show();
+
+// TemplateController でメンバー一覧を生成
+const template = UI["party_status"].getObject("memberTemplate");
+if (template) {
+  const tc = template.getComponent("templateController");
+  if (tc) await tc.applyList(formatted);
+}
+
+// LayoutGroup で再配置
+const layout = bg.getComponent("layoutGroup");
+if (layout) layout.align();
+
+// 確認キーで閉じる
+await Input.waitKey("confirm");
+
+UI["party_status"].hide();`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
 // ── 占い師NPC: イベントブロック + VariablesComponent テスト ──
 
 function createFortunetellerObject(x: number, y: number, resolveAssetId: AssetNameToId): MapObject {
@@ -1834,6 +2021,8 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
           createFortunetellerObject(13, 7, resolveAssetId),
           // 操作テスト NPC（イベントブロックで Camera/Object アクション）
           createActionTestObject(15, 7, resolveAssetId),
+          // パーティステータス NPC（TemplateController + LayoutGroup テスト）
+          createNpcObject('npc_party', 'パーティ案内', 17, 7, createScriptActions('party_status', [{}]), resolveAssetId),
         ],
       },
     ],
@@ -1908,9 +2097,12 @@ export async function loadDefaultTestData(): Promise<void> {
   if (!state.uiCanvases.find((c) => c.id === 'anim_test')) {
     state.addUICanvas(structuredClone(animTestCanvas));
   }
+  if (!state.uiCanvases.find((c) => c.id === 'party_status')) {
+    state.addUICanvas(structuredClone(partyStatusCanvas));
+  }
 
   // Script
-  const scriptsToAdd = [messageScript, choiceScript, inputNumberScript, inputTextScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript, inputTestScript, effectTestScript, animTestScript];
+  const scriptsToAdd = [messageScript, choiceScript, inputNumberScript, inputTextScript, showStatusScript, shopScript, mapInfoScript, objTestScript, audioTestScript, inputTestScript, effectTestScript, animTestScript, partyStatusScript];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
       state.addScript(script);

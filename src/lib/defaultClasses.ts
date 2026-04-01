@@ -47,6 +47,9 @@ export const ENEMY_MEMBER_CLASS_ID = 'class_enemy_member';
 /** 行動パターンクラスID */
 export const ACTION_PATTERN_CLASS_ID = 'class_action_pattern';
 
+/** パーティメンバークラスID */
+export const PARTY_MEMBER_CLASS_ID = 'class_party_member';
+
 // =============================================================================
 // ファクトリ関数（既存クラス）
 // =============================================================================
@@ -182,6 +185,19 @@ function createActionPatternClass(): CustomClass {
   };
 }
 
+function createPartyMemberClass(): CustomClass {
+  return {
+    id: PARTY_MEMBER_CLASS_ID,
+    name: 'パーティメンバー',
+    description: 'パーティメンバーの名前とステータス',
+    fields: [
+      f('string', { id: 'name', name: '名前' }),
+      f('number', { id: 'level', name: 'レベル', min: 1, max: 99 }),
+      f('class', { id: 'stats', name: 'ステータス', classId: STATUS_CLASS_ID }),
+    ],
+  };
+}
+
 // =============================================================================
 // デフォルトクラス一覧
 // =============================================================================
@@ -194,4 +210,5 @@ export const defaultClasses: CustomClass[] = [
   createDropItemClass(),
   createEnemyMemberClass(),
   createActionPatternClass(),
+  createPartyMemberClass(),
 ];
