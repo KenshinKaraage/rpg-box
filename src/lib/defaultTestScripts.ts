@@ -853,3 +853,101 @@ return await Script.equip_item({ memberIndex, slot, itemId: "" });`,
   fields: [],
   isAsync: true,
 };
+
+// ── Script: メニュー ──
+
+export const menuOpenScript: Script = {
+  id: 'menu_open',
+  name: 'メニュー',
+  callId: 'menu_open',
+  type: 'event',
+  content: `// パーティデータからメンバー一覧を構築
+const party = Variable["party"];
+if (!Array.isArray(party) || party.length === 0) return;
+
+const members = party.map(m => {
+  const ch = Data.character[m.characterId];
+  const name = ch ? ch.name : "???";
+  const maxHp = ch ? ch.base_stats.hp : 0;
+  const maxMp = ch ? ch.base_stats.mp : 0;
+  return {
+    name,
+    level: "Lv." + (m.level ?? 1),
+    hp: "HP " + (m.stats?.hp ?? 0) + "/" + maxHp,
+    mp: "MP " + (m.stats?.mp ?? 0) + "/" + maxMp,
+    face: ch ? ch.face_graphic : "",
+  };
+});
+
+// ゴールド表示
+const goldText = UI["menu"].getObject("goldText");
+if (goldText) goldText.setProperty("text", "content", (Variable["gold"] ?? 0) + " G");
+
+// メニュー表示
+UI["menu"].show();
+
+// パーティメンバー一覧を TemplateController で生成
+const template = UI["menu"].getObject("memberTemplate");
+if (template) {
+  const tc = template.getComponent("templateController");
+  if (tc) await tc.applyList(members);
+}
+
+// レイアウト + フィット
+const partyWin = UI["menu"].getObject("partyWindow");
+if (partyWin) {
+  const layout = partyWin.getComponent("layoutGroup");
+  if (layout) layout.align();
+  const fit = partyWin.getComponent("contentFit");
+  if (fit) fit.fit();
+}
+
+// コマンドウィンドウ layout + fit
+const cmdWin = UI["menu"].getObject("commandWindow");
+if (cmdWin) {
+  const cmdLayout = cmdWin.getComponent("layoutGroup");
+  if (cmdLayout) cmdLayout.align();
+  const cmdFit = cmdWin.getComponent("contentFit");
+  if (cmdFit) cmdFit.fit();
+}
+
+// コマンド選択ループ
+while (true) {
+  const nav = cmdWin.getComponent("navigation");
+  nav.activate();
+  const selected = await nav.result();
+
+  // キャンセル = メニューを閉じる
+  if (selected === null) break;
+
+  const cmdIndex = parseInt(selected, 10);
+  switch (cmdIndex) {
+    case 0: // アイテム
+      await Script.message({ text: "アイテム画面は準備中です。", face: "" });
+      break;
+    case 1: // スキル
+      await Script.message({ text: "スキル画面は準備中です。", face: "" });
+      break;
+    case 2: // 装備
+      await Script.message({ text: "装備画面は準備中です。", face: "" });
+      break;
+    case 3: // ステータス
+      await Script.message({ text: "ステータス画面は準備中です。", face: "" });
+      break;
+    case 4: // セーブ
+      await Script.message({ text: "セーブ機能は準備中です。", face: "" });
+      break;
+    case 5: // 終了
+      break;
+  }
+
+  // 終了を選んだ場合もメニューを閉じる
+  if (cmdIndex === 5) break;
+}
+
+UI["menu"].hide();`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
