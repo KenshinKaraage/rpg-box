@@ -753,4 +753,259 @@ export const partyStatusCanvas: EditorUICanvas = {
   functions: [],
 };
 
+// ── UICanvas: メニュー画面（RPGツクール風） ──
 
+const MENU_W = 1280;
+const MENU_H = 720;
+const CMD_W = 240;
+const CMD_H = 360;
+const MEMBER_W = MENU_W - CMD_W - 48;
+const MEMBER_H = 140;
+const GOLD_H = 48;
+
+function createMenuObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  // 全体背景（半透明黒）
+  objects.push({
+    id: 'menu_bg',
+    name: 'background',
+    transform: {
+      x: 0, y: 0, width: MENU_W, height: MENU_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' }),
+    ],
+  });
+
+  // ── 左: コマンドウィンドウ ──
+  objects.push({
+    id: 'menu_cmd',
+    name: 'commandWindow',
+    parentId: 'menu_bg',
+    transform: {
+      x: 16, y: 16, width: CMD_W, height: CMD_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ],
+  });
+
+  // コマンド項目
+  const commands = ['アイテム', 'スキル', '装備', 'ステータス', 'セーブ', '終了'];
+  for (let i = 0; i < commands.length; i++) {
+    objects.push({
+      id: `menu_cmd_${i}`,
+      name: `cmd${i}`,
+      parentId: 'menu_cmd',
+      transform: {
+        x: 0, y: 0, width: CMD_W - 32, height: 44,
+        anchorX: 'left', anchorY: 'top',
+        pivotX: 0, pivotY: 0,
+        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      },
+      components: [
+        createUIComponentData('text', { content: commands[i], fontSize: 20, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+        createUIComponentData('navigationItem', { itemId: String(i) }),
+      ],
+    });
+  }
+
+  // コマンドカーソル
+  objects.push({
+    id: 'menu_cmd_cursor',
+    name: 'cmdCursor',
+    parentId: 'menu_cmd',
+    transform: {
+      x: 0, y: 12, width: 16, height: 44,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  // ── 左下: ゴールドウィンドウ ──
+  objects.push({
+    id: 'menu_gold',
+    name: 'goldWindow',
+    parentId: 'menu_bg',
+    transform: {
+      x: 16, y: CMD_H + 32, width: CMD_W, height: GOLD_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+    ],
+  });
+
+  objects.push({
+    id: 'menu_gold_text',
+    name: 'goldText',
+    parentId: 'menu_gold',
+    transform: {
+      x: 16, y: 0, width: CMD_W - 32, height: GOLD_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '0 G', fontSize: 18, color: '#ffdd44', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // ── 右: パーティウィンドウ ──
+  objects.push({
+    id: 'menu_party',
+    name: 'partyWindow',
+    parentId: 'menu_bg',
+    transform: {
+      x: CMD_W + 32, y: 16, width: MEMBER_W, height: MENU_H - 32,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ],
+  });
+
+  // パーティメンバーテンプレート
+  objects.push({
+    id: 'menu_member_template',
+    name: 'memberTemplate',
+    parentId: 'menu_party',
+    transform: {
+      x: 0, y: 0, width: MEMBER_W - 32, height: MEMBER_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'level', name: 'レベル', fieldType: 'string', defaultValue: '' },
+          { id: 'hp', name: 'HP', fieldType: 'string', defaultValue: '' },
+          { id: 'mp', name: 'MP', fieldType: 'string', defaultValue: '' },
+          { id: 'face', name: '顔', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'menu_member_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          { type: 'uiSetProperty', data: { targetId: 'menu_member_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
+          { type: 'uiSetProperty', data: { targetId: 'menu_member_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'menu_member_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'menu_member_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+        ],
+      }),
+    ],
+  });
+
+  // テンプレート子: 顔画像
+  objects.push({
+    id: 'menu_member_face',
+    name: 'face',
+    parentId: 'menu_member_template',
+    transform: {
+      x: 8, y: 8, width: 64, height: 64,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('image', { imageId: '', opacity: 1 }),
+    ],
+  });
+
+  // テンプレート子: 名前
+  objects.push({
+    id: 'menu_member_name',
+    name: 'name',
+    parentId: 'menu_member_template',
+    transform: {
+      x: 80, y: 8, width: 200, height: 24,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // テンプレート子: レベル
+  objects.push({
+    id: 'menu_member_level',
+    name: 'level',
+    parentId: 'menu_member_template',
+    transform: {
+      x: 300, y: 8, width: 120, height: 24,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: 'Lv.1', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // テンプレート子: HP
+  objects.push({
+    id: 'menu_member_hp',
+    name: 'hp',
+    parentId: 'menu_member_template',
+    transform: {
+      x: 80, y: 40, width: 200, height: 20,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: 'HP: ---', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // テンプレート子: MP
+  objects.push({
+    id: 'menu_member_mp',
+    name: 'mp',
+    parentId: 'menu_member_template',
+    transform: {
+      x: 80, y: 64, width: 200, height: 20,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: 'MP: ---', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  return objects;
+}
+
+export const menuCanvas: EditorUICanvas = {
+  id: 'menu',
+  name: 'メニュー',
+  objects: createMenuObjects(),
+  functions: [],
+};

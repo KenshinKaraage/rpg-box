@@ -16,6 +16,7 @@ import { importDefaultAssets } from './importDefaultAssets';
 import {
   messageCanvas, choiceCanvas, numberInputCanvas, textInputCanvas,
   statusCanvas, effectTestCanvas, animTestCanvas, partyStatusCanvas,
+  menuCanvas,
 } from './defaultTestCanvases';
 import {
   messageScript, choiceScript, inputNumberScript, inputTextScript,
@@ -105,6 +106,9 @@ export async function loadDefaultTestData(): Promise<void> {
   }
   if (!state.uiCanvases.find((c) => c.id === 'party_status')) {
     state.addUICanvas(structuredClone(partyStatusCanvas));
+  }
+  if (!state.uiCanvases.find((c) => c.id === 'menu')) {
+    state.addUICanvas(structuredClone(menuCanvas));
   }
 
   // Prefab（NPC テンプレート）
