@@ -18,7 +18,8 @@
 import { useStore } from '@/stores';
 import type { EditorUICanvas, EditorUIObject } from '@/stores/uiEditorSlice';
 import type { Script } from '@/types/script';
-import type { GameMap, MapObject } from '@/types/map';
+import type { GameMap, MapObject, Prefab } from '@/types/map';
+import { MovementComponent } from '@/types/components/MovementComponent';
 import type { DataEntry } from '@/types/data';
 import type { Variable } from '@/types/variable';
 import { createFieldTypeInstance } from '@/types/fields';
@@ -2027,6 +2028,64 @@ function createTestMap(resolveAssetId: AssetNameToId): GameMap {
 
 // ── Store に投入 ──
 
+// ── Prefab: NPC テンプレート ──
+
+function createNpcPrefabs(resolveAssetId: AssetNameToId): Prefab[] {
+  // 基本 NPC: スプライト + コライダー（話しかけられる NPC のベース）
+  const basicCollider = new ColliderComponent();
+  basicCollider.width = 1;
+  basicCollider.height = 1;
+  basicCollider.collideLayers = [OBJ_LAYER_ID];
+
+  const basicTalk = new TalkTriggerComponent();
+  basicTalk.direction = 'any';
+  basicTalk.facePlayer = true;
+
+  // 歩行 NPC: 基本 NPC + ランダム移動
+  const walkMovement = new MovementComponent();
+  walkMovement.pattern = 'random';
+  walkMovement.speed = 1;
+  walkMovement.activeness = 3;
+
+  return [
+    {
+      id: 'prefab_npc_basic',
+      name: 'NPC（基本）',
+      prefab: {
+        components: [
+          basicCollider.clone(),
+          createWalkSprite('walk_ian', resolveAssetId),
+          basicTalk.clone(),
+        ],
+      },
+    },
+    {
+      id: 'prefab_npc_walk',
+      name: 'NPC（歩行）',
+      prefab: {
+        components: [
+          basicCollider.clone(),
+          createWalkSprite('walk_marguerite', resolveAssetId),
+          basicTalk.clone(),
+          walkMovement.clone(),
+        ],
+      },
+    },
+    {
+      id: 'prefab_npc_static',
+      name: 'NPC（固定）',
+      prefab: {
+        components: [
+          basicCollider.clone(),
+          createWalkSprite('walk_lex', resolveAssetId),
+        ],
+      },
+    },
+  ];
+}
+
+// ── Store に投入 ──
+
 export async function loadDefaultTestData(): Promise<void> {
   const state = useStore.getState();
 
@@ -2095,6 +2154,14 @@ export async function loadDefaultTestData(): Promise<void> {
   }
   if (!state.uiCanvases.find((c) => c.id === 'party_status')) {
     state.addUICanvas(structuredClone(partyStatusCanvas));
+  }
+
+  // Prefab（NPC テンプレート）
+  const npcPrefabs = createNpcPrefabs(resolveAssetId);
+  for (const prefab of npcPrefabs) {
+    if (!state.prefabs.find((p) => p.id === prefab.id)) {
+      state.addPrefab(prefab);
+    }
   }
 
   // Script
