@@ -2253,12 +2253,19 @@ export async function loadDefaultTestData(): Promise<void> {
     }
   }
 
-  // サンプルデータエントリ
+  // サンプルデータエントリ（画像フィールドのアセット名→IDを解決）
+  const IMAGE_FIELDS = ['face_graphic', 'walk_graphic', 'icon', 'graphic'];
   for (const [typeId, entries] of Object.entries(sampleDataEntries)) {
     for (const entry of entries) {
       const existing = state.dataEntries[typeId];
       if (!existing?.find((e) => e.id === entry.id)) {
-        state.addDataEntry(entry);
+        const resolved = { ...entry, values: { ...entry.values } };
+        for (const field of IMAGE_FIELDS) {
+          if (resolved.values[field] && typeof resolved.values[field] === 'string') {
+            resolved.values[field] = resolveAssetId(resolved.values[field] as string);
+          }
+        }
+        state.addDataEntry(resolved);
       }
     }
   }
