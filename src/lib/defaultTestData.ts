@@ -258,7 +258,7 @@ if (!UI["message"].isVisible()) {
   await UI["message"].call("updateText", { text: "", face: face || "" });
 }
 
-// タイプライター効果（1文字ずつ表示、確認キーでスキップ）
+// タイプライター効果（1文字ずつ表示、確認キーで全文表示）
 if (typewriter !== false && textObj) {
   let skipped = false;
   for (let i = 1; i <= text.length; i++) {
@@ -270,9 +270,9 @@ if (typewriter !== false && textObj) {
     }
   }
   textObj.setProperty("text", "content", text);
-  if (!skipped) {
-    await Input.waitKey("confirm");
-  }
+  // スキップ時: 全文表示してから1フレーム待ち（同フレームのconfirmを消化）
+  if (skipped) await scriptAPI.waitFrames(1);
+  await Input.waitKey("confirm");
 } else {
   if (textObj) textObj.setProperty("text", "content", text);
   await Input.waitKey("confirm");
@@ -319,6 +319,7 @@ function createChoiceObjects(): EditorUIObject[] {
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
       createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: CHOICE_PAD, paddingBottom: CHOICE_PAD, paddingLeft: 32, paddingRight: 0 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true, paddingTop: 0, paddingBottom: 0 }),
     ],
   });
 
@@ -380,12 +381,9 @@ const choiceScript: Script = {
   content: `const count = Math.min(items.length, ${CHOICE_MAX});
 if (count === 0) return -1;
 
-// 背景サイズ調整 + 項目テキスト設定（レイアウトが y を自動配置）
+// 項目テキスト設定（レイアウトが y を自動配置、contentFit が高さ調整）
 const bg = UI["choice"].getObject("background");
-if (bg) {
-  bg.height = count * ${CHOICE_ITEM_H};
-  bg.visible = true;
-}
+if (bg) bg.visible = true;
 for (let i = 0; i < ${CHOICE_MAX}; i++) {
   const item = UI["choice"].getObject("item" + i);
   if (!item) continue;
@@ -397,7 +395,7 @@ for (let i = 0; i < ${CHOICE_MAX}; i++) {
   }
 }
 
-// show → コンポーネントスクリプトがコンパイルされる
+// show → align + fit が自動実行される
 UI["choice"].show();
 
 // ナビゲーション activate → result で選択待ち
@@ -1336,17 +1334,12 @@ display.setProperty("effect", "effectId", eff.id);
 display.setProperty("effect", "frameCount", eff.frames);
 display.visible = true;
 
-// エフェクトキャンバスを表示 → onShow でタイマー開始
+// エフェクトキャンバスを表示
 UI["effect_test"].show();
 
-// エフェクトの getComponent でリセット+完了待ち
+// play() で再生完了まで待機
 const effectComp = display.getComponent("effect");
-if (effectComp && effectComp.reset) effectComp.reset();
-
-// 完了待ち
-while (effectComp && !effectComp.isFinished()) {
-  await scriptAPI.waitFrames(1);
-}
+if (effectComp) await effectComp.play();
 
 UI["effect_test"].hide();
 await Script.message({ text: eff.name + " エフェクトを再生しました！", face: "" });`,
@@ -1561,6 +1554,7 @@ function createPartyStatusObjects(): EditorUIObject[] {
     components: [
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
       createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true, paddingTop: 0, paddingBottom: 0 }),
     ],
   });
 
@@ -1701,9 +1695,11 @@ if (template) {
   if (tc) await tc.applyList(formatted);
 }
 
-// LayoutGroup で再配置
+// クローン追加後にレイアウト再配置 + サイズフィット
 const layout = bg.getComponent("layoutGroup");
 if (layout) layout.align();
+const fit = bg.getComponent("contentFit");
+if (fit) fit.fit();
 
 // 確認キーで閉じる
 await Input.waitKey("confirm");

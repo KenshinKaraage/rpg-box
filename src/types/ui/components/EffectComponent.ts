@@ -105,6 +105,7 @@ export class EffectComponent extends UIComponent {
     self.state.elapsed = 0;
     self.state.frame = -1;
     self.state.finished = false;
+    self.state._resolve = null;
     this._setFrame(0);
   },
 
@@ -120,6 +121,10 @@ export class EffectComponent extends UIComponent {
       if (${onComplete} === "hide") {
         self.object.visible = false;
       }
+      if (self.state._resolve) {
+        self.state._resolve();
+        self.state._resolve = null;
+      }
       return;
     }
 
@@ -127,6 +132,14 @@ export class EffectComponent extends UIComponent {
     if (frame !== self.state.frame) {
       this._setFrame(frame);
     }
+  },
+
+  async play() {
+    this.reset();
+    if (${loop}) return; // ループ再生は完了を待たない
+    return new Promise((resolve) => {
+      self.state._resolve = resolve;
+    });
   },
 
   _setFrame(frame) {
@@ -145,6 +158,10 @@ export class EffectComponent extends UIComponent {
     self.state.elapsed = 0;
     self.state.frame = -1;
     self.state.finished = false;
+    if (self.state._resolve) {
+      self.state._resolve();
+      self.state._resolve = null;
+    }
     self.object.visible = true;
     this._setFrame(0);
   }
