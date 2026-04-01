@@ -777,4 +777,79 @@ return true;`,
   isAsync: true,
 };
 
+// ── Script: 装備変更（内部処理） ──
 
+export const equipItemScript: Script = {
+  id: 'equip_item',
+  name: '装備変更',
+  callId: 'equip_item',
+  type: 'event',
+  content: `// 装備変更: 現在の装備を外してインベントリに戻し、新しいアイテムを装備
+const party = Variable["party"];
+if (!Array.isArray(party) || memberIndex < 0 || memberIndex >= party.length) return false;
+const member = party[memberIndex];
+
+// スロット名チェック
+const SLOTS = ["weapon", "shield", "head", "body", "accessory"];
+if (!SLOTS.includes(slot)) return false;
+
+// 装備するアイテムの検証
+if (itemId) {
+  const item = Data.item[itemId];
+  if (!item) return false;
+  // 装備スロットの一致チェック
+  if (item.equip_slot !== slot) {
+    await Script.message({ text: item.name + "はこの部位には装備できません。", face: "" });
+    return false;
+  }
+  // インベントリから消費
+  const removed = await Script.item_remove({ itemId, count: 1 });
+  if (!removed) {
+    await Script.message({ text: item.name + "を持っていません。", face: "" });
+    return false;
+  }
+}
+
+// 現在の装備を外してインベントリに戻す
+const currentEquip = member[slot];
+if (currentEquip) {
+  await Script.item_add({ itemId: currentEquip, count: 1 });
+}
+
+// 新しいアイテムを装備（空文字なら装備解除のみ）
+member[slot] = itemId || "";
+
+const ch = Data.character[member.characterId];
+const memberName = ch ? ch.name : "???";
+if (itemId) {
+  const newItem = Data.item[itemId];
+  await Script.message({ text: memberName + "は" + (newItem ? newItem.name : itemId) + "を装備した！", face: "" });
+} else {
+  await Script.message({ text: memberName + "の" + slot + "を外した。", face: "" });
+}
+return true;`,
+  args: [
+    { id: 'memberIndex', name: 'メンバー番号', fieldType: 'number', required: true, defaultValue: 0 },
+    { id: 'slot', name: '装備部位', fieldType: 'string', required: true, defaultValue: 'weapon' },
+    { id: 'itemId', name: 'アイテムID（空=解除）', fieldType: 'string', required: false, defaultValue: '' },
+  ],
+  returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
+  fields: [],
+  isAsync: true,
+};
+
+export const unequipItemScript: Script = {
+  id: 'unequip_item',
+  name: '装備解除',
+  callId: 'unequip_item',
+  type: 'event',
+  content: `// 指定スロットの装備を解除してインベントリに戻す
+return await Script.equip_item({ memberIndex, slot, itemId: "" });`,
+  args: [
+    { id: 'memberIndex', name: 'メンバー番号', fieldType: 'number', required: true, defaultValue: 0 },
+    { id: 'slot', name: '装備部位', fieldType: 'string', required: true, defaultValue: 'weapon' },
+  ],
+  returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
+  fields: [],
+  isAsync: true,
+};

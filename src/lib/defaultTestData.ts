@@ -22,6 +22,7 @@ import {
   showStatusScript, shopScript, mapInfoScript, objTestScript,
   audioTestScript, inputTestScript, effectTestScript, animTestScript,
   partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
+  equipItemScript, unequipItemScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
 import { createTestMap, createNpcPrefabs } from './defaultTestMap';
@@ -120,6 +121,7 @@ export async function loadDefaultTestData(): Promise<void> {
     showStatusScript, shopScript, mapInfoScript, objTestScript,
     audioTestScript, inputTestScript, effectTestScript, animTestScript,
     partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
+    equipItemScript, unequipItemScript,
   ];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
