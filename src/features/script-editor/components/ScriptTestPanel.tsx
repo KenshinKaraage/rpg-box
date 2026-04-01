@@ -181,7 +181,6 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
         .then(() => { setUiTestData(null); })
         .catch((err) => {
           console.error('[ScriptTest] Runtime execution error:', err);
-          setUiTestData(null);
         });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
