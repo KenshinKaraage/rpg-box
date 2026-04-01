@@ -2,12 +2,12 @@ import { resolveLayoutGroup, resolveGridLayout, applyLayoutOverrides } from './l
 import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';
 
-function makeChild(id: string, w: number, h: number): EditorUIObject {
+function makeChild(id: string, w: number, h: number, components: EditorUIObject['components'] = []): EditorUIObject {
   return {
     id,
     name: id,
     transform: { ...createDefaultRectTransform(), width: w, height: h },
-    components: [],
+    components,
   };
 }
 
@@ -60,6 +60,41 @@ describe('resolveLayoutGroup', () => {
     const result = resolveLayoutGroup([], {}, 100, 100);
     expect(result.size).toBe(0);
   });
+
+  it('skips children with layoutElement participate=false', () => {
+    const children = [
+      makeChild('a', 100, 40),
+      makeChild('cursor', 20, 40, [{ type: 'layoutElement', data: { participate: false } }]),
+      makeChild('b', 100, 60),
+    ];
+    const result = resolveLayoutGroup(children, { direction: 'vertical', spacing: 10 }, 200, 400);
+
+    expect(result.get('a')).toEqual({ x: 0, y: 0 });
+    expect(result.has('cursor')).toBe(false); // excluded
+    expect(result.get('b')).toEqual({ x: 0, y: 50 }); // 40 + 10 (no gap for cursor)
+  });
+
+  it('applies padding to layout start position and alignment area', () => {
+    const children = [makeChild('a', 100, 40), makeChild('b', 100, 60)];
+    const result = resolveLayoutGroup(children, {
+      direction: 'vertical', spacing: 5,
+      paddingTop: 10, paddingLeft: 20,
+    }, 300, 400);
+
+    expect(result.get('a')).toEqual({ x: 20, y: 10 }); // paddingLeft, paddingTop
+    expect(result.get('b')).toEqual({ x: 20, y: 55 }); // 10 + 40 + 5
+  });
+
+  it('adds extra space from layoutElement space property', () => {
+    const children = [
+      makeChild('a', 100, 40, [{ type: 'layoutElement', data: { participate: true, space: 20 } }]),
+      makeChild('b', 100, 40),
+    ];
+    const result = resolveLayoutGroup(children, { direction: 'vertical', spacing: 5 }, 200, 400);
+
+    expect(result.get('a')).toEqual({ x: 0, y: 0 });
+    expect(result.get('b')).toEqual({ x: 0, y: 65 }); // 40 + 5 (spacing) + 20 (extra space)
+  });
 });
 
 // ────────────────────────────────────────────────
@@ -106,6 +141,19 @@ describe('resolveGridLayout', () => {
   it('handles empty children', () => {
     const result = resolveGridLayout([], { columns: 3 });
     expect(result.size).toBe(0);
+  });
+
+  it('skips children with layoutElement participate=false', () => {
+    const children = [
+      makeChild('a', 50, 50),
+      makeChild('skip', 50, 50, [{ type: 'layoutElement', data: { participate: false } }]),
+      makeChild('b', 50, 50),
+    ];
+    const result = resolveGridLayout(children, { columns: 2, spacingX: 10 });
+
+    expect(result.get('a')).toEqual({ x: 0, y: 0 });
+    expect(result.has('skip')).toBe(false);
+    expect(result.get('b')).toEqual({ x: 60, y: 0 }); // second slot in row 0
   });
 });
 

@@ -87,6 +87,31 @@ describe('AssetPreview', () => {
     });
   });
 
+  describe('音声アセット', () => {
+    const audioAsset: AssetReference = {
+      id: 'asset_audio',
+      name: 'bgm.mp3',
+      type: 'audio',
+      data: 'data:audio/mp3;base64,AAAA',
+      metadata: {
+        fileSize: 2048,
+        duration: 125,
+      },
+    };
+
+    it('音声プレビュー（audio要素）を表示する', () => {
+      render(<AssetPreview asset={audioAsset} onRename={jest.fn()} onDelete={jest.fn()} />);
+      const audio = document.querySelector('audio');
+      expect(audio).toBeInTheDocument();
+      expect(audio).toHaveAttribute('src', audioAsset.data);
+    });
+
+    it('再生時間を表示する', () => {
+      render(<AssetPreview asset={audioAsset} onRename={jest.fn()} onDelete={jest.fn()} />);
+      expect(screen.getByText('再生時間: 2:05')).toBeInTheDocument();
+    });
+  });
+
   describe('フォルダ情報', () => {
     it('フォルダ名を表示する', () => {
       const assetWithFolder: AssetReference = {

@@ -19,6 +19,20 @@ import type { RectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';
 import { CanvasPropertyPanel } from './CanvasPropertyPanel';
 
+/** 親が layoutGroup/gridLayout を持ち、自身が participate !== false ならレイアウト管理下 */
+function isLayoutManaged(obj: EditorUIObject, allObjects: EditorUIObject[]): boolean {
+  if (!obj.parentId) return false;
+  const parent = allObjects.find((o) => o.id === obj.parentId);
+  if (!parent) return false;
+  const hasLayout = parent.components.some(
+    (c) => c.type === 'layoutGroup' || c.type === 'gridLayout'
+  );
+  if (!hasLayout) return false;
+  const le = obj.components.find((c) => c.type === 'layoutElement');
+  if (le && (le.data as Record<string, unknown>).participate === false) return false;
+  return true;
+}
+
 // ──────────────────────────────────────────────
 // UIPropertyPanel
 // ──────────────────────────────────────────────
@@ -118,7 +132,11 @@ export function UIPropertyPanel() {
       {/* Transform */}
       <div>
         <h3 className="mb-2 text-xs font-semibold">Transform</h3>
-        <TransformEditor transform={selectedObject.transform} onUpdate={handleTransformUpdate} />
+        <TransformEditor
+          transform={selectedObject.transform}
+          onUpdate={handleTransformUpdate}
+          layoutManaged={isLayoutManaged(selectedObject, selectedCanvas?.objects ?? [])}
+        />
       </div>
 
       {/* Components */}

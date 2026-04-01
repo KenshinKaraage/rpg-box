@@ -12,6 +12,15 @@ interface AssetPreviewProps {
 }
 
 /**
+ * 秒数をMM:SS形式にフォーマット
+ */
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
  * ファイルサイズを読みやすい形式にフォーマット
  */
 function formatFileSize(bytes: number): string {
@@ -47,13 +56,14 @@ export function AssetPreview({ asset, folderName, onRename, onDelete }: AssetPre
     onDelete(asset.id);
   };
 
-  // メタデータから画像サイズを取得
+  // メタデータ
   const metadata = asset.metadata as
-    | { fileSize?: number; width?: number; height?: number }
+    | { fileSize?: number; width?: number; height?: number; duration?: number }
     | undefined;
   const fileSize = metadata?.fileSize ?? 0;
   const width = metadata?.width;
   const height = metadata?.height;
+  const duration = metadata?.duration;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
@@ -67,6 +77,18 @@ export function AssetPreview({ asset, folderName, onRename, onDelete }: AssetPre
             className="h-auto max-h-full w-auto object-contain"
             style={{ maxWidth: 'calc(100% - 32px)' }}
           />
+        )}
+        {asset.type === 'audio' && (
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-3xl">
+              🎵
+            </div>
+            {duration !== undefined && (
+              <span className="text-sm text-muted-foreground">{formatDuration(duration)}</span>
+            )}
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <audio src={asset.data} controls className="w-full max-w-xs" />
+          </div>
         )}
       </div>
 
@@ -84,6 +106,7 @@ export function AssetPreview({ asset, folderName, onRename, onDelete }: AssetPre
               解像度: {width} × {height}
             </p>
           )}
+          {duration !== undefined && <p>再生時間: {formatDuration(duration)}</p>}
           {fileSize > 0 && <p>サイズ: {formatFileSize(fileSize)}</p>}
           {folderName && (
             <p className="flex items-center gap-1">

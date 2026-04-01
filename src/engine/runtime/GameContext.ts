@@ -64,8 +64,20 @@ export interface SoundAPI {
 }
 
 export interface CameraAPI {
-  moveTo(x: number, y: number): void;
-  shake(intensity: number, duration: number): void;
+  /** カメラパン（ピクセル座標、フォロー無効化） */
+  panTo(x: number, y: number): void;
+  /** パン解除（フォロー再開） */
+  resetPan(): void;
+  /** カメラシェイク */
+  shake(intensity: number, frames: number): void;
+  /** ズーム設定（0.25〜4） */
+  setZoom(level: number): void;
+  /** スクリーンオーバーレイ色を即座に設定（RGBA 0-1） */
+  setOverlay(r: number, g: number, b: number, a: number): void;
+  /** オーバーレイの Tween 対象オブジェクト（overlayR/G/B/A プロパティを持つ） */
+  getOverlayTarget(): { id: string; overlayR: number; overlayG: number; overlayB: number; overlayA: number; [k: string]: unknown };
+  /** ズーム・パン・シェイク・オーバーレイをすべてリセット */
+  reset(): void;
 }
 
 export interface SaveAPI {
@@ -94,6 +106,8 @@ export interface ObjectProxy {
   setComponent(type: string, data: Record<string, unknown>): void;
   /** 表示/非表示（sprite.opacity で制御） */
   setVisible(visible: boolean): void;
+  /** 1タイル分のグリッド移動を開始（canMove+startMoveを使用）。成功時true */
+  moveStep(direction: 'up' | 'down' | 'left' | 'right'): boolean;
   /** オブジェクトを破棄 */
   destroy(): void;
 }
@@ -170,7 +184,7 @@ export class GameContext {
   readonly data: DataAPI;
   readonly variable: VariableAPI;
   sound: SoundAPI;
-  readonly camera: CameraAPI;
+  camera: CameraAPI;
   readonly save: SaveAPI;
   readonly scriptRunner: ScriptRunner;
 
@@ -352,13 +366,17 @@ function createSoundAPI(): SoundAPI {
 }
 
 function createCameraAPI(): CameraAPI {
+  const overlayTarget: { id: string; overlayR: number; overlayG: number; overlayB: number; overlayA: number; [k: string]: unknown } = {
+    id: '__camera_stub__', overlayR: 0, overlayG: 0, overlayB: 0, overlayA: 0,
+  };
   return {
-    moveTo(_x: number, _y: number): void {
-      // Stub
-    },
-    shake(_intensity: number, _duration: number): void {
-      // Stub
-    },
+    panTo() { /* stub */ },
+    resetPan() { /* stub */ },
+    shake() { /* stub */ },
+    setZoom() { /* stub */ },
+    setOverlay() { /* stub */ },
+    getOverlayTarget() { return overlayTarget; },
+    reset() { /* stub */ },
   };
 }
 

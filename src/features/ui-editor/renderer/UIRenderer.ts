@@ -10,6 +10,7 @@
 import * as twgl from 'twgl.js';
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
 import { resolveAllTransforms } from './transformResolver';
+import { applyLayoutOverrides } from './layoutResolver';
 import type { WorldRect } from './transformResolver';
 import { SOLID_VERT, SOLID_FRAG, TEXTURED_VERT, TEXTURED_FRAG } from '../utils/shaders';
 import { drawFillRegion } from './fillMaskRenderer';
@@ -57,6 +58,17 @@ export function renderUIObjects(
   canvasHeight: number
 ): void {
   const { gl } = ctx;
+
+  // レイアウトコンポーネントによる配置を transform に直接反映
+  const layoutOverrides = applyLayoutOverrides(objects);
+  layoutOverrides.forEach((pos, id) => {
+    const obj = objects.find((o) => o.id === id);
+    if (obj) {
+      obj.transform.x = pos.x;
+      obj.transform.y = pos.y;
+    }
+  });
+
   const worldRects = resolveAllTransforms(objects, canvasWidth, canvasHeight);
 
   const drawOrder = buildDrawOrder(objects);

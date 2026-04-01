@@ -24,6 +24,7 @@ import type { RuntimeObject } from './GameWorld';
 import { TriggerSystem } from './TriggerSystem';
 import { MapRenderer } from './MapRenderer';
 import { SpriteRenderer } from '@/engine/rendering/SpriteRenderer';
+import { ScreenOverlayRenderer } from '@/engine/rendering/ScreenOverlayRenderer';
 import { UICanvasManager, type UICanvasData } from './UICanvasManager';
 import { AudioManager } from './AudioManager';
 import { TweenManager } from '@/engine/tween/TweenManager';
@@ -56,6 +57,7 @@ export class GameRuntime {
   private uiCanvasManager: UICanvasManager;
   private audioManager: AudioManager;
   private tweenManager: TweenManager;
+  private overlayRenderer: ScreenOverlayRenderer;
 
   private canvas: HTMLCanvasElement;
 
@@ -95,6 +97,7 @@ export class GameRuntime {
     this.triggerSystem = new TriggerSystem();
     this.mapRenderer = new MapRenderer(gl);
     this.spriteRenderer = new SpriteRenderer(gl);
+    this.overlayRenderer = new ScreenOverlayRenderer(gl);
     this.uiCanvasManager = new UICanvasManager(gl, (imageId) => {
       const asset = projectData.assets.find((a) => a.id === imageId || a.name === imageId);
       return (asset?.data as string) ?? null;
@@ -145,6 +148,28 @@ export class GameRuntime {
     this.context = new GameContext(engineData, this.sharedScriptRunner);
     this.context.setRuntimeCallbacks({ waitFrames: this.createWaitFrames() });
     this.context.sound = this.audioManager.createSoundAPI();
+    // Tween 用の薄いプロキシ（Camera の overlay プロパティを双方向バインド）
+    const cam = this.camera;
+    const overlayProxy: Record<string, unknown> & { id: string; overlayR: number; overlayG: number; overlayB: number; overlayA: number } = {
+      id: '__camera__',
+      get overlayR() { return cam.overlayR; },
+      set overlayR(v: number) { cam.overlayR = v; },
+      get overlayG() { return cam.overlayG; },
+      set overlayG(v: number) { cam.overlayG = v; },
+      get overlayB() { return cam.overlayB; },
+      set overlayB(v: number) { cam.overlayB = v; },
+      get overlayA() { return cam.overlayA; },
+      set overlayA(v: number) { cam.overlayA = v; },
+    };
+    this.context.camera = {
+      panTo: (x, y) => cam.panTo(x, y),
+      resetPan: () => cam.resetPan(),
+      shake: (intensity, frames) => cam.shake(intensity, frames),
+      setZoom: (level) => cam.setZoom(level),
+      setOverlay: (r, g, b, a) => cam.setOverlay(r, g, b, a),
+      getOverlayTarget: () => overlayProxy,
+      reset: () => cam.reset(),
+    };
     const tweenAPI = this.tweenManager.createScriptAPI();
     this.context.tween = tweenAPI;
     this.uiCanvasManager.setTweenAPI(tweenAPI);
@@ -577,5 +602,9 @@ export class GameRuntime {
 
     // 3. UI canvases (screen-space, on top of everything)
     this.uiCanvasManager.render(canvas.width, canvas.height);
+
+    // 4. Screen overlay (fade/flash effect)
+    const [oR, oG, oB, oA] = this.camera.getOverlay();
+    this.overlayRenderer.render(gl, oR, oG, oB, oA);
   }
 }

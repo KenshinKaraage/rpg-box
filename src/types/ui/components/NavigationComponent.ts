@@ -60,7 +60,7 @@ export class NavigationComponent extends UIComponent {
     const cols = this.columns ?? 1;
 
     return `({
-  activate() {
+  async activate() {
     const items = self.children.filter(c => {
       if (!c.visible) return false;
       const d = c.getComponentData && c.getComponentData("navigationItem");
@@ -70,6 +70,8 @@ export class NavigationComponent extends UIComponent {
     self.state.focusIndex = Math.min(${initialIndex}, Math.max(0, items.length - 1));
     self.state._result = undefined;
     self.state.active = true;
+    // 1フレーム待ってレイアウト適用後の位置でカーソルを配置
+    await self.waitFrames(1);
     this._updateCursor();
   },
 

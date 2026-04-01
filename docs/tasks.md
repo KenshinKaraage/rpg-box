@@ -2541,21 +2541,11 @@ export function useAutoSave() {
 
 ### US6: 音声アセット
 
-#### [T081] [US6] Create AudioAssetPage
+#### [T081] [US6] ~~Create AudioAssetPage~~
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
-- **PR:** -
+- **ステータス:** 廃止（T083 に統合）
 
-**完了条件:**
-
-- [ ] `src/app/(editor)/settings/audio/page.tsx` 作成
-- [ ] ImageAssetPage と同様のレイアウト
-- [ ] 音声ファイル対応
-
-**関連ファイル:**
-
-- `src/app/(editor)/settings/audio/page.tsx`
+> 音声アセット専用ページは不要（アセットマネージャで統合管理）。プレビュー機能は T083 AudioPlayer で実装。
 
 ---
 
@@ -2580,26 +2570,27 @@ export function useAutoSave() {
 
 ---
 
-#### [T083] [US6] Create AudioPlayer
+#### [T083] [US6] Create AudioPlayer（音声プレビュー機能）
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 - **PR:** -
+
+> T081 (AudioAssetPage) を廃止し、プレビュー機能をこのタスクに統合。
+> AssetPreview に audio プレビューを追加。ブラウザ標準の `<audio controls>` を使用。
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/AudioPlayer.tsx` 作成
-- [ ] 再生/一時停止/停止
-- [ ] シークバー
-- [ ] ボリューム調整
-- [ ] ループ切り替え
-- [ ] 時間表示
-- [ ] テスト追加
+- [x] AssetPreview に音声プレビュー追加（`<audio controls>` + 🎵アイコン + 再生時間表示）
+- [x] メタデータ表示に再生時間（MM:SS）を追加
+- [x] テスト追加（2テスト: audio要素表示、再生時間表示）
 
 **関連ファイル:**
 
-- `src/features/asset-manager/components/AudioPlayer.tsx`
-- `src/features/asset-manager/components/AudioPlayer.test.tsx`
+- `src/features/asset-manager/components/AssetPreview.tsx`
+- `src/features/asset-manager/components/AssetPreview.test.tsx`
+
+**備考:** シークバー/ボリューム/ループはブラウザ標準の `<audio controls>` で提供。カスタム AudioPlayer コンポーネントは必要に応じて後から作成。
 
 ---
 
@@ -3059,15 +3050,17 @@ export function useAutoSave() {
 
 > 旧 FadeScreenAction を CameraAction に拡張。
 > design.md の CameraAction (zoom/pan/effect/reset) に準拠。
+> execute() を実装し、CameraAPI 経由で Camera を操作。エフェクト（flash/fadeIn/fadeOut）は Tween でオーバーレイ alpha をアニメーション。
 
 **完了条件:**
 
 - [x] `src/engine/actions/CameraAction.ts` 作成
 - [x] EventAction を継承
 - [x] プロパティ: operation (zoom/pan/effect/reset), scale, x, y, duration, effect (shake/flash/fadeIn/fadeOut), intensity, color
-- [x] execute(): operation に応じて context.camera の各メソッドを呼び出し
+- [x] execute(): pan→camera.panTo, zoom→camera.setZoom, reset→camera.reset, effect→shake/flash/fadeIn/fadeOut
+- [x] flash/fadeIn/fadeOut は Tween で Camera.overlayA をアニメーション（Camera 独自タイミング不要）
 - [x] レジストリに登録
-- [x] テスト追加（4テスト）
+- [x] テスト追加（8テスト: pan/zoom/shake/flash/fadeOut/fadeIn/reset/roundtrip）
 
 **関連ファイル:**
 
@@ -3156,21 +3149,27 @@ export function useAutoSave() {
 - **PR:** -
 
 > 旧 MoveAction (T109c) + AppearanceChangeAction (T109d) を統合。
-> design.md の ObjectAction (move/rotate/autoWalk) に準拠し、見た目変更も含む。
+> operation: move（テレポート/歩行）, face（向き変更）, visible（表示/非表示）。
+> 歩行移動は ObjectProxy.moveStep() → GameWorld.startMove() を1歩ずつループ。
 
 **完了条件:**
 
 - [x] `src/engine/actions/ObjectAction.ts` 作成
 - [x] EventAction を継承
-- [x] プロパティ: operation (move/rotate/autoWalk), targetId, x, y, speed, angle, duration, enabled, pattern
-- [x] execute(): no-op（Phase 10で実装）
+- [x] プロパティ: operation (move/face/visible), targetName, moveType (teleport/walk), x, y, direction, visible
+- [x] execute(): move(teleport→setPosition, walk→moveStepループ), face→setFacing, visible→setVisible
+- [x] 歩行移動: nextDirection() で方向計算 → moveStep → waitFrames ループ（MAX_STEPS=200 で無限ループ防止）
+- [x] ObjectProxy.moveStep(direction): GameWorld.canMove+startMove のラッパー
+- [x] GameWorld.startMove() を public 化
 - [x] レジストリに登録
-- [x] テスト追加
+- [x] テスト追加（move teleport/walk, face, visible の round-trip）
 
 **関連ファイル:**
 
 - `src/engine/actions/ObjectAction.ts`
 - `src/engine/actions/stubActions.test.ts`
+- `src/engine/runtime/ObjectProxyFactory.ts`
+- `src/engine/runtime/GameWorld.ts`
 
 ---
 
@@ -5974,7 +5973,7 @@ export function useAutoSave() {
 
 - [x] `GameRuntime.loadMap()` でマップロード（テクスチャ、オブジェクト、トリガーリセット）
 - [x] マップ切り替え対応
-- [ ] トランジションエフェクト（フェード等）— 将来対応
+- [x] トランジションエフェクト（フェード等）— CameraAction + ScreenOverlayRenderer で実装
 
 **関連ファイル:**
 
@@ -6686,6 +6685,85 @@ export function useAutoSave() {
 - `src/features/ui-editor/renderer/shapeRenderer.ts`
 - `src/features/ui-editor/renderer/transformResolver.ts`
 - `src/engine/runtime/GameRuntime.ts`
+
+---
+
+#### [T218d] Implement CameraAPI + ScreenOverlay + ObjectAction walk mode
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+> CameraAction / ObjectAction の execute() を実装し、テストデータで動作確認。
+
+**完了条件:**
+
+- [x] CameraAPI インターフェース拡張: panTo/resetPan/shake/setZoom/setOverlay/getOverlayTarget/reset
+- [x] GameRuntime が Camera 実インスタンスを CameraAPI として注入（overlayProxy で双方向バインド）
+- [x] Camera.ts にスクリーンオーバーレイプロパティ追加（overlayR/G/B/A）— Tween 対象
+- [x] ScreenOverlayRenderer 新規作成（NDC フルスクリーン quad + RGBA uniform）
+- [x] GameRuntime.render() でオーバーレイ描画（UI の後）
+- [x] CameraAction.execute(): pan→panTo, zoom→setZoom, reset→reset, effect→shake/flash/fadeIn/fadeOut
+- [x] flash/fadeIn/fadeOut は context.tween.to() で overlayA をアニメーション
+- [x] ObjectAction に moveType: 'teleport' | 'walk' 追加
+- [x] ObjectAction 歩行移動: nextDirection() → moveStep() → waitFrames ループ
+- [x] ObjectProxy.moveStep(direction): boolean 追加（canMove + startMove）
+- [x] GameWorld.startMove() を public 化
+- [x] ObjectActionBlock に「テレポート / 歩行」セレクタ追加
+- [x] テストデータ（操作テストNPC）にフラッシュ、フェードアウト/イン、ズーム、歩行移動を追加
+- [x] テスト更新（CameraAction 8テスト、ObjectAction walk round-trip）
+
+**関連ファイル:**
+
+- `src/engine/runtime/Camera.ts`
+- `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameRuntime.ts`
+- `src/engine/runtime/GameWorld.ts`
+- `src/engine/runtime/ObjectProxyFactory.ts`
+- `src/engine/rendering/ScreenOverlayRenderer.ts`
+- `src/engine/actions/CameraAction.ts`
+- `src/engine/actions/CameraAction.test.ts`
+- `src/engine/actions/ObjectAction.ts`
+- `src/engine/actions/stubActions.test.ts`
+- `src/features/event-editor/components/blocks/ObjectActionBlock.tsx`
+- `src/lib/defaultTestData.ts`
+
+---
+
+#### [T218e] LayoutElementComponent + LayoutGroup padding + エディタ統合
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+> レイアウトコンポーネントの機能拡張とエディタ統合。
+
+**完了条件:**
+
+- [x] LayoutElementComponent 新規作成（participate: レイアウト参加有無, space: 追加スペース）
+- [x] LayoutGroupComponent に padding (Top/Bottom/Left/Right) 追加
+- [x] layoutResolver で LayoutElement (participate/space) と padding を反映
+- [x] renderUIObjects でレイアウトオーバーライドを transform に直接反映
+- [x] エディタ (UICanvas.tsx): Immer frozen 対策で浅コピー後にレイアウト適用
+- [x] 選択枠・9-slice・TransformHandles もレイアウト後のデータを使用
+- [x] TransformEditor: レイアウト管理下の x/y を disabled +「(レイアウト)」表示
+- [x] NavigationComponent.activate() を async 化、1フレーム待ってカーソル配置
+- [x] 選択肢 UICanvas を layoutGroup 化（padding で余白管理、カーソルは participate=false で除外）
+- [x] テスト追加（layoutResolver: padding、participate=false、space）
+
+**関連ファイル:**
+
+- `src/types/ui/components/LayoutElementComponent.ts`
+- `src/types/ui/components/LayoutGroupComponent.ts`
+- `src/types/ui/register.ts`
+- `src/features/ui-editor/renderer/layoutResolver.ts`
+- `src/features/ui-editor/renderer/layoutResolver.test.ts`
+- `src/features/ui-editor/renderer/UIRenderer.ts`
+- `src/features/ui-editor/components/UICanvas.tsx`
+- `src/features/ui-editor/components/TransformEditor.tsx`
+- `src/features/ui-editor/components/UIPropertyPanel.tsx`
+- `src/types/ui/components/NavigationComponent.ts`
+- `src/lib/defaultTestData.ts`
 
 ---
 

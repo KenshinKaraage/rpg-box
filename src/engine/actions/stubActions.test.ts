@@ -71,10 +71,11 @@ describe('ObjectAction', () => {
     expect(new ObjectAction().type).toBe('object');
   });
 
-  it('toJSON / fromJSON round-trips (move)', () => {
+  it('toJSON / fromJSON round-trips (move teleport)', () => {
     const action = new ObjectAction();
     action.operation = 'move';
     action.targetName = 'NPC';
+    action.moveType = 'teleport';
     action.x = 10;
     action.y = 5;
     const json = action.toJSON();
@@ -82,7 +83,21 @@ describe('ObjectAction', () => {
     restored.fromJSON(json);
     expect(restored.operation).toBe('move');
     expect(restored.targetName).toBe('NPC');
+    expect(restored.moveType).toBe('teleport');
     expect(restored.x).toBe(10);
+  });
+
+  it('toJSON / fromJSON round-trips (move walk)', () => {
+    const action = new ObjectAction();
+    action.operation = 'move';
+    action.targetName = 'NPC';
+    action.moveType = 'walk';
+    action.x = 5;
+    action.y = 3;
+    const json = action.toJSON();
+    const restored = new ObjectAction();
+    restored.fromJSON(json);
+    expect(restored.moveType).toBe('walk');
   });
 
   it('toJSON / fromJSON round-trips (face)', () => {

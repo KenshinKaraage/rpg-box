@@ -6,9 +6,23 @@
  */
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
 
+interface LayoutElementData {
+  participate?: boolean;
+  space?: number;
+}
+
+function getLayoutElement(child: EditorUIObject): LayoutElementData | null {
+  const comp = child.components.find((c) => c.type === 'layoutElement');
+  return comp ? (comp.data as LayoutElementData) : null;
+}
+
 interface LayoutGroupData {
   direction?: 'horizontal' | 'vertical';
   spacing?: number;
+  paddingTop?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  paddingRight?: number;
   alignment?: 'start' | 'center' | 'end';
   reverseOrder?: boolean;
 }
@@ -39,30 +53,41 @@ export function resolveLayoutGroup(
   const result = new Map<string, { x: number; y: number }>();
   const direction = layoutData.direction ?? 'vertical';
   const spacing = layoutData.spacing ?? 0;
+  const padTop = layoutData.paddingTop ?? 0;
+  const padBottom = layoutData.paddingBottom ?? 0;
+  const padLeft = layoutData.paddingLeft ?? 0;
+  const padRight = layoutData.paddingRight ?? 0;
   const alignment = layoutData.alignment ?? 'start';
   const reverse = layoutData.reverseOrder ?? false;
 
+  // padding を差し引いた alignment 用サイズ
+  const innerWidth = parentWidth - padLeft - padRight;
+  const innerHeight = parentHeight - padTop - padBottom;
+
   const ordered = reverse ? [...children].reverse() : children;
 
-  let cursor = 0;
+  // cursor は padding 開始位置からスタート
+  let cursor = direction === 'vertical' ? padTop : padLeft;
 
   for (const child of ordered) {
+    const le = getLayoutElement(child);
+    if (le && le.participate === false) continue;
+
     const w = child.transform.width;
     const h = child.transform.height;
+    const extraSpace = le?.space ?? 0;
 
     let x: number;
     let y: number;
 
     if (direction === 'vertical') {
-      // 縦方向: y は cursor で決定、x は alignment で決定
       y = cursor;
-      x = resolveAlignment(alignment, w, parentWidth);
-      cursor += h + spacing;
+      x = padLeft + resolveAlignment(alignment, w, innerWidth);
+      cursor += h + spacing + extraSpace;
     } else {
-      // 横方向: x は cursor で決定、y は alignment で決定
       x = cursor;
-      y = resolveAlignment(alignment, h, parentHeight);
-      cursor += w + spacing;
+      y = padTop + resolveAlignment(alignment, h, innerHeight);
+      cursor += w + spacing + extraSpace;
     }
 
     result.set(child.id, { x, y });
@@ -87,10 +112,13 @@ export function resolveGridLayout(
   const spacingX = gridData.spacingX ?? 0;
   const spacingY = gridData.spacingY ?? 0;
 
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i]!;
-    const col = i % columns;
-    const row = Math.floor(i / columns);
+  let idx = 0;
+  for (const child of children) {
+    const le = getLayoutElement(child);
+    if (le && le.participate === false) continue;
+
+    const col = idx % columns;
+    const row = Math.floor(idx / columns);
 
     const cellW = gridData.cellWidth ?? child.transform.width;
     const cellH = gridData.cellHeight ?? child.transform.height;
@@ -99,6 +127,7 @@ export function resolveGridLayout(
     const y = row * (cellH + spacingY);
 
     result.set(child.id, { x, y });
+    idx++;
   }
 
   return result;

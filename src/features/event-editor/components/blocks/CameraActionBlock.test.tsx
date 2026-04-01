@@ -60,12 +60,21 @@ describe('CameraActionBlock', () => {
     expect(updated).toBeInstanceOf(CameraAction);
   });
 
-  it('エフェクト操作でエフェクト種類セレクトが表示される', () => {
+  it('エフェクト操作でエフェクト種類セレクトが表示される（shake: カラーなし）', () => {
     render(<CameraActionBlock {...createProps('effect')} />);
     expect(screen.getByTestId('effect-select')).toBeInTheDocument();
     expect(screen.getByTestId('intensity-input')).toBeInTheDocument();
-    expect(screen.getByTestId('color-input')).toBeInTheDocument();
     expect(screen.getByTestId('duration-input')).toBeInTheDocument();
+    // shake ではカラー入力は非表示
+    expect(screen.queryByTestId('color-input')).not.toBeInTheDocument();
+  });
+
+  it('エフェクト flash ではカラーピッカーが表示される', () => {
+    const props = createProps('effect');
+    (props.action as CameraAction).effect = 'flash';
+    render(<CameraActionBlock {...props} />);
+    expect(screen.getByTestId('color-input')).toBeInTheDocument();
+    expect(screen.getByTestId('intensity-input')).toBeInTheDocument();
   });
 
   it('削除ボタンをクリックするとonDeleteが呼ばれる', () => {

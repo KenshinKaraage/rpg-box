@@ -278,9 +278,9 @@ export class GameWorld {
     return null;
   }
 
-  // ── Private: Movement ──
+  // ── Movement ──
 
-  private startMove(obj: RuntimeObject, toX: number, toY: number): void {
+  startMove(obj: RuntimeObject, toX: number, toY: number): void {
     obj.isMoving = true;
     obj.moveProgress = 0;
     obj.moveTargetX = toX;

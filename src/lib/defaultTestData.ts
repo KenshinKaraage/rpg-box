@@ -305,7 +305,7 @@ const CHOICE_W = 300;
 function createChoiceObjects(): EditorUIObject[] {
   const objects: EditorUIObject[] = [];
 
-  // 背景 + NavigationComponent（ナビゲーションの親）
+  // 背景 + NavigationComponent + LayoutGroup（縦並び自動配置）
   objects.push({
     id: 'choice_bg',
     name: 'background',
@@ -318,17 +318,18 @@ function createChoiceObjects(): EditorUIObject[] {
     components: [
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: CHOICE_PAD, paddingBottom: CHOICE_PAD, paddingLeft: 32, paddingRight: 0 }),
     ],
   });
 
-  // 各項目（テキスト + NavigationItemComponent）
+  // 各項目（テキスト + NavigationItemComponent）— layoutGroup が y を自動配置
   for (let i = 0; i < CHOICE_MAX; i++) {
     objects.push({
       id: `choice_item_${i}`,
       name: `item${i}`,
       parentId: 'choice_bg',
       transform: {
-        x: 32, y: CHOICE_PAD + i * CHOICE_ITEM_H, width: CHOICE_W - 48, height: CHOICE_ITEM_H,
+        x: 0, y: 0, width: CHOICE_W - 48, height: CHOICE_ITEM_H,
         anchorX: 'left', anchorY: 'top',
         pivotX: 0, pivotY: 0,
         rotation: 0, scaleX: 1, scaleY: 1, visible: false,
@@ -340,7 +341,7 @@ function createChoiceObjects(): EditorUIObject[] {
     });
   }
 
-  // カーソル（▶）+ NavigationCursorComponent
+  // カーソル（▶）+ NavigationCursorComponent — レイアウト除外
   objects.push({
     id: 'choice_cursor',
     name: 'cursor',
@@ -353,7 +354,8 @@ function createChoiceObjects(): EditorUIObject[] {
     },
     components: [
       createUIComponentData('text', { content: '▶', fontSize: 18, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
-      createUIComponentData('navigationCursor', { offsetX: 0, offsetY: 0 }),
+      createUIComponentData('navigationCursor', { offsetX: -20, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
     ],
   });
 
@@ -378,10 +380,10 @@ const choiceScript: Script = {
   content: `const count = Math.min(items.length, ${CHOICE_MAX});
 if (count === 0) return -1;
 
-// 背景サイズ調整 + 項目テキスト設定
+// 背景サイズ調整 + 項目テキスト設定（レイアウトが y を自動配置）
 const bg = UI["choice"].getObject("background");
 if (bg) {
-  bg.height = ${CHOICE_PAD} * 2 + count * ${CHOICE_ITEM_H};
+  bg.height = count * ${CHOICE_ITEM_H};
   bg.visible = true;
 }
 for (let i = 0; i < ${CHOICE_MAX}; i++) {
@@ -1671,34 +1673,90 @@ function createActionTestObject(x: number, y: number, resolveAssetId: AssetNameT
   shake.duration = 30;
 
   // 10. WaitAction: シェイク待ち
-  const wait = new WaitAction();
-  wait.frames = 30;
+  const waitShake = new WaitAction();
+  waitShake.frames = 30;
 
   // 11. メッセージ
   const msgShake = new ScriptAction();
   msgShake.scriptId = 'message';
   msgShake.args = { text: 'カメラシェイクしました。', face: '', close: false };
 
-  // 12. ObjectAction: NPC を移動
-  const moveNpc = new ObjectAction();
-  moveNpc.operation = 'move';
-  moveNpc.targetName = 'NPC';
-  moveNpc.x = 9;
-  moveNpc.y = 5;
+  // 12. CameraAction: フラッシュ（白）
+  const flash = new CameraAction();
+  flash.operation = 'effect';
+  flash.effect = 'flash';
+  flash.color = '#ffffff';
+  flash.duration = 20;
 
-  // 13. メッセージ
-  const msgMove = new ScriptAction();
-  msgMove.scriptId = 'message';
-  msgMove.args = { text: 'NPCを (9,5) に移動しました。', face: '', close: false };
+  // 13. WaitAction: フラッシュ待ち
+  const waitFlash = new WaitAction();
+  waitFlash.frames = 20;
 
-  // 14. ObjectAction: NPC を元の位置に戻す
+  // 14. メッセージ
+  const msgFlash = new ScriptAction();
+  msgFlash.scriptId = 'message';
+  msgFlash.args = { text: 'フラッシュしました。', face: '', close: false };
+
+  // 15. CameraAction: フェードアウト（黒）
+  const fadeOut = new CameraAction();
+  fadeOut.operation = 'effect';
+  fadeOut.effect = 'fadeOut';
+  fadeOut.color = '#000000';
+  fadeOut.duration = 30;
+
+  // 16. メッセージ（フェードアウト中に表示）
+  const msgFadeOut = new ScriptAction();
+  msgFadeOut.scriptId = 'message';
+  msgFadeOut.args = { text: '画面が暗くなりました。', face: '', close: false };
+
+  // 17. CameraAction: フェードイン（黒から戻す）
+  const fadeIn = new CameraAction();
+  fadeIn.operation = 'effect';
+  fadeIn.effect = 'fadeIn';
+  fadeIn.color = '#000000';
+  fadeIn.duration = 30;
+
+  // 18. メッセージ
+  const msgFadeIn = new ScriptAction();
+  msgFadeIn.scriptId = 'message';
+  msgFadeIn.args = { text: 'フェードインしました。', face: '', close: false };
+
+  // 19. CameraAction: ズーム
+  const zoomIn = new CameraAction();
+  zoomIn.operation = 'zoom';
+  zoomIn.scale = 2;
+
+  // 20. メッセージ
+  const msgZoom = new ScriptAction();
+  msgZoom.scriptId = 'message';
+  msgZoom.args = { text: 'ズーム2倍です。', face: '', close: false };
+
+  // 21. CameraAction: リセット（ズーム解除）
+  const camReset = new CameraAction();
+  camReset.operation = 'reset';
+
+  // 22. ObjectAction: NPC を歩行移動
+  const walkNpc = new ObjectAction();
+  walkNpc.operation = 'move';
+  walkNpc.moveType = 'walk';
+  walkNpc.targetName = 'NPC';
+  walkNpc.x = 9;
+  walkNpc.y = 5;
+
+  // 23. メッセージ
+  const msgWalk = new ScriptAction();
+  msgWalk.scriptId = 'message';
+  msgWalk.args = { text: 'NPCが (9,5) まで歩きました。', face: '', close: false };
+
+  // 24. ObjectAction: NPC をテレポートで元の位置に戻す
   const moveNpcBack = new ObjectAction();
   moveNpcBack.operation = 'move';
+  moveNpcBack.moveType = 'teleport';
   moveNpcBack.targetName = 'NPC';
   moveNpcBack.x = 7;
   moveNpcBack.y = 5;
 
-  // 15. 完了メッセージ
+  // 25. 完了メッセージ
   const msgDone = new ScriptAction();
   msgDone.scriptId = 'message';
   msgDone.args = { text: '操作テスト完了！', face: '' };
@@ -1709,8 +1767,11 @@ function createActionTestObject(x: number, y: number, resolveAssetId: AssetNameT
   talk.actions = [
     msgStart, faceRight, msgFace, faceDown,
     hideNpc, msgHide, showNpc, msgShow,
-    shake, wait, msgShake,
-    moveNpc, msgMove, moveNpcBack,
+    shake, waitShake, msgShake,
+    flash, waitFlash, msgFlash,
+    fadeOut, msgFadeOut, fadeIn, msgFadeIn,
+    zoomIn, msgZoom, camReset,
+    walkNpc, msgWalk, moveNpcBack,
     msgDone,
   ];
 

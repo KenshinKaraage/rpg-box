@@ -16,9 +16,14 @@ import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { ObjectAction } from '@/engine/actions/ObjectAction';
 
 const OPERATIONS = [
-  { value: 'move', label: '移動（テレポート）' },
+  { value: 'move', label: '移動' },
   { value: 'face', label: '向き変更' },
   { value: 'visible', label: '表示/非表示' },
+] as const;
+
+const MOVE_TYPES = [
+  { value: 'teleport', label: 'テレポート' },
+  { value: 'walk', label: '歩行' },
 ] as const;
 
 const DIRECTIONS = [
@@ -76,25 +81,40 @@ export function ObjectActionBlock({ action, onChange, onDelete }: ActionBlockPro
           </Select>
         </div>
 
-        {/* move: X, Y */}
+        {/* move: moveType + X, Y */}
         {objAction.operation === 'move' && (
-          <div className="flex items-center gap-2">
-            <Label className="w-16 text-xs text-muted-foreground">位置</Label>
-            <Input
-              type="number"
-              value={objAction.x ?? ''}
-              onChange={(e) => handleChange({ x: parseInt(e.target.value) || 0 })}
-              placeholder="X"
-              className="w-16 h-7 text-xs"
-            />
-            <Input
-              type="number"
-              value={objAction.y ?? ''}
-              onChange={(e) => handleChange({ y: parseInt(e.target.value) || 0 })}
-              placeholder="Y"
-              className="w-16 h-7 text-xs"
-            />
-          </div>
+          <>
+            <div className="flex items-center gap-2">
+              <Label className="w-16 text-xs text-muted-foreground">方式</Label>
+              <Select value={objAction.moveType ?? 'teleport'} onValueChange={(v) => handleChange({ moveType: v as ObjectAction['moveType'] })}>
+                <SelectTrigger className="h-7 flex-1 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MOVE_TYPES.map((mt) => (
+                    <SelectItem key={mt.value} value={mt.value}>{mt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="w-16 text-xs text-muted-foreground">位置</Label>
+              <Input
+                type="number"
+                value={objAction.x ?? ''}
+                onChange={(e) => handleChange({ x: parseInt(e.target.value) || 0 })}
+                placeholder="X"
+                className="w-16 h-7 text-xs"
+              />
+              <Input
+                type="number"
+                value={objAction.y ?? ''}
+                onChange={(e) => handleChange({ y: parseInt(e.target.value) || 0 })}
+                placeholder="Y"
+                className="w-16 h-7 text-xs"
+              />
+            </div>
+          </>
         )}
 
         {/* face: direction */}

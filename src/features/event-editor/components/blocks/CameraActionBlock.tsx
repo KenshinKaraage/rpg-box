@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ColorPickerPopover } from '@/features/ui-editor/components/ColorPickerPopover';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { CameraAction } from '@/engine/actions/CameraAction';
 
@@ -28,6 +29,14 @@ const EFFECTS = [
   { value: 'fadeOut', label: 'フェードアウト' },
 ] as const;
 
+/** 操作タイプごとのデフォルト値 */
+const DEFAULTS: Record<string, Partial<CameraAction>> = {
+  zoom: { scale: 1, duration: 30 },
+  pan: { x: 0, y: 0, duration: 30 },
+  effect: { effect: 'shake', intensity: 5, duration: 30, color: '#000000' },
+  reset: { duration: 30 },
+};
+
 function cloneAction(action: CameraAction): CameraAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
 }
@@ -38,6 +47,15 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
   const handleOperationChange = (value: string) => {
     const updated = cloneAction(camAction);
     updated.operation = value as CameraAction['operation'];
+    // 操作変更時にデフォルト値を適用（未設定フィールドのみ）
+    const defaults = DEFAULTS[value];
+    if (defaults) {
+      for (const [k, v] of Object.entries(defaults)) {
+        if ((updated as unknown as Record<string, unknown>)[k] === undefined) {
+          (updated as unknown as Record<string, unknown>)[k] = v;
+        }
+      }
+    }
     onChange(updated);
   };
 
@@ -54,7 +72,18 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
 
   const handleEffectChange = (value: string) => {
     const updated = cloneAction(camAction);
+    const wasShake = updated.effect === 'shake';
+    const isNowShake = value === 'shake';
     updated.effect = value as CameraAction['effect'];
+    // shake↔カラーエフェクト切替時に intensity をリセット
+    if (wasShake && !isNowShake) {
+      updated.intensity = 1;
+    } else if (!wasShake && isNowShake) {
+      updated.intensity = 5;
+    }
+    if (!isNowShake && !updated.color) {
+      updated.color = '#000000';
+    }
     onChange(updated);
   };
 
@@ -65,6 +94,8 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
   };
 
   const { operation } = camAction;
+  const isShake = camAction.effect === 'shake';
+  const colorValue = camAction.color || '#000000';
 
   return (
     <div className="rounded-md border p-3">
@@ -103,10 +134,11 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
               <Label className="w-20 text-xs text-muted-foreground">スケール</Label>
               <Input
                 type="number"
-                value={camAction.scale ?? ''}
+                value={camAction.scale ?? 1}
                 onChange={(e) => handleNumberChange('scale', e.target.value)}
                 step={0.1}
-                min={0.1}
+                min={0.25}
+                max={4}
                 className="w-24"
                 data-testid="scale-input"
               />
@@ -115,7 +147,7 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
               <Label className="w-20 text-xs text-muted-foreground">期間</Label>
               <Input
                 type="number"
-                value={camAction.duration ?? ''}
+                value={camAction.duration ?? 30}
                 onChange={(e) => handleNumberChange('duration', e.target.value)}
                 min={0}
                 className="w-24"
@@ -131,7 +163,7 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
               <Label className="w-20 text-xs text-muted-foreground">X</Label>
               <Input
                 type="number"
-                value={camAction.x ?? ''}
+                value={camAction.x ?? 0}
                 onChange={(e) => handleNumberChange('x', e.target.value)}
                 className="w-24"
                 data-testid="x-input"
@@ -141,7 +173,7 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
               <Label className="w-20 text-xs text-muted-foreground">Y</Label>
               <Input
                 type="number"
-                value={camAction.y ?? ''}
+                value={camAction.y ?? 0}
                 onChange={(e) => handleNumberChange('y', e.target.value)}
                 className="w-24"
                 data-testid="y-input"
@@ -151,7 +183,7 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
               <Label className="w-20 text-xs text-muted-foreground">期間</Label>
               <Input
                 type="number"
-                value={camAction.duration ?? ''}
+                value={camAction.duration ?? 30}
                 onChange={(e) => handleNumberChange('duration', e.target.value)}
                 min={0}
                 className="w-24"
@@ -165,9 +197,9 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
           <>
             <div className="flex items-center gap-2">
               <Label className="w-20 text-xs text-muted-foreground">種類</Label>
-              <Select value={camAction.effect ?? ''} onValueChange={handleEffectChange}>
+              <Select value={camAction.effect ?? 'shake'} onValueChange={handleEffectChange}>
                 <SelectTrigger className="w-32" data-testid="effect-select">
-                  <SelectValue placeholder="選択" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {EFFECTS.map((ef) => (
@@ -179,12 +211,16 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <Label className="w-20 text-xs text-muted-foreground">強度</Label>
+              <Label className="w-20 text-xs text-muted-foreground">
+                {isShake ? '強度' : '不透明度'}
+              </Label>
               <Input
                 type="number"
-                value={camAction.intensity ?? ''}
+                value={camAction.intensity ?? (isShake ? 5 : 1)}
                 onChange={(e) => handleNumberChange('intensity', e.target.value)}
                 min={0}
+                max={isShake ? undefined : 1}
+                step={isShake ? 1 : 0.1}
                 className="w-24"
                 data-testid="intensity-input"
               />
@@ -193,23 +229,31 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
               <Label className="w-20 text-xs text-muted-foreground">期間</Label>
               <Input
                 type="number"
-                value={camAction.duration ?? ''}
+                value={camAction.duration ?? 30}
                 onChange={(e) => handleNumberChange('duration', e.target.value)}
                 min={0}
                 className="w-24"
                 data-testid="duration-input"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Label className="w-20 text-xs text-muted-foreground">カラー</Label>
-              <Input
-                value={camAction.color ?? ''}
-                onChange={(e) => handleColorChange(e.target.value)}
-                placeholder="#ffffff"
-                className="w-24"
-                data-testid="color-input"
-              />
-            </div>
+            {!isShake && (
+              <div className="flex items-center gap-2">
+                <Label className="w-20 text-xs text-muted-foreground">カラー</Label>
+                <ColorPickerPopover value={colorValue} onChange={handleColorChange}>
+                  <button
+                    type="button"
+                    className="flex h-7 items-center gap-1.5 rounded border px-2"
+                    data-testid="color-input"
+                  >
+                    <div
+                      className="h-4 w-4 rounded border"
+                      style={{ backgroundColor: colorValue }}
+                    />
+                    <span className="font-mono text-xs text-muted-foreground">{colorValue}</span>
+                  </button>
+                </ColorPickerPopover>
+              </div>
+            )}
           </>
         )}
 
@@ -218,7 +262,7 @@ export function CameraActionBlock({ action, onChange, onDelete }: ActionBlockPro
             <Label className="w-20 text-xs text-muted-foreground">期間</Label>
             <Input
               type="number"
-              value={camAction.duration ?? ''}
+              value={camAction.duration ?? 30}
               onChange={(e) => handleNumberChange('duration', e.target.value)}
               min={0}
               className="w-24"
