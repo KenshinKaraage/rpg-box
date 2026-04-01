@@ -52,12 +52,30 @@ export const DEFAULT_ASSET_GROUPS: DefaultAssetGroup[] = [
     ],
   },
   {
+    folderName: 'キャラクター',
+    assets: [
+      { path: '/assets/images/character/character_full_alice.png', name: 'character_alice' },
+      { path: '/assets/images/character/character_full_ian.png', name: 'character_ian' },
+      { path: '/assets/images/character/character_full_lex.png', name: 'character_lex' },
+      { path: '/assets/images/character/character_full_margrite.png', name: 'character_margrite' },
+    ],
+  },
+  {
+    folderName: 'キャラクター顔',
+    assets: [
+      { path: '/assets/images/character_face/character_face_alice.png', name: 'face_alice' },
+      { path: '/assets/images/character_face/character_face_ian.png', name: 'face_ian' },
+      { path: '/assets/images/character_face/character_face_lex.png', name: 'face_lex' },
+      { path: '/assets/images/character_face/character_face_margrite.png', name: 'face_margrite' },
+    ],
+  },
+  {
     folderName: '歩行キャラ',
     assets: [
-      { path: '/assets/images/character_walk/walk_x32y32_alice.png', name: 'walk_alice' },
-      { path: '/assets/images/character_walk/walk_x32y32_ian.png', name: 'walk_ian' },
-      { path: '/assets/images/character_walk/walk_x32y32_lex.png', name: 'walk_lex' },
-      { path: '/assets/images/character_walk/walk_x32y32_marguerite.png', name: 'walk_marguerite' },
+      { path: '/assets/images/character_walk/character_walk_alice.png', name: 'walk_alice' },
+      { path: '/assets/images/character_walk/character_walk_ian.png', name: 'walk_ian' },
+      { path: '/assets/images/character_walk/character_walk_lex.png', name: 'walk_lex' },
+      { path: '/assets/images/character_walk/character_walk_marguerite.png', name: 'walk_marguerite' },
     ],
   },
   {
