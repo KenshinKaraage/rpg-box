@@ -50,6 +50,9 @@ export const ACTION_PATTERN_CLASS_ID = 'class_action_pattern';
 /** パーティメンバークラスID */
 export const PARTY_MEMBER_CLASS_ID = 'class_party_member';
 
+/** インベントリアイテムクラスID */
+export const INVENTORY_ITEM_CLASS_ID = 'class_inventory_item';
+
 // =============================================================================
 // ファクトリ関数（既存クラス）
 // =============================================================================
@@ -189,11 +192,29 @@ function createPartyMemberClass(): CustomClass {
   return {
     id: PARTY_MEMBER_CLASS_ID,
     name: 'パーティメンバー',
-    description: 'パーティメンバーの名前とステータス',
+    description: 'パーティメンバーの名前・ステータス・装備',
     fields: [
       f('string', { id: 'name', name: '名前' }),
       f('number', { id: 'level', name: 'レベル', min: 1, max: 99 }),
       f('class', { id: 'stats', name: 'ステータス', classId: STATUS_CLASS_ID }),
+      f('dataSelect', { id: 'weapon', name: '武器', referenceTypeId: 'item' }),
+      f('dataSelect', { id: 'shield', name: '盾', referenceTypeId: 'item' }),
+      f('dataSelect', { id: 'head', name: '頭', referenceTypeId: 'item' }),
+      f('dataSelect', { id: 'body', name: '体', referenceTypeId: 'item' }),
+      f('dataSelect', { id: 'accessory', name: 'アクセサリ', referenceTypeId: 'item' }),
+      f('string', { id: 'face_graphic', name: '顔グラフィック' }),
+    ],
+  };
+}
+
+function createInventoryItemClass(): CustomClass {
+  return {
+    id: INVENTORY_ITEM_CLASS_ID,
+    name: 'インベントリアイテム',
+    description: 'アイテムIDと所持数',
+    fields: [
+      f('dataSelect', { id: 'itemId', name: 'アイテム', referenceTypeId: 'item' }),
+      f('number', { id: 'count', name: '個数', min: 0, max: 99 }),
     ],
   };
 }
@@ -211,4 +232,5 @@ export const defaultClasses: CustomClass[] = [
   createEnemyMemberClass(),
   createActionPatternClass(),
   createPartyMemberClass(),
+  createInventoryItemClass(),
 ];
