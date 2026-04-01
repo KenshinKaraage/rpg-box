@@ -6851,6 +6851,68 @@ export function useAutoSave() {
 
 ---
 
+#### [T219a] Prefab 型を Component[] ベースに変更
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] PrefabComponent に `components: Component[]` を持たせる
+- [x] Prefab.components → Prefab.prefab: PrefabComponent に変更
+- [x] ComponentEditor を Component.renderPropertyPanel() ベースに書き換え
+- [x] storage 型、buildProjectData、GameWorld.resolveObject を更新
+- [x] テスト更新
+
+**関連ファイル:**
+
+- `src/types/map.ts`
+- `src/lib/storage/types.ts`
+- `src/features/map-editor/components/ComponentEditor.tsx`
+- `src/features/test-play/buildProjectData.ts`
+- `src/engine/runtime/GameWorld.ts`
+
+---
+
+#### [T219b] 右クリック → プレハブ登録
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] MapCanvas に右クリックコンテキストメニュー追加
+- [x] 「プレハブとして登録」: Transform 以外のコンポーネントをコピーして新 Prefab 作成
+- [x] 「削除」: オブジェクトを削除
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/MapCanvas.tsx`
+
+---
+
+#### [T219c] プレハブ D&D 配置
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] PrefabList のアイテムを draggable に（配置モード時）
+- [x] MapCanvas で onDrop → useObjectPlacement.handleDropPrefab() で配置
+- [x] ドラッグ中にスプライト画像をドラッグプレビューとして表示
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/PrefabList.tsx`
+- `src/features/map-editor/components/MapCanvas.tsx`
+- `src/features/map-editor/hooks/useObjectPlacement.ts`
+
+---
+
 ## Phase 19: Test Play
 
 ### テストプレイ機能
