@@ -42,6 +42,7 @@ const gameSettingsSchema = z.object({
   startMapId: z.string(),
   defaultBGM: z.string().optional(),
   icon: z.string().optional(),
+  menuScriptId: z.string().optional(),
 });
 
 type GameSettingsFormData = z.infer<typeof gameSettingsSchema>;
@@ -56,6 +57,7 @@ interface GameInfoFormProps {
  */
 export function GameInfoForm({ initialValues, onSubmit }: GameInfoFormProps) {
   const maps = useStore((s) => s.maps);
+  const scripts = useStore((s) => s.scripts);
   const {
     register,
     handleSubmit,
@@ -68,6 +70,7 @@ export function GameInfoForm({ initialValues, onSubmit }: GameInfoFormProps) {
   });
 
   const currentStartMapId = watch('startMapId');
+  const currentMenuScriptId = watch('menuScriptId');
 
   const handlePresetChange = (presetLabel: string) => {
     const preset = RESOLUTION_PRESETS.find((p) => p.label === presetLabel);
@@ -177,6 +180,29 @@ export function GameInfoForm({ initialValues, onSubmit }: GameInfoFormProps) {
                 {m.name}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* メニュースクリプト */}
+      <div className="space-y-2">
+        <Label>メニュースクリプト</Label>
+        <Select
+          value={currentMenuScriptId || '__none__'}
+          onValueChange={(v) => setValue('menuScriptId', v === '__none__' ? '' : v)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="なし" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">なし</SelectItem>
+            {scripts
+              .filter((s) => s.type === 'event' && s.isAsync)
+              .map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       </div>
