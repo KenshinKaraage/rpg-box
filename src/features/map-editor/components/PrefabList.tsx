@@ -14,6 +14,7 @@ import { useStore } from '@/stores';
 import type { Prefab } from '@/types/map';
 import type { SpriteComponent } from '@/types/components/SpriteComponent';
 import { EMPTY_OBJECT_PREFAB_ID } from '@/stores/mapEditorSlice';
+import { TILE_SIZE } from '../utils/constants';
 
 /** スプライトの1フレーム目を Canvas で切り出して表示 */
 function SpriteThumbnail({ src, fw, fh, size }: { src: string; fw: number; fh: number; size: number }) {
@@ -156,11 +157,7 @@ export function PrefabList({
                       if (asset?.data) {
                         const img = new Image();
                         img.src = asset.data as string;
-                        // キャンバス上のタイル表示サイズに合わせる
-                        // canvas の CSS サイズと内部解像度の比率を考慮
-                        const mapCanvas = document.querySelector('[data-testid="map-canvas"]') as HTMLCanvasElement | null;
-                        const cssScale = mapCanvas ? mapCanvas.clientWidth / mapCanvas.width : 1;
-                        const sz = Math.round(32 * (viewport.zoom ?? 1) * cssScale);
+                        const sz = Math.round(TILE_SIZE * (viewport.zoom ?? 1));
                         const canvas = document.createElement('canvas');
                         canvas.width = sz;
                         canvas.height = sz;
