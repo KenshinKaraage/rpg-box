@@ -156,7 +156,11 @@ export function PrefabList({
                       if (asset?.data) {
                         const img = new Image();
                         img.src = asset.data as string;
-                        const sz = Math.round(32 * (viewport.zoom ?? 1));
+                        // キャンバス上のタイル表示サイズに合わせる
+                        // canvas の CSS サイズと内部解像度の比率を考慮
+                        const mapCanvas = document.querySelector('[data-testid="map-canvas"]') as HTMLCanvasElement | null;
+                        const cssScale = mapCanvas ? mapCanvas.clientWidth / mapCanvas.width : 1;
+                        const sz = Math.round(32 * (viewport.zoom ?? 1) * cssScale);
                         const canvas = document.createElement('canvas');
                         canvas.width = sz;
                         canvas.height = sz;
