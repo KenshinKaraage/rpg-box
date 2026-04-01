@@ -246,9 +246,15 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
       if (!script) return;
       const args = buildArgs();
       runtime.executeScript(script.id, args)
-        .then(() => { setUiTestData(null); })
+        .then((value) => {
+          setUiTestData(null);
+          setResult(value !== undefined ? JSON.stringify(value) : 'undefined');
+          setRuntimeError(null);
+        })
         .catch((err) => {
           console.error('[ScriptTest] Runtime execution error:', err);
+          setRuntimeError(err instanceof Error ? err.message : String(err));
+          setResult(err instanceof Error ? err.message : String(err));
         });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
