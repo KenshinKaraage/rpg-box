@@ -149,6 +149,7 @@ export class UICanvasManager implements UIActionManager {
     this.compileComponentScripts(canvasId);
     this.dispatchShow(canvasId);
     this.alignLayouts(canvasId);
+    this.fitContents(canvasId);
   }
 
   hideCanvas(canvasId: string): void {
@@ -536,6 +537,20 @@ export class UICanvasManager implements UIActionManager {
         const fns = rt.fns as Record<string, unknown>;
         if (typeof fns.align === 'function') {
           (fns.align as () => void).call(fns);
+        }
+      }
+    }
+  }
+
+  /** contentFit コンポーネントの fit() を全て呼び出す */
+  private fitContents(canvasId: string): void {
+    const state = this.canvases.get(canvasId);
+    if (!state) return;
+    for (const rt of state.runtimes) {
+      if (rt.componentType === 'contentFit') {
+        const fns = rt.fns as Record<string, unknown>;
+        if (typeof fns.fit === 'function') {
+          (fns.fit as () => void).call(fns);
         }
       }
     }

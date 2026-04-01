@@ -16,6 +16,7 @@ import { RepeaterComponent } from './components/RepeaterComponent';
 import { EffectComponent } from './components/EffectComponent';
 import { InputFieldComponent } from './components/InputFieldComponent';
 import { LayoutElementComponent } from './components/LayoutElementComponent';
+import { ContentFitComponent } from './components/ContentFitComponent';
 
 registerUIComponent('image', ImageComponent);
 registerUIComponent('text', TextComponent);
@@ -34,3 +35,4 @@ registerUIComponent('repeater', RepeaterComponent);
 registerUIComponent('effect', EffectComponent);
 registerUIComponent('inputField', InputFieldComponent);
 registerUIComponent('layoutElement', LayoutElementComponent);
+registerUIComponent('contentFit', ContentFitComponent);
