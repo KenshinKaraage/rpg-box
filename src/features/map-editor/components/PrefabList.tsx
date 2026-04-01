@@ -14,6 +14,47 @@ import type { Prefab } from '@/types/map';
 import type { SpriteComponent } from '@/types/components/SpriteComponent';
 import { EMPTY_OBJECT_PREFAB_ID } from '@/stores/mapEditorSlice';
 
+/** スプライトの1フレーム目サムネイル */
+function PrefabThumbnail({ prefab, assets, size }: {
+  prefab: Prefab;
+  assets: { id: string; data: unknown }[];
+  size: number;
+}) {
+  const sprite = prefab.prefab.components.find((c) => c.type === 'sprite') as SpriteComponent | undefined;
+  if (!sprite?.imageId) {
+    return <Square className="shrink-0 text-muted-foreground" style={{ width: size, height: size }} />;
+  }
+  const asset = assets.find((a) => a.id === sprite.imageId);
+  const src = asset?.data as string | undefined;
+  if (!src) {
+    return <Square className="shrink-0 text-muted-foreground" style={{ width: size, height: size }} />;
+  }
+
+  const fw = sprite.frameWidth || 0;
+  const fh = sprite.frameHeight || 0;
+
+  if (fw === 0 || fh === 0) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt="" className="shrink-0" style={{ width: size, height: size, objectFit: 'contain', imageRendering: 'pixelated' }} />;
+  }
+
+  // 1フレーム切り出し: background-size で高さを size に合わせ、位置 (0,0) で左上フレームを表示
+  return (
+    <div
+      className="shrink-0"
+      style={{
+        width: size,
+        height: size,
+        backgroundImage: `url(${src})`,
+        backgroundSize: `auto ${size}px`,
+        backgroundPosition: '0 0',
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'pixelated',
+      }}
+    />
+  );
+}
+
 interface PrefabListProps {
   prefabs: Prefab[];
   selectedId: string | null;
@@ -45,6 +86,7 @@ export function PrefabList({
 }: PrefabListProps) {
   const isPlacementMode = !!onSelectForPlacement;
   const assets = useStore((s) => s.assets);
+  const viewport = useStore((s) => s.viewport);
 
   const handleItemClick = (id: string) => {
     if (isPlacementMode) {
@@ -106,40 +148,43 @@ export function PrefabList({
                   onDragStart={(e) => {
                     e.dataTransfer.setData('application/rpg-prefab-id', prefab.id);
                     e.dataTransfer.effectAllowed = 'copy';
-                    // スプライトの1フレーム目を32x32で切り出してドラッグイメージに
+                    // スプライトの1フレーム目をズームに合わせて切り出し
                     const sprite = prefab.prefab.components.find((c) => c.type === 'sprite') as SpriteComponent | undefined;
                     if (sprite?.imageId) {
                       const asset = assets.find((a) => a.id === sprite.imageId);
                       if (asset?.data) {
                         const img = new Image();
                         img.src = asset.data as string;
+                        const sz = Math.round(32 * (viewport.zoom ?? 1));
                         const canvas = document.createElement('canvas');
-                        canvas.width = 32;
-                        canvas.height = 32;
+                        canvas.width = sz;
+                        canvas.height = sz;
                         const ctx2d = canvas.getContext('2d');
                         if (ctx2d) {
-                          img.onload = () => {
+                          ctx2d.imageSmoothingEnabled = false;
+                          const draw = () => {
                             const fw = sprite.frameWidth || img.width;
                             const fh = sprite.frameHeight || img.height;
-                            ctx2d.drawImage(img, 0, 0, fw, fh, 0, 0, 32, 32);
+                            ctx2d.drawImage(img, 0, 0, fw, fh, 0, 0, sz, sz);
                           };
-                          // 画像が既にキャッシュされていれば即座に描画
-                          if (img.complete) {
-                            const fw = sprite.frameWidth || img.width;
-                            const fh = sprite.frameHeight || img.height;
-                            ctx2d.drawImage(img, 0, 0, fw, fh, 0, 0, 32, 32);
-                          }
+                          if (img.complete) draw();
+                          else img.onload = draw;
                         }
-                        e.dataTransfer.setDragImage(canvas, 16, 16);
+                        e.dataTransfer.setDragImage(canvas, sz / 2, sz / 2);
                       }
                     }
                   }}
                   onClick={() => handleItemClick(prefab.id)}
                   data-testid={`prefab-item-${prefab.id}`}
                 >
-                  <div className="font-medium">{prefab.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {prefab.prefab.components.length} コンポーネント
+                  <div className="flex items-center gap-2">
+                    <PrefabThumbnail prefab={prefab} assets={assets} size={24} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{prefab.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {prefab.prefab.components.length} コンポーネント
+                      </div>
+                    </div>
                   </div>
                 </li>
               </ContextMenuTrigger>
