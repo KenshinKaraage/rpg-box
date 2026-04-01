@@ -15,6 +15,7 @@ export interface ImageData {
   sliceMode?: 'none' | 'nine-slice';
   sliceBorder?: number;
   sliceFill?: 'stretch' | 'repeat';
+  pixelated?: boolean;
 }
 
 const PLACEHOLDER_KEY = '__placeholder__';
@@ -115,6 +116,13 @@ export function renderImage(
     };
     return;
   }
+
+  // ドット絵モード: テクスチャフィルタを NEAREST に切り替え
+  const pixelated = data.pixelated ?? false;
+  const filter = pixelated ? gl.NEAREST : gl.LINEAR;
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
 
   const opacity = data.opacity ?? 1;
   const tint = data.tint ? parseColor(data.tint) : [1, 1, 1, 1];

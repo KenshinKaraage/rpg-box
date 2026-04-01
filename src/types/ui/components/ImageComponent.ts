@@ -11,6 +11,8 @@ export class ImageComponent extends UIComponent {
   /** 9-slice border size in pixels (uniform for all 4 sides) */
   sliceBorder = 16;
   sliceFill: 'stretch' | 'repeat' = 'stretch';
+  /** ドット絵モード（拡大時にピクセルをそのまま表示） */
+  pixelated = false;
 
   getAnimatablePropertyDefs(): AnimatablePropertyDef[] {
     return [
@@ -33,6 +35,7 @@ export class ImageComponent extends UIComponent {
           { value: 'nine-slice', label: 'ナインスライス' },
         ],
       },
+      { key: 'pixelated', label: 'ドット絵', type: 'boolean' },
       { key: 'sliceBorder', label: 'スライス幅', type: 'number', min: 1 },
       {
         key: 'sliceFill',
@@ -54,6 +57,7 @@ export class ImageComponent extends UIComponent {
       sliceMode: this.sliceMode,
       sliceBorder: this.sliceBorder,
       sliceFill: this.sliceFill,
+      pixelated: this.pixelated,
     };
   }
 
@@ -65,6 +69,7 @@ export class ImageComponent extends UIComponent {
     this.sliceMode = (d.sliceMode as 'none' | 'nine-slice') ?? 'none';
     this.sliceBorder = (d.sliceBorder as number) ?? 16;
     this.sliceFill = (d.sliceFill as 'stretch' | 'repeat') ?? 'stretch';
+    this.pixelated = (d.pixelated as boolean) ?? false;
   }
 
   clone(): ImageComponent {
@@ -75,6 +80,7 @@ export class ImageComponent extends UIComponent {
     c.sliceMode = this.sliceMode;
     c.sliceBorder = this.sliceBorder;
     c.sliceFill = this.sliceFill;
+    c.pixelated = this.pixelated;
     return c;
   }
 }
