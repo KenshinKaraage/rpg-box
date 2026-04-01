@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import { Plus, Trash2, Copy, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -46,7 +45,6 @@ export function PrefabList({
 }: PrefabListProps) {
   const isPlacementMode = !!onSelectForPlacement;
   const assets = useStore((s) => s.assets);
-  const dragImageRef = useRef<HTMLImageElement | null>(null);
 
   const handleItemClick = (id: string) => {
     if (isPlacementMode) {
@@ -108,15 +106,31 @@ export function PrefabList({
                   onDragStart={(e) => {
                     e.dataTransfer.setData('application/rpg-prefab-id', prefab.id);
                     e.dataTransfer.effectAllowed = 'copy';
-                    // スプライト画像があればドラッグイメージとして使用
+                    // スプライトの1フレーム目を32x32で切り出してドラッグイメージに
                     const sprite = prefab.prefab.components.find((c) => c.type === 'sprite') as SpriteComponent | undefined;
                     if (sprite?.imageId) {
                       const asset = assets.find((a) => a.id === sprite.imageId);
                       if (asset?.data) {
                         const img = new Image();
                         img.src = asset.data as string;
-                        dragImageRef.current = img;
-                        e.dataTransfer.setDragImage(img, 16, 16);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 32;
+                        canvas.height = 32;
+                        const ctx2d = canvas.getContext('2d');
+                        if (ctx2d) {
+                          img.onload = () => {
+                            const fw = sprite.frameWidth || img.width;
+                            const fh = sprite.frameHeight || img.height;
+                            ctx2d.drawImage(img, 0, 0, fw, fh, 0, 0, 32, 32);
+                          };
+                          // 画像が既にキャッシュされていれば即座に描画
+                          if (img.complete) {
+                            const fw = sprite.frameWidth || img.width;
+                            const fh = sprite.frameHeight || img.height;
+                            ctx2d.drawImage(img, 0, 0, fw, fh, 0, 0, 32, 32);
+                          }
+                        }
+                        e.dataTransfer.setDragImage(canvas, 16, 16);
                       }
                     }
                   }}

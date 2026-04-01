@@ -17,6 +17,7 @@ export function useObjectPlacement(mapId: string, layerId: string) {
   const currentTool = useStore((s) => s.currentTool);
   const viewport = useStore((s) => s.viewport);
   const maps = useStore((s) => s.maps);
+  const prefabs = useStore((s) => s.prefabs);
   const placementPrefabId = useStore((s) => s.selectedPrefabId);
   const addObject = useStore((s) => s.addObject);
   const updateObject = useStore((s) => s.updateObject);
@@ -192,22 +193,25 @@ export function useObjectPlacement(mapId: string, layerId: string) {
       // 既にオブジェクトがある場合はブロック
       if (getObjectAtTile(tx, ty)) return;
 
+      const prefab = prefabs.find((p) => p.id === prefabId);
       const layer = getLayer();
       const existingIds = layer?.objects?.map((o) => o.id) ?? [];
       const transform = new TransformComponent();
       transform.x = tx;
       transform.y = ty;
+      // プレハブのコンポーネントをコピー + Transform を追加
+      const prefabComponents = prefab?.prefab.components.map((c) => c.clone()) ?? [];
       const newObj: MapObject = {
         id: generateId('obj', existingIds),
-        name: 'オブジェクト',
+        name: prefab?.name ?? 'オブジェクト',
         prefabId: prefabId,
-        components: [transform],
+        components: [transform, ...prefabComponents],
       };
       addObject(mapId, layerId, newObj);
       pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
       selectObject(newObj.id);
     },
-    [viewport, maps, mapId, layerId, getLayer, getObjectAtTile, addObject, pushUndo, selectObject]
+    [viewport, maps, mapId, layerId, prefabs, getLayer, getObjectAtTile, addObject, pushUndo, selectObject]
   );
 
   return {
