@@ -66,7 +66,7 @@ export function MapObjectList({
             ${selectedObjectId === obj.id ? 'bg-accent' : 'hover:bg-muted'}`}
           onClick={() => onSelectObject(obj.id)}
         >
-          <ObjectThumbnail obj={obj} size={20} />
+          <ObjectThumbnail obj={obj} size={32} />
           <span className="flex-1 truncate">{obj.name}</span>
           <Button
             variant="ghost"

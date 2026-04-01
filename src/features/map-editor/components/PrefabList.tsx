@@ -179,7 +179,7 @@ export function PrefabList({
                   data-testid={`prefab-item-${prefab.id}`}
                 >
                   <div className="flex items-center gap-2">
-                    <PrefabThumbnail prefab={prefab} assets={assets} size={24} />
+                    <PrefabThumbnail prefab={prefab} assets={assets} size={32} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">{prefab.name}</div>
                       <div className="text-xs text-muted-foreground">
