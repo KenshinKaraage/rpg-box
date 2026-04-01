@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Play, Monitor } from 'lucide-react';
+import { Play, Monitor, Plus, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,74 @@ import { getArgField } from '@/features/event-editor/components/arg-fields';
 import '@/features/event-editor/components/arg-fields/register';
 import { buildProjectData } from '@/features/test-play/buildProjectData';
 import { TestPlayOverlay } from '@/features/test-play';
+
+/** 配列引数の入力フィールド（各要素を fieldType に応じたフィールドで編集） */
+function ArrayArgField({
+  argId,
+  fieldType,
+  value,
+  onChange,
+}: {
+  argId: string;
+  fieldType: string;
+  value: unknown[];
+  onChange: (v: unknown[]) => void;
+}) {
+  const Renderer = getArgField(fieldType);
+
+  const handleItemChange = (index: number, v: unknown) => {
+    const next = [...value];
+    next[index] = v;
+    onChange(next);
+  };
+
+  const handleAdd = () => {
+    const defaultVal = fieldType === 'number' ? 0 : fieldType === 'boolean' ? false : '';
+    onChange([...value, defaultVal]);
+  };
+
+  const handleRemove = (index: number) => {
+    onChange(value.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-1">
+      {value.map((item, i) => (
+        <div key={`${argId}-${i}`} className="flex items-center gap-1">
+          <span className="w-5 shrink-0 text-center text-[10px] text-muted-foreground">{i}</span>
+          {Renderer ? (
+            <div className="flex-1">
+              <Renderer
+                value={item}
+                onChange={(v) => handleItemChange(i, v)}
+                placeholder={fieldType}
+              />
+            </div>
+          ) : (
+            <Input
+              className="h-7 flex-1 text-xs"
+              value={String(item ?? '')}
+              onChange={(e) => handleItemChange(i, e.target.value)}
+              placeholder={fieldType}
+            />
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 p-0"
+            onClick={() => handleRemove(i)}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      ))}
+      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={handleAdd}>
+        <Plus className="mr-1 h-3 w-3" />
+        追加
+      </Button>
+    </div>
+  );
+}
 
 interface ScriptTestPanelProps {
   script: Script | null;
@@ -204,9 +272,16 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
                 return (
                   <div key={arg.id} className="space-y-1">
                     <Label htmlFor={`test-arg-${arg.id}`} className="text-xs">
-                      {arg.name}（{arg.fieldType}）
+                      {arg.name}（{arg.fieldType}{arg.isArray ? '[]' : ''}）
                     </Label>
-                    {Renderer ? (
+                    {arg.isArray ? (
+                      <ArrayArgField
+                        argId={arg.id}
+                        fieldType={arg.fieldType}
+                        value={(argValues[arg.id] as unknown[] | undefined) ?? (arg.defaultValue as unknown[] | undefined) ?? []}
+                        onChange={(v) => setArgValues((prev) => ({ ...prev, [arg.id]: v }))}
+                      />
+                    ) : Renderer ? (
                       <Renderer
                         value={argValues[arg.id]}
                         onChange={(v) =>
