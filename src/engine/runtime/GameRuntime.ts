@@ -391,6 +391,22 @@ export class GameRuntime {
       }
     }
 
+    // メニュー起動（cancel ボタン、イベント未実行時）
+    if (!this.eventRunning && this.input.isJustPressed('cancel')) {
+      const menuScript = this.projectData.scripts.find(
+        (s: { id: string; callId?: string }) => s.callId === 'menu_open' || s.id === 'menu_open'
+      );
+      if (menuScript && this.context && this.sharedScriptRunner) {
+        this.eventRunning = true;
+        (this.sharedScriptRunner.execute(menuScript as never, this.context) as Promise<unknown>).then(() => {
+          this.eventRunning = false;
+        }).catch((e: unknown) => {
+          console.error('[GameRuntime] Menu script error:', e);
+          this.eventRunning = false;
+        });
+      }
+    }
+
     // Camera update
     this.camera.update();
   }
