@@ -6743,9 +6743,7 @@ export function useAutoSave() {
 - [x] LayoutElementComponent 新規作成（participate: レイアウト参加有無, space: 追加スペース）
 - [x] LayoutGroupComponent に padding (Top/Bottom/Left/Right) 追加
 - [x] layoutResolver で LayoutElement (participate/space) と padding を反映
-- [x] renderUIObjects でレイアウトオーバーライドを transform に直接反映
-- [x] エディタ (UICanvas.tsx): Immer frozen 対策で浅コピー後にレイアウト適用
-- [x] 選択枠・9-slice・TransformHandles もレイアウト後のデータを使用
+- [x] ~~renderUIObjects で毎フレームレイアウト適用~~ → トリガー方式に変更（T218f）
 - [x] TransformEditor: レイアウト管理下の x/y を disabled +「(レイアウト)」表示
 - [x] NavigationComponent.activate() を async 化、1フレーム待ってカーソル配置
 - [x] 選択肢 UICanvas を layoutGroup 化（padding で余白管理、カーソルは participate=false で除外）
@@ -6763,6 +6761,48 @@ export function useAutoSave() {
 - `src/features/ui-editor/components/TransformEditor.tsx`
 - `src/features/ui-editor/components/UIPropertyPanel.tsx`
 - `src/types/ui/components/NavigationComponent.ts`
+- `src/lib/defaultTestData.ts`
+
+---
+
+#### [T218f] LayoutGroup トリガー方式 + TemplateController ランタイム + パーティステータス
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+> レイアウトを毎フレーム適用からトリガー方式に変更。TemplateController のランタイムを実装。
+
+**完了条件:**
+
+- [x] LayoutGroup: 毎フレーム applyLayoutOverrides を削除 → generateRuntimeScript() で align() メソッドを提供
+- [x] showCanvas() 後に全 layoutGroup の align() を自動呼び出し
+- [x] align() で非表示の子をスキップ（テンプレート元の除外）
+- [x] self.children をゲッターに変更（動的に追加されたクローンも含む）
+- [x] TemplateController: generateRuntimeScript() で apply(data) / applyList(array) を実装
+- [x] UICanvasManager.cloneObject(): idPrefix パラメータ追加、一意ID生成
+- [x] UICanvasManager.removeObject(): オブジェクトと子孫を削除
+- [x] self コンテキスト拡張: cloneObject, removeObject, getObjectById, executeActions
+- [x] remapActionTargetIds: クローンの targetId をリマップ
+- [x] onSpawnActions / onApplyActions の実行（idMap 付き）
+- [x] TemplateControllerEditor: functionArgs を ActionBlockEditor に渡す（引数値ソース対応）
+- [x] self.state をコンポーネントデータ (_runtimeState) に永続化（hide/show をまたいで保持）
+- [x] UIObjectRuntimeProxy に parentId を公開
+- [x] class_party_member クラス（名前 + レベル + ステータス参照）
+- [x] パーティ配列変数（4人: 勇者/魔法使い/戦士/僧侶）
+- [x] パーティステータス UICanvas + スクリプト + NPC テストデータ
+- [x] テスト追加（align: padding, invisible skip, dynamic children）
+
+**関連ファイル:**
+
+- `src/engine/runtime/UICanvasManager.ts`
+- `src/features/ui-editor/renderer/UIRenderer.ts`
+- `src/features/ui-editor/components/UICanvas.tsx`
+- `src/features/ui-editor/components/TemplateControllerEditor.tsx`
+- `src/types/ui/components/LayoutGroupComponent.ts`
+- `src/types/ui/components/LayoutGroupComponent.test.ts`
+- `src/types/ui/components/TemplateControllerComponent.ts`
+- `src/lib/defaultClasses.ts`
 - `src/lib/defaultTestData.ts`
 
 ---

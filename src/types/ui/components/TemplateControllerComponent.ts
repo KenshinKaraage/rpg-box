@@ -51,7 +51,7 @@ export class TemplateControllerComponent extends UIComponent {
 
   async applyList(array) {
     const templateId = self.object.id;
-    const templateParentId = self.state._templateParentId;
+    const templateParentId = self.object.parentId;
     const onSpawnActions = ${onSpawnJson};
     const onApplyActions = ${onApplyJson};
 

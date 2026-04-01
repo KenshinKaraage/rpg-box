@@ -258,16 +258,17 @@ export class UICanvasManager implements UIActionManager {
 
     collectAndClone(sourceId, newParentId);
 
-    // キャンバスに追加
-    for (const clone of clones) {
-      state.data.objects.push(clone);
-    }
-
     const rootId = idMap.get(sourceId);
     if (!rootId) return null;
 
     const mapObj: Record<string, string> = {};
     idMap.forEach((v, k) => { mapObj[k] = v; });
+
+    // キャンバスに追加
+    for (const clone of clones) {
+      state.data.objects.push(clone);
+    }
+
     return { rootId, idMap: mapObj };
   }
 
@@ -481,10 +482,13 @@ export class UICanvasManager implements UIActionManager {
           // eslint-disable-next-line @typescript-eslint/no-this-alias
           const mgr = this;
           const objId = obj.id;
+          // state をコンポーネントデータに永続化（hide/show をまたいで保持）
+          const compData = comp.data as Record<string, unknown>;
+          if (!compData._runtimeState) compData._runtimeState = {};
           const selfCtx = {
             object: this.wrapObjectProxyById(canvasId, objId),
             get children() { return mgr.getChildProxies(canvasId, objId); },
-            state: {} as Record<string, unknown>,
+            state: compData._runtimeState as Record<string, unknown>,
             waitFrames: (frames: number) => this.waitFramesCallback?.(frames) ?? Promise.resolve(),
             tween: this.tweenAPI,
             input: this.inputAPI,
@@ -506,10 +510,6 @@ export class UICanvasManager implements UIActionManager {
           // ({ onShow() {}, onInput(button) {}, getResult() {} })
           // eslint-disable-next-line @typescript-eslint/no-implied-eval
           // templateController はテンプレートの親IDを state に注入
-          if (comp.type === 'templateController') {
-            selfCtx.state._templateParentId = obj.parentId ?? undefined;
-            selfCtx.state._instances = [];
-          }
           const fns = new Function('self', `const Input = self.input; const Tween = self.tween; return (${script})`)(selfCtx) as Record<string, unknown>;
           state.runtimes.push({ objectId: obj.id, componentType: comp.type, fns });
         } catch (e) {
@@ -647,6 +647,7 @@ export class UICanvasManager implements UIActionManager {
         }
         if (prop === 'id') return obj.id;
         if (prop === 'name') return obj.name;
+        if (prop === 'parentId') return obj.parentId;
         if (TRANSFORM_KEYS.has(prop)) {
           return obj.transform[prop as keyof typeof obj.transform];
         }
