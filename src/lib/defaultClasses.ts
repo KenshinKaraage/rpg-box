@@ -192,17 +192,16 @@ function createPartyMemberClass(): CustomClass {
   return {
     id: PARTY_MEMBER_CLASS_ID,
     name: 'パーティメンバー',
-    description: 'パーティメンバーの名前・ステータス・装備',
+    description: 'キャラクター参照 + ランタイムステータス・装備',
     fields: [
-      f('string', { id: 'name', name: '名前' }),
+      f('dataSelect', { id: 'characterId', name: 'キャラクター', referenceTypeId: 'character' }),
       f('number', { id: 'level', name: 'レベル', min: 1, max: 99 }),
-      f('class', { id: 'stats', name: 'ステータス', classId: STATUS_CLASS_ID }),
+      f('class', { id: 'stats', name: '現在ステータス', classId: STATUS_CLASS_ID }),
       f('dataSelect', { id: 'weapon', name: '武器', referenceTypeId: 'item' }),
       f('dataSelect', { id: 'shield', name: '盾', referenceTypeId: 'item' }),
       f('dataSelect', { id: 'head', name: '頭', referenceTypeId: 'item' }),
       f('dataSelect', { id: 'body', name: '体', referenceTypeId: 'item' }),
       f('dataSelect', { id: 'accessory', name: 'アクセサリ', referenceTypeId: 'item' }),
-      f('string', { id: 'face_graphic', name: '顔グラフィック' }),
     ],
   };
 }

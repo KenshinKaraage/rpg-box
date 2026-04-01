@@ -800,32 +800,64 @@ function createNpcObject(id: string, name: string, x: number, y: number, actions
 const sampleDataEntries: Record<string, DataEntry[]> = {
   character: [
     {
-      id: 'alice',
+      id: 'lex',
       typeId: 'character',
       values: {
-        name: 'アリス',
-        description: '勇敢な剣士',
-        face_graphic: '',
-        walk_graphic: '',
-        job: 'warrior',
+        name: 'レックス',
+        description: '世界を旅する冒険者',
+        face_graphic: 'face_lex',
+        walk_graphic: 'walk_lex',
+        job: '',
         initial_level: 1,
-        base_stats: { hp: 500, mp: 80, atk: 45, def: 30, matk: 15, mdef: 20, spd: 25, luk: 10 },
+        base_stats: { hp: 400, mp: 60, atk: 30, def: 25, matk: 15, mdef: 15, spd: 30, luk: 20 },
         element_resistance: [],
         status_resistance: [],
         initial_equipment: 'iron_sword',
       },
     },
     {
-      id: 'bob',
+      id: 'ian',
       typeId: 'character',
       values: {
-        name: 'ボブ',
-        description: '知識豊富な魔法使い',
-        face_graphic: '',
-        walk_graphic: '',
-        job: 'mage',
+        name: 'イアン',
+        description: '正義を貫く騎士',
+        face_graphic: 'face_ian',
+        walk_graphic: 'walk_ian',
+        job: '',
         initial_level: 1,
-        base_stats: { hp: 300, mp: 200, atk: 10, def: 15, matk: 50, mdef: 40, spd: 20, luk: 15 },
+        base_stats: { hp: 500, mp: 30, atk: 45, def: 40, matk: 5, mdef: 20, spd: 20, luk: 10 },
+        element_resistance: [],
+        status_resistance: [],
+        initial_equipment: 'iron_sword',
+      },
+    },
+    {
+      id: 'alice',
+      typeId: 'character',
+      values: {
+        name: 'アリス',
+        description: '才能溢れる魔法使い',
+        face_graphic: 'face_alice',
+        walk_graphic: 'walk_alice',
+        job: '',
+        initial_level: 1,
+        base_stats: { hp: 280, mp: 200, atk: 10, def: 12, matk: 50, mdef: 40, spd: 22, luk: 15 },
+        element_resistance: [],
+        status_resistance: [],
+        initial_equipment: 'magic_staff',
+      },
+    },
+    {
+      id: 'marguerite',
+      typeId: 'character',
+      values: {
+        name: 'マルグリット',
+        description: '慈悲深い僧侶',
+        face_graphic: 'face_margrite',
+        walk_graphic: 'walk_marguerite',
+        job: '',
+        initial_level: 1,
+        base_stats: { hp: 350, mp: 150, atk: 15, def: 20, matk: 35, mdef: 45, spd: 18, luk: 25 },
         element_resistance: [],
         status_resistance: [],
         initial_equipment: '',
@@ -1086,10 +1118,10 @@ function createTestVariables(): Variable[] {
       fieldType: Object.assign(createFieldTypeInstance('class')!, { classId: 'class_party_member' }),
       isArray: true,
       initialValue: [
-        { name: '勇者', level: 10, stats: { hp: 250, mp: 40, atk: 30, def: 25, matk: 10, mdef: 15, spd: 20, luk: 12 }, weapon: 'iron_sword', shield: 'iron_shield', head: '', body: 'leather_armor', accessory: '', face_graphic: 'face_alice' },
-        { name: '魔法使い', level: 8, stats: { hp: 120, mp: 180, atk: 8, def: 10, matk: 45, mdef: 35, spd: 18, luk: 10 }, weapon: 'magic_staff', shield: '', head: 'leather_hat', body: 'traveler_clothes', accessory: 'power_ring', face_graphic: 'face_ian' },
-        { name: '戦士', level: 12, stats: { hp: 350, mp: 15, atk: 48, def: 40, matk: 5, mdef: 12, spd: 15, luk: 8 }, weapon: 'iron_sword', shield: 'iron_shield', head: '', body: 'leather_armor', accessory: '', face_graphic: 'face_lex' },
-        { name: '僧侶', level: 9, stats: { hp: 180, mp: 150, atk: 12, def: 20, matk: 30, mdef: 40, spd: 16, luk: 20 }, weapon: '', shield: '', head: 'leather_hat', body: 'traveler_clothes', accessory: 'power_ring', face_graphic: 'face_margrite' },
+        { characterId: 'lex', level: 10, stats: { hp: 400, mp: 60, atk: 30, def: 25, matk: 15, mdef: 15, spd: 30, luk: 20 }, weapon: 'iron_sword', shield: '', head: '', body: 'traveler_clothes', accessory: '' },
+        { characterId: 'ian', level: 12, stats: { hp: 500, mp: 30, atk: 48, def: 42, matk: 5, mdef: 20, spd: 20, luk: 10 }, weapon: 'iron_sword', shield: 'iron_shield', head: '', body: 'leather_armor', accessory: '' },
+        { characterId: 'alice', level: 8, stats: { hp: 280, mp: 200, atk: 10, def: 12, matk: 50, mdef: 40, spd: 22, luk: 15 }, weapon: 'magic_staff', shield: '', head: 'leather_hat', body: 'traveler_clothes', accessory: 'power_ring' },
+        { characterId: 'marguerite', level: 9, stats: { hp: 350, mp: 150, atk: 15, def: 20, matk: 35, mdef: 45, spd: 18, luk: 25 }, weapon: '', shield: '', head: 'leather_hat', body: 'leather_armor', accessory: 'power_ring' },
       ],
       description: 'パーティメンバー配列（TemplateController テスト）',
     },
@@ -1781,12 +1813,16 @@ if (!party || !Array.isArray(party)) {
   return;
 }
 
-// ステータスをフォーマット
-const formatted = party.map(m => ({
-  name: (m.name || "???") + "  Lv." + (m.level ?? 1),
-  hp: "HP: " + (m.stats?.hp ?? 0),
-  mp: "MP: " + (m.stats?.mp ?? 0),
-}));
+// ステータスをフォーマット（Data.character から名前を取得）
+const formatted = party.map(m => {
+  const ch = Data.character[m.characterId];
+  const name = ch ? ch.name : "???";
+  return {
+    name: name + "  Lv." + (m.level ?? 1),
+    hp: "HP: " + (m.stats?.hp ?? 0),
+    mp: "MP: " + (m.stats?.mp ?? 0),
+  };
+});
 
 // UI表示
 const bg = UI["party_status"].getObject("background");
