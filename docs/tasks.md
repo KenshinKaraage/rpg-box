@@ -6767,6 +6767,8 @@ export function useAutoSave() {
 
 #### [T218f] LayoutGroup トリガー方式 + TemplateController ランタイム + パーティステータス
 
+> **反省:** 3つの独立した機能を1タスクにまとめてしまった。本来は LayoutGroup トリガー方式 / TemplateController ランタイム / パーティステータスを別タスクに分けるべきだった。
+
 - **ステータス:** [x] 完了
 - **ブランチ:** main
 - **PR:** -
