@@ -279,6 +279,8 @@ export interface GameSettings {
   resolution: { width: number; height: number };
   startMapId: string;
   defaultBGM?: string;
+  /** メニュー起動スクリプトID（cancel ボタンで実行） */
+  menuScriptId?: string;
 }
 
 /**

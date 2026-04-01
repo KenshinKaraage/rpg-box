@@ -37,6 +37,9 @@ export interface GameSettings {
 
   /** ゲームアイコンのアセットパス（オプション） */
   icon?: string;
+
+  /** メニュー起動スクリプトID（cancel ボタンで実行） */
+  menuScriptId?: string;
 }
 
 /**

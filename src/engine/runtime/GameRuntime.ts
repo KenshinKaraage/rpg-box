@@ -391,10 +391,11 @@ export class GameRuntime {
       }
     }
 
-    // メニュー起動（cancel ボタン、イベント未実行時）
-    if (!this.eventRunning && this.input.isJustPressed('cancel')) {
+    // メニュー起動（cancel ボタン、イベント未実行時、menuScriptId 設定時）
+    const menuScriptId = (this.projectData.gameSettings as { menuScriptId?: string }).menuScriptId;
+    if (!this.eventRunning && menuScriptId && this.input.isJustPressed('cancel')) {
       const menuScript = this.projectData.scripts.find(
-        (s: { id: string; callId?: string }) => s.callId === 'menu_open' || s.id === 'menu_open'
+        (s: { id: string; callId?: string }) => s.callId === menuScriptId || s.id === menuScriptId
       );
       if (menuScript && this.context && this.sharedScriptRunner) {
         this.eventRunning = true;

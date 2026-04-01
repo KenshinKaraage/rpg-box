@@ -139,5 +139,5 @@ export async function loadDefaultTestData(): Promise<void> {
   }
 
   // ゲーム設定: 開始マップを設定
-  state.updateGameSettings({ startMapId: 'test_map' });
+  state.updateGameSettings({ startMapId: 'test_map', menuScriptId: 'menu_open' });
 }
