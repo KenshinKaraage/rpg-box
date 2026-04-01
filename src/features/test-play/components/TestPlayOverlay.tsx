@@ -50,7 +50,7 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
     let stopped = false;
     runtime.start().then(() => {
       if (stopped) return; // StrictMode cleanup 後は実行しない
-      requestAnimationFrame(() => canvas.focus());
+      canvas.focus();
       onStarted?.(runtime);
     }).catch((err) => {
       console.error('[TestPlay] Failed to start game:', err);
