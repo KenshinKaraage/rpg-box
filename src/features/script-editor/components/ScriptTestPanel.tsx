@@ -1,20 +1,48 @@
 'use client';
 
-import { useState } from 'react';
-import { Play } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Play, Monitor } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GameEngine } from '@/engine/core/GameEngine';
+import type { GameRuntime } from '@/engine/runtime/GameRuntime';
 import type { EngineMessage, ScriptModeConfig } from '@/engine/types';
+import type { ProjectData } from '@/lib/storage/types';
 import { useStore } from '@/stores';
 import type { Script } from '@/types/script';
 import { getArgField } from '@/features/event-editor/components/arg-fields';
 import '@/features/event-editor/components/arg-fields/register';
+import { buildProjectData } from '@/features/test-play/buildProjectData';
+import { TestPlayOverlay } from '@/features/test-play';
 
 interface ScriptTestPanelProps {
   script: Script | null;
+}
+
+/** 空マップを持つ ProjectData を生成 */
+function buildProjectDataWithEmptyMap(): ProjectData {
+  const data = buildProjectData();
+
+  const emptyMapId = '__script_test_map__';
+  if (!data.maps.some((m) => m.id === emptyMapId)) {
+    data.maps.push({
+      id: emptyMapId,
+      name: 'スクリプトテスト',
+      width: 20,
+      height: 15,
+      fields: [],
+      values: {},
+      layers: [
+        { id: 'layer_tile', name: 'タイル', type: 'tile', tiles: [] },
+        { id: 'layer_obj', name: 'オブジェクト', type: 'object', objects: [] },
+      ],
+    } as ProjectData['maps'][number]);
+  }
+
+  data.gameSettings = { ...data.gameSettings, startMapId: emptyMapId };
+  return data;
 }
 
 export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
@@ -28,6 +56,9 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
   const [returnTypeErrors, setReturnTypeErrors] = useState<string[]>([]);
+
+  // UI付きテストプレイ
+  const [uiTestData, setUiTestData] = useState<ProjectData | null>(null);
 
   // Reset state when script changes
   const [prevScriptId, setPrevScriptId] = useState<string | null>(null);
@@ -51,17 +82,21 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     );
   }
 
+  const buildArgs = () => {
+    const args: Record<string, unknown> = {};
+    for (const arg of script.args) {
+      args[arg.id] = argValues[arg.id] ?? arg.defaultValue ?? '';
+    }
+    return args;
+  };
+
   const handleExecute = async () => {
     const logs: string[] = [];
     let finalResult: string | null = null;
     let errorMsg: string | null = null;
     const typeErrors: string[] = [];
 
-    // Build args keyed by arg.id (values are already typed from arg field renderers)
-    const args: Record<string, unknown> = {};
-    for (const arg of script.args) {
-      args[arg.id] = argValues[arg.id] ?? arg.defaultValue ?? '';
-    }
+    const args = buildArgs();
 
     // Map store variables to engine format
     const engineVariables = variables.map((v) => ({
@@ -131,6 +166,28 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     setReturnTypeErrors(typeErrors);
   };
 
+  // UI付きテストプレイ: GameRuntime 上で実行
+  const handleExecuteWithUI = () => {
+    const data = buildProjectDataWithEmptyMap();
+    setUiTestData(data);
+  };
+
+  const handleRuntimeStarted = useCallback(
+    (runtime: GameRuntime) => {
+      if (!script) return;
+      const args = buildArgs();
+      runtime.executeScript(script.id, args).catch((err) => {
+        console.error('[ScriptTest] Runtime execution error:', err);
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [script?.id, argValues]
+  );
+
+  const handleCloseUITest = useCallback(() => {
+    setUiTestData(null);
+  }, []);
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-auto p-4">
@@ -170,11 +227,17 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
             </div>
           )}
 
-          {/* Execute button */}
-          <Button onClick={handleExecute} size="sm">
-            <Play className="mr-1 h-4 w-4" />
-            実行
-          </Button>
+          {/* Execute buttons */}
+          <div className="flex gap-2">
+            <Button onClick={handleExecute} size="sm">
+              <Play className="mr-1 h-4 w-4" />
+              実行
+            </Button>
+            <Button onClick={handleExecuteWithUI} size="sm" variant="outline">
+              <Monitor className="mr-1 h-4 w-4" />
+              UI付き実行
+            </Button>
+          </div>
 
           {/* Result */}
           {result !== null && (
@@ -217,6 +280,15 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
           )}
         </div>
       </div>
+
+      {/* UI付きテストプレイオーバーレイ */}
+      {uiTestData && (
+        <TestPlayOverlay
+          projectData={uiTestData}
+          onClose={handleCloseUITest}
+          onStarted={handleRuntimeStarted}
+        />
+      )}
     </div>
   );
 }

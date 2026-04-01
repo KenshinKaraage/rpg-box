@@ -266,6 +266,16 @@ export class GameRuntime {
     this.frameWaiters.length = 0;
   }
 
+  /** スクリプトを実行（ScriptTestPanel 用） */
+  async executeScript(scriptId: string, args?: Record<string, unknown>): Promise<unknown> {
+    if (!this.context || !this.sharedScriptRunner) {
+      throw new Error('GameRuntime not started');
+    }
+    const script = this.projectData.scripts.find((s) => s.id === scriptId);
+    if (!script) throw new Error(`Script "${scriptId}" not found`);
+    return this.sharedScriptRunner.execute(script, this.context, args);
+  }
+
   /** Get UI canvas proxies for ScriptAPI. */
   getUIProxies(): Record<string, ReturnType<UICanvasManager['createProxies']>[string]> {
     return this.uiCanvasManager.createProxies();

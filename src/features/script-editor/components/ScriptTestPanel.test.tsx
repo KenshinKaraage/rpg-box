@@ -36,10 +36,11 @@ describe('ScriptTestPanel', () => {
     expect(screen.getByText('スクリプトを選択してください')).toBeInTheDocument();
   });
 
-  it('shows execute button', () => {
+  it('shows execute buttons', () => {
     mockScripts.push(testScript);
     render(<ScriptTestPanel script={testScript} />);
-    expect(screen.getByRole('button', { name: /実行/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '実行' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'UI付き実行' })).toBeInTheDocument();
   });
 
   it('shows argument inputs based on script args', () => {
@@ -61,7 +62,7 @@ describe('ScriptTestPanel', () => {
   it('executes script and shows result', async () => {
     mockScripts.push(testScript);
     render(<ScriptTestPanel script={testScript} />);
-    fireEvent.click(screen.getByRole('button', { name: /実行/ }));
+    fireEvent.click(screen.getByRole('button', { name: '実行' }));
     await waitFor(() => {
       expect(screen.getByTestId('test-result')).toHaveTextContent('42');
     });
@@ -75,7 +76,7 @@ describe('ScriptTestPanel', () => {
     };
     mockScripts.push(logScript);
     render(<ScriptTestPanel script={logScript} />);
-    fireEvent.click(screen.getByRole('button', { name: /実行/ }));
+    fireEvent.click(screen.getByRole('button', { name: '実行' }));
     await waitFor(() => {
       expect(screen.getByTestId('console-output')).toHaveTextContent('hello');
     });
@@ -89,7 +90,7 @@ describe('ScriptTestPanel', () => {
     };
     mockScripts.push(errorScript);
     render(<ScriptTestPanel script={errorScript} />);
-    fireEvent.click(screen.getByRole('button', { name: /実行/ }));
+    fireEvent.click(screen.getByRole('button', { name: '実行' }));
     await waitFor(() => {
       expect(screen.getByTestId('test-result')).toHaveTextContent('test error');
     });
@@ -98,7 +99,7 @@ describe('ScriptTestPanel', () => {
   it('resets state when script changes', async () => {
     mockScripts.push(testScript);
     const { rerender } = render(<ScriptTestPanel script={testScript} />);
-    fireEvent.click(screen.getByRole('button', { name: /実行/ }));
+    fireEvent.click(screen.getByRole('button', { name: '実行' }));
     await waitFor(() => {
       expect(screen.getByTestId('test-result')).toBeInTheDocument();
     });

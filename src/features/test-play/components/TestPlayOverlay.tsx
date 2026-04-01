@@ -14,9 +14,11 @@ import { GameRuntime } from '@/engine/runtime/GameRuntime';
 interface TestPlayOverlayProps {
   projectData: ProjectData;
   onClose: () => void;
+  /** GameRuntime の start 完了後に呼ばれるコールバック */
+  onStarted?: (runtime: GameRuntime) => void;
 }
 
-export function TestPlayOverlay({ projectData, onClose }: TestPlayOverlayProps) {
+export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<GameRuntime | null>(null);
 
@@ -48,6 +50,7 @@ export function TestPlayOverlay({ projectData, onClose }: TestPlayOverlayProps) 
     runtime.start().then(() => {
       // start() 完了後に確実にフォーカスを当てる（入力を受け付けるために必須）
       requestAnimationFrame(() => canvas.focus());
+      onStarted?.(runtime);
     }).catch((err) => {
       console.error('[TestPlay] Failed to start game:', err);
     });
