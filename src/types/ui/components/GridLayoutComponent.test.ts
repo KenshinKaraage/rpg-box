@@ -64,4 +64,90 @@ describe('GridLayoutComponent', () => {
     expect(cloned.columns).toBe(5);
     expect(cloned.cellWidth).toBe(200);
   });
+
+  describe('generateRuntimeScript align()', () => {
+    function makeChild(name: string, w: number, h: number, visible = true) {
+      return {
+        name, width: w, height: h, x: 0, y: 0, visible,
+        getComponentData: () => null,
+      };
+    }
+
+    function compileAlign(comp: GridLayoutComponent) {
+      const script = comp.generateRuntimeScript()!;
+      const children: ReturnType<typeof makeChild>[] = [];
+      const self = {
+        object: { width: 800, height: 600 },
+        get children() { return children; },
+      };
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      const fns = new Function('self', `return (${script})`)(self);
+      return { fns, children };
+    }
+
+    it('arranges children in 2-column grid', () => {
+      const comp = new GridLayoutComponent();
+      comp.columns = 2;
+      comp.spacingX = 10;
+      comp.spacingY = 5;
+      comp.cellWidth = 100;
+      comp.cellHeight = 40;
+
+      const { fns, children } = compileAlign(comp);
+      children.push(makeChild('a', 100, 40));
+      children.push(makeChild('b', 100, 40));
+      children.push(makeChild('c', 100, 40));
+      children.push(makeChild('d', 100, 40));
+
+      fns.align();
+
+      expect(children[0]!.x).toBe(0);
+      expect(children[0]!.y).toBe(0);
+      expect(children[1]!.x).toBe(110); // 100 + 10
+      expect(children[1]!.y).toBe(0);
+      expect(children[2]!.x).toBe(0);
+      expect(children[2]!.y).toBe(45); // 40 + 5
+      expect(children[3]!.x).toBe(110);
+      expect(children[3]!.y).toBe(45);
+    });
+
+    it('skips invisible children', () => {
+      const comp = new GridLayoutComponent();
+      comp.columns = 2;
+      comp.cellWidth = 50;
+      comp.cellHeight = 50;
+
+      const { fns, children } = compileAlign(comp);
+      children.push(makeChild('template', 50, 50, false));
+      children.push(makeChild('a', 50, 50));
+      children.push(makeChild('b', 50, 50));
+      children.push(makeChild('c', 50, 50));
+
+      fns.align();
+
+      expect(children[1]!.x).toBe(0);
+      expect(children[1]!.y).toBe(0);
+      expect(children[2]!.x).toBe(50);
+      expect(children[2]!.y).toBe(0);
+      expect(children[3]!.x).toBe(0);
+      expect(children[3]!.y).toBe(50);
+    });
+
+    it('uses child size when cellWidth/cellHeight not set', () => {
+      const comp = new GridLayoutComponent();
+      comp.columns = 2;
+
+      const { fns, children } = compileAlign(comp);
+      children.push(makeChild('a', 80, 30));
+      children.push(makeChild('b', 80, 30));
+      children.push(makeChild('c', 80, 30));
+
+      fns.align();
+
+      expect(children[0]!.x).toBe(0);
+      expect(children[1]!.x).toBe(80);
+      expect(children[2]!.x).toBe(0);
+      expect(children[2]!.y).toBe(30);
+    });
+  });
 });
