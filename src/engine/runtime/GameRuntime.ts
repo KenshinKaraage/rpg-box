@@ -399,11 +399,14 @@ export class GameRuntime {
       );
       if (menuScript && this.context && this.sharedScriptRunner) {
         this.eventRunning = true;
+        this.world.setEventRunning(true);
         (this.sharedScriptRunner.execute(menuScript as never, this.context) as Promise<unknown>).then(() => {
           this.eventRunning = false;
+          this.world.setEventRunning(false);
         }).catch((e: unknown) => {
           console.error('[GameRuntime] Menu script error:', e);
           this.eventRunning = false;
+          this.world.setEventRunning(false);
         });
       }
     }
