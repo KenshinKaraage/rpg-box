@@ -1414,8 +1414,20 @@ while (true) {
 
     const equipResult = await Script.equip_item({ memberIndex: memberIdx, slot: slot.key, itemId: cand.id, silent: true });
 
-    // スロット一覧を先に更新（UI反映）
-    // → ループ先頭で再構築される
+    // スロット一覧をメッセージ前に更新
+    if (equipResult) {
+      const updSlotRows = SLOTS.map(s => {
+        const eId = member[s.key] || "";
+        const eIt = eId ? Data.item[eId] : null;
+        return { slotLabel: s.label, equipName: eIt ? eIt.name : "---" };
+      });
+      if (slotTmpl) {
+        const stc = slotTmpl.getComponent("templateController");
+        if (stc) await stc.applyList(updSlotRows);
+      }
+      if (slotLayout) slotLayout.align();
+      setNavItemIds(slotWin);
+    }
 
     // メッセージ表示
     if (equipResult) {
