@@ -636,8 +636,8 @@ const formatted = party.map(m => {
   const name = ch ? ch.name : "???";
   return {
     name: name + "  Lv." + (m.level ?? 1),
-    hp: "HP: " + (m.stats?.hp ?? 0),
-    mp: "MP: " + (m.stats?.mp ?? 0),
+    hp: "HP: " + (m.currentHp ?? 0) + "/" + (m.stats?.hp ?? 0),
+    mp: "MP: " + (m.currentMp ?? 0) + "/" + (m.stats?.mp ?? 0),
   };
 });
 
@@ -760,17 +760,17 @@ function applyEffect(eff, targetMember, targetCh) {
   const val = eff.value || 0;
   switch (eff.effect_type) {
     case "heal": {
-      const maxHp = targetCh ? targetCh.base_stats.hp : 9999;
-      targetMember.stats.hp = Math.min(maxHp, (targetMember.stats.hp || 0) + val);
+      const maxHp = targetMember.stats?.hp || 9999;
+      targetMember.currentHp = Math.min(maxHp, (targetMember.currentHp || 0) + val);
       break;
     }
     case "heal_mp": {
-      const maxMp = targetCh ? targetCh.base_stats.mp : 9999;
-      targetMember.stats.mp = Math.min(maxMp, (targetMember.stats.mp || 0) + val);
+      const maxMp = targetMember.stats?.mp || 9999;
+      targetMember.currentMp = Math.min(maxMp, (targetMember.currentMp || 0) + val);
       break;
     }
     case "damage": {
-      targetMember.stats.hp = Math.max(0, (targetMember.stats.hp || 0) - val);
+      targetMember.currentHp = Math.max(0, (targetMember.currentHp || 0) - val);
       break;
     }
     case "buff": {
@@ -934,6 +934,8 @@ for (const init of inits) {
     characterId: init.characterId,
     jobId,
     level,
+    currentHp: stats.hp,
+    currentMp: stats.mp,
     stats,
     weapon: initialEquip,
     shield: "",
@@ -974,8 +976,14 @@ const STAT_KEYS = ["hp", "mp", "atk", "def", "matk", "mdef", "spd", "luk"];
 if (!member.stats) member.stats = {};
 for (const k of STAT_KEYS) {
   const rate = growth[k] || 0;
-  member.stats[k] = (member.stats[k] || 0) + Math.floor(rate / 10);
+  const gain = Math.floor(rate / 10);
+  member.stats[k] = (member.stats[k] || 0) + gain;
 }
+// 最大HP/MP 増加分を現在値にも加算
+const hpGain = Math.floor((growth.hp || 0) / 10);
+const mpGain = Math.floor((growth.mp || 0) / 10);
+member.currentHp = (member.currentHp || 0) + hpGain;
+member.currentMp = (member.currentMp || 0) + mpGain;
 
 const memberName = ch.name || "???";
 if (!silent) {
@@ -1010,8 +1018,8 @@ const members = party.map(m => {
   return {
     name,
     level: "Lv." + (m.level ?? 1),
-    hp: "HP " + (m.stats?.hp ?? 0) + "/" + maxHp,
-    mp: "MP " + (m.stats?.mp ?? 0) + "/" + maxMp,
+    hp: "HP " + (m.currentHp ?? 0) + "/" + (m.stats?.hp ?? 0),
+    mp: "MP " + (m.currentMp ?? 0) + "/" + (m.stats?.mp ?? 0),
     face: ch ? ch.face_graphic : "",
   };
 });
@@ -1060,8 +1068,8 @@ while (true) {
       const umm = uc ? uc.base_stats.mp : 0;
       return {
         name: un, level: "Lv." + (m.level ?? 1),
-        hp: "HP " + (m.stats?.hp ?? 0) + "/" + umh,
-        mp: "MP " + (m.stats?.mp ?? 0) + "/" + umm,
+        hp: "HP " + (m.currentHp ?? 0) + "/" + (m.stats?.hp ?? 0),
+        mp: "MP " + (m.currentMp ?? 0) + "/" + (m.stats?.mp ?? 0),
         face: uc ? uc.face_graphic : "",
       };
     });
@@ -1231,8 +1239,8 @@ while (true) {
       return {
         name: cname,
         level: "Lv." + (m.level ?? 1),
-        hp: "HP " + (m.stats?.hp ?? 0) + "/" + maxHp,
-        mp: "MP " + (m.stats?.mp ?? 0) + "/" + maxMp,
+        hp: "HP " + (m.currentHp ?? 0) + "/" + (m.stats?.hp ?? 0),
+        mp: "MP " + (m.currentMp ?? 0) + "/" + (m.stats?.mp ?? 0),
         face: ch ? ch.face_graphic : "",
       };
     });
@@ -1290,8 +1298,8 @@ while (true) {
           const umm = uc ? uc.base_stats.mp : 0;
           return {
             name: un, level: "Lv." + (m.level ?? 1),
-            hp: "HP " + (m.stats?.hp ?? 0) + "/" + umh,
-            mp: "MP " + (m.stats?.mp ?? 0) + "/" + umm,
+            hp: "HP " + (m.currentHp ?? 0) + "/" + (m.stats?.hp ?? 0),
+            mp: "MP " + (m.currentMp ?? 0) + "/" + (m.stats?.mp ?? 0),
             face: uc ? uc.face_graphic : "",
           };
         });
