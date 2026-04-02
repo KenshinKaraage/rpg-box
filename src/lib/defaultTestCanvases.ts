@@ -1231,3 +1231,211 @@ export const itemScreenCanvas: EditorUICanvas = {
   objects: createItemScreenObjects(),
   functions: [],
 };
+
+// ── UICanvas: 装備画面 ──
+
+const EQUIP_SLOT_H = 36;
+const EQUIP_SLOT_W = 400;
+const EQUIP_LIST_W = 840;
+const EQUIP_CHAR_H = 120;
+
+function createEquipScreenObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  // 全体背景
+  objects.push({
+    id: 'equip_bg',
+    name: 'background',
+    transform: { x: 0, y: 0, width: 1280, height: 720, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' })],
+  });
+
+  // ── ヘッダー ──
+  objects.push({
+    id: 'equip_header',
+    name: 'header',
+    parentId: 'equip_bg',
+    transform: { x: 16, y: 16, width: 1248, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })],
+  });
+
+  objects.push({
+    id: 'equip_header_text',
+    name: 'headerText',
+    parentId: 'equip_header',
+    transform: { x: 16, y: 0, width: 1216, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: 'キャラクターを選んでください', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+  });
+
+  // ── キャラ選択ウィンドウ ──
+  objects.push({
+    id: 'equip_char_win',
+    name: 'charWindow',
+    parentId: 'equip_bg',
+    transform: { x: 16, y: 72, width: 1248, height: 620, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ],
+  });
+
+  // キャラテンプレート（アイテム画面と同じ構造）
+  objects.push({
+    id: 'equip_char_template',
+    name: 'charTemplate',
+    parentId: 'equip_char_win',
+    transform: { x: 0, y: 0, width: 1216, height: EQUIP_CHAR_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'level', name: 'レベル', fieldType: 'string', defaultValue: '' },
+          { id: 'hp', name: 'HP', fieldType: 'string', defaultValue: '' },
+          { id: 'mp', name: 'MP', fieldType: 'string', defaultValue: '' },
+          { id: 'face', name: '顔', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'equip_char_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          { type: 'uiSetProperty', data: { targetId: 'equip_char_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
+          { type: 'uiSetProperty', data: { targetId: 'equip_char_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'equip_char_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'equip_char_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+
+  objects.push({ id: 'equip_char_face', name: 'face', parentId: 'equip_char_template',
+    transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
+  objects.push({ id: 'equip_char_name', name: 'name', parentId: 'equip_char_template',
+    transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'equip_char_level', name: 'level', parentId: 'equip_char_template',
+    transform: { x: 300, y: 8, width: 120, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: 'Lv.1', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'equip_char_hp', name: 'hp', parentId: 'equip_char_template',
+    transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: 'HP: ---', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'equip_char_mp', name: 'mp', parentId: 'equip_char_template',
+    transform: { x: 80, y: 64, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: 'MP: ---', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+
+  // キャラ選択カーソル
+  objects.push({ id: 'equip_char_cursor', name: 'charCursor', parentId: 'equip_char_win',
+    transform: { x: 0, y: 12, width: 16, height: EQUIP_CHAR_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ], });
+
+  // ── スロット一覧ウィンドウ（キャラ選択後に表示） ──
+  objects.push({
+    id: 'equip_slot_win',
+    name: 'slotWindow',
+    parentId: 'equip_bg',
+    transform: { x: 16, y: 72, width: EQUIP_SLOT_W, height: 620, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }),
+    ],
+  });
+
+  // スロットテンプレート
+  objects.push({
+    id: 'equip_slot_template',
+    name: 'slotTemplate',
+    parentId: 'equip_slot_win',
+    transform: { x: 0, y: 0, width: EQUIP_SLOT_W - 32, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'slotLabel', name: 'スロット', fieldType: 'string', defaultValue: '' },
+          { id: 'equipName', name: '装備名', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'equip_slot_label', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'slotLabel' } } },
+          { type: 'uiSetProperty', data: { targetId: 'equip_slot_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'equipName' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+
+  objects.push({ id: 'equip_slot_label', name: 'slotLabel', parentId: 'equip_slot_template',
+    transform: { x: 0, y: 0, width: 80, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'equip_slot_name', name: 'equipName', parentId: 'equip_slot_template',
+    transform: { x: 80, y: 0, width: EQUIP_SLOT_W - 112, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+
+  // スロットカーソル
+  objects.push({ id: 'equip_slot_cursor', name: 'slotCursor', parentId: 'equip_slot_win',
+    transform: { x: 0, y: 8, width: 16, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 14, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ], });
+
+  // ── 装備候補一覧ウィンドウ ──
+  objects.push({
+    id: 'equip_list_win',
+    name: 'listWindow',
+    parentId: 'equip_bg',
+    transform: { x: EQUIP_SLOT_W + 32, y: 72, width: EQUIP_LIST_W - 32, height: 620, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }),
+    ],
+  });
+
+  // 装備候補テンプレート
+  objects.push({
+    id: 'equip_item_template',
+    name: 'itemTemplate',
+    parentId: 'equip_list_win',
+    transform: { x: 0, y: 0, width: EQUIP_LIST_W - 64, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('templateController', {
+        args: [{ id: 'name', name: '名前', fieldType: 'string', defaultValue: '' }],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'equip_item_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+
+  objects.push({ id: 'equip_item_name', name: 'name', parentId: 'equip_item_template',
+    transform: { x: 24, y: 0, width: EQUIP_LIST_W - 96, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+
+  // 装備候補カーソル
+  objects.push({ id: 'equip_list_cursor', name: 'listCursor', parentId: 'equip_list_win',
+    transform: { x: 0, y: 8, width: 16, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 14, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ], });
+
+  return objects;
+}
+
+export const equipScreenCanvas: EditorUICanvas = {
+  id: 'equip_screen',
+  name: '装備画面',
+  objects: createEquipScreenObjects(),
+  functions: [],
+};

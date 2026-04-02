@@ -1000,7 +1000,9 @@ while (true) {
       await Script.message({ text: "スキル画面は準備中です。", face: "" });
       break;
     case 2: // 装備
-      await Script.message({ text: "装備画面は準備中です。", face: "" });
+      UI["menu"].hide();
+      await Script.equip_screen();
+      UI["menu"].show();
       break;
     case 3: // ステータス
       await Script.message({ text: "ステータス画面は準備中です。", face: "" });
@@ -1259,6 +1261,159 @@ while (true) {
 }
 
 UI["item_screen"].hide();`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
+// ── Script: 装備画面 ──
+
+export const equipScreenScript: Script = {
+  id: 'equip_screen',
+  name: '装備画面',
+  callId: 'equip_screen',
+  type: 'event',
+  content: `const party = Variable["party"];
+if (!Array.isArray(party) || party.length === 0) return;
+
+const SLOTS = [
+  { key: "weapon", label: "武器" },
+  { key: "shield", label: "盾" },
+  { key: "head", label: "頭" },
+  { key: "body", label: "体" },
+  { key: "accessory", label: "アク" },
+];
+
+function buildCharMembers() {
+  return party.map(m => {
+    const ch = Data.character[m.characterId];
+    const n = ch ? ch.name : "???";
+    const mh = ch ? ch.base_stats.hp : 0;
+    const mm = ch ? ch.base_stats.mp : 0;
+    return { name: n, level: "Lv." + (m.level ?? 1), hp: "HP " + (m.stats?.hp ?? 0) + "/" + mh, mp: "MP " + (m.stats?.mp ?? 0) + "/" + mm, face: ch ? ch.face_graphic : "" };
+  });
+}
+
+function setNavItemIds(win) {
+  const children = win.getChildren();
+  let i = 0;
+  for (const c of children) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+UI["equip_screen"].show();
+
+const headerText = UI["equip_screen"].getObject("headerText");
+const charWin = UI["equip_screen"].getObject("charWindow");
+const slotWin = UI["equip_screen"].getObject("slotWindow");
+const listWin = UI["equip_screen"].getObject("listWindow");
+const charTmpl = UI["equip_screen"].getObject("charTemplate");
+const slotTmpl = UI["equip_screen"].getObject("slotTemplate");
+const itemTmpl = UI["equip_screen"].getObject("itemTemplate");
+
+// キャラ選択ループ
+while (true) {
+  headerText.setProperty("text", "content", "キャラクターを選んでください");
+  charWin.visible = true;
+  slotWin.visible = false;
+  listWin.visible = false;
+
+  const charMembers = buildCharMembers();
+  if (charTmpl) {
+    const tc = charTmpl.getComponent("templateController");
+    if (tc) await tc.applyList(charMembers);
+  }
+  const charLayout = charWin.getComponent("layoutGroup");
+  if (charLayout) charLayout.align();
+  const charFit = charWin.getComponent("contentFit");
+  if (charFit) charFit.fit();
+  setNavItemIds(charWin);
+
+  const charNav = charWin.getComponent("navigation");
+  charNav.activate();
+  const charSel = await charNav.result();
+  if (charSel === null) break;
+
+  const memberIdx = parseInt(charSel, 10);
+  const member = party[memberIdx];
+  if (!member) continue;
+  const ch = Data.character[member.characterId];
+  const memberName = ch ? ch.name : "???";
+
+  // スロット選択ループ
+  charWin.visible = false;
+  slotWin.visible = true;
+
+  while (true) {
+    headerText.setProperty("text", "content", memberName + " の装備");
+    listWin.visible = false;
+
+    const slotRows = SLOTS.map(s => {
+      const equipId = member[s.key] || "";
+      const equipItem = equipId ? Data.item[equipId] : null;
+      return { slotLabel: s.label, equipName: equipItem ? equipItem.name : "---" };
+    });
+    if (slotTmpl) {
+      const tc = slotTmpl.getComponent("templateController");
+      if (tc) await tc.applyList(slotRows);
+    }
+    const slotLayout = slotWin.getComponent("layoutGroup");
+    if (slotLayout) slotLayout.align();
+    setNavItemIds(slotWin);
+
+    const slotNav = slotWin.getComponent("navigation");
+    slotNav.activate();
+    const slotSel = await slotNav.result();
+    if (slotSel === null) break;
+
+    const slotIdx = parseInt(slotSel, 10);
+    const slot = SLOTS[slotIdx];
+    if (!slot) continue;
+
+    // 装備候補一覧
+    headerText.setProperty("text", "content", memberName + " の" + slot.label + "を選んでください");
+    listWin.visible = true;
+
+    const inv = Variable["inventory"];
+    const candidates = [{ id: "", name: "--- 外す ---" }];
+    if (Array.isArray(inv)) {
+      for (const entry of inv) {
+        if (entry.count <= 0) continue;
+        const it = Data.item[entry.itemId];
+        if (it && it.equip_slot === slot.key) {
+          candidates.push({ id: entry.itemId, name: it.name });
+        }
+      }
+    }
+
+    const candidateRows = candidates.map(c => ({ name: c.name }));
+    if (itemTmpl) {
+      const tc = itemTmpl.getComponent("templateController");
+      if (tc) await tc.applyList(candidateRows);
+    }
+    const listLayout = listWin.getComponent("layoutGroup");
+    if (listLayout) listLayout.align();
+    setNavItemIds(listWin);
+
+    const listNav = listWin.getComponent("navigation");
+    listNav.activate();
+    const itemSel = await listNav.result();
+
+    if (itemSel === null) continue;
+
+    const candIdx = parseInt(itemSel, 10);
+    const cand = candidates[candIdx];
+    if (!cand) continue;
+
+    await Script.equip_item({ memberIndex: memberIdx, slot: slot.key, itemId: cand.id });
+  }
+}
+
+UI["equip_screen"].hide();`,
   args: [],
   returns: [],
   fields: [],
