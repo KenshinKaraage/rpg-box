@@ -5230,6 +5230,18 @@ export function useAutoSave() {
 
 ---
 
+#### [T175a] ImageComponent pixelated オプション
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] ImageComponent に pixelated boolean 追加
+- [x] imageRenderer: NEAREST/LINEAR フィルタ切替
+
+---
+
 ## Phase 15: Screen Design
 
 > **備考:** T189 を拡張し Phase 18 の UIRenderer (T214) を統合。WebGL で全 11 UIComponent を描画。全タスク実装済み。
@@ -6913,19 +6925,7 @@ export function useAutoSave() {
 
 ---
 
-#### [T219d] ImageComponent pixelated オプション
-
-- **ステータス:** [x] 完了
-- **ブランチ:** main
-
-**完了条件:**
-
-- [x] ImageComponent に pixelated boolean 追加
-- [x] imageRenderer: NEAREST/LINEAR フィルタ切替
-
----
-
-#### [T220a-c] データ整備（装備スロット、インベントリクラス、装備品サンプル）
+#### [T218i] データ整備（装備スロット、インベントリクラス、装備品サンプル）
 
 - **ステータス:** [x] 完了
 - **ブランチ:** main
@@ -6942,7 +6942,7 @@ export function useAutoSave() {
 
 ---
 
-#### [T220d] defaultTestData.ts 分割
+#### [T218j] defaultTestData.ts 分割
 
 - **ステータス:** [x] 完了
 - **ブランチ:** main
@@ -6953,12 +6953,10 @@ export function useAutoSave() {
 
 ---
 
-#### [T220e-l] 内部処理スクリプト + メニューシステム
+#### [T218k] 内部処理スクリプト
 
 - **ステータス:** [x] 完了
 - **ブランチ:** main
-
-> **反省:** 複数機能を1タスクにまとめている。
 
 **完了条件:**
 
@@ -6967,19 +6965,72 @@ export function useAutoSave() {
 - [x] init_party スクリプト（party_init → party 生成、ステータス計算、スキル設定）
 - [x] level_up スクリプト（成長率加算方式）
 - [x] heal_all / level_up_all スクリプト
+
+---
+
+#### [T218l] メニューシステム
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
 - [x] メニュー UICanvas（RPGツクール風: コマンド + パーティ + ゴールド）
 - [x] menu_open スクリプト（コマンドループ、パーティ更新）
 - [x] GameSettings.menuScriptId / startScriptId
 - [x] GameRuntime: cancel ボタンでメニュー起動、start 時にスタートスクリプト実行
-- [x] アイテム画面（2列グリッド、説明ヘッダー、キャラ選択、HP更新）
-- [x] 装備画面（キャラ選択→スロット→候補、ステータス比較、キャラ情報バー）
-- [x] スキル画面（キャラ選択→スキル一覧→対象選択、MP消費）
-- [x] ショップ画面（買う/売る/やめる、2列グリッド、所持金表示）
+
+---
+
+#### [T218m] アイテム画面
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] アイテム画面 UICanvas（2列グリッド、説明ヘッダー、キャラ選択）
+- [x] item_screen スクリプト（HP更新→メッセージの順）
+
+---
+
+#### [T218n] 装備画面
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] 装備画面 UICanvas（キャラ選択→スロット→候補、ステータス比較、キャラ情報バー）
+- [x] equip_screen スクリプト
+
+---
+
+#### [T218o] スキル画面
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] スキル画面 UICanvas（キャラ選択→スキル一覧→対象選択、MP消費）
+- [x] skill_screen スクリプト
+
+---
+
+#### [T218p] ショップ画面
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] ショップ UICanvas（買う/売る/やめる、2列グリッド、所持金表示）
 - [x] shop_open スクリプト（shopItems: dataSelect[] 引数）
 
 ---
 
-#### [T220m] スクリプトエディタ UI 付きテストプレイ
+#### [T218q] スクリプトエディタ UI 付きテストプレイ
 
 - **ステータス:** [x] 完了
 - **ブランチ:** main
@@ -6993,20 +7044,7 @@ export function useAutoSave() {
 
 ---
 
-#### [T220n] DataSelectField 改善
-
-- **ステータス:** [x] 完了
-- **ブランチ:** main
-
-**完了条件:**
-
-- [x] ドロップダウンに「（なし）」選択肢追加
-- [x] allowNull オプション（DataSelectFieldConfig でチェックボックス設定）
-- [x] NumberFieldEditor: 空白入力可能 + 非数値拒否
-
----
-
-#### [T220o] NPC 刷新 + アセット更新
+#### [T218r] NPC 刷新 + アセット更新
 
 - **ステータス:** [x] 完了
 - **ブランチ:** main
@@ -7020,11 +7058,54 @@ export function useAutoSave() {
 
 ---
 
-#### [T221] 未実装タスク
+#### [T218s] DataSelectField 改善
 
-- [ ] Script に visibility (public/internal) を追加
-- [ ] スクリプト選択をモーダルに変更（アイコン付き）
-- [ ] スクリプトにアイコン設定を追加
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] ドロップダウンに「（なし）」選択肢追加
+- [x] allowNull オプション（DataSelectFieldConfig でチェックボックス設定）
+- [x] NumberFieldEditor: 空白入力可能 + 非数値拒否
+
+---
+
+#### [T218t] Script に visibility (public/internal) を追加
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+
+**完了条件:**
+
+- [ ] Script 型に visibility フィールド追加（public/internal）
+- [ ] 内部スクリプトに internal を設定
+- [ ] ScriptActionBlock のドロップダウンから internal を除外
+
+---
+
+#### [T218u] スクリプト選択をモーダルに変更
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+
+**完了条件:**
+
+- [ ] ScriptActionBlock のスクリプト選択をドロップダウンからモーダルに変更
+- [ ] モーダル内で検索/フィルタ機能
+
+---
+
+#### [T218v] スクリプトにアイコン設定を追加
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+
+**完了条件:**
+
+- [ ] Script 型に icon フィールド追加
+- [ ] スクリプト設定画面でアイコン選択UI
+- [ ] スクリプト選択モーダルやイベントブロックでアイコン表示
 
 ---
 
