@@ -1025,23 +1025,35 @@ while (true) {
   // 対象選択が必要か判定
   const target = item.target || "single_ally";
   if (target === "single_ally") {
-    // キャラ選択ウィンドウ
+    // キャラ選択ウィンドウ（メニューと同じテンプレート）
     const party = Variable["party"];
     if (!Array.isArray(party) || party.length === 0) continue;
 
-    const charLabels = party.map(m => {
+    const charMembers = party.map(m => {
       const ch = Data.character[m.characterId];
-      return { label: (ch ? ch.name : "???") + " HP:" + (m.stats?.hp ?? 0) };
+      const cname = ch ? ch.name : "???";
+      const maxHp = ch ? ch.base_stats.hp : 0;
+      const maxMp = ch ? ch.base_stats.mp : 0;
+      return {
+        name: cname,
+        level: "Lv." + (m.level ?? 1),
+        hp: "HP " + (m.stats?.hp ?? 0) + "/" + maxHp,
+        mp: "MP " + (m.stats?.mp ?? 0) + "/" + maxMp,
+        face: ch ? ch.face_graphic : "",
+      };
     });
 
+    // ヘッダー + キャラウィンドウ表示、アイテムリスト非表示
+    const charHeader = UI["item_screen"].getObject("charHeader");
     const charWin = UI["item_screen"].getObject("charWindow");
+    if (charHeader) charHeader.visible = true;
     charWin.visible = true;
+    listWin.visible = false;
 
-    // キャラテンプレート
     const charTmpl = UI["item_screen"].getObject("charTemplate");
     if (charTmpl) {
       const charTc = charTmpl.getComponent("templateController");
-      if (charTc) await charTc.applyList(charLabels);
+      if (charTc) await charTc.applyList(charMembers);
     }
 
     const charLayout = charWin.getComponent("layoutGroup");
@@ -1053,9 +1065,12 @@ while (true) {
     charNav.activate();
     const charSelected = await charNav.result();
 
+    // 元に戻す
+    if (charHeader) charHeader.visible = false;
     charWin.visible = false;
+    listWin.visible = true;
 
-    if (charSelected === null) continue; // キャラ選択キャンセル
+    if (charSelected === null) continue;
 
     const memberIndex = parseInt(charSelected, 10);
     await Script.use_item({ itemId: invEntry.itemId, memberIndex });
