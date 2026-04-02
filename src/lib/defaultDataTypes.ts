@@ -122,6 +122,16 @@ function createSkillType(): DataType {
     f('classList', { id: 'effects', name: 'エフェクト', classId: EFFECT_CLASS_ID }),
     f('dataSelect', { id: 'element', name: '属性', referenceTypeId: 'element' }),
     f('dataList', { id: 'status_effects', name: '状態異常効果', referenceTypeId: 'status' }),
+    f('select', {
+      id: 'usable_scene',
+      name: '使用可能シーン',
+      options: [
+        { value: 'battle', label: '戦闘中' },
+        { value: 'menu', label: 'メニュー' },
+        { value: 'both', label: '両方' },
+        { value: 'none', label: '使用不可' },
+      ],
+    }),
     f('audio', { id: 'se', name: '効果音' }),
   ]);
 }

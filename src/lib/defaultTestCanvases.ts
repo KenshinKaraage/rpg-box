@@ -1616,3 +1616,171 @@ export const shopCanvas: EditorUICanvas = {
   objects: createShopObjects(),
   functions: [],
 };
+
+// ── UICanvas: スキル画面 ──
+
+const SKILL_ROW_H = 36;
+
+function createSkillScreenObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  objects.push({ id: 'skill_bg', name: 'background', transform: { x: 0, y: 0, width: 1280, height: 720, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' })], });
+
+  // ヘッダー
+  objects.push({ id: 'skill_header', name: 'header', parentId: 'skill_bg',
+    transform: { x: 16, y: 16, width: 1248, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })], });
+  objects.push({ id: 'skill_header_text', name: 'headerText', parentId: 'skill_header',
+    transform: { x: 16, y: 0, width: 1216, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: 'キャラクターを選んでください', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+
+  // キャラ選択（装備画面と同じ構造）
+  objects.push({ id: 'skill_char_win', name: 'charWindow', parentId: 'skill_bg',
+    transform: { x: 16, y: 72, width: 1248, height: 620, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ], });
+
+  // キャラテンプレート
+  objects.push({ id: 'skill_char_template', name: 'charTemplate', parentId: 'skill_char_win',
+    transform: { x: 0, y: 0, width: 1216, height: 120, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'level', name: 'レベル', fieldType: 'string', defaultValue: '' },
+          { id: 'hp', name: 'HP', fieldType: 'string', defaultValue: '' },
+          { id: 'mp', name: 'MP', fieldType: 'string', defaultValue: '' },
+          { id: 'face', name: '顔', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'skill_char_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_char_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_char_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_char_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_char_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ], });
+  objects.push({ id: 'skill_char_face', name: 'face', parentId: 'skill_char_template', transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
+  objects.push({ id: 'skill_char_name', name: 'name', parentId: 'skill_char_template', transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_char_level', name: 'level', parentId: 'skill_char_template', transform: { x: 300, y: 8, width: 120, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: 'Lv.1', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_char_hp', name: 'hp', parentId: 'skill_char_template', transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: 'HP: ---', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_char_mp', name: 'mp', parentId: 'skill_char_template', transform: { x: 80, y: 64, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: 'MP: ---', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_char_cursor', name: 'charCursor', parentId: 'skill_char_win', transform: { x: 0, y: 12, width: 16, height: 120, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ], });
+
+  // キャラ情報バー（スキル選択時）
+  objects.push({ id: 'skill_member_win', name: 'memberWindow', parentId: 'skill_bg',
+    transform: { x: 16, y: 72, width: 1248, height: 88, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })], });
+  objects.push({ id: 'skill_member_face', name: 'memberFace', parentId: 'skill_member_win', transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
+  objects.push({ id: 'skill_member_name', name: 'memberName', parentId: 'skill_member_win', transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_member_mp', name: 'memberMp', parentId: 'skill_member_win', transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+
+  // スキル一覧（2列グリッド）
+  objects.push({ id: 'skill_list_win', name: 'listWindow', parentId: 'skill_bg',
+    transform: { x: 16, y: 176, width: 1248, height: 528, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'grid', wrap: true, initialIndex: 0, columns: 2 }),
+      createUIComponentData('gridLayout', { columns: 2, spacingX: 8, spacingY: 0, cellWidth: 600, cellHeight: SKILL_ROW_H }),
+    ], });
+
+  // スキルテンプレート
+  objects.push({ id: 'skill_row_template', name: 'skillTemplate', parentId: 'skill_list_win',
+    transform: { x: 0, y: 0, width: 600, height: SKILL_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'cost', name: 'MP', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'skill_row_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_row_cost', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'cost' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ], });
+  objects.push({ id: 'skill_row_name', name: 'name', parentId: 'skill_row_template', transform: { x: 24, y: 0, width: 440, height: SKILL_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_row_cost', name: 'cost', parentId: 'skill_row_template', transform: { x: 480, y: 0, width: 100, height: SKILL_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_list_cursor', name: 'listCursor', parentId: 'skill_list_win', transform: { x: 0, y: 0, width: 20, height: SKILL_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: 0, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ], });
+
+  // 対象選択（キャラ一覧、アイテム画面と同じ）
+  objects.push({ id: 'skill_target_header', name: 'targetHeader', parentId: 'skill_bg',
+    transform: { x: 16, y: 176, width: 1248, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })], });
+  objects.push({ id: 'skill_target_header_text', name: 'targetHeaderText', parentId: 'skill_target_header',
+    transform: { x: 16, y: 0, width: 1216, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '対象を選んでください', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+
+  objects.push({ id: 'skill_target_win', name: 'targetWindow', parentId: 'skill_bg',
+    transform: { x: 16, y: 224, width: 1248, height: 480, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#ffdd44', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ], });
+  objects.push({ id: 'skill_target_template', name: 'targetTemplate', parentId: 'skill_target_win',
+    transform: { x: 0, y: 0, width: 1216, height: 120, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'level', name: 'レベル', fieldType: 'string', defaultValue: '' },
+          { id: 'hp', name: 'HP', fieldType: 'string', defaultValue: '' },
+          { id: 'mp', name: 'MP', fieldType: 'string', defaultValue: '' },
+          { id: 'face', name: '顔', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'skill_target_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_target_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_target_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_target_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
+          { type: 'uiSetProperty', data: { targetId: 'skill_target_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ], });
+  objects.push({ id: 'skill_target_face', name: 'face', parentId: 'skill_target_template', transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
+  objects.push({ id: 'skill_target_name', name: 'name', parentId: 'skill_target_template', transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_target_level', name: 'level', parentId: 'skill_target_template', transform: { x: 300, y: 8, width: 120, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_target_hp', name: 'hp', parentId: 'skill_target_template', transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_target_mp', name: 'mp', parentId: 'skill_target_template', transform: { x: 80, y: 64, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'skill_target_cursor', name: 'targetCursor', parentId: 'skill_target_win', transform: { x: 0, y: 12, width: 16, height: 120, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ], });
+
+  return objects;
+}
+
+export const skillScreenCanvas: EditorUICanvas = {
+  id: 'skill_screen',
+  name: 'スキル画面',
+  objects: createSkillScreenObjects(),
+  functions: [],
+};

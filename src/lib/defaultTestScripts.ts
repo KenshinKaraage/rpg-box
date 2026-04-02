@@ -1070,6 +1070,12 @@ for (const init of inits) {
   // 初期装備
   const initialEquip = ch.initial_equipment || "";
 
+  // 習得スキル（レベルに応じて）
+  const learnSkills = (job && job.learn_skills) || [];
+  const skills = learnSkills
+    .filter(ls => ls.level <= level)
+    .map(ls => ls.skill);
+
   party.push({
     characterId: init.characterId,
     jobId,
@@ -1082,6 +1088,7 @@ for (const init of inits) {
     head: "",
     body: "",
     accessory: "",
+    skills,
   });
 }
 
@@ -1286,7 +1293,9 @@ while (true) {
       UI["menu"].show();
       break;
     case 1: // スキル
-      await Script.message({ text: "スキル画面は準備中です。", face: "" });
+      UI["menu"].hide();
+      await Script.skill_screen();
+      UI["menu"].show();
       break;
     case 2: // 装備
       UI["menu"].hide();
@@ -1824,6 +1833,221 @@ while (true) {
 }
 
 UI["equip_screen"].hide();`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
+// ── Script: スキル画面 ──
+
+export const skillScreenScript: Script = {
+  id: 'skill_screen',
+  name: 'スキル画面',
+  callId: 'skill_screen',
+  type: 'event',
+  content: `const party = Variable["party"];
+if (!Array.isArray(party) || party.length === 0) return;
+
+function setNavItemIds(win) {
+  const ch = win.getChildren();
+  let i = 0;
+  for (const c of ch) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+function buildCharMembers() {
+  return party.map(m => {
+    const c = Data.character[m.characterId];
+    return {
+      name: c ? c.name : "???",
+      level: "Lv." + (m.level ?? 1),
+      hp: "HP " + (m.currentHp ?? 0) + "/" + (m.stats?.hp ?? 0),
+      mp: "MP " + (m.currentMp ?? 0) + "/" + (m.stats?.mp ?? 0),
+      face: c ? c.face_graphic : "",
+    };
+  });
+}
+
+function applySkillEffect(eff, targetMember) {
+  if (!targetMember) return;
+  const val = eff.value || 0;
+  switch (eff.effect_type) {
+    case "heal":
+      targetMember.currentHp = Math.min(targetMember.stats?.hp || 9999, (targetMember.currentHp || 0) + val);
+      break;
+    case "heal_mp":
+      targetMember.currentMp = Math.min(targetMember.stats?.mp || 9999, (targetMember.currentMp || 0) + val);
+      break;
+  }
+}
+
+UI["skill_screen"].show();
+const headerText = UI["skill_screen"].getObject("headerText");
+const charWin = UI["skill_screen"].getObject("charWindow");
+const memberWin = UI["skill_screen"].getObject("memberWindow");
+const listWin = UI["skill_screen"].getObject("listWindow");
+const targetHeader = UI["skill_screen"].getObject("targetHeader");
+const targetWin = UI["skill_screen"].getObject("targetWindow");
+const charTmpl = UI["skill_screen"].getObject("charTemplate");
+const skillTmpl = UI["skill_screen"].getObject("skillTemplate");
+const targetTmpl = UI["skill_screen"].getObject("targetTemplate");
+
+// キャラ選択ループ
+while (true) {
+  headerText.setProperty("text", "content", "キャラクターを選んでください");
+  charWin.visible = true;
+  memberWin.visible = false;
+  listWin.visible = false;
+  targetHeader.visible = false;
+  targetWin.visible = false;
+
+  const charMembers = buildCharMembers();
+  if (charTmpl) {
+    const tc = charTmpl.getComponent("templateController");
+    if (tc) await tc.applyList(charMembers);
+  }
+  const charLayout = charWin.getComponent("layoutGroup");
+  if (charLayout) charLayout.align();
+  const charFit = charWin.getComponent("contentFit");
+  if (charFit) charFit.fit();
+  setNavItemIds(charWin);
+
+  const charNav = charWin.getComponent("navigation");
+  charNav.activate();
+  const charSel = await charNav.result();
+  if (charSel === null) break;
+
+  const memberIdx = parseInt(charSel, 10);
+  const member = party[memberIdx];
+  if (!member) continue;
+  const ch = Data.character[member.characterId];
+  const memberName = ch ? ch.name : "???";
+
+  // スキル一覧
+  charWin.visible = false;
+  memberWin.visible = true;
+  listWin.visible = true;
+
+  const mf = UI["skill_screen"].getObject("memberFace");
+  const mn = UI["skill_screen"].getObject("memberName");
+  const mmp = UI["skill_screen"].getObject("memberMp");
+  if (mf) mf.setProperty("image", "imageId", ch ? ch.face_graphic : "");
+  if (mn) mn.setProperty("text", "content", memberName);
+
+  function updateMemberMp() {
+    if (mmp) mmp.setProperty("text", "content", "MP " + (member.currentMp ?? 0) + "/" + (member.stats?.mp ?? 0));
+  }
+  updateMemberMp();
+
+  // メニューで使えるスキル
+  const memberSkills = (member.skills || []).map(sid => Data.skill[sid]).filter(s => s);
+  const menuSkills = memberSkills.filter(s => s.usable_scene === "menu" || s.usable_scene === "both");
+
+  if (menuSkills.length === 0) {
+    await Script.message({ text: memberName + "はメニューで使えるスキルがありません。", face: "" });
+    continue;
+  }
+
+  headerText.setProperty("text", "content", memberName + " のスキル");
+  const skillRows = menuSkills.map(s => ({ name: s.name, cost: s.mp_cost + " MP" }));
+  if (skillTmpl) {
+    const tc = skillTmpl.getComponent("templateController");
+    if (tc) await tc.applyList(skillRows);
+  }
+  const grid = listWin.getComponent("gridLayout");
+  if (grid) grid.align();
+  setNavItemIds(listWin);
+
+  // スキル選択ループ
+  while (true) {
+    const listNav = listWin.getComponent("navigation");
+    listNav.setOnIndexChange((idx) => {
+      const s = menuSkills[idx];
+      if (s) headerText.setProperty("text", "content", s.description || s.name);
+    });
+    listNav.activate();
+    const skillSel = await listNav.result();
+    if (skillSel === null) break;
+
+    const skillIdx = parseInt(skillSel, 10);
+    const skill = menuSkills[skillIdx];
+    if (!skill) continue;
+
+    if ((member.currentMp ?? 0) < (skill.mp_cost || 0)) {
+      await Script.message({ text: "MPが足りません。", face: "" });
+      continue;
+    }
+
+    const targetSide = skill.target_side || "ally";
+    const targetScope = skill.target_scope || "single";
+
+    if (targetSide === "self") {
+      member.currentMp -= skill.mp_cost || 0;
+      for (const eff of (skill.effects || [])) applySkillEffect(eff, member);
+      updateMemberMp();
+      await Script.message({ text: memberName + "は" + skill.name + "を使った！", face: "" });
+    } else if (targetSide === "ally") {
+      if (targetScope === "all") {
+        member.currentMp -= skill.mp_cost || 0;
+        for (const m of party) {
+          for (const eff of (skill.effects || [])) applySkillEffect(eff, m);
+        }
+        updateMemberMp();
+        await Script.message({ text: memberName + "は" + skill.name + "を使った！\\n全員に効果！", face: "" });
+      } else {
+        // 対象選択
+        listWin.visible = false;
+        targetHeader.visible = true;
+        targetWin.visible = true;
+
+        while (true) {
+          const tMembers = buildCharMembers();
+          if (targetTmpl) {
+            const ttc = targetTmpl.getComponent("templateController");
+            if (ttc) await ttc.applyList(tMembers);
+          }
+          const tLayout = targetWin.getComponent("layoutGroup");
+          if (tLayout) tLayout.align();
+          const tFit = targetWin.getComponent("contentFit");
+          if (tFit) tFit.fit();
+          setNavItemIds(targetWin);
+
+          const tNav = targetWin.getComponent("navigation");
+          tNav.activate();
+          const tSel = await tNav.result();
+          if (tSel === null) break;
+
+          const tIdx = parseInt(tSel, 10);
+          const target = party[tIdx];
+          if (!target) continue;
+
+          if ((member.currentMp ?? 0) < (skill.mp_cost || 0)) {
+            await Script.message({ text: "MPが足りません。", face: "" });
+            break;
+          }
+
+          member.currentMp -= skill.mp_cost || 0;
+          for (const eff of (skill.effects || [])) applySkillEffect(eff, target);
+          updateMemberMp();
+
+          const tCh = Data.character[target.characterId];
+          const tName = tCh ? tCh.name : "???";
+          await Script.message({ text: memberName + "は" + tName + "に" + skill.name + "を使った！", face: "" });
+        }
+
+        targetHeader.visible = false;
+        targetWin.visible = false;
+        listWin.visible = true;
+      }
+    }
+  }
+}
+
+UI["skill_screen"].hide();`,
   args: [],
   returns: [],
   fields: [],
