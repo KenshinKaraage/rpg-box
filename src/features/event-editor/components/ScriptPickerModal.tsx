@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getScriptIcon } from '@/features/script-editor/components/IconPicker';
 import type { Script } from '@/types/script';
 
 interface ScriptPickerModalProps {
@@ -72,12 +72,15 @@ export function ScriptPickerModal({
                 見つかりません
               </div>
             )}
-            {filtered.map((s) => (
+            {filtered.map((s) => {
+              const Icon = getScriptIcon(s.icon);
+              return (
               <button
                 key={s.id}
                 className="flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm hover:bg-accent"
                 onClick={() => handleSelect(s.id)}
               >
+                <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{s.name}</div>
                   {s.description && (
@@ -90,7 +93,8 @@ export function ScriptPickerModal({
                   </span>
                 )}
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </DialogContent>

@@ -17,6 +17,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useStore } from '@/stores';
 import type { Script, ScriptArg, ScriptReturn } from '@/types/script';
+import { IconPicker } from './IconPicker';
 
 const FIELD_TYPES = [
   { value: 'string', label: '文字列' },
@@ -160,6 +161,15 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
             <p className="text-xs text-muted-foreground">
               {script.type === 'event' ? 'イベントエディタで選択可能' : script.type === 'internal' ? 'Script.xxx() でのみ呼び出し可能' : 'オブジェクトにアタッチ'}
             </p>
+          </div>
+
+          {/* Icon */}
+          <div className="space-y-2">
+            <Label>アイコン</Label>
+            <IconPicker
+              value={script.icon}
+              onChange={(icon) => onUpdate(script.id, { icon })}
+            />
           </div>
 
           {/* Call ID (event/component only) */}

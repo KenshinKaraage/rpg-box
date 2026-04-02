@@ -92,6 +92,8 @@ export interface Script {
   parentId?: string;
   /** 説明 */
   description?: string;
+  /** アイコン名（lucide アイコン） */
+  icon?: string;
 }
 
 /**
