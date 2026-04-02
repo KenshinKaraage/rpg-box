@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -34,20 +35,32 @@ function NumberField({
   max?: number;
   disabled?: boolean;
 }) {
+  const [localValue, setLocalValue] = useState(String(value));
+
   return (
     <div className="flex items-center gap-1">
       <Label className="w-8 shrink-0 text-xs text-muted-foreground">{label}</Label>
       <Input
         type="number"
         className="h-7 px-1 text-xs"
-        value={value}
+        value={localValue}
         step={step}
         min={min}
         max={max}
         disabled={disabled}
         onChange={(e) => {
+          setLocalValue(e.target.value);
           const v = parseFloat(e.target.value);
           if (!isNaN(v)) onChange(v);
+        }}
+        onBlur={() => {
+          // 空白や不正値はリセット
+          const v = parseFloat(localValue);
+          if (isNaN(v)) {
+            setLocalValue(String(value));
+          } else {
+            setLocalValue(String(v));
+          }
         }}
       />
     </div>
