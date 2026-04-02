@@ -233,8 +233,9 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
             <div className="space-y-1">
               {(Array.isArray(watchInitialValue) ? watchInitialValue : []).map(
                 (item: unknown, index: number) => (
-                  <div key={index} className="flex items-start gap-1">
-                    <div className="flex-1">
+                  <div key={index} className="flex items-start gap-1 rounded border p-2">
+                    <span className="mt-1 w-5 shrink-0 text-center text-xs text-muted-foreground">{index}</span>
+                    <div className="min-w-0 flex-1">
                       {variable.fieldType.renderEditor({
                         value: item,
                         onChange: (newVal) => {

@@ -51,20 +51,22 @@ export function ClassFieldEditor({
   };
 
   return (
-    <div className="space-y-3">
-      {customClass.fields.map((field) => (
-        <div key={field.id} className="space-y-1">
-          <Label className="text-sm font-medium">
-            {field.name}
-            {field.required && <span className="ml-1 text-red-500">*</span>}
-          </Label>
-          {field.renderEditor({
-            value: value[field.id] ?? field.getDefaultValue(),
-            onChange: (newValue) => handleFieldChange(field.id, newValue),
-            disabled,
-          })}
-        </div>
-      ))}
+    <div>
+      <div className="grid grid-cols-2 gap-2">
+        {customClass.fields.map((field) => (
+          <div key={field.id} className="space-y-1">
+            <Label className="text-xs text-muted-foreground">
+              {field.name}
+              {field.required && <span className="ml-1 text-red-500">*</span>}
+            </Label>
+            {field.renderEditor({
+              value: value[field.id] ?? field.getDefaultValue(),
+              onChange: (newValue) => handleFieldChange(field.id, newValue),
+              disabled,
+            })}
+          </div>
+        ))}
+      </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
   );
