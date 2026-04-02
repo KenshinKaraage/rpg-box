@@ -1167,7 +1167,7 @@ while (true) {
         const usedMember = usedParty[memberIndex];
         const usedCh = Data.character[usedMember?.characterId];
         const usedName = usedCh ? usedCh.name : "???";
-        await Script.message({ text: usedName + "に" + (usedItem ? usedItem.name : "アイテム") + "を使った！", face: "", close: false });
+        await Script.message({ text: usedName + "に" + (usedItem ? usedItem.name : "アイテム") + "を使った！", face: "" });
       }
 
       // アイテム残数チェック
