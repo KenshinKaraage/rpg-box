@@ -861,17 +861,20 @@ member[slot] = itemId || "";
 
 const ch = Data.character[member.characterId];
 const memberName = ch ? ch.name : "???";
-if (itemId) {
-  const newItem = Data.item[itemId];
-  await Script.message({ text: memberName + "は" + (newItem ? newItem.name : itemId) + "を装備した！", face: "" });
-} else {
-  await Script.message({ text: memberName + "の" + slot + "を外した。", face: "" });
+if (!silent) {
+  if (itemId) {
+    const newItem = Data.item[itemId];
+    await Script.message({ text: memberName + "は" + (newItem ? newItem.name : itemId) + "を装備した！", face: "" });
+  } else {
+    await Script.message({ text: memberName + "の" + slot + "を外した。", face: "" });
+  }
 }
 return true;`,
   args: [
     { id: 'memberIndex', name: 'メンバー番号', fieldType: 'number', required: true, defaultValue: 0 },
     { id: 'slot', name: '装備部位', fieldType: 'string', required: true, defaultValue: 'weapon' },
     { id: 'itemId', name: 'アイテムID（空=解除）', fieldType: 'string', required: false, defaultValue: '' },
+    { id: 'silent', name: 'メッセージ非表示', fieldType: 'boolean', required: false, defaultValue: false },
   ],
   returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
   fields: [],
@@ -1409,7 +1412,20 @@ while (true) {
     const cand = candidates[candIdx];
     if (!cand) continue;
 
-    await Script.equip_item({ memberIndex: memberIdx, slot: slot.key, itemId: cand.id });
+    const equipResult = await Script.equip_item({ memberIndex: memberIdx, slot: slot.key, itemId: cand.id, silent: true });
+
+    // スロット一覧を先に更新（UI反映）
+    // → ループ先頭で再構築される
+
+    // メッセージ表示
+    if (equipResult) {
+      if (cand.id) {
+        const eqItem = Data.item[cand.id];
+        await Script.message({ text: memberName + "は" + (eqItem ? eqItem.name : cand.id) + "を装備した！", face: "" });
+      } else {
+        await Script.message({ text: memberName + "の" + slot.label + "を外した。", face: "" });
+      }
+    }
   }
 }
 
