@@ -23,8 +23,8 @@ import {
   showStatusScript, shopScript, mapInfoScript, objTestScript,
   audioTestScript, inputTestScript, effectTestScript, animTestScript,
   partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
-  equipItemScript, unequipItemScript, levelUpScript, menuOpenScript,
-  itemScreenScript, equipScreenScript,
+  equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
+  menuOpenScript, itemScreenScript, equipScreenScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
 import { createTestMap, createNpcPrefabs } from './defaultTestMap';
@@ -132,8 +132,8 @@ export async function loadDefaultTestData(): Promise<void> {
     showStatusScript, shopScript, mapInfoScript, objTestScript,
     audioTestScript, inputTestScript, effectTestScript, animTestScript,
     partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
-    equipItemScript, unequipItemScript, levelUpScript, menuOpenScript,
-    itemScreenScript, equipScreenScript,
+    equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
+    menuOpenScript, itemScreenScript, equipScreenScript,
   ];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
@@ -147,5 +147,5 @@ export async function loadDefaultTestData(): Promise<void> {
   }
 
   // ゲーム設定: 開始マップを設定
-  state.updateGameSettings({ startMapId: 'test_map', menuScriptId: 'menu_open' });
+  state.updateGameSettings({ startMapId: 'test_map', menuScriptId: 'menu_open', startScriptId: 'init_party' });
 }

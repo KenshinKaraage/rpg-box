@@ -220,6 +220,21 @@ function createInventoryItemClass(): CustomClass {
   };
 }
 
+/** 初期パーティメンバークラスID */
+export const PARTY_INIT_CLASS_ID = 'class_party_init';
+
+function createPartyInitClass(): CustomClass {
+  return {
+    id: PARTY_INIT_CLASS_ID,
+    name: '初期パーティメンバー',
+    description: 'ゲーム開始時のパーティ定義（characterId + level）',
+    fields: [
+      f('dataSelect', { id: 'characterId', name: 'キャラクター', referenceTypeId: 'character' }),
+      f('number', { id: 'level', name: '初期レベル', min: 1, max: 99 }),
+    ],
+  };
+}
+
 // =============================================================================
 // デフォルトクラス一覧
 // =============================================================================
@@ -234,4 +249,5 @@ export const defaultClasses: CustomClass[] = [
   createActionPatternClass(),
   createPartyMemberClass(),
   createInventoryItemClass(),
+  createPartyInitClass(),
 ];

@@ -281,6 +281,8 @@ export interface GameSettings {
   defaultBGM?: string;
   /** メニュー起動スクリプトID（cancel ボタンで実行） */
   menuScriptId?: string;
+  /** ゲーム開始時に実行するスクリプトID */
+  startScriptId?: string;
 }
 
 /**

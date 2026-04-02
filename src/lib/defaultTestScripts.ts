@@ -897,6 +897,59 @@ return await Script.equip_item({ memberIndex, slot, itemId: "" });`,
   isAsync: true,
 };
 
+// ── Script: パーティ初期化 ──
+
+export const initPartyScript: Script = {
+  id: 'init_party',
+  name: 'パーティ初期化',
+  callId: 'init_party',
+  type: 'event',
+  content: `// party_init から party を生成
+const inits = Variable["party_init"];
+if (!Array.isArray(inits)) return;
+
+const STAT_KEYS = ["hp", "mp", "atk", "def", "matk", "mdef", "spd", "luk"];
+const party = [];
+
+for (const init of inits) {
+  const ch = Data.character[init.characterId];
+  if (!ch) continue;
+
+  const jobId = ch.job || "";
+  const job = jobId ? Data.job[jobId] : null;
+  const growth = (job && job.growth_rates) || {};
+  const level = init.level || 1;
+
+  const stats = {};
+  for (const k of STAT_KEYS) {
+    const base = ch.base_stats[k] || 0;
+    const rate = growth[k] || 0;
+    stats[k] = Math.floor(base + rate * (level - 1) / 10);
+  }
+
+  // 初期装備
+  const initialEquip = ch.initial_equipment || "";
+
+  party.push({
+    characterId: init.characterId,
+    jobId,
+    level,
+    stats,
+    weapon: initialEquip,
+    shield: "",
+    head: "",
+    body: "",
+    accessory: "",
+  });
+}
+
+Variable["party"] = party;`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: false,
+};
+
 // ── Script: レベルアップ ──
 
 export const levelUpScript: Script = {
@@ -904,8 +957,7 @@ export const levelUpScript: Script = {
   name: 'レベルアップ',
   callId: 'level_up',
   type: 'event',
-  content: `// メンバーをレベルアップし、ステータスを再計算
-// stats = base_stats + growth_rates * (level - 1)
+  content: `// メンバーをレベルアップし、成長分を加算
 const party = Variable["party"];
 if (!Array.isArray(party) || memberIndex < 0 || memberIndex >= party.length) return false;
 const member = party[memberIndex];
@@ -921,9 +973,8 @@ member.level = (member.level || 1) + 1;
 const STAT_KEYS = ["hp", "mp", "atk", "def", "matk", "mdef", "spd", "luk"];
 if (!member.stats) member.stats = {};
 for (const k of STAT_KEYS) {
-  const base = ch.base_stats[k] || 0;
   const rate = growth[k] || 0;
-  member.stats[k] = Math.floor(base + rate * (member.level - 1) / 10);
+  member.stats[k] = (member.stats[k] || 0) + Math.floor(rate / 10);
 }
 
 const memberName = ch.name || "???";

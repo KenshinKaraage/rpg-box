@@ -382,17 +382,25 @@ export function createTestVariables(): Variable[] {
       description: '所持アイテム（{itemId, count} 形式）',
     },
     {
+      id: 'var_party_init',
+      name: 'party_init',
+      fieldType: Object.assign(createFieldTypeInstance('class')!, { classId: 'class_party_init' }),
+      isArray: true,
+      initialValue: [
+        { characterId: 'lex', level: 10 },
+        { characterId: 'ian', level: 12 },
+        { characterId: 'alice', level: 8 },
+        { characterId: 'marguerite', level: 9 },
+      ],
+      description: '初期パーティ定義（ゲーム開始時に init_party で party に展開）',
+    },
+    {
       id: 'var_party',
       name: 'party',
       fieldType: Object.assign(createFieldTypeInstance('class')!, { classId: 'class_party_member' }),
       isArray: true,
-      initialValue: [
-        { characterId: 'lex', jobId: 'traveler', level: 10, stats: { hp: 250, mp: 40, atk: 30, def: 25, matk: 15, mdef: 15, spd: 30, luk: 20 }, weapon: 'iron_sword', shield: '', head: '', body: 'traveler_clothes', accessory: '' },
-        { characterId: 'ian', jobId: 'warrior', level: 12, stats: { hp: 320, mp: 10, atk: 48, def: 42, matk: 5, mdef: 20, spd: 20, luk: 10 }, weapon: 'iron_sword', shield: 'iron_shield', head: '', body: 'leather_armor', accessory: '' },
-        { characterId: 'alice', jobId: 'mage', level: 8, stats: { hp: 100, mp: 120, atk: 10, def: 12, matk: 50, mdef: 40, spd: 22, luk: 15 }, weapon: 'magic_staff', shield: '', head: 'leather_hat', body: 'traveler_clothes', accessory: 'power_ring' },
-        { characterId: 'marguerite', jobId: 'priest', level: 9, stats: { hp: 200, mp: 80, atk: 15, def: 20, matk: 35, mdef: 45, spd: 18, luk: 25 }, weapon: '', shield: '', head: 'leather_hat', body: 'leather_armor', accessory: 'power_ring' },
-      ],
-      description: 'パーティメンバー配列（TemplateController テスト）',
+      initialValue: [],
+      description: 'パーティメンバー配列（init_party スクリプトで party_init から生成）',
     },
   ];
 }

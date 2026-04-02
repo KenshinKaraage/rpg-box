@@ -248,6 +248,17 @@ export class GameRuntime {
       return { x: ctrl.pixelX + TILE_SIZE / 2, y: ctrl.pixelY + TILE_SIZE / 2 };
     });
 
+    // ゲーム開始スクリプトの実行
+    const startScriptId = (this.projectData.gameSettings as { startScriptId?: string }).startScriptId;
+    if (startScriptId && this.context && this.sharedScriptRunner) {
+      const startScript = this.projectData.scripts.find(
+        (s: { id: string; callId?: string }) => s.callId === startScriptId || s.id === startScriptId
+      );
+      if (startScript) {
+        await (this.sharedScriptRunner.execute(startScript as never, this.context) as Promise<unknown>);
+      }
+    }
+
     // Start game loop
     this.gameLoop.start();
   }
