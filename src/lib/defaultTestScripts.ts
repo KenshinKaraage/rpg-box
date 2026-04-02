@@ -766,11 +766,12 @@ for (const effect of (item.effects || [])) {
   }
 }
 
-await Script.message({ text: memberName + "に" + item.name + "を使った！", face: "" });
+if (!silent) await Script.message({ text: memberName + "に" + item.name + "を使った！", face: "" });
 return true;`,
   args: [
     { id: 'itemId', name: 'アイテムID', fieldType: 'string', required: true, defaultValue: '' },
     { id: 'memberIndex', name: 'メンバー番号', fieldType: 'number', required: true, defaultValue: 0 },
+    { id: 'silent', name: 'メッセージ非表示', fieldType: 'boolean', required: false, defaultValue: false },
   ],
   returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
   fields: [],
@@ -1126,9 +1127,9 @@ while (true) {
       if (charSelected === null) break; // キャンセルでアイテム一覧に戻る
 
       const memberIndex = parseInt(charSelected, 10);
-      await Script.use_item({ itemId: invEntry.itemId, memberIndex });
+      const useResult = await Script.use_item({ itemId: invEntry.itemId, memberIndex, silent: true });
 
-      // キャラ一覧を HP 更新して再表示
+      // キャラ一覧を HP 更新して再表示（メッセージの前に）
       const updParty = Variable["party"];
       if (Array.isArray(updParty)) {
         const updCharMembers = updParty.map(m => {
@@ -1157,6 +1158,16 @@ while (true) {
           const ni = c.getComponentData("navigationItem");
           if (ni) { c.setProperty("navigationItem", "itemId", String(uci)); uci++; }
         }
+      }
+
+      // HP 更新後にメッセージ表示
+      if (useResult) {
+        const usedItem = Data.item[invEntry.itemId];
+        const usedParty = Variable["party"];
+        const usedMember = usedParty[memberIndex];
+        const usedCh = Data.character[usedMember?.characterId];
+        const usedName = usedCh ? usedCh.name : "???";
+        await Script.message({ text: usedName + "に" + (usedItem ? usedItem.name : "アイテム") + "を使った！", face: "", close: false });
       }
 
       // アイテム残数チェック
