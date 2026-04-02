@@ -1351,9 +1351,32 @@ while (true) {
   charWin.visible = false;
   slotWin.visible = true;
 
+  const statWin = UI["equip_screen"].getObject("statWindow");
+  const statText = UI["equip_screen"].getObject("statText");
+  const STAT_KEYS = ["atk", "def", "matk", "mdef", "spd", "luk"];
+  const STAT_LABELS = { atk: "ATK", def: "DEF", matk: "MATK", mdef: "MDEF", spd: "SPD", luk: "LUK" };
+
+  function showCurrentStats() {
+    const lines = [];
+    lines.push(memberName + " のステータス");
+    lines.push("");
+    for (const k of STAT_KEYS) {
+      const val = (member.stats && member.stats[k]) || 0;
+      lines.push(STAT_LABELS[k].padEnd(5, " ") + val);
+    }
+    const maxHp = ch ? ch.base_stats.hp : 0;
+    const maxMp = ch ? ch.base_stats.mp : 0;
+    lines.push("");
+    lines.push("HP   " + (member.stats?.hp || 0) + " / " + maxHp);
+    lines.push("MP   " + (member.stats?.mp || 0) + " / " + maxMp);
+    if (statText) statText.setProperty("text", "content", lines.join("\\n"));
+  }
+
   while (true) {
     headerText.setProperty("text", "content", memberName + " の装備");
     listWin.visible = false;
+    if (statWin) statWin.visible = true;
+    showCurrentStats();
 
     const slotRows = SLOTS.map(s => {
       const equipId = member[s.key] || "";
@@ -1371,7 +1394,10 @@ while (true) {
     const slotNav = slotWin.getComponent("navigation");
     slotNav.activate();
     const slotSel = await slotNav.result();
-    if (slotSel === null) break;
+    if (slotSel === null) {
+      if (statWin) statWin.visible = false;
+      break;
+    }
 
     const slotIdx = parseInt(slotSel, 10);
     const slot = SLOTS[slotIdx];
@@ -1402,14 +1428,7 @@ while (true) {
     if (listLayout) listLayout.align();
     setNavItemIds(listWin);
 
-    // ステータス比較ウィンドウ
-    const statWin = UI["equip_screen"].getObject("statWindow");
-    const statText = UI["equip_screen"].getObject("statText");
-    if (statWin) statWin.visible = true;
-
-    // ステータス比較: メンバーの実ステータス + 装備ボーナス差分
-    const STAT_KEYS = ["atk", "def", "matk", "mdef", "spd", "luk"];
-    const STAT_LABELS = { atk: "ATK", def: "DEF", matk: "MATK", mdef: "MDEF", spd: "SPD", luk: "LUK" };
+    // ステータス比較表示に切り替え
     function getBonus(itemId) {
       if (!itemId) return {};
       const it = Data.item[itemId];
@@ -1461,7 +1480,6 @@ while (true) {
     listNav.activate();
     const itemSel = await listNav.result();
 
-    if (statWin) statWin.visible = false;
     if (itemSel === null) continue;
 
     const candIdx = parseInt(itemSel, 10);
