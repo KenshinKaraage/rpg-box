@@ -1407,30 +1407,47 @@ while (true) {
     const statText = UI["equip_screen"].getObject("statText");
     if (statWin) statWin.visible = true;
 
-    // 現在のステータスボーナスを計算
-    const STAT_KEYS = ["hp", "mp", "atk", "def", "matk", "mdef", "spd", "luk"];
-    const STAT_LABELS = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", matk: "MATK", mdef: "MDEF", spd: "SPD", luk: "LUK" };
+    // ステータス比較: メンバーの実ステータス + 装備ボーナス差分
+    const STAT_KEYS = ["atk", "def", "matk", "mdef", "spd", "luk"];
+    const STAT_LABELS = { atk: "ATK", def: "DEF", matk: "MATK", mdef: "MDEF", spd: "SPD", luk: "LUK" };
     function getBonus(itemId) {
       if (!itemId) return {};
       const it = Data.item[itemId];
       return (it && it.status_bonus) || {};
     }
-    const currentBonus = getBonus(member[slot.key]);
+    const currentEquipId = member[slot.key] || "";
+    const currentBonus = getBonus(currentEquipId);
 
     function updateStatPreview(candId) {
       const newBonus = getBonus(candId);
       const lines = [];
       for (const k of STAT_KEYS) {
-        const cur = currentBonus[k] || 0;
-        const nxt = newBonus[k] || 0;
-        const diff = nxt - cur;
-        if (cur === 0 && nxt === 0) continue;
-        let diffStr = "";
-        if (diff > 0) diffStr = " +" + diff;
-        else if (diff < 0) diffStr = " " + diff;
-        lines.push(STAT_LABELS[k] + ": " + cur + " → " + nxt + diffStr);
+        const baseStat = (member.stats && member.stats[k]) || 0;
+        const curB = currentBonus[k] || 0;
+        const newB = newBonus[k] || 0;
+        const diff = newB - curB;
+        const afterStat = baseStat + diff;
+        const label = STAT_LABELS[k].padEnd(5, " ");
+        if (diff === 0) {
+          lines.push(label + baseStat);
+        } else if (diff > 0) {
+          lines.push(label + baseStat + "  >>  " + afterStat + "  (+" + diff + ")");
+        } else {
+          lines.push(label + baseStat + "  >>  " + afterStat + "  (" + diff + ")");
+        }
       }
-      if (statText) statText.setProperty("text", "content", lines.length > 0 ? lines.join("\\n") : "変化なし");
+      // HP/MP も表示（装備で変動する場合）
+      for (const hk of ["hp", "mp"]) {
+        const curB = currentBonus[hk] || 0;
+        const newB = newBonus[hk] || 0;
+        const diff = newB - curB;
+        if (diff !== 0) {
+          const baseMax = ch ? ch.base_stats[hk] : 0;
+          const label = hk.toUpperCase().padEnd(5, " ");
+          lines.push(label + "MAX " + baseMax + "  >>  " + (baseMax + diff) + "  (" + (diff > 0 ? "+" : "") + diff + ")");
+        }
+      }
+      if (statText) statText.setProperty("text", "content", lines.join("\\n"));
     }
 
     // 初期表示
