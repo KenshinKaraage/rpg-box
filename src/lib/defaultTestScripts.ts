@@ -785,31 +785,33 @@ function applyEffect(eff, targetMember, targetCh) {
   }
 }
 
-const messages = [];
+let hasSingle = false;
+let hasAll = false;
 for (const effect of (item.effects || [])) {
   const effTarget = effect.target || "single_ally";
   if (effTarget === "all_allies" || effTarget === "all") {
-    // 全体
     for (let i = 0; i < party.length; i++) {
-      const m = party[i];
-      const c = Data.character[m.characterId];
-      applyEffect(effect, m, c);
+      applyEffect(effect, party[i], Data.character[party[i].characterId]);
     }
-    messages.push("全員に" + item.name + "の効果！");
+    hasAll = true;
   } else {
-    // 個人
-    if (memberIndex < 0 || memberIndex >= party.length) continue;
-    const m = party[memberIndex];
-    const c = Data.character[m.characterId];
-    const mName = c ? c.name : "???";
-    applyEffect(effect, m, c);
-    messages.push(mName + "に" + item.name + "を使った！");
+    if (memberIndex >= 0 && memberIndex < party.length) {
+      const m = party[memberIndex];
+      applyEffect(effect, m, Data.character[m.characterId]);
+      hasSingle = true;
+    }
   }
 }
 
-if (!silent && messages.length > 0) {
-  for (const msg of messages) {
-    await Script.message({ text: msg, face: "" });
+if (!silent) {
+  if (hasSingle) {
+    const m = party[memberIndex];
+    const c = Data.character[m?.characterId];
+    const mName = c ? c.name : "???";
+    await Script.message({ text: mName + "に" + item.name + "を使った！", face: "" });
+  }
+  if (hasAll) {
+    await Script.message({ text: "全員に" + item.name + "の効果！", face: "" });
   }
 }
 return true;`,
