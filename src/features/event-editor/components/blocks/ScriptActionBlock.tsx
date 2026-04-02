@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import {
 import { useStore } from '@/stores';
 import { getArgField } from '../arg-fields';
 import '../arg-fields/register';
+import { ScriptPickerModal } from '../ScriptPickerModal';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { ScriptAction, ScriptResultTarget } from '@/engine/actions/ScriptAction';
 import type { ScriptArg } from '@/types/script';
@@ -27,6 +28,7 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
   const scriptAction = action as ScriptAction;
   const scripts = useStore((s) => s.scripts);
   const variables = useStore((s) => s.variables);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const eventScripts = scripts.filter((s) => s.type === 'event');
   const selectedScript = scripts.find((s) => s.id === scriptAction.scriptId);
@@ -69,22 +71,21 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
       <div className="mt-2 space-y-2">
         <div className="flex items-center gap-2">
           <Label className="w-24 shrink-0 text-xs text-muted-foreground">スクリプト</Label>
-          <Select
-            value={scriptAction.scriptId || '__none__'}
-            onValueChange={handleScriptChange}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 flex-1 justify-start text-xs font-normal"
+            onClick={() => setPickerOpen(true)}
+            data-testid="script-select"
           >
-            <SelectTrigger className="h-7 flex-1 text-xs" data-testid="script-select">
-              <SelectValue placeholder="スクリプトを選択..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">（選択なし）</SelectItem>
-              {eventScripts.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {selectedScript ? selectedScript.name : '（選択なし）'}
+          </Button>
+          <ScriptPickerModal
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            scripts={eventScripts}
+            onSelect={handleScriptChange}
+          />
         </div>
 
         {selectedScript && selectedScript.args.length > 0 && (
