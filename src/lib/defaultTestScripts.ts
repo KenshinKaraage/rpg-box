@@ -1378,17 +1378,6 @@ while (true) {
         lines.push(formatStatLine(STAT_LABELS[k], val));
       }
     }
-    const maxHp = ch ? ch.base_stats.hp : 0;
-    const maxMp = ch ? ch.base_stats.mp : 0;
-    const curHp = member.stats?.hp || 0;
-    const curMp = member.stats?.mp || 0;
-    if (bonusDiff && (bonusDiff.hp || bonusDiff.mp)) {
-      lines.push(formatStatLine("HP", curHp + "/" + maxHp, curHp + "/" + (maxHp + (bonusDiff.hp || 0))));
-      lines.push(formatStatLine("MP", curMp + "/" + maxMp, curMp + "/" + (maxMp + (bonusDiff.mp || 0))));
-    } else {
-      lines.push("HP   " + curHp + " / " + maxHp);
-      lines.push("MP   " + curMp + " / " + maxMp);
-    }
     if (statText) statText.setProperty("text", "content", lines.join("\\n"));
   }
 
@@ -1460,7 +1449,7 @@ while (true) {
     function updateStatPreview(candId) {
       const newBonus = getBonus(candId);
       const diff = {};
-      for (const k of [...STAT_KEYS, "hp", "mp"]) {
+      for (const k of STAT_KEYS) {
         const curB = currentBonus[k] || 0;
         const newB = newBonus[k] || 0;
         diff[k] = newB - curB;
