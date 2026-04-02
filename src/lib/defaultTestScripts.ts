@@ -1016,8 +1016,10 @@ if (tmpl) {
   if (tc) await tc.applyList(itemRows);
 }
 
+const listWin = UI["item_screen"].getObject("listWindow");
+
 // NavigationItem の itemId をインデックスに書き換え
-{
+if (listWin) {
   const children = listWin.getChildren();
   let idx = 0;
   for (const child of children) {
@@ -1031,10 +1033,16 @@ if (tmpl) {
 }
 
 // レイアウト
-const listWin = UI["item_screen"].getObject("listWindow");
 if (listWin) {
   const grid = listWin.getComponent("gridLayout");
-  if (grid) grid.align();
+  console.log("[item] grid:", grid, "listWin children:", listWin.getChildren().length);
+  if (grid) {
+    grid.align();
+    const ch = listWin.getChildren();
+    for (const c of ch) {
+      console.log("[item] child:", c.name, "visible:", c.visible, "x:", c.x, "y:", c.y);
+    }
+  }
 }
 
 // 説明テキスト初期化
