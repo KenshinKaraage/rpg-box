@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { Script } from '@/types/script';
+import { getScriptIcon } from './IconPicker';
 
 interface ScriptListProps {
   scripts: Script[];
@@ -77,6 +78,7 @@ function ScriptTreeItem({
             ) : (
               <span className="w-4 shrink-0" />
             )}
+            {(() => { const Icon = getScriptIcon(script.icon); return <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />; })()}
             <span className="truncate text-sm">{script.name}</span>
           </div>
         </ContextMenuTrigger>
