@@ -190,7 +190,7 @@ function ArgFieldRow({ arg, value, onChange }: { arg: ScriptArg; value: unknown;
         {arg.name}
       </Label>
       {Renderer ? (
-        <Renderer value={value} onChange={onChange} placeholder={arg.fieldType} />
+        <Renderer value={value} onChange={onChange} placeholder={arg.fieldType} referenceTypeId={arg.referenceTypeId} />
       ) : (
         <Input
           className="h-6 flex-1 text-[10px]"
@@ -237,7 +237,7 @@ function ArrayArgField({ arg, value, onChange }: { arg: ScriptArg; value: unknow
         <div key={i} className="flex items-center gap-1 pl-2">
           <span className="w-4 shrink-0 text-right text-[9px] text-muted-foreground">{i}</span>
           {Renderer ? (
-            <Renderer value={item} onChange={(v: unknown) => handleItemChange(i, v)} placeholder={arg.fieldType} />
+            <Renderer value={item} onChange={(v: unknown) => handleItemChange(i, v)} placeholder={arg.fieldType} referenceTypeId={arg.referenceTypeId} />
           ) : (
             <Input
               className="h-6 flex-1 text-[10px]"

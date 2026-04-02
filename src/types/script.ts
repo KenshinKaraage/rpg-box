@@ -28,6 +28,8 @@ export interface ScriptArg {
   required: boolean;
   /** 配列かどうか */
   isArray?: boolean;
+  /** データ参照先タイプID（dataSelect 用） */
+  referenceTypeId?: string;
   /** デフォルト値 */
   defaultValue?: unknown;
 }

@@ -23,11 +23,13 @@ function ArrayArgField({
   fieldType,
   value,
   onChange,
+  referenceTypeId,
 }: {
   argId: string;
   fieldType: string;
   value: unknown[];
   onChange: (v: unknown[]) => void;
+  referenceTypeId?: string;
 }) {
   const Renderer = getArgField(fieldType);
 
@@ -57,6 +59,7 @@ function ArrayArgField({
                 value={item}
                 onChange={(v) => handleItemChange(i, v)}
                 placeholder={fieldType}
+                referenceTypeId={referenceTypeId}
               />
             </div>
           ) : (
@@ -286,6 +289,7 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
                         fieldType={arg.fieldType}
                         value={(argValues[arg.id] as unknown[] | undefined) ?? (arg.defaultValue as unknown[] | undefined) ?? []}
                         onChange={(v) => setArgValues((prev) => ({ ...prev, [arg.id]: v }))}
+                        referenceTypeId={arg.referenceTypeId}
                       />
                     ) : Renderer ? (
                       <Renderer
@@ -294,6 +298,7 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
                           setArgValues((prev) => ({ ...prev, [arg.id]: v }))
                         }
                         placeholder={arg.fieldType}
+                        referenceTypeId={arg.referenceTypeId}
                       />
                     ) : (
                       <Input

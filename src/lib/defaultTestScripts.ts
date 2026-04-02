@@ -493,7 +493,7 @@ while (true) {
 
 UI["shop"].hide();`,
   args: [
-    { id: 'shopItems', name: '商品IDリスト', fieldType: 'string', required: true, isArray: true, defaultValue: [] },
+    { id: 'shopItems', name: '商品リスト', fieldType: 'dataSelect', required: true, isArray: true, defaultValue: [], referenceTypeId: 'item' },
   ],
   returns: [],
   fields: [],
