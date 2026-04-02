@@ -330,31 +330,171 @@ export const shopScript: Script = {
   name: '商人',
   callId: 'shop_buy',
   type: 'event',
-  content: `await Script.message({ text: "いらっしゃい！何がほしい？", face: "", close: false });
-
-// 選択肢テスト
-const selected = await Script.choice({ items: ["HPポーション（100G）", "何もいらない"] });
-
-if (selected === 0) {
-  const potion = Data.item["potion_hp"];
-  const price = potion.price;
-  const gold = Variable["gold"];
-
-  if (gold >= price) {
-    Variable["gold"] = gold - price;
-    Variable["inventory"].push("potion_hp");
-    Variable["leader_stats"].hp = Math.min(
-      Variable["leader_stats"].hp + potion.effects[0].value,
-      500
-    );
-    await Script.message({ text: potion.name + "を買った！（残り " + Variable["gold"] + " G）", face: "" });
-  } else {
-    await Script.message({ text: "お金が足りない…（" + gold + " / " + price + " G）", face: "" });
-  }
-} else {
-  await Script.message({ text: "またな。", face: "" });
-}`,
+  content: `// ショップを開く（商品IDリストはデフォルト）
+await Script.shop_open({ shopItems: ["potion_hp", "potion_mp", "antidote", "iron_sword", "magic_staff", "iron_shield", "leather_hat", "leather_armor", "traveler_clothes", "power_ring"] });`,
   args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
+export const shopOpenScript: Script = {
+  id: 'shop_open',
+  name: 'ショップ',
+  callId: 'shop_open',
+  type: 'event',
+  content: `if (!Array.isArray(shopItems) || shopItems.length === 0) return;
+
+function setNavItemIds(win) {
+  const children = win.getChildren();
+  let i = 0;
+  for (const c of children) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+function updateGold() {
+  const gt = UI["shop"].getObject("goldText");
+  if (gt) gt.setProperty("text", "content", (Variable["gold"] ?? 0) + " G");
+}
+
+UI["shop"].show();
+updateGold();
+
+const descText = UI["shop"].getObject("descText");
+const listWin = UI["shop"].getObject("listWindow");
+const itemTmpl = UI["shop"].getObject("itemTemplate");
+const cmdWin = UI["shop"].getObject("cmdWindow");
+
+// コマンドループ
+while (true) {
+  listWin.visible = false;
+  if (descText) descText.setProperty("text", "content", "いらっしゃいませ！");
+
+  const cmdLayout = cmdWin.getComponent("layoutGroup");
+  if (cmdLayout) cmdLayout.align();
+  const cmdFit = cmdWin.getComponent("contentFit");
+  if (cmdFit) cmdFit.fit();
+
+  const cmdNav = cmdWin.getComponent("navigation");
+  cmdNav.activate();
+  const cmdSel = await cmdNav.result();
+  if (cmdSel === null || cmdSel === "2") break; // やめる or cancel
+
+  if (cmdSel === "0") {
+    // ── 買う ──
+    listWin.visible = true;
+    const items = shopItems.map(id => {
+      const it = Data.item[id];
+      return { id, name: it ? it.name : id, price: it ? it.price + " G" : "?", desc: it ? it.description : "" };
+    });
+    const rows = items.map(i => ({ name: i.name, price: i.price }));
+    if (itemTmpl) {
+      const tc = itemTmpl.getComponent("templateController");
+      if (tc) await tc.applyList(rows);
+    }
+    const grid = listWin.getComponent("gridLayout");
+    if (grid) grid.align();
+    setNavItemIds(listWin);
+
+    // 初期説明
+    if (items.length > 0 && descText) descText.setProperty("text", "content", items[0].desc);
+
+    const listNav = listWin.getComponent("navigation");
+    listNav.setOnIndexChange((idx) => {
+      const it = items[idx];
+      if (it && descText) descText.setProperty("text", "content", it.desc);
+    });
+
+    // 買い物ループ
+    while (true) {
+      listNav.activate();
+      const sel = await listNav.result();
+      if (sel === null) break;
+
+      const idx = parseInt(sel, 10);
+      const item = items[idx];
+      if (!item) continue;
+      const itemData = Data.item[item.id];
+      if (!itemData) continue;
+
+      const price = itemData.price || 0;
+      const gold = Variable["gold"] ?? 0;
+      if (gold < price) {
+        await Script.message({ text: "お金が足りません。（" + gold + " / " + price + " G）", face: "" });
+        continue;
+      }
+
+      Variable["gold"] = gold - price;
+      await Script.item_add({ itemId: item.id, count: 1 });
+      updateGold();
+      await Script.message({ text: itemData.name + "を買った！", face: "" });
+    }
+
+  } else if (cmdSel === "1") {
+    // ── 売る ──
+    while (true) {
+      const inv = Variable["inventory"];
+      if (!Array.isArray(inv) || inv.filter(e => e.count > 0).length === 0) {
+        await Script.message({ text: "売れるものがありません。", face: "" });
+        break;
+      }
+      const sellable = inv.filter(e => e.count > 0);
+      const sellRows = sellable.map(e => {
+        const it = Data.item[e.itemId];
+        const sellPrice = Math.floor((it ? it.price : 0) / 2);
+        return { name: (it ? it.name : e.itemId) + " x" + e.count, price: sellPrice + " G" };
+      });
+
+      listWin.visible = true;
+      if (itemTmpl) {
+        const tc = itemTmpl.getComponent("templateController");
+        if (tc) await tc.applyList(sellRows);
+      }
+      const grid = listWin.getComponent("gridLayout");
+      if (grid) grid.align();
+      setNavItemIds(listWin);
+
+      if (sellable.length > 0 && descText) {
+        const firstIt = Data.item[sellable[0].itemId];
+        descText.setProperty("text", "content", firstIt ? firstIt.description : "");
+      }
+
+      const listNav = listWin.getComponent("navigation");
+      listNav.setOnIndexChange((idx) => {
+        const e = sellable[idx];
+        if (e) {
+          const it = Data.item[e.itemId];
+          if (it && descText) descText.setProperty("text", "content", it.description);
+        }
+      });
+
+      listNav.activate();
+      const sel = await listNav.result();
+      if (sel === null) { listWin.visible = false; break; }
+
+      const idx = parseInt(sel, 10);
+      const entry = sellable[idx];
+      if (!entry) continue;
+      const it = Data.item[entry.itemId];
+      const sellPrice = Math.floor((it ? it.price : 0) / 2);
+
+      const removed = await Script.item_remove({ itemId: entry.itemId, count: 1 });
+      if (removed) {
+        Variable["gold"] = (Variable["gold"] ?? 0) + sellPrice;
+        updateGold();
+        await Script.message({ text: (it ? it.name : entry.itemId) + "を" + sellPrice + " G で売った！", face: "" });
+      }
+    }
+  }
+}
+
+UI["shop"].hide();`,
+  args: [
+    { id: 'shopItems', name: '商品IDリスト', fieldType: 'string', required: true, isArray: true, defaultValue: [] },
+  ],
   returns: [],
   fields: [],
   isAsync: true,

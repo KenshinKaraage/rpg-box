@@ -16,7 +16,7 @@ import { importDefaultAssets } from './importDefaultAssets';
 import {
   messageCanvas, choiceCanvas, numberInputCanvas, textInputCanvas,
   statusCanvas, effectTestCanvas, animTestCanvas, partyStatusCanvas,
-  menuCanvas, itemScreenCanvas, equipScreenCanvas,
+  menuCanvas, itemScreenCanvas, equipScreenCanvas, shopCanvas,
 } from './defaultTestCanvases';
 import {
   messageScript, choiceScript, inputNumberScript, inputTextScript,
@@ -24,7 +24,7 @@ import {
   audioTestScript, inputTestScript, effectTestScript, animTestScript,
   partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
   equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
-  healAllScript, levelUpAllScript,
+  healAllScript, levelUpAllScript, shopOpenScript,
   menuOpenScript, itemScreenScript, equipScreenScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
@@ -118,6 +118,9 @@ export async function loadDefaultTestData(): Promise<void> {
   if (!state.uiCanvases.find((c) => c.id === 'equip_screen')) {
     state.addUICanvas(structuredClone(equipScreenCanvas));
   }
+  if (!state.uiCanvases.find((c) => c.id === 'shop')) {
+    state.addUICanvas(structuredClone(shopCanvas));
+  }
 
   // Prefab（NPC テンプレート）
   const npcPrefabs = createNpcPrefabs(resolveAssetId);
@@ -134,7 +137,7 @@ export async function loadDefaultTestData(): Promise<void> {
     audioTestScript, inputTestScript, effectTestScript, animTestScript,
     partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
     equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
-    healAllScript, levelUpAllScript,
+    healAllScript, levelUpAllScript, shopOpenScript,
     menuOpenScript, itemScreenScript, equipScreenScript,
   ];
   for (const script of scriptsToAdd) {

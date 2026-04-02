@@ -1456,3 +1456,141 @@ export const equipScreenCanvas: EditorUICanvas = {
   objects: createEquipScreenObjects(),
   functions: [],
 };
+
+// ── UICanvas: ショップ画面 ──
+
+const SHOP_ITEM_W = 600;
+const SHOP_ROW_H = 36;
+
+function createShopObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  // 全体背景
+  objects.push({
+    id: 'shop_bg', name: 'background', transform: { x: 0, y: 0, width: 1280, height: 720, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' })],
+  });
+
+  // ── コマンドウィンドウ（買う/売る/やめる） ──
+  objects.push({
+    id: 'shop_cmd_win', name: 'cmdWindow', parentId: 'shop_bg',
+    transform: { x: 16, y: 16, width: 200, height: 160, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ],
+  });
+
+  const cmds = ['買う', '売る', 'やめる'];
+  for (let i = 0; i < cmds.length; i++) {
+    objects.push({
+      id: `shop_cmd_${i}`, name: `cmd${i}`, parentId: 'shop_cmd_win',
+      transform: { x: 0, y: 0, width: 168, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+      components: [
+        createUIComponentData('text', { content: cmds[i], fontSize: 20, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+        createUIComponentData('navigationItem', { itemId: String(i) }),
+      ],
+    });
+  }
+
+  objects.push({
+    id: 'shop_cmd_cursor', name: 'cmdCursor', parentId: 'shop_cmd_win',
+    transform: { x: 0, y: 8, width: 16, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  // ── 所持金ウィンドウ ──
+  objects.push({
+    id: 'shop_gold_win', name: 'goldWindow', parentId: 'shop_bg',
+    transform: { x: 16, y: 192, width: 200, height: 48, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 })],
+  });
+
+  objects.push({
+    id: 'shop_gold_text', name: 'goldText', parentId: 'shop_gold_win',
+    transform: { x: 16, y: 0, width: 168, height: 48, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '0 G', fontSize: 18, color: '#ffdd44', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 })],
+  });
+
+  // ── 説明ヘッダー ──
+  objects.push({
+    id: 'shop_desc_win', name: 'descWindow', parentId: 'shop_bg',
+    transform: { x: 232, y: 16, width: 1032, height: 56, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 })],
+  });
+
+  objects.push({
+    id: 'shop_desc_text', name: 'descText', parentId: 'shop_desc_win',
+    transform: { x: 16, y: 0, width: 1000, height: 56, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+  });
+
+  // ── 商品一覧ウィンドウ（2列グリッド） ──
+  objects.push({
+    id: 'shop_list_win', name: 'listWindow', parentId: 'shop_bg',
+    transform: { x: 232, y: 88, width: 1032, height: 616, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'grid', wrap: true, initialIndex: 0, columns: 2 }),
+      createUIComponentData('gridLayout', { columns: 2, spacingX: 8, spacingY: 0, cellWidth: 500, cellHeight: SHOP_ROW_H }),
+    ],
+  });
+
+  // 商品テンプレート（名前 + 価格）
+  objects.push({
+    id: 'shop_item_template', name: 'itemTemplate', parentId: 'shop_list_win',
+    transform: { x: 0, y: 0, width: 500, height: SHOP_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'price', name: '価格', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'shop_item_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          { type: 'uiSetProperty', data: { targetId: 'shop_item_price', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'price' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+
+  objects.push({
+    id: 'shop_item_name', name: 'name', parentId: 'shop_item_template',
+    transform: { x: 24, y: 0, width: 340, height: SHOP_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+  });
+
+  objects.push({
+    id: 'shop_item_price', name: 'price', parentId: 'shop_item_template',
+    transform: { x: 380, y: 0, width: 100, height: SHOP_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 })],
+  });
+
+  // 商品カーソル
+  objects.push({
+    id: 'shop_list_cursor', name: 'listCursor', parentId: 'shop_list_win',
+    transform: { x: 0, y: 0, width: 20, height: SHOP_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: 0, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  return objects;
+}
+
+export const shopCanvas: EditorUICanvas = {
+  id: 'shop',
+  name: 'ショップ',
+  objects: createShopObjects(),
+  functions: [],
+};
