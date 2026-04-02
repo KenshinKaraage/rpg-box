@@ -1366,16 +1366,32 @@ while (true) {
     return l + current + "  >>  " + after + "  (" + sign + diff + ")";
   }
 
+  function getTotalEquipBonus() {
+    const total = {};
+    for (const s of SLOTS) {
+      const eId = member[s.key] || "";
+      if (!eId) continue;
+      const it = Data.item[eId];
+      if (!it || !it.status_bonus) continue;
+      for (const k of STAT_KEYS) {
+        total[k] = (total[k] || 0) + (it.status_bonus[k] || 0);
+      }
+    }
+    return total;
+  }
+
   function showStats(bonusDiff) {
-    // bonusDiff: null = 現在ステータスのみ, object = 差分表示
+    // bonusDiff: null = 現在ステータス（装備ボーナス込み）, object = 追加差分表示
+    const equipBonus = getTotalEquipBonus();
     const lines = [];
     for (const k of STAT_KEYS) {
-      const val = (member.stats && member.stats[k]) || 0;
+      const base = (member.stats && member.stats[k]) || 0;
+      const current = base + (equipBonus[k] || 0);
       if (bonusDiff) {
         const diff = bonusDiff[k] || 0;
-        lines.push(formatStatLine(STAT_LABELS[k], val, val + diff));
+        lines.push(formatStatLine(STAT_LABELS[k], current, current + diff));
       } else {
-        lines.push(formatStatLine(STAT_LABELS[k], val));
+        lines.push(formatStatLine(STAT_LABELS[k], current));
       }
     }
     if (statText) statText.setProperty("text", "content", lines.join("\\n"));
@@ -1489,6 +1505,7 @@ while (true) {
       }
       if (slotLayout) slotLayout.align();
       setNavItemIds(slotWin);
+      showStats(null);
     }
 
     // メッセージ表示
