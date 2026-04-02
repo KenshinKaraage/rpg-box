@@ -965,19 +965,14 @@ if (!Array.isArray(inv) || inv.length === 0) {
   return;
 }
 
-// 消費アイテムのみフィルタ（使用可能なもの）
-const usableItems = inv.filter(e => {
-  const item = Data.item[e.itemId];
-  return item && item.item_type === "consumable" && e.count > 0;
-});
-
-if (usableItems.length === 0) {
-  await Script.message({ text: "使えるアイテムがありません。", face: "" });
+// 所持アイテム一覧を構築（全種類表示）
+const allItems = inv.filter(e => e.count > 0);
+if (allItems.length === 0) {
+  await Script.message({ text: "アイテムを持っていません。", face: "" });
   return;
 }
 
-// アイテム一覧を構築
-const itemRows = usableItems.map(e => {
+const itemRows = allItems.map(e => {
   const item = Data.item[e.itemId];
   return { name: item ? item.name : e.itemId, count: "x" + e.count };
 });
@@ -1016,13 +1011,16 @@ while (true) {
   if (selected === null) break; // キャンセル
 
   const itemIndex = parseInt(selected, 10);
-  const invEntry = usableItems[itemIndex];
+  const invEntry = allItems[itemIndex];
   if (!invEntry) continue;
   const item = Data.item[invEntry.itemId];
   if (!item) continue;
 
   // 説明表示
   if (descText) descText.setProperty("text", "content", item.name + "\\n" + (item.description || ""));
+
+  // 消費アイテム以外は選択しても何もしない
+  if (item.item_type !== "consumable") continue;
 
   // 対象選択が必要か判定
   const target = item.target || "single_ally";
@@ -1064,11 +1062,8 @@ while (true) {
 
     // インベントリ更新後にアイテム一覧を再構築
     const updatedInv = Variable["inventory"];
-    const updatedUsable = updatedInv.filter(e => {
-      const it = Data.item[e.itemId];
-      return it && it.item_type === "consumable" && e.count > 0;
-    });
-    const updatedRows = updatedUsable.map(e => {
+    const updatedAll = updatedInv.filter(e => e.count > 0);
+    const updatedRows = updatedAll.map(e => {
       const it = Data.item[e.itemId];
       return { name: it ? it.name : e.itemId, count: "x" + e.count };
     });
@@ -1080,8 +1075,11 @@ while (true) {
       const lo = listWin.getComponent("layoutGroup");
       if (lo) lo.align();
     }
+    // allItems も更新
+    allItems.length = 0;
+    allItems.push(...updatedAll);
 
-    if (updatedUsable.length === 0) break;
+    if (updatedAll.length === 0) break;
   } else {
     // 全体対象などはそのまま使用
     await Script.use_item({ itemId: invEntry.itemId, memberIndex: 0 });
