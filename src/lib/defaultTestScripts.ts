@@ -952,7 +952,9 @@ while (true) {
   const cmdIndex = parseInt(selected, 10);
   switch (cmdIndex) {
     case 0: // アイテム
+      UI["menu"].hide();
       await Script.item_screen();
+      UI["menu"].show();
       break;
     case 1: // スキル
       await Script.message({ text: "スキル画面は準備中です。", face: "" });
@@ -1035,14 +1037,7 @@ if (listWin) {
 // レイアウト
 if (listWin) {
   const grid = listWin.getComponent("gridLayout");
-  console.log("[item] grid:", grid, "listWin children:", listWin.getChildren().length);
-  if (grid) {
-    grid.align();
-    const ch = listWin.getChildren();
-    for (const c of ch) {
-      console.log("[item] child:", c.name, "visible:", c.visible, "x:", c.x, "y:", c.y);
-    }
-  }
+  if (grid) grid.align();
 }
 
 // 説明テキスト初期化
@@ -1122,19 +1117,57 @@ while (true) {
       }
     }
 
-    const charNav = charWin.getComponent("navigation");
-    charNav.activate();
-    const charSelected = await charNav.result();
+    // キャラ選択ループ（使用後も HP 更新して留まる）
+    while (true) {
+      const charNav = charWin.getComponent("navigation");
+      charNav.activate();
+      const charSelected = await charNav.result();
+
+      if (charSelected === null) break; // キャンセルでアイテム一覧に戻る
+
+      const memberIndex = parseInt(charSelected, 10);
+      await Script.use_item({ itemId: invEntry.itemId, memberIndex });
+
+      // キャラ一覧を HP 更新して再表示
+      const updParty = Variable["party"];
+      if (Array.isArray(updParty)) {
+        const updCharMembers = updParty.map(m => {
+          const uc = Data.character[m.characterId];
+          const un = uc ? uc.name : "???";
+          const umh = uc ? uc.base_stats.hp : 0;
+          const umm = uc ? uc.base_stats.mp : 0;
+          return {
+            name: un, level: "Lv." + (m.level ?? 1),
+            hp: "HP " + (m.stats?.hp ?? 0) + "/" + umh,
+            mp: "MP " + (m.stats?.mp ?? 0) + "/" + umm,
+            face: uc ? uc.face_graphic : "",
+          };
+        });
+        if (charTmpl) {
+          const uctc = charTmpl.getComponent("templateController");
+          if (uctc) await uctc.applyList(updCharMembers);
+        }
+        if (charLayout) charLayout.align();
+        if (charFit) charFit.fit();
+        // navigationItem の itemId 再設定
+        const uch = charWin.getChildren();
+        let uci = 0;
+        for (const c of uch) {
+          if (!c.visible) continue;
+          const ni = c.getComponentData("navigationItem");
+          if (ni) { c.setProperty("navigationItem", "itemId", String(uci)); uci++; }
+        }
+      }
+
+      // アイテム残数チェック
+      const curEntry = Variable["inventory"].find(e => e.itemId === invEntry.itemId);
+      if (!curEntry || curEntry.count <= 0) break;
+    }
 
     // 元に戻す
     if (charHeader) charHeader.visible = false;
     charWin.visible = false;
     listWin.visible = true;
-
-    if (charSelected === null) continue;
-
-    const memberIndex = parseInt(charSelected, 10);
-    await Script.use_item({ itemId: invEntry.itemId, memberIndex });
 
     // インベントリ更新後にアイテム一覧を再構築
     const updatedInv = Variable["inventory"];
