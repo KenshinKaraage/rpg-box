@@ -7071,16 +7071,17 @@ export function useAutoSave() {
 
 ---
 
-#### [T218t] Script に visibility (public/internal) を追加
+#### [T218t] Script の internal 種類対応
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** main
 
 **完了条件:**
 
-- [ ] Script 型に visibility フィールド追加（public/internal）
-- [ ] 内部スクリプトに internal を設定
-- [ ] ScriptActionBlock のドロップダウンから internal を除外
+- [x] 既存の ScriptType ('event'/'component'/'internal') を活用
+- [x] 14スクリプトを internal に変更（message, choice, item_add 等）
+- [x] ScriptActionBlock は既に type==='event' でフィルタ済み
+- [x] ScriptSettingsPanel にスクリプト種類セレクタ追加
 
 ---
 
