@@ -141,6 +141,27 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
             />
           </div>
 
+          {/* Script Type */}
+          <div className="space-y-2">
+            <Label>スクリプト種類</Label>
+            <Select
+              value={script.type}
+              onValueChange={(v) => onUpdate(script.id, { type: v as Script['type'] })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="event">イベント</SelectItem>
+                <SelectItem value="internal">内部</SelectItem>
+                <SelectItem value="component">コンポーネント</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {script.type === 'event' ? 'イベントエディタで選択可能' : script.type === 'internal' ? 'Script.xxx() でのみ呼び出し可能' : 'オブジェクトにアタッチ'}
+            </p>
+          </div>
+
           {/* Call ID (event/component only) */}
           {
             <div className="space-y-2">
