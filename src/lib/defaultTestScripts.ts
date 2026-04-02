@@ -1047,7 +1047,7 @@ const descText = UI["item_screen"].getObject("descText");
 // 初期説明表示
 if (allItems.length > 0) {
   const firstItem = Data.item[allItems[0].itemId];
-  if (firstItem && descText) descText.setProperty("text", "content", firstItem.name + "\\n" + (firstItem.description || ""));
+  if (firstItem && descText) descText.setProperty("text", "content", firstItem.description || "");
 }
 
 // カーソル移動時に説明を更新
@@ -1056,7 +1056,7 @@ nav.setOnIndexChange((idx) => {
   const entry = allItems[idx];
   if (!entry) return;
   const it = Data.item[entry.itemId];
-  if (it && descText) descText.setProperty("text", "content", it.name + "\\n" + (it.description || ""));
+  if (it && descText) descText.setProperty("text", "content", it.description || "");
 });
 
 // アイテム選択ループ
@@ -1073,7 +1073,7 @@ while (true) {
   if (!item) continue;
 
   // 説明表示
-  if (descText) descText.setProperty("text", "content", item.name + "\\n" + (item.description || ""));
+  if (descText) descText.setProperty("text", "content", item.description || "");
 
   // 消費アイテム以外は選択しても何もしない
   if (item.item_type !== "consumable") continue;
