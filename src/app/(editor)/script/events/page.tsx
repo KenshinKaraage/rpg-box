@@ -42,9 +42,9 @@ export default function EventScriptPage() {
     [dataTypes]
   );
 
-  // Top-level event scripts
+  // Top-level event/internal scripts (component scripts are in a separate page)
   const eventScripts = useMemo(
-    () => scripts.filter((s) => s.type === 'event' && !s.parentId),
+    () => scripts.filter((s) => (s.type === 'event' || s.type === 'internal') && !s.parentId),
     [scripts]
   );
 

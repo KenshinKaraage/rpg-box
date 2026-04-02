@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useStore } from '@/stores';
 import type { Script, ScriptArg, ScriptReturn } from '@/types/script';
 import { IconPicker } from './IconPicker';
+import { ColorPresetPicker } from './ColorPresetPicker';
 
 const FIELD_TYPES = [
   { value: 'string', label: '文字列' },
@@ -155,7 +156,6 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
               <SelectContent>
                 <SelectItem value="event">イベント</SelectItem>
                 <SelectItem value="internal">内部</SelectItem>
-                <SelectItem value="component">コンポーネント</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
@@ -163,13 +163,22 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
             </p>
           </div>
 
-          {/* Icon */}
-          <div className="space-y-2">
-            <Label>アイコン</Label>
-            <IconPicker
-              value={script.icon}
-              onChange={(icon) => onUpdate(script.id, { icon })}
-            />
+          {/* Icon & Color */}
+          <div className="flex gap-4">
+            <div className="space-y-2">
+              <Label>アイコン</Label>
+              <IconPicker
+                value={script.icon}
+                onChange={(icon) => onUpdate(script.id, { icon })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>カラー</Label>
+              <ColorPresetPicker
+                value={script.color}
+                onChange={(color) => onUpdate(script.id, { color })}
+              />
+            </div>
           </div>
 
           {/* Call ID (event/component only) */}

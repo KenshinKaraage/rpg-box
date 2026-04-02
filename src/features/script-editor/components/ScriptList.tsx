@@ -78,8 +78,11 @@ function ScriptTreeItem({
             ) : (
               <span className="w-4 shrink-0" />
             )}
-            {(() => { const Icon = getScriptIcon(script.icon); return <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />; })()}
-            <span className="truncate text-sm">{script.name}</span>
+            {(() => { const Icon = getScriptIcon(script.icon); return <Icon className="h-4 w-4 shrink-0" style={script.color ? { color: script.color } : undefined} />; })()}
+            <span
+              className={cn('truncate text-sm', script.type !== 'internal' && 'font-semibold', script.type === 'internal' && 'text-muted-foreground')}
+              style={script.color ? { color: script.color } : undefined}
+            >{script.name}</span>
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent>

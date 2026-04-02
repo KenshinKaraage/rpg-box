@@ -94,6 +94,8 @@ export interface Script {
   description?: string;
   /** アイコン名（lucide アイコン） */
   icon?: string;
+  /** 表示カラー（リスト表示用） */
+  color?: string;
 }
 
 /**
