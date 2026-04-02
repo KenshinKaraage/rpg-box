@@ -1356,19 +1356,39 @@ while (true) {
   const STAT_KEYS = ["atk", "def", "matk", "mdef", "spd", "luk"];
   const STAT_LABELS = { atk: "ATK", def: "DEF", matk: "MATK", mdef: "MDEF", spd: "SPD", luk: "LUK" };
 
-  function showCurrentStats() {
+  function formatStatLine(label, current, after) {
+    const l = label.padEnd(5, " ");
+    if (after === undefined || after === current) {
+      return l + current;
+    }
+    const diff = after - current;
+    const sign = diff > 0 ? "+" : "";
+    return l + current + "  >>  " + after + "  (" + sign + diff + ")";
+  }
+
+  function showStats(bonusDiff) {
+    // bonusDiff: null = 現在ステータスのみ, object = 差分表示
     const lines = [];
-    lines.push(memberName + " のステータス");
-    lines.push("");
     for (const k of STAT_KEYS) {
       const val = (member.stats && member.stats[k]) || 0;
-      lines.push(STAT_LABELS[k].padEnd(5, " ") + val);
+      if (bonusDiff) {
+        const diff = bonusDiff[k] || 0;
+        lines.push(formatStatLine(STAT_LABELS[k], val, val + diff));
+      } else {
+        lines.push(formatStatLine(STAT_LABELS[k], val));
+      }
     }
     const maxHp = ch ? ch.base_stats.hp : 0;
     const maxMp = ch ? ch.base_stats.mp : 0;
-    lines.push("");
-    lines.push("HP   " + (member.stats?.hp || 0) + " / " + maxHp);
-    lines.push("MP   " + (member.stats?.mp || 0) + " / " + maxMp);
+    const curHp = member.stats?.hp || 0;
+    const curMp = member.stats?.mp || 0;
+    if (bonusDiff && (bonusDiff.hp || bonusDiff.mp)) {
+      lines.push(formatStatLine("HP", curHp + "/" + maxHp, curHp + "/" + (maxHp + (bonusDiff.hp || 0))));
+      lines.push(formatStatLine("MP", curMp + "/" + maxMp, curMp + "/" + (maxMp + (bonusDiff.mp || 0))));
+    } else {
+      lines.push("HP   " + curHp + " / " + maxHp);
+      lines.push("MP   " + curMp + " / " + maxMp);
+    }
     if (statText) statText.setProperty("text", "content", lines.join("\\n"));
   }
 
@@ -1376,7 +1396,7 @@ while (true) {
     headerText.setProperty("text", "content", memberName + " の装備");
     listWin.visible = false;
     if (statWin) statWin.visible = true;
-    showCurrentStats();
+    showStats(null);
 
     const slotRows = SLOTS.map(s => {
       const equipId = member[s.key] || "";
@@ -1439,34 +1459,13 @@ while (true) {
 
     function updateStatPreview(candId) {
       const newBonus = getBonus(candId);
-      const lines = [];
-      for (const k of STAT_KEYS) {
-        const baseStat = (member.stats && member.stats[k]) || 0;
+      const diff = {};
+      for (const k of [...STAT_KEYS, "hp", "mp"]) {
         const curB = currentBonus[k] || 0;
         const newB = newBonus[k] || 0;
-        const diff = newB - curB;
-        const afterStat = baseStat + diff;
-        const label = STAT_LABELS[k].padEnd(5, " ");
-        if (diff === 0) {
-          lines.push(label + baseStat);
-        } else if (diff > 0) {
-          lines.push(label + baseStat + "  >>  " + afterStat + "  (+" + diff + ")");
-        } else {
-          lines.push(label + baseStat + "  >>  " + afterStat + "  (" + diff + ")");
-        }
+        diff[k] = newB - curB;
       }
-      // HP/MP も表示（装備で変動する場合）
-      for (const hk of ["hp", "mp"]) {
-        const curB = currentBonus[hk] || 0;
-        const newB = newBonus[hk] || 0;
-        const diff = newB - curB;
-        if (diff !== 0) {
-          const baseMax = ch ? ch.base_stats[hk] : 0;
-          const label = hk.toUpperCase().padEnd(5, " ");
-          lines.push(label + "MAX " + baseMax + "  >>  " + (baseMax + diff) + "  (" + (diff > 0 ? "+" : "") + diff + ")");
-        }
-      }
-      if (statText) statText.setProperty("text", "content", lines.join("\\n"));
+      showStats(diff);
     }
 
     // 初期表示
