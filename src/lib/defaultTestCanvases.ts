@@ -1009,3 +1009,239 @@ export const menuCanvas: EditorUICanvas = {
   objects: createMenuObjects(),
   functions: [],
 };
+
+// ── UICanvas: アイテム画面 ──
+
+const ITEM_LIST_W = 640;
+const ITEM_DESC_W = 600;
+const ITEM_ROW_H = 36;
+
+function createItemScreenObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  // 全体背景
+  objects.push({
+    id: 'item_bg',
+    name: 'background',
+    transform: {
+      x: 0, y: 0, width: 1280, height: 720,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' }),
+    ],
+  });
+
+  // ── アイテム一覧ウィンドウ ──
+  objects.push({
+    id: 'item_list_win',
+    name: 'listWindow',
+    parentId: 'item_bg',
+    transform: {
+      x: 16, y: 16, width: ITEM_LIST_W, height: 640,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }),
+    ],
+  });
+
+  // アイテムテンプレート（TemplateController でインベントリから動的生成）
+  objects.push({
+    id: 'item_row_template',
+    name: 'itemTemplate',
+    parentId: 'item_list_win',
+    transform: {
+      x: 0, y: 0, width: ITEM_LIST_W - 32, height: ITEM_ROW_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    },
+    components: [
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'count', name: '個数', fieldType: 'string', defaultValue: '' },
+        ],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'item_row_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          { type: 'uiSetProperty', data: { targetId: 'item_row_count', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'count' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+
+  // テンプレート子: アイテム名
+  objects.push({
+    id: 'item_row_name',
+    name: 'name',
+    parentId: 'item_row_template',
+    transform: {
+      x: 0, y: 0, width: ITEM_LIST_W - 120, height: ITEM_ROW_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // テンプレート子: 個数
+  objects.push({
+    id: 'item_row_count',
+    name: 'count',
+    parentId: 'item_row_template',
+    transform: {
+      x: ITEM_LIST_W - 120, y: 0, width: 80, height: ITEM_ROW_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '', fontSize: 18, color: '#aaaaaa', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // カーソル
+  objects.push({
+    id: 'item_list_cursor',
+    name: 'listCursor',
+    parentId: 'item_list_win',
+    transform: {
+      x: 0, y: 8, width: 16, height: ITEM_ROW_H,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  // ── 説明ウィンドウ ──
+  objects.push({
+    id: 'item_desc_win',
+    name: 'descWindow',
+    parentId: 'item_bg',
+    transform: {
+      x: ITEM_LIST_W + 32, y: 16, width: ITEM_DESC_W, height: 640,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+    ],
+  });
+
+  // 説明テキスト
+  objects.push({
+    id: 'item_desc_text',
+    name: 'descText',
+    parentId: 'item_desc_win',
+    transform: {
+      x: 16, y: 16, width: ITEM_DESC_W - 32, height: 608,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: 'アイテムを選択してください', fontSize: 16, color: '#aaaaaa', align: 'left', verticalAlign: 'top', lineHeight: 1.4 }),
+    ],
+  });
+
+  // ── キャラ選択ウィンドウ（使用時に表示） ──
+  objects.push({
+    id: 'item_char_win',
+    name: 'charWindow',
+    parentId: 'item_bg',
+    transform: {
+      x: ITEM_LIST_W + 32, y: 200, width: ITEM_DESC_W, height: 300,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#ffdd44', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ],
+  });
+
+  // キャラ選択テンプレート
+  objects.push({
+    id: 'item_char_template',
+    name: 'charTemplate',
+    parentId: 'item_char_win',
+    transform: {
+      x: 0, y: 0, width: ITEM_DESC_W - 32, height: 40,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    },
+    components: [
+      createUIComponentData('templateController', {
+        args: [{ id: 'label', name: 'ラベル', fieldType: 'string', defaultValue: '' }],
+        onSpawnActions: [],
+        onApplyActions: [
+          { type: 'uiSetProperty', data: { targetId: 'item_char_label', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'label' } } },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+
+  objects.push({
+    id: 'item_char_label',
+    name: 'label',
+    parentId: 'item_char_template',
+    transform: {
+      x: 0, y: 0, width: ITEM_DESC_W - 32, height: 40,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    ],
+  });
+
+  // キャラ選択カーソル
+  objects.push({
+    id: 'item_char_cursor',
+    name: 'charCursor',
+    parentId: 'item_char_win',
+    transform: {
+      x: 0, y: 8, width: 16, height: 40,
+      anchorX: 'left', anchorY: 'top',
+      pivotX: 0, pivotY: 0,
+      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    },
+    components: [
+      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  return objects;
+}
+
+export const itemScreenCanvas: EditorUICanvas = {
+  id: 'item_screen',
+  name: 'アイテム画面',
+  objects: createItemScreenObjects(),
+  functions: [],
+};

@@ -16,14 +16,14 @@ import { importDefaultAssets } from './importDefaultAssets';
 import {
   messageCanvas, choiceCanvas, numberInputCanvas, textInputCanvas,
   statusCanvas, effectTestCanvas, animTestCanvas, partyStatusCanvas,
-  menuCanvas,
+  menuCanvas, itemScreenCanvas,
 } from './defaultTestCanvases';
 import {
   messageScript, choiceScript, inputNumberScript, inputTextScript,
   showStatusScript, shopScript, mapInfoScript, objTestScript,
   audioTestScript, inputTestScript, effectTestScript, animTestScript,
   partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
-  equipItemScript, unequipItemScript, menuOpenScript,
+  equipItemScript, unequipItemScript, menuOpenScript, itemScreenScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
 import { createTestMap, createNpcPrefabs } from './defaultTestMap';
@@ -110,6 +110,9 @@ export async function loadDefaultTestData(): Promise<void> {
   if (!state.uiCanvases.find((c) => c.id === 'menu')) {
     state.addUICanvas(structuredClone(menuCanvas));
   }
+  if (!state.uiCanvases.find((c) => c.id === 'item_screen')) {
+    state.addUICanvas(structuredClone(itemScreenCanvas));
+  }
 
   // Prefab（NPC テンプレート）
   const npcPrefabs = createNpcPrefabs(resolveAssetId);
@@ -125,7 +128,7 @@ export async function loadDefaultTestData(): Promise<void> {
     showStatusScript, shopScript, mapInfoScript, objTestScript,
     audioTestScript, inputTestScript, effectTestScript, animTestScript,
     partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
-    equipItemScript, unequipItemScript, menuOpenScript,
+    equipItemScript, unequipItemScript, menuOpenScript, itemScreenScript,
   ];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {

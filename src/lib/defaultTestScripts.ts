@@ -923,7 +923,7 @@ while (true) {
   const cmdIndex = parseInt(selected, 10);
   switch (cmdIndex) {
     case 0: // アイテム
-      await Script.message({ text: "アイテム画面は準備中です。", face: "" });
+      await Script.item_screen();
       break;
     case 1: // スキル
       await Script.message({ text: "スキル画面は準備中です。", face: "" });
@@ -946,6 +946,149 @@ while (true) {
 }
 
 UI["menu"].hide();`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
+// ── Script: アイテム画面 ──
+
+export const itemScreenScript: Script = {
+  id: 'item_screen',
+  name: 'アイテム画面',
+  callId: 'item_screen',
+  type: 'event',
+  content: `const inv = Variable["inventory"];
+if (!Array.isArray(inv) || inv.length === 0) {
+  await Script.message({ text: "アイテムを持っていません。", face: "" });
+  return;
+}
+
+// 消費アイテムのみフィルタ（使用可能なもの）
+const usableItems = inv.filter(e => {
+  const item = Data.item[e.itemId];
+  return item && item.item_type === "consumable" && e.count > 0;
+});
+
+if (usableItems.length === 0) {
+  await Script.message({ text: "使えるアイテムがありません。", face: "" });
+  return;
+}
+
+// アイテム一覧を構築
+const itemRows = usableItems.map(e => {
+  const item = Data.item[e.itemId];
+  return { name: item ? item.name : e.itemId, count: "x" + e.count };
+});
+
+// 画面表示
+UI["item_screen"].show();
+
+// TemplateController でアイテム一覧を生成
+const tmpl = UI["item_screen"].getObject("itemTemplate");
+if (tmpl) {
+  const tc = tmpl.getComponent("templateController");
+  if (tc) await tc.applyList(itemRows);
+}
+
+// NavigationItem の itemId を実際のインデックスに合わせる
+// （TemplateController のクローンに navigationItem がコピーされるので、
+//   各クローンの itemId をインデックスに書き換え）
+
+// レイアウト
+const listWin = UI["item_screen"].getObject("listWindow");
+if (listWin) {
+  const layout = listWin.getComponent("layoutGroup");
+  if (layout) layout.align();
+}
+
+// 説明テキスト初期化
+const descText = UI["item_screen"].getObject("descText");
+
+// アイテム選択ループ
+while (true) {
+  // 説明更新
+  const nav = listWin.getComponent("navigation");
+  nav.activate();
+  const selected = await nav.result();
+
+  if (selected === null) break; // キャンセル
+
+  const itemIndex = parseInt(selected, 10);
+  const invEntry = usableItems[itemIndex];
+  if (!invEntry) continue;
+  const item = Data.item[invEntry.itemId];
+  if (!item) continue;
+
+  // 説明表示
+  if (descText) descText.setProperty("text", "content", item.name + "\\n" + (item.description || ""));
+
+  // 対象選択が必要か判定
+  const target = item.target || "single_ally";
+  if (target === "single_ally") {
+    // キャラ選択ウィンドウ
+    const party = Variable["party"];
+    if (!Array.isArray(party) || party.length === 0) continue;
+
+    const charLabels = party.map(m => {
+      const ch = Data.character[m.characterId];
+      return { label: (ch ? ch.name : "???") + " HP:" + (m.stats?.hp ?? 0) };
+    });
+
+    const charWin = UI["item_screen"].getObject("charWindow");
+    charWin.visible = true;
+
+    // キャラテンプレート
+    const charTmpl = UI["item_screen"].getObject("charTemplate");
+    if (charTmpl) {
+      const charTc = charTmpl.getComponent("templateController");
+      if (charTc) await charTc.applyList(charLabels);
+    }
+
+    const charLayout = charWin.getComponent("layoutGroup");
+    if (charLayout) charLayout.align();
+    const charFit = charWin.getComponent("contentFit");
+    if (charFit) charFit.fit();
+
+    const charNav = charWin.getComponent("navigation");
+    charNav.activate();
+    const charSelected = await charNav.result();
+
+    charWin.visible = false;
+
+    if (charSelected === null) continue; // キャラ選択キャンセル
+
+    const memberIndex = parseInt(charSelected, 10);
+    await Script.use_item({ itemId: invEntry.itemId, memberIndex });
+
+    // インベントリ更新後にアイテム一覧を再構築
+    const updatedInv = Variable["inventory"];
+    const updatedUsable = updatedInv.filter(e => {
+      const it = Data.item[e.itemId];
+      return it && it.item_type === "consumable" && e.count > 0;
+    });
+    const updatedRows = updatedUsable.map(e => {
+      const it = Data.item[e.itemId];
+      return { name: it ? it.name : e.itemId, count: "x" + e.count };
+    });
+    if (tmpl) {
+      const tc = tmpl.getComponent("templateController");
+      if (tc) await tc.applyList(updatedRows);
+    }
+    if (listWin) {
+      const lo = listWin.getComponent("layoutGroup");
+      if (lo) lo.align();
+    }
+
+    if (updatedUsable.length === 0) break;
+  } else {
+    // 全体対象などはそのまま使用
+    await Script.use_item({ itemId: invEntry.itemId, memberIndex: 0 });
+  }
+}
+
+UI["item_screen"].hide();`,
   args: [],
   returns: [],
   fields: [],
