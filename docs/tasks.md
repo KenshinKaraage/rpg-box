@@ -6913,6 +6913,121 @@ export function useAutoSave() {
 
 ---
 
+#### [T219d] ImageComponent pixelated オプション
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] ImageComponent に pixelated boolean 追加
+- [x] imageRenderer: NEAREST/LINEAR フィルタ切替
+
+---
+
+#### [T220a-c] データ整備（装備スロット、インベントリクラス、装備品サンプル）
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] class_party_member: 装備スロット5つ + characterId 参照 + jobId + currentHp/currentMp
+- [x] class_inventory_item: itemId + count
+- [x] class_party_init: characterId + level
+- [x] 装備品サンプル（鉄の盾、革の帽子、革の鎧、旅人の服、力の指輪）
+- [x] キャラクター4エントリ（lex/ian/alice/marguerite）
+- [x] ジョブ4エントリ（traveler/warrior/mage/priest）+ learn_skills
+- [x] スキル追加（heal, heal_all, power_up）+ usable_scene フィールド
+
+---
+
+#### [T220d] defaultTestData.ts 分割
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] 5ファイルに分割（scripts/canvases/entries/map/loader）
+
+---
+
+#### [T220e-l] 内部処理スクリプト + メニューシステム
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+> **反省:** 複数機能を1タスクにまとめている。
+
+**完了条件:**
+
+- [x] item_add / item_remove / use_item スクリプト
+- [x] equip_item / unequip_item スクリプト
+- [x] init_party スクリプト（party_init → party 生成、ステータス計算、スキル設定）
+- [x] level_up スクリプト（成長率加算方式）
+- [x] heal_all / level_up_all スクリプト
+- [x] メニュー UICanvas（RPGツクール風: コマンド + パーティ + ゴールド）
+- [x] menu_open スクリプト（コマンドループ、パーティ更新）
+- [x] GameSettings.menuScriptId / startScriptId
+- [x] GameRuntime: cancel ボタンでメニュー起動、start 時にスタートスクリプト実行
+- [x] アイテム画面（2列グリッド、説明ヘッダー、キャラ選択、HP更新）
+- [x] 装備画面（キャラ選択→スロット→候補、ステータス比較、キャラ情報バー）
+- [x] スキル画面（キャラ選択→スキル一覧→対象選択、MP消費）
+- [x] ショップ画面（買う/売る/やめる、2列グリッド、所持金表示）
+- [x] shop_open スクリプト（shopItems: dataSelect[] 引数）
+
+---
+
+#### [T220m] スクリプトエディタ UI 付きテストプレイ
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] ScriptTestPanel: 「UI付き実行」ボタン（空マップ + TestPlayOverlay）
+- [x] 配列引数の型別入力（ArrayArgField）
+- [x] dataSelect arg-field（DataSelectFieldEditor 再利用）
+- [x] ScriptSettingsPanel: dataSelect 引数のデータタイプ選択
+
+---
+
+#### [T220n] DataSelectField 改善
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] ドロップダウンに「（なし）」選択肢追加
+- [x] allowNull オプション（DataSelectFieldConfig でチェックボックス設定）
+- [x] NumberFieldEditor: 空白入力可能 + 非数値拒否
+
+---
+
+#### [T220o] NPC 刷新 + アセット更新
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+
+**完了条件:**
+
+- [x] テストNPC整理（12→7: 村人、商人、回復役、訓練士、占い師、操作テスト）
+- [x] キャラクターアセット追加（全体/顔/歩行）
+- [x] PrefabList / MapObjectList にスプライトサムネイル（Canvas drawImage）
+- [x] D&D ドラッグ画像サイズ調整（devicePixelRatio 対応）
+
+---
+
+#### [T221] 未実装タスク
+
+- [ ] Script に visibility (public/internal) を追加
+- [ ] スクリプト選択をモーダルに変更（アイコン付き）
+- [ ] スクリプトにアイコン設定を追加
+
+---
+
 ## Phase 19: Test Play
 
 ### テストプレイ機能
