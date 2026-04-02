@@ -45,8 +45,7 @@ export function DataSelectFieldEditor({
   const entries = dataEntries[referenceTypeId] ?? [];
 
   const handleValueChange = (selected: string) => {
-    // 空文字列は未選択を意味する
-    onChange(selected === '' ? null : selected);
+    onChange(selected === '' || selected === '__none__' ? null : selected);
   };
 
   if (!referenceTypeId) {
@@ -67,12 +66,12 @@ export function DataSelectFieldEditor({
 
   return (
     <div className="space-y-1">
-      <Select value={value ?? ''} onValueChange={handleValueChange} disabled={disabled}>
+      <Select value={value || '__none__'} onValueChange={handleValueChange} disabled={disabled}>
         <SelectTrigger className={error ? 'border-red-500' : ''}>
           <SelectValue placeholder="エントリを選択..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">（なし）</SelectItem>
+          <SelectItem value="__none__">（なし）</SelectItem>
           {entries.map((entry) => (
             <SelectItem key={entry.id} value={entry.id}>
               {getEntryLabel(entry)}
