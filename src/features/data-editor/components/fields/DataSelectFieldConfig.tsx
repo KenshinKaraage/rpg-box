@@ -1,6 +1,7 @@
 'use client';
 
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -12,6 +13,7 @@ import type { FieldConfigContext } from '@/types/fields/FieldType';
 
 interface DataSelectFieldConfigProps {
   referenceTypeId: string;
+  allowNull?: boolean;
   context?: FieldConfigContext;
   onChange: (updates: Record<string, unknown>) => void;
 }
@@ -22,6 +24,7 @@ interface DataSelectFieldConfigProps {
  */
 export function DataSelectFieldConfig({
   referenceTypeId,
+  allowNull = true,
   context,
   onChange,
 }: DataSelectFieldConfigProps) {
@@ -49,6 +52,14 @@ export function DataSelectFieldConfig({
           </SelectContent>
         </Select>
       )}
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="allowNull"
+          checked={allowNull}
+          onCheckedChange={(checked) => onChange({ allowNull: checked === true })}
+        />
+        <Label htmlFor="allowNull" className="text-xs">未選択を許可</Label>
+      </div>
     </div>
   );
 }

@@ -27,6 +27,8 @@ export class DataSelectFieldType extends FieldType<string | null> {
 
   /** 参照先DataType ID */
   referenceTypeId: string = '';
+  /** null（未選択）を許可するか */
+  allowNull: boolean = true;
 
   /**
    * デフォルト値（未選択）
@@ -73,6 +75,7 @@ export class DataSelectFieldType extends FieldType<string | null> {
         disabled={disabled}
         error={error}
         referenceTypeId={this.referenceTypeId}
+        allowNull={this.allowNull}
       />
     );
   }
@@ -94,6 +97,7 @@ export class DataSelectFieldType extends FieldType<string | null> {
     return (
       <DataSelectFieldConfig
         referenceTypeId={this.referenceTypeId}
+        allowNull={this.allowNull}
         context={props.context}
         onChange={props.onChange}
       />

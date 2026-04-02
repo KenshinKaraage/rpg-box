@@ -16,6 +16,8 @@ interface DataSelectFieldEditorProps {
   disabled?: boolean;
   error?: string;
   referenceTypeId: string;
+  /** null（未選択）を許可するか（デフォルト true） */
+  allowNull?: boolean;
 }
 
 /**
@@ -40,6 +42,7 @@ export function DataSelectFieldEditor({
   disabled,
   error,
   referenceTypeId,
+  allowNull = true,
 }: DataSelectFieldEditorProps) {
   const dataEntries = useStore((state) => state.dataEntries);
   const entries = dataEntries[referenceTypeId] ?? [];
@@ -71,7 +74,7 @@ export function DataSelectFieldEditor({
           <SelectValue placeholder="エントリを選択..." />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__none__">（なし）</SelectItem>
+          {allowNull && <SelectItem value="__none__">（なし）</SelectItem>}
           {entries.map((entry) => (
             <SelectItem key={entry.id} value={entry.id}>
               {getEntryLabel(entry)}
