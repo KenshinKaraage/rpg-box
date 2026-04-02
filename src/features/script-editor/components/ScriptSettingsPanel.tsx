@@ -42,6 +42,7 @@ interface ScriptSettingsPanelProps {
 
 export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelProps) {
   const classes = useStore((s) => s.classes);
+  const dataTypes = useStore((s) => s.dataTypes);
   const [localName, setLocalName] = useState('');
   const [localCallId, setLocalCallId] = useState('');
   const [localDesc, setLocalDesc] = useState('');
@@ -244,6 +245,23 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
                           ))}
                         </SelectContent>
                       </Select>
+                      {arg.fieldType === 'dataSelect' && (
+                        <Select
+                          value={arg.referenceTypeId ?? ''}
+                          onValueChange={(v) => handleUpdateArg(arg.id, { referenceTypeId: v })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="データタイプを選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {dataTypes.map((dt) => (
+                              <SelectItem key={dt.id} value={dt.id}>
+                                {dt.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                           <Checkbox
