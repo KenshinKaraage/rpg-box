@@ -897,6 +897,49 @@ return await Script.equip_item({ memberIndex, slot, itemId: "" });`,
   isAsync: true,
 };
 
+// ── Script: レベルアップ ──
+
+export const levelUpScript: Script = {
+  id: 'level_up',
+  name: 'レベルアップ',
+  callId: 'level_up',
+  type: 'event',
+  content: `// メンバーをレベルアップし、ステータスを再計算
+// stats = base_stats + growth_rates * (level - 1)
+const party = Variable["party"];
+if (!Array.isArray(party) || memberIndex < 0 || memberIndex >= party.length) return false;
+const member = party[memberIndex];
+const ch = Data.character[member.characterId];
+if (!ch) return false;
+
+const jobId = member.jobId || ch.job;
+const job = jobId ? Data.job[jobId] : null;
+const growth = (job && job.growth_rates) || {};
+
+member.level = (member.level || 1) + 1;
+
+const STAT_KEYS = ["hp", "mp", "atk", "def", "matk", "mdef", "spd", "luk"];
+if (!member.stats) member.stats = {};
+for (const k of STAT_KEYS) {
+  const base = ch.base_stats[k] || 0;
+  const rate = growth[k] || 0;
+  member.stats[k] = Math.floor(base + rate * (member.level - 1) / 10);
+}
+
+const memberName = ch.name || "???";
+if (!silent) {
+  await Script.message({ text: memberName + " はレベル " + member.level + " になった！", face: "" });
+}
+return true;`,
+  args: [
+    { id: 'memberIndex', name: 'メンバー番号', fieldType: 'number', required: true, defaultValue: 0 },
+    { id: 'silent', name: 'メッセージ非表示', fieldType: 'boolean', required: false, defaultValue: false },
+  ],
+  returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
+  fields: [],
+  isAsync: true,
+};
+
 // ── Script: メニュー ──
 
 export const menuOpenScript: Script = {

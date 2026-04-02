@@ -196,6 +196,7 @@ function createPartyMemberClass(): CustomClass {
     description: 'キャラクター参照 + ランタイムステータス・装備',
     fields: [
       f('dataSelect', { id: 'characterId', name: 'キャラクター', referenceTypeId: 'character' }),
+      f('dataSelect', { id: 'jobId', name: 'ジョブ', referenceTypeId: 'job' }),
       f('number', { id: 'level', name: 'レベル', min: 1, max: 99 }),
       f('class', { id: 'stats', name: '現在ステータス', classId: STATUS_CLASS_ID }),
       f('dataSelect', { id: 'weapon', name: '武器', referenceTypeId: 'item' }),
