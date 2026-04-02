@@ -1637,6 +1637,22 @@ while (true) {
   charWin.visible = false;
   slotWin.visible = true;
 
+  // キャラ情報表示
+  const memberWin = UI["equip_screen"].getObject("memberWindow");
+  if (memberWin) {
+    memberWin.visible = true;
+    const mf = UI["equip_screen"].getObject("memberFace");
+    const mn = UI["equip_screen"].getObject("memberName");
+    const ml = UI["equip_screen"].getObject("memberLevel");
+    const mh = UI["equip_screen"].getObject("memberHp");
+    const mm = UI["equip_screen"].getObject("memberMp");
+    if (mf) mf.setProperty("image", "imageId", ch ? ch.face_graphic : "");
+    if (mn) mn.setProperty("text", "content", memberName);
+    if (ml) ml.setProperty("text", "content", "Lv." + (member.level ?? 1));
+    if (mh) mh.setProperty("text", "content", "HP " + (member.currentHp ?? 0) + "/" + (member.stats?.hp ?? 0));
+    if (mm) mm.setProperty("text", "content", "MP " + (member.currentMp ?? 0) + "/" + (member.stats?.mp ?? 0));
+  }
+
   const statWin = UI["equip_screen"].getObject("statWindow");
   const statText = UI["equip_screen"].getObject("statText");
   const STAT_KEYS = ["atk", "def", "matk", "mdef", "spd", "luk"];
@@ -1707,6 +1723,7 @@ while (true) {
     const slotSel = await slotNav.result();
     if (slotSel === null) {
       if (statWin) statWin.visible = false;
+      if (memberWin) memberWin.visible = false;
       break;
     }
 

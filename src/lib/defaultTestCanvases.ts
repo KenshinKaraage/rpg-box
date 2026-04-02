@@ -1335,12 +1335,34 @@ function createEquipScreenObjects(): EditorUIObject[] {
       createUIComponentData('layoutElement', { participate: false }),
     ], });
 
+  // ── 選択中キャラ情報（スロット選択時に表示） ──
+  objects.push({
+    id: 'equip_member_win', name: 'memberWindow', parentId: 'equip_bg',
+    transform: { x: 16, y: 72, width: 1248, height: 88, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })],
+  });
+  objects.push({ id: 'equip_member_face', name: 'memberFace', parentId: 'equip_member_win',
+    transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
+  objects.push({ id: 'equip_member_name', name: 'memberName', parentId: 'equip_member_win',
+    transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'equip_member_level', name: 'memberLevel', parentId: 'equip_member_win',
+    transform: { x: 300, y: 8, width: 100, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'equip_member_hp', name: 'memberHp', parentId: 'equip_member_win',
+    transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({ id: 'equip_member_mp', name: 'memberMp', parentId: 'equip_member_win',
+    transform: { x: 80, y: 62, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+
   // ── スロット一覧ウィンドウ（キャラ選択後に表示） ──
   objects.push({
     id: 'equip_slot_win',
     name: 'slotWindow',
     parentId: 'equip_bg',
-    transform: { x: 16, y: 72, width: EQUIP_SLOT_W, height: 240, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: { x: 16, y: 176, width: EQUIP_SLOT_W, height: 240, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
     components: [
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
@@ -1391,7 +1413,7 @@ function createEquipScreenObjects(): EditorUIObject[] {
     id: 'equip_list_win',
     name: 'listWindow',
     parentId: 'equip_bg',
-    transform: { x: EQUIP_SLOT_W + 32, y: 72, width: EQUIP_LIST_W - 32, height: 620, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: { x: EQUIP_SLOT_W + 32, y: 176, width: EQUIP_LIST_W - 32, height: 528, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
     components: [
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
@@ -1435,7 +1457,7 @@ function createEquipScreenObjects(): EditorUIObject[] {
     id: 'equip_stat_win',
     name: 'statWindow',
     parentId: 'equip_bg',
-    transform: { x: 16, y: 320, width: EQUIP_SLOT_W, height: 372, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: { x: 16, y: 424, width: EQUIP_SLOT_W, height: 280, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
     components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 })],
   });
 
