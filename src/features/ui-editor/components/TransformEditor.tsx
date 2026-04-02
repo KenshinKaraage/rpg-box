@@ -49,18 +49,15 @@ function NumberField({
         max={max}
         disabled={disabled}
         onChange={(e) => {
-          setLocalValue(e.target.value);
-          const v = parseFloat(e.target.value);
+          const raw = e.target.value;
+          if (raw !== '' && raw !== '-' && isNaN(Number(raw))) return;
+          setLocalValue(raw);
+          const v = parseFloat(raw);
           if (!isNaN(v)) onChange(v);
         }}
         onBlur={() => {
-          // 空白や不正値はリセット
           const v = parseFloat(localValue);
-          if (isNaN(v)) {
-            setLocalValue(String(value));
-          } else {
-            setLocalValue(String(v));
-          }
+          setLocalValue(isNaN(v) ? String(value) : String(v));
         }}
       />
     </div>

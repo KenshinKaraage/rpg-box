@@ -20,17 +20,15 @@ export function NumberField({ def, value, onChange }: FieldRendererProps) {
         max={d.max}
         step={d.step ?? 1}
         onChange={(e) => {
-          setLocalValue(e.target.value);
-          const v = parseFloat(e.target.value);
+          const raw = e.target.value;
+          if (raw !== '' && raw !== '-' && isNaN(Number(raw))) return;
+          setLocalValue(raw);
+          const v = parseFloat(raw);
           if (!isNaN(v)) onChange(v);
         }}
         onBlur={() => {
           const v = parseFloat(localValue);
-          if (isNaN(v)) {
-            setLocalValue(String(numValue));
-          } else {
-            setLocalValue(String(v));
-          }
+          setLocalValue(isNaN(v) ? String(numValue) : String(v));
         }}
       />
     </div>
