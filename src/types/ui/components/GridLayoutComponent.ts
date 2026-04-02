@@ -38,6 +38,41 @@ export class GridLayoutComponent extends UIComponent {
     this.cellHeight = data.cellHeight as number | undefined;
   }
 
+  generateRuntimeScript(): string | null {
+    const columns = this.columns;
+    const spacingX = this.spacingX;
+    const spacingY = this.spacingY;
+    const cellWidth = this.cellWidth ? this.cellWidth : 0;
+    const cellHeight = this.cellHeight ? this.cellHeight : 0;
+
+    return `({
+  align() {
+    const columns = Math.max(1, ${columns});
+    const spacingX = ${spacingX};
+    const spacingY = ${spacingY};
+    const defaultCellW = ${cellWidth};
+    const defaultCellH = ${cellHeight};
+
+    let idx = 0;
+    for (const child of self.children) {
+      if (!child.visible) continue;
+      const le = child.getComponentData && child.getComponentData("layoutElement");
+      if (le && le.participate === false) continue;
+
+      const col = idx % columns;
+      const row = Math.floor(idx / columns);
+
+      const cellW = defaultCellW || child.width;
+      const cellH = defaultCellH || child.height;
+
+      child.x = col * (cellW + spacingX);
+      child.y = row * (cellH + spacingY);
+      idx++;
+    }
+  }
+})`;
+  }
+
   clone(): GridLayoutComponent {
     const c = new GridLayoutComponent();
     c.columns = this.columns;

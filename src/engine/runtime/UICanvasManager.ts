@@ -541,7 +541,7 @@ export class UICanvasManager implements UIActionManager {
     const state = this.canvases.get(canvasId);
     if (!state) return;
     for (const rt of state.runtimes) {
-      if (rt.componentType === 'layoutGroup') {
+      if (rt.componentType === 'layoutGroup' || rt.componentType === 'gridLayout') {
         const fns = rt.fns as Record<string, unknown>;
         if (typeof fns.align === 'function') {
           (fns.align as () => void).call(fns);
