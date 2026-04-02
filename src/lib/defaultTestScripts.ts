@@ -12,7 +12,7 @@ export const messageScript: Script = {
   id: 'message',
   name: 'メッセージ',
   callId: 'message',
-  type: 'event',
+  type: 'internal',
   content: `// テキスト内変数展開（イベントブロックから固定テキストで渡された場合に便利）
 // {変数名}            → ゲーム変数 Variable["変数名"]
 // {obj:OBJ名:変数名}  → オブジェクト変数（VariablesComponent）
@@ -98,7 +98,7 @@ export const choiceScript: Script = {
   id: 'choice',
   name: '選択肢',
   callId: 'choice',
-  type: 'event',
+  type: 'internal',
   content: `const count = Math.min(items.length, ${CHOICE_MAX});
 if (count === 0) return -1;
 
@@ -143,7 +143,7 @@ export const inputNumberScript: Script = {
   id: 'input_number',
   name: '数字入力',
   callId: 'input_number',
-  type: 'event',
+  type: 'internal',
   content: `const DIGITS = ${NUM_DIGITS};
 const lo = min ?? 0;
 const hi = max ?? 9999;
@@ -263,7 +263,7 @@ export const inputTextScript: Script = {
   id: 'input_text',
   name: '文字列入力',
   callId: 'input_text',
-  type: 'event',
+  type: 'internal',
   content: `const bg = UI["text_input"].getObject("background");
 const labelObj = UI["text_input"].getObject("label");
 if (bg) bg.visible = true;
@@ -816,7 +816,7 @@ export const itemAddScript: Script = {
   id: 'item_add',
   name: 'アイテム追加',
   callId: 'item_add',
-  type: 'event',
+  type: 'internal',
   content: `// インベントリにアイテムを追加（既存なら count+、新規なら追加）
 const inv = Variable["inventory"];
 if (!Array.isArray(inv)) return;
@@ -839,7 +839,7 @@ export const itemRemoveScript: Script = {
   id: 'item_remove',
   name: 'アイテム消費',
   callId: 'item_remove',
-  type: 'event',
+  type: 'internal',
   content: `// インベントリからアイテムを減らす（0以下なら削除）
 const inv = Variable["inventory"];
 if (!Array.isArray(inv)) return false;
@@ -863,7 +863,7 @@ export const useItemScript: Script = {
   id: 'use_item',
   name: 'アイテム使用',
   callId: 'use_item',
-  type: 'event',
+  type: 'internal',
   content: `// アイテムを使用: 消費 + 効果適用
 const item = Data.item[itemId];
 if (!item) {
@@ -963,7 +963,7 @@ export const equipItemScript: Script = {
   id: 'equip_item',
   name: '装備変更',
   callId: 'equip_item',
-  type: 'event',
+  type: 'internal',
   content: `// 装備変更: 現在の装備を外してインベントリに戻し、新しいアイテムを装備
 const party = Variable["party"];
 if (!Array.isArray(party) || memberIndex < 0 || memberIndex >= party.length) return false;
@@ -1025,7 +1025,7 @@ export const unequipItemScript: Script = {
   id: 'unequip_item',
   name: '装備解除',
   callId: 'unequip_item',
-  type: 'event',
+  type: 'internal',
   content: `// 指定スロットの装備を解除してインベントリに戻す
 return await Script.equip_item({ memberIndex, slot, itemId: "" });`,
   args: [
@@ -1043,7 +1043,7 @@ export const initPartyScript: Script = {
   id: 'init_party',
   name: 'パーティ初期化',
   callId: 'init_party',
-  type: 'event',
+  type: 'internal',
   content: `// party_init から party を生成
 const inits = Variable["party_init"];
 if (!Array.isArray(inits)) return;
@@ -1105,7 +1105,7 @@ export const levelUpScript: Script = {
   id: 'level_up',
   name: 'レベルアップ',
   callId: 'level_up',
-  type: 'event',
+  type: 'internal',
   content: `// メンバーをレベルアップし、成長分を加算
 const party = Variable["party"];
 if (!Array.isArray(party) || memberIndex < 0 || memberIndex >= party.length) return false;
@@ -1329,7 +1329,7 @@ export const itemScreenScript: Script = {
   id: 'item_screen',
   name: 'アイテム画面',
   callId: 'item_screen',
-  type: 'event',
+  type: 'internal',
   content: `const inv = Variable["inventory"];
 if (!Array.isArray(inv) || inv.length === 0) {
   await Script.message({ text: "アイテムを持っていません。", face: "" });
@@ -1571,7 +1571,7 @@ export const equipScreenScript: Script = {
   id: 'equip_screen',
   name: '装備画面',
   callId: 'equip_screen',
-  type: 'event',
+  type: 'internal',
   content: `const party = Variable["party"];
 if (!Array.isArray(party) || party.length === 0) return;
 
@@ -1845,7 +1845,7 @@ export const skillScreenScript: Script = {
   id: 'skill_screen',
   name: 'スキル画面',
   callId: 'skill_screen',
-  type: 'event',
+  type: 'internal',
   content: `const party = Variable["party"];
 if (!Array.isArray(party) || party.length === 0) return;
 
