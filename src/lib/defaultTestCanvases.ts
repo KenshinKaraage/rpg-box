@@ -1725,15 +1725,8 @@ function createSkillScreenObjects(): EditorUIObject[] {
     ], });
 
   // 対象選択（キャラ一覧、アイテム画面と同じ）
-  objects.push({ id: 'skill_target_header', name: 'targetHeader', parentId: 'skill_bg',
-    transform: { x: 16, y: 176, width: 1248, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })], });
-  objects.push({ id: 'skill_target_header_text', name: 'targetHeaderText', parentId: 'skill_target_header',
-    transform: { x: 16, y: 0, width: 1216, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '対象を選んでください', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-
   objects.push({ id: 'skill_target_win', name: 'targetWindow', parentId: 'skill_bg',
-    transform: { x: 16, y: 224, width: 1248, height: 480, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: { x: 16, y: 176, width: 1248, height: 528, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
     components: [
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#ffdd44', strokeWidth: 2, cornerRadius: 8 }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),

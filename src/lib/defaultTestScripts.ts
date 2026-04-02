@@ -1890,7 +1890,6 @@ const headerText = UI["skill_screen"].getObject("headerText");
 const charWin = UI["skill_screen"].getObject("charWindow");
 const memberWin = UI["skill_screen"].getObject("memberWindow");
 const listWin = UI["skill_screen"].getObject("listWindow");
-const targetHeader = UI["skill_screen"].getObject("targetHeader");
 const targetWin = UI["skill_screen"].getObject("targetWindow");
 const charTmpl = UI["skill_screen"].getObject("charTemplate");
 const skillTmpl = UI["skill_screen"].getObject("skillTemplate");
@@ -1902,7 +1901,6 @@ while (true) {
   charWin.visible = true;
   memberWin.visible = false;
   listWin.visible = false;
-  targetHeader.visible = false;
   targetWin.visible = false;
 
   const charMembers = buildCharMembers();
@@ -2001,7 +1999,7 @@ while (true) {
       } else {
         // 対象選択
         listWin.visible = false;
-        targetHeader.visible = true;
+        headerText.setProperty("text", "content", "対象を選んでください");
         targetWin.visible = true;
 
         while (true) {
@@ -2039,9 +2037,9 @@ while (true) {
           await Script.message({ text: memberName + "は" + tName + "に" + skill.name + "を使った！", face: "" });
         }
 
-        targetHeader.visible = false;
         targetWin.visible = false;
         listWin.visible = true;
+        headerText.setProperty("text", "content", memberName + " のスキル");
       }
     }
   }
