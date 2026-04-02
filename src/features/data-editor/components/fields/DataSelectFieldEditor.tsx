@@ -72,6 +72,7 @@ export function DataSelectFieldEditor({
           <SelectValue placeholder="エントリを選択..." />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="">（なし）</SelectItem>
           {entries.map((entry) => (
             <SelectItem key={entry.id} value={entry.id}>
               {getEntryLabel(entry)}
