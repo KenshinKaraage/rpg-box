@@ -98,7 +98,7 @@ export const sampleDataEntries: Record<string, DataEntry[]> = {
         icon: '',
         item_type: 'consumable',
         price: 150,
-        effects: [{ effect_type: 'heal', target: 'single_ally', value: 30, duration: 0 }],
+        effects: [{ effect_type: 'heal_mp', target: 'single_ally', value: 30, duration: 0 }],
         target: 'single_ally',
         equip_slot: 'none',
         status_bonus: {},

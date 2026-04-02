@@ -752,21 +752,66 @@ if (!removed) {
 
 // 効果適用
 const party = Variable["party"];
-if (!Array.isArray(party) || memberIndex < 0 || memberIndex >= party.length) {
-  return false;
-}
-const member = party[memberIndex];
-const ch = Data.character[member.characterId];
-const memberName = ch ? ch.name : "???";
+if (!Array.isArray(party)) return false;
 
-for (const effect of (item.effects || [])) {
-  if (effect.effect_type === "heal" && member.stats) {
-    const maxHp = ch ? ch.base_stats.hp : 9999;
-    member.stats.hp = Math.min(maxHp, (member.stats.hp || 0) + (effect.value || 0));
+// エフェクトごとに対象を判定して適用
+function applyEffect(eff, targetMember, targetCh) {
+  if (!targetMember.stats) return;
+  const val = eff.value || 0;
+  switch (eff.effect_type) {
+    case "heal": {
+      const maxHp = targetCh ? targetCh.base_stats.hp : 9999;
+      targetMember.stats.hp = Math.min(maxHp, (targetMember.stats.hp || 0) + val);
+      break;
+    }
+    case "heal_mp": {
+      const maxMp = targetCh ? targetCh.base_stats.mp : 9999;
+      targetMember.stats.mp = Math.min(maxMp, (targetMember.stats.mp || 0) + val);
+      break;
+    }
+    case "damage": {
+      targetMember.stats.hp = Math.max(0, (targetMember.stats.hp || 0) - val);
+      break;
+    }
+    case "buff": {
+      // バフ: 攻撃力を一時的に上げる（簡易実装）
+      targetMember.stats.atk = (targetMember.stats.atk || 0) + val;
+      break;
+    }
+    case "debuff": {
+      targetMember.stats.def = Math.max(0, (targetMember.stats.def || 0) - val);
+      break;
+    }
   }
 }
 
-if (!silent) await Script.message({ text: memberName + "に" + item.name + "を使った！", face: "" });
+const messages = [];
+for (const effect of (item.effects || [])) {
+  const effTarget = effect.target || "single_ally";
+  if (effTarget === "all_allies" || effTarget === "all") {
+    // 全体
+    for (let i = 0; i < party.length; i++) {
+      const m = party[i];
+      const c = Data.character[m.characterId];
+      applyEffect(effect, m, c);
+    }
+    messages.push("全員に" + item.name + "の効果！");
+  } else {
+    // 個人
+    if (memberIndex < 0 || memberIndex >= party.length) continue;
+    const m = party[memberIndex];
+    const c = Data.character[m.characterId];
+    const mName = c ? c.name : "???";
+    applyEffect(effect, m, c);
+    messages.push(mName + "に" + item.name + "を使った！");
+  }
+}
+
+if (!silent && messages.length > 0) {
+  for (const msg of messages) {
+    await Script.message({ text: msg, face: "" });
+  }
+}
 return true;`,
   args: [
     { id: 'itemId', name: 'アイテムID', fieldType: 'string', required: true, defaultValue: '' },

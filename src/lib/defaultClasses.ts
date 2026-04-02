@@ -86,7 +86,8 @@ function createEffectClass(): CustomClass {
         name: 'エフェクト種類',
         options: [
           { value: 'damage', label: 'ダメージ' },
-          { value: 'heal', label: '回復' },
+          { value: 'heal', label: 'HP回復' },
+          { value: 'heal_mp', label: 'MP回復' },
           { value: 'buff', label: 'バフ' },
           { value: 'debuff', label: 'デバフ' },
           { value: 'status', label: '状態異常' },
