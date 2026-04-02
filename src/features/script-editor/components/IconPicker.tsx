@@ -132,7 +132,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-3" align="start">
-        <div className="space-y-2">
+        <div className="max-h-[400px] space-y-2 overflow-auto">
           {/* なし */}
           <button
             className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-accent"

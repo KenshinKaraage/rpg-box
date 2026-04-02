@@ -88,6 +88,7 @@ if (close !== false) {
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'message-square',
 };
 
 
@@ -133,6 +134,7 @@ return selected === null ? -1 : parseInt(selected, 10);`,
   returns: [{ id: 'selected', name: '選択インデックス', fieldType: 'number', isArray: false }],
   fields: [],
   isAsync: true,
+  icon: 'help-circle',
 };
 
 
@@ -253,6 +255,7 @@ return result;`,
   returns: [{ id: 'value', name: '入力値', fieldType: 'number', isArray: false }],
   fields: [],
   isAsync: true,
+  icon: 'info',
 };
 
 
@@ -286,6 +289,7 @@ return result ?? initial ?? "";`,
   returns: [{ id: 'text', name: '入力値', fieldType: 'string', isArray: false }],
   fields: [],
   isAsync: true,
+  icon: 'info',
 };
 
 
@@ -320,6 +324,7 @@ UI["status_hud"].hide();`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'user',
 };
 
 // ── Script: 商人スクリプト ──
@@ -336,6 +341,7 @@ await Script.shop_open({ shopItems: ["potion_hp", "potion_mp", "antidote", "iron
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'shopping-bag',
 };
 
 export const shopOpenScript: Script = {
@@ -498,6 +504,7 @@ UI["shop"].hide();`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'shopping-bag',
 };
 
 // ── Script: マップ情報スクリプト ──
@@ -521,6 +528,7 @@ await Script.message({ text: "マップ: " + mapId + " (" + w + "x" + h + ")\\n�
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'map',
 };
 
 // ── Script: オブジェクト操作スクリプト ──
@@ -564,6 +572,7 @@ if (player) {
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'move',
 };
 
 // ── Script: オーディオテストスクリプト ──
@@ -589,6 +598,7 @@ await Script.message({ text: "BGM停止（フェードアウト2秒）", face: "
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'music',
 };
 
 // ── Script: 入力テストスクリプト ──
@@ -615,6 +625,7 @@ await Script.message({ text: "よろしく、" + name + "！", face: "" });`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'info',
 };
 
 
@@ -663,6 +674,7 @@ await Script.message({ text: eff.name + " エフェクトを再生しました�
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'sparkles',
 };
 
 
@@ -753,6 +765,7 @@ await Script.message({ text: ANIMS[idx] + " 完了！", face: "" });`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'play',
 };
 
 
@@ -807,6 +820,7 @@ UI["party_status"].hide();`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'users',
 };
 
 
@@ -833,6 +847,7 @@ if (existing) {
   returns: [],
   fields: [],
   isAsync: false,
+  icon: 'package',
 };
 
 export const itemRemoveScript: Script = {
@@ -857,6 +872,7 @@ return true;`,
   returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
   fields: [],
   isAsync: false,
+  icon: 'package',
 };
 
 export const useItemScript: Script = {
@@ -955,6 +971,7 @@ return true;`,
   returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
   fields: [],
   isAsync: true,
+  icon: 'heart-pulse',
 };
 
 // ── Script: 装備変更（内部処理） ──
@@ -1019,6 +1036,7 @@ return true;`,
   returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
   fields: [],
   isAsync: true,
+  icon: 'shield',
 };
 
 export const unequipItemScript: Script = {
@@ -1035,6 +1053,7 @@ return await Script.equip_item({ memberIndex, slot, itemId: "" });`,
   returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
   fields: [],
   isAsync: true,
+  icon: 'shield',
 };
 
 // ── Script: パーティ初期化 ──
@@ -1097,6 +1116,7 @@ Variable["party"] = party;`,
   returns: [],
   fields: [],
   isAsync: false,
+  icon: 'users',
 };
 
 // ── Script: レベルアップ ──
@@ -1144,6 +1164,7 @@ return true;`,
   returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
   fields: [],
   isAsync: true,
+  icon: 'arrow-up',
 };
 
 // ── Script: 全回復 + アイテム付与 ──
@@ -1169,6 +1190,7 @@ await Script.message({ text: "全員のHP・MPを回復し、\\nHPポーショ�
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'heart',
 };
 
 // ── Script: パーティ全員レベルアップ ──
@@ -1188,6 +1210,7 @@ await Script.message({ text: "パーティ全員のレベルが上がった！",
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'arrow-up',
 };
 
 // ── Script: メニュー ──
@@ -1321,6 +1344,7 @@ UI["menu"].hide();`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'settings',
 };
 
 // ── Script: アイテム画面 ──
@@ -1563,6 +1587,7 @@ UI["item_screen"].hide();`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'package',
 };
 
 // ── Script: 装備画面 ──
@@ -1837,6 +1862,7 @@ UI["equip_screen"].hide();`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'shield',
 };
 
 // ── Script: スキル画面 ──
@@ -2050,4 +2076,5 @@ UI["skill_screen"].hide();`,
   returns: [],
   fields: [],
   isAsync: true,
+  icon: 'sparkles',
 };
