@@ -122,6 +122,9 @@ export class NavigationComponent extends UIComponent {
       if (next !== idx) {
         self.state.focusIndex = next;
         this._updateCursor();
+        if (typeof self.state._onIndexChange === "function") {
+          self.state._onIndexChange(next);
+        }
       }
     }
 
@@ -135,6 +138,10 @@ export class NavigationComponent extends UIComponent {
     if (button === "cancel") {
       self.state._result = null;
     }
+  },
+
+  setOnIndexChange(fn) {
+    self.state._onIndexChange = fn;
   },
 
   _updateCursor() {

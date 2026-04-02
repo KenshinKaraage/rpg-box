@@ -1041,13 +1041,26 @@ if (listWin) {
   if (grid) grid.align();
 }
 
-// 説明テキスト初期化
+// 説明テキスト
 const descText = UI["item_screen"].getObject("descText");
+
+// 初期説明表示
+if (allItems.length > 0) {
+  const firstItem = Data.item[allItems[0].itemId];
+  if (firstItem && descText) descText.setProperty("text", "content", firstItem.name + "\\n" + (firstItem.description || ""));
+}
+
+// カーソル移動時に説明を更新
+const nav = listWin.getComponent("navigation");
+nav.setOnIndexChange((idx) => {
+  const entry = allItems[idx];
+  if (!entry) return;
+  const it = Data.item[entry.itemId];
+  if (it && descText) descText.setProperty("text", "content", it.name + "\\n" + (it.description || ""));
+});
 
 // アイテム選択ループ
 while (true) {
-  // 説明更新
-  const nav = listWin.getComponent("navigation");
   nav.activate();
   const selected = await nav.result();
 
