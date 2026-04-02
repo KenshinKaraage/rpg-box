@@ -1402,10 +1402,49 @@ while (true) {
     if (listLayout) listLayout.align();
     setNavItemIds(listWin);
 
+    // ステータス比較ウィンドウ
+    const statWin = UI["equip_screen"].getObject("statWindow");
+    const statText = UI["equip_screen"].getObject("statText");
+    if (statWin) statWin.visible = true;
+
+    // 現在のステータスボーナスを計算
+    const STAT_KEYS = ["hp", "mp", "atk", "def", "matk", "mdef", "spd", "luk"];
+    const STAT_LABELS = { hp: "HP", mp: "MP", atk: "ATK", def: "DEF", matk: "MATK", mdef: "MDEF", spd: "SPD", luk: "LUK" };
+    function getBonus(itemId) {
+      if (!itemId) return {};
+      const it = Data.item[itemId];
+      return (it && it.status_bonus) || {};
+    }
+    const currentBonus = getBonus(member[slot.key]);
+
+    function updateStatPreview(candId) {
+      const newBonus = getBonus(candId);
+      const lines = [];
+      for (const k of STAT_KEYS) {
+        const cur = currentBonus[k] || 0;
+        const nxt = newBonus[k] || 0;
+        const diff = nxt - cur;
+        if (cur === 0 && nxt === 0) continue;
+        let diffStr = "";
+        if (diff > 0) diffStr = " +" + diff;
+        else if (diff < 0) diffStr = " " + diff;
+        lines.push(STAT_LABELS[k] + ": " + cur + " → " + nxt + diffStr);
+      }
+      if (statText) statText.setProperty("text", "content", lines.length > 0 ? lines.join("\\n") : "変化なし");
+    }
+
+    // 初期表示
+    updateStatPreview(candidates[0]?.id || "");
+
     const listNav = listWin.getComponent("navigation");
+    listNav.setOnIndexChange((idx) => {
+      const c = candidates[idx];
+      if (c) updateStatPreview(c.id);
+    });
     listNav.activate();
     const itemSel = await listNav.result();
 
+    if (statWin) statWin.visible = false;
     if (itemSel === null) continue;
 
     const candIdx = parseInt(itemSel, 10);

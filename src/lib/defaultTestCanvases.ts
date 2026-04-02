@@ -1340,7 +1340,7 @@ function createEquipScreenObjects(): EditorUIObject[] {
     id: 'equip_slot_win',
     name: 'slotWindow',
     parentId: 'equip_bg',
-    transform: { x: 16, y: 72, width: EQUIP_SLOT_W, height: 620, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: { x: 16, y: 72, width: EQUIP_SLOT_W, height: 240, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
     components: [
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
@@ -1429,6 +1429,23 @@ function createEquipScreenObjects(): EditorUIObject[] {
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
     ], });
+
+  // ── ステータス比較ウィンドウ（スロットウィンドウの下） ──
+  objects.push({
+    id: 'equip_stat_win',
+    name: 'statWindow',
+    parentId: 'equip_bg',
+    transform: { x: 16, y: 320, width: EQUIP_SLOT_W, height: 372, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 })],
+  });
+
+  objects.push({
+    id: 'equip_stat_text',
+    name: 'statText',
+    parentId: 'equip_stat_win',
+    transform: { x: 16, y: 8, width: EQUIP_SLOT_W - 32, height: 356, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    components: [createUIComponentData('text', { content: '', fontSize: 14, color: '#ffffff', align: 'left', verticalAlign: 'top', lineHeight: 1.6 })],
+  });
 
   return objects;
 }
