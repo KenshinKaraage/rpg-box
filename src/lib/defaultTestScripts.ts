@@ -994,8 +994,8 @@ if (tmpl) {
 // レイアウト
 const listWin = UI["item_screen"].getObject("listWindow");
 if (listWin) {
-  const layout = listWin.getComponent("layoutGroup");
-  if (layout) layout.align();
+  const grid = listWin.getComponent("gridLayout");
+  if (grid) grid.align();
 }
 
 // 説明テキスト初期化
@@ -1087,7 +1087,7 @@ while (true) {
       if (tc) await tc.applyList(updatedRows);
     }
     if (listWin) {
-      const lo = listWin.getComponent("layoutGroup");
+      const lo = listWin.getComponent("gridLayout");
       if (lo) lo.align();
     }
     // allItems も更新
