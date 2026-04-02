@@ -284,7 +284,14 @@ export class GameRuntime {
     }
     const script = this.projectData.scripts.find((s) => s.id === scriptId);
     if (!script) throw new Error(`Script "${scriptId}" not found`);
-    return this.sharedScriptRunner.execute(script, this.context, args);
+    this.eventRunning = true;
+    this.world.setEventRunning(true);
+    try {
+      return await (this.sharedScriptRunner.execute(script, this.context, args) as Promise<unknown>);
+    } finally {
+      this.eventRunning = false;
+      this.world.setEventRunning(false);
+    }
   }
 
   /** Get UI canvas proxies for ScriptAPI. */
