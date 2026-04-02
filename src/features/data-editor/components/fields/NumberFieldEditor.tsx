@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 
 interface NumberFieldEditorProps {
@@ -21,22 +22,29 @@ export function NumberFieldEditor({
   max,
   step,
 }: NumberFieldEditorProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value === '' ? NaN : Number(e.target.value);
-    onChange(newValue);
-  };
+  const [localValue, setLocalValue] = useState(Number.isNaN(value) ? '' : String(value));
 
   return (
     <div className="space-y-1">
       <Input
         type="number"
-        value={Number.isNaN(value) ? '' : value}
-        onChange={handleChange}
+        value={localValue}
         disabled={disabled}
         min={min}
         max={max}
         step={step}
         className={error ? 'border-red-500' : ''}
+        onChange={(e) => {
+          const raw = e.target.value;
+          if (raw !== '' && raw !== '-' && isNaN(Number(raw))) return;
+          setLocalValue(raw);
+          const v = parseFloat(raw);
+          if (!isNaN(v)) onChange(v);
+        }}
+        onBlur={() => {
+          const v = parseFloat(localValue);
+          setLocalValue(isNaN(v) ? '' : String(v));
+        }}
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
