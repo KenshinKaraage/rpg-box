@@ -913,6 +913,35 @@ if (cmdWin) {
 
 // コマンド選択ループ
 while (true) {
+  // パーティ情報を毎回更新（アイテム使用後のHP変動を反映）
+  const updParty = Variable["party"];
+  if (Array.isArray(updParty)) {
+    const updMembers = updParty.map(m => {
+      const uc = Data.character[m.characterId];
+      const un = uc ? uc.name : "???";
+      const umh = uc ? uc.base_stats.hp : 0;
+      const umm = uc ? uc.base_stats.mp : 0;
+      return {
+        name: un, level: "Lv." + (m.level ?? 1),
+        hp: "HP " + (m.stats?.hp ?? 0) + "/" + umh,
+        mp: "MP " + (m.stats?.mp ?? 0) + "/" + umm,
+        face: uc ? uc.face_graphic : "",
+      };
+    });
+    if (template) {
+      const utc = template.getComponent("templateController");
+      if (utc) await utc.applyList(updMembers);
+    }
+    if (partyWin) {
+      const ul = partyWin.getComponent("layoutGroup");
+      if (ul) ul.align();
+      const uf = partyWin.getComponent("contentFit");
+      if (uf) uf.fit();
+    }
+  }
+  // ゴールド更新
+  if (goldText) goldText.setProperty("text", "content", (Variable["gold"] ?? 0) + " G");
+
   const nav = cmdWin.getComponent("navigation");
   nav.activate();
   const selected = await nav.result();
@@ -987,9 +1016,19 @@ if (tmpl) {
   if (tc) await tc.applyList(itemRows);
 }
 
-// NavigationItem の itemId を実際のインデックスに合わせる
-// （TemplateController のクローンに navigationItem がコピーされるので、
-//   各クローンの itemId をインデックスに書き換え）
+// NavigationItem の itemId をインデックスに書き換え
+{
+  const children = listWin.getChildren();
+  let idx = 0;
+  for (const child of children) {
+    if (!child.visible) continue;
+    const navItem = child.getComponentData("navigationItem");
+    if (navItem) {
+      child.setProperty("navigationItem", "itemId", String(idx));
+      idx++;
+    }
+  }
+}
 
 // レイアウト
 const listWin = UI["item_screen"].getObject("listWindow");
@@ -1060,6 +1099,20 @@ while (true) {
     if (charLayout) charLayout.align();
     const charFit = charWin.getComponent("contentFit");
     if (charFit) charFit.fit();
+
+    // NavigationItem の itemId をインデックスに書き換え
+    {
+      const charChildren = charWin.getChildren();
+      let ci = 0;
+      for (const ch of charChildren) {
+        if (!ch.visible) continue;
+        const ni = ch.getComponentData("navigationItem");
+        if (ni) {
+          ch.setProperty("navigationItem", "itemId", String(ci));
+          ci++;
+        }
+      }
+    }
 
     const charNav = charWin.getComponent("navigation");
     charNav.activate();
