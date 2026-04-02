@@ -999,6 +999,50 @@ return true;`,
   isAsync: true,
 };
 
+// ── Script: 全回復 + アイテム付与 ──
+
+export const healAllScript: Script = {
+  id: 'heal_all',
+  name: '全回復',
+  callId: 'heal_all',
+  type: 'event',
+  content: `const party = Variable["party"];
+if (Array.isArray(party)) {
+  for (const m of party) {
+    if (m.stats) {
+      m.currentHp = m.stats.hp;
+      m.currentMp = m.stats.mp;
+    }
+  }
+}
+await Script.item_add({ itemId: "potion_hp", count: 3 });
+await Script.item_add({ itemId: "potion_mp", count: 2 });
+await Script.message({ text: "全員のHP・MPを回復し、\\nHPポーション×3、MPポーション×2を受け取った！", face: "" });`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
+// ── Script: パーティ全員レベルアップ ──
+
+export const levelUpAllScript: Script = {
+  id: 'level_up_all',
+  name: '全員レベルアップ',
+  callId: 'level_up_all',
+  type: 'event',
+  content: `const party = Variable["party"];
+if (!Array.isArray(party)) return;
+for (let i = 0; i < party.length; i++) {
+  await Script.level_up({ memberIndex: i, silent: true });
+}
+await Script.message({ text: "パーティ全員のレベルが上がった！", face: "" });`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+};
+
 // ── Script: メニュー ──
 
 export const menuOpenScript: Script = {

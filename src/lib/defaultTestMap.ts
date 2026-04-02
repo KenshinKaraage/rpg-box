@@ -367,33 +367,21 @@ export function createTestMap(resolveAssetId: AssetNameToId): GameMap {
         chipsetIds: [],
         objects: [
           createPlayerObject(5, 5, resolveAssetId),
-          // メッセージテスト NPC（close: false で連続表示）
-          createNpcObject('npc_01', 'NPC', 7, 5, createScriptActions('message', [
-            { text: 'こんにちは！', face: '', close: false },
-            { text: 'タイプライターのテストです。', face: '' },
+          // 村人（メッセージテスト）
+          createNpcObject('npc_villager', '村人', 7, 5, createScriptActions('message', [
+            { text: 'ようこそ！ここはテスト村です。', face: '', close: false },
+            { text: 'Xキーでメニューを開けます。', face: '' },
           ]), resolveAssetId),
-          // ステータス表示 NPC（Data + Variable → UI 連携テスト）
-          createNpcObject('npc_status', 'ステータス確認', 9, 5, createScriptActions('show_status', [{}]), resolveAssetId),
-          // 商人 NPC（Data参照 + Variable操作 連携テスト）
-          createNpcObject('npc_shop', '商人', 11, 5, createScriptActions('shop_buy', [{}]), resolveAssetId),
-          // マップ情報 NPC（MapAPI テスト）
-          createNpcObject('npc_map', 'マップ案内人', 13, 5, createScriptActions('map_info', [{}]), resolveAssetId),
-          // オブジェクト操作 NPC（GameObjectAPI テスト）
-          createNpcObject('npc_obj_test', 'テスト係', 15, 5, createScriptActions('obj_test', [{}]), resolveAssetId),
-          // オーディオ NPC（AudioAPI テスト）
-          createNpcObject('npc_audio', '楽師', 17, 5, createScriptActions('audio_test', [{}]), resolveAssetId),
-          // 入力テスト NPC（数字入力 + 文字列入力）
-          createNpcObject('npc_input', '受付嬢', 7, 7, createScriptActions('input_test', [{}]), resolveAssetId),
-          // エフェクトテスト NPC
-          createNpcObject('npc_effect', '魔法使い', 9, 7, createScriptActions('effect_test', [{}]), resolveAssetId),
-          // アニメーションテスト NPC
-          createNpcObject('npc_anim', 'アニメーター', 11, 7, createScriptActions('anim_test', [{}]), resolveAssetId),
-          // イベントブロック + VariablesComponent テスト NPC
-          createFortunetellerObject(13, 7, resolveAssetId),
-          // 操作テスト NPC（イベントブロックで Camera/Object アクション）
-          createActionTestObject(15, 7, resolveAssetId),
-          // パーティステータス NPC（TemplateController + LayoutGroup テスト）
-          createNpcObject('npc_party', 'パーティ案内', 17, 7, createScriptActions('party_status', [{}]), resolveAssetId),
+          // 商人（アイテム購入テスト）
+          createNpcObject('npc_shop', '商人', 9, 5, createScriptActions('shop_buy', [{}]), resolveAssetId),
+          // 回復役（HP/MP全回復 + アイテムくれる）
+          createNpcObject('npc_healer', '回復役', 7, 7, createScriptActions('heal_all', [{}]), resolveAssetId),
+          // レベルアップ係
+          createNpcObject('npc_trainer', '訓練士', 9, 7, createScriptActions('level_up_all', [{}]), resolveAssetId),
+          // 占い師（イベントブロック + VariablesComponent テスト）
+          createFortunetellerObject(11, 5, resolveAssetId),
+          // 操作テスト（Camera/Object アクション）
+          createActionTestObject(11, 7, resolveAssetId),
         ],
       },
     ],

@@ -24,6 +24,7 @@ import {
   audioTestScript, inputTestScript, effectTestScript, animTestScript,
   partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
   equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
+  healAllScript, levelUpAllScript,
   menuOpenScript, itemScreenScript, equipScreenScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
@@ -133,6 +134,7 @@ export async function loadDefaultTestData(): Promise<void> {
     audioTestScript, inputTestScript, effectTestScript, animTestScript,
     partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
     equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
+    healAllScript, levelUpAllScript,
     menuOpenScript, itemScreenScript, equipScreenScript,
   ];
   for (const script of scriptsToAdd) {
