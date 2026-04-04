@@ -211,7 +211,7 @@ export default function MapEditPage() {
     <ThreeColumnLayout
       left={
         <Tabs
-          defaultValue="chipset"
+          defaultValue="map"
           className="flex h-full flex-col bg-muted/20"
           onValueChange={(tab) => {
             if (!selectedMap) return;
