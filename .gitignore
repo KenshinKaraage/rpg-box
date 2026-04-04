@@ -47,3 +47,4 @@ coverage/
 
 # Temporary screenshots
 screenshot/
+.vercel
