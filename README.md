@@ -1,7 +1,11 @@
 # RPG Box
 
+[![Deploy](https://img.shields.io/badge/demo-rpgbox.vercel.app-blue)](https://rpgbox.vercel.app)
+
 直感的だけど自由に2D RPGが作れるブラウザサイトです。
 プログラミングに関わりがない人でも直感的に、しかし本格的なRPGを作ることができます。
+
+**[デモを試す →](https://rpgbox.vercel.app)**
 
 ## なぜ作ったの？
 
