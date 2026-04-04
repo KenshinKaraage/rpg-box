@@ -39,7 +39,7 @@ export function ColorPresetPicker({ value, onChange }: ColorPresetPickerProps) {
           ) : (
             <div className="h-4 w-4 rounded border border-dashed" />
           )}
-          <span className="text-xs">{value || 'なし'}</span>
+          <span className="text-xs">{(value && COLOR_PRESETS.find((c) => c.value === value)?.label) || 'なし'}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-3" align="start">

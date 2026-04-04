@@ -16,6 +16,7 @@ export default function ComponentScriptPage() {
   const addScript = useStore((state) => state.addScript);
   const updateScript = useStore((state) => state.updateScript);
   const deleteScript = useStore((state) => state.deleteScript);
+  const moveScript = useStore((state) => state.moveScript);
   const selectScript = useStore((state) => state.selectScript);
   const seedDefaultComponentScripts = useStore((state) => state.seedDefaultComponentScripts);
   const dataTypes = useStore((state) => state.dataTypes);
@@ -24,24 +25,11 @@ export default function ComponentScriptPage() {
     seedDefaultComponentScripts();
   }, [seedDefaultComponentScripts]);
 
-  // Top-level component scripts
+  // All component scripts (flat, including internal children)
   const componentScripts = useMemo(
-    () => scripts.filter((s) => s.type === 'component' && !s.parentId),
+    () => scripts.filter((s) => s.type === 'component' || (s.type === 'internal' && s.parentId && scripts.find((p) => p.id === s.parentId)?.type === 'component')),
     [scripts]
   );
-
-  // Internal scripts map: parentId -> direct children
-  const internalScriptsMap = useMemo(() => {
-    const map: Record<string, Script[]> = {};
-    for (const s of scripts) {
-      if (s.parentId) {
-        const key = s.parentId;
-        if (!map[key]) map[key] = [];
-        map[key]!.push(s);
-      }
-    }
-    return map;
-  }, [scripts]);
 
   // DataType info for IntelliSense
   const dataTypeInfos: DataTypeInfo[] = useMemo(
@@ -92,12 +80,12 @@ export default function ComponentScriptPage() {
       left={
         <ScriptList
           scripts={componentScripts}
-          internalScriptsMap={internalScriptsMap}
           selectedId={selectedScriptId}
           onSelect={selectScript}
           onAdd={handleAdd}
           onDelete={deleteScript}
           onAddInternal={handleAddInternal}
+          onMove={moveScript}
           title="コンポーネントスクリプト"
         />
       }

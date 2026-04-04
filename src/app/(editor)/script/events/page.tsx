@@ -25,6 +25,7 @@ export default function EventScriptPage() {
   const addScript = useStore((state) => state.addScript);
   const updateScript = useStore((state) => state.updateScript);
   const deleteScript = useStore((state) => state.deleteScript);
+  const moveScript = useStore((state) => state.moveScript);
   const selectScript = useStore((state) => state.selectScript);
   const classes = useStore((state) => state.classes);
   const dataTypes = useStore((state) => state.dataTypes);
@@ -42,24 +43,11 @@ export default function EventScriptPage() {
     [dataTypes]
   );
 
-  // Top-level event/internal scripts (component scripts are in a separate page)
+  // All event/internal scripts (flat, including children — component scripts are in a separate page)
   const eventScripts = useMemo(
-    () => scripts.filter((s) => (s.type === 'event' || s.type === 'internal') && !s.parentId),
+    () => scripts.filter((s) => s.type === 'event' || s.type === 'internal'),
     [scripts]
   );
-
-  // Internal scripts map: parentId -> direct children
-  const internalScriptsMap = useMemo(() => {
-    const map: Record<string, Script[]> = {};
-    for (const s of scripts) {
-      if (s.parentId) {
-        const key = s.parentId;
-        if (!map[key]) map[key] = [];
-        map[key]!.push(s);
-      }
-    }
-    return map;
-  }, [scripts]);
 
   // Selected script
   const selectedScript = useMemo(
@@ -167,12 +155,12 @@ export default function EventScriptPage() {
       left={
         <ScriptList
           scripts={eventScripts}
-          internalScriptsMap={internalScriptsMap}
           selectedId={selectedScriptId}
           onSelect={selectScript}
           onAdd={handleAdd}
           onDelete={deleteScript}
           onAddInternal={handleAddInternal}
+          onMove={moveScript}
           title="イベントスクリプト"
         />
       }

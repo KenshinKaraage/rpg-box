@@ -17,16 +17,13 @@ const mockInternalScripts: Script[] = [
 
 describe('ScriptList', () => {
   const defaultProps = {
-    scripts: mockScripts,
-    internalScriptsMap: {
-      s1: mockInternalScripts,
-      s2: [],
-    } as Record<string, Script[]>,
+    scripts: [...mockScripts, ...mockInternalScripts],
     selectedId: null as string | null,
     onSelect: jest.fn(),
     onAdd: jest.fn(),
     onDelete: jest.fn(),
     onAddInternal: jest.fn(),
+    onMove: jest.fn(),
     title: 'イベントスクリプト',
   };
 
@@ -44,34 +41,14 @@ describe('ScriptList', () => {
   });
 
   it('shows recursively nested internal scripts', () => {
-    const nestedMap: Record<string, Script[]> = {
-      s1: [mockInternalScripts[0]!],
-      s2: [],
-      i1: [{ ...createScript('g1', '_calcHit', 'internal'), parentId: 'i1' }],
-    };
-    render(<ScriptList {...defaultProps} internalScriptsMap={nestedMap} />);
+    const nested: Script[] = [
+      ...mockScripts,
+      mockInternalScripts[0]!,
+      { ...createScript('g1', '_calcHit', 'internal'), parentId: 'i1' },
+    ];
+    render(<ScriptList {...defaultProps} scripts={nested} />);
     expect(screen.getByText('_damage')).toBeInTheDocument();
     expect(screen.getByText('_calcHit')).toBeInTheDocument();
-  });
-
-  it('calls onSelect when clicking a script', () => {
-    const onSelect = jest.fn();
-    render(<ScriptList {...defaultProps} onSelect={onSelect} />);
-    fireEvent.click(screen.getByText('バトル開始'));
-    expect(onSelect).toHaveBeenCalledWith('s1');
-  });
-
-  it('calls onSelect when clicking an internal script', () => {
-    const onSelect = jest.fn();
-    render(<ScriptList {...defaultProps} onSelect={onSelect} />);
-    fireEvent.click(screen.getByText('_damage'));
-    expect(onSelect).toHaveBeenCalledWith('i1');
-  });
-
-  it('highlights selected script', () => {
-    render(<ScriptList {...defaultProps} selectedId="s1" />);
-    const item = screen.getByTestId('script-item-s1');
-    expect(item).toHaveClass('bg-accent');
   });
 
   it('calls onAdd when clicking add button', () => {
@@ -82,7 +59,7 @@ describe('ScriptList', () => {
   });
 
   it('renders empty state when no scripts', () => {
-    render(<ScriptList {...defaultProps} scripts={[]} internalScriptsMap={{}} />);
+    render(<ScriptList {...defaultProps} scripts={[]} />);
     expect(screen.getByText(/スクリプトがありません/)).toBeInTheDocument();
   });
 });

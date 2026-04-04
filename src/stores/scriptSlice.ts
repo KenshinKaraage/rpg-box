@@ -32,6 +32,9 @@ export interface ScriptSlice {
   /** 親スクリプトの内部スクリプトを取得 */
   getInternalScripts: (parentId: string) => Script[];
 
+  /** スクリプトを移動（D&D並び替え用） */
+  moveScript: (id: string, newParentId: string | undefined, index: number) => void;
+
   /** ビルトインコンポーネントスクリプトをシードする（プロジェクト初期化時に呼ぶ） */
   seedDefaultComponentScripts: () => void;
 }
@@ -95,6 +98,38 @@ export const createScriptSlice = <T extends ScriptSlice>(
   getInternalScripts: (parentId: string) => {
     return get().scripts.filter((s) => s.parentId === parentId);
   },
+
+  moveScript: (id: string, newParentId: string | undefined, index: number) =>
+    set((state) => {
+      const scriptIndex = state.scripts.findIndex((s) => s.id === id);
+      if (scriptIndex === -1) return;
+
+      // Remove from current position
+      const [script] = state.scripts.splice(scriptIndex, 1);
+      if (!script) return;
+
+      // Update parentId
+      script.parentId = newParentId;
+
+      // Find siblings at the target level
+      const siblings = state.scripts.filter((s) =>
+        newParentId ? s.parentId === newParentId : !s.parentId
+      );
+
+      if (index >= siblings.length) {
+        // Insert after the last sibling
+        const lastSibling = siblings[siblings.length - 1];
+        const insertAt = lastSibling
+          ? state.scripts.indexOf(lastSibling) + 1
+          : state.scripts.length;
+        state.scripts.splice(insertAt, 0, script);
+      } else {
+        // Insert before the sibling at `index`
+        const targetSibling = siblings[index];
+        const insertAt = targetSibling ? state.scripts.indexOf(targetSibling) : state.scripts.length;
+        state.scripts.splice(insertAt, 0, script);
+      }
+    }),
 
   seedDefaultComponentScripts: () => {
     const defaults = getDefaultComponentScripts();
