@@ -83,7 +83,7 @@ describe('TriggerSystem', () => {
       const npc = makeRuntimeObject('npc', 2, 1, {
         talkTrigger: { eventId: 'evt1', direction: 'any' },
       });
-      const world = mockWorld([player, npc], player);
+      mockWorld([player, npc], player);
       const trigger = new TriggerSystem();
 
       // Player faces left but npc is to the right — still fires with 'any'

@@ -10,7 +10,7 @@ export class LogAction extends EventAction {
 
   message = '';
 
-  async execute(context: GameContext): Promise<void> {
+  async execute(_context: GameContext): Promise<void> {
     console.log('[Game]', this.message);
   }
 

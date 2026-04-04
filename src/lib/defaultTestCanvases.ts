@@ -1481,7 +1481,6 @@ export const equipScreenCanvas: EditorUICanvas = {
 
 // ── UICanvas: ショップ画面 ──
 
-const SHOP_ITEM_W = 600;
 const SHOP_ROW_H = 36;
 
 function createShopObjects(): EditorUIObject[] {

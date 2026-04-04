@@ -146,6 +146,33 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     setPrevScriptId(null);
   }
 
+  const handleRuntimeStarted = useCallback(
+    (runtime: GameRuntime) => {
+      if (!script) return;
+      const args: Record<string, unknown> = {};
+      for (const arg of script.args) {
+        args[arg.id] = argValues[arg.id] ?? arg.defaultValue ?? '';
+      }
+      runtime.executeScript(script.id, args)
+        .then((value) => {
+          setUiTestData(null);
+          setResult(value !== undefined ? JSON.stringify(value) : 'undefined');
+          setRuntimeError(null);
+        })
+        .catch((err) => {
+          console.error('[ScriptTest] Runtime execution error:', err);
+          setRuntimeError(err instanceof Error ? err.message : String(err));
+          setResult(err instanceof Error ? err.message : String(err));
+        });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [script?.id, argValues]
+  );
+
+  const handleCloseUITest = useCallback(() => {
+    setUiTestData(null);
+  }, []);
+
   if (!script) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground">
@@ -243,30 +270,6 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     const data = buildProjectDataWithEmptyMap();
     setUiTestData(data);
   };
-
-  const handleRuntimeStarted = useCallback(
-    (runtime: GameRuntime) => {
-      if (!script) return;
-      const args = buildArgs();
-      runtime.executeScript(script.id, args)
-        .then((value) => {
-          setUiTestData(null);
-          setResult(value !== undefined ? JSON.stringify(value) : 'undefined');
-          setRuntimeError(null);
-        })
-        .catch((err) => {
-          console.error('[ScriptTest] Runtime execution error:', err);
-          setRuntimeError(err instanceof Error ? err.message : String(err));
-          setResult(err instanceof Error ? err.message : String(err));
-        });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [script?.id, argValues]
-  );
-
-  const handleCloseUITest = useCallback(() => {
-    setUiTestData(null);
-  }, []);
 
   return (
     <div className="flex h-full flex-col">

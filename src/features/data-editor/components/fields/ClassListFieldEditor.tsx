@@ -76,7 +76,7 @@ export function ClassListFieldEditor({
     onChange(updated);
     setExpandedIndices((prev) => {
       const next = new Set<number>();
-      for (const idx of prev) {
+      for (const idx of Array.from(prev)) {
         if (idx < index) next.add(idx);
         else if (idx > index) next.add(idx - 1);
       }

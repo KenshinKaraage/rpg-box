@@ -10,7 +10,7 @@ export class NavigationItemComponent extends UIComponent {
 
   getPropertyDefs(): PropertyDef[] {
     return [
-      { key: 'itemId', label: '項目ID', type: 'string' },
+      { key: 'itemId', label: '項目ID', type: 'text' },
     ];
   }
 

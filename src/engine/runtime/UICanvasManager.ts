@@ -456,7 +456,7 @@ export class UICanvasManager implements UIActionManager {
     if (!state) return null;
     for (const rt of state.runtimes) {
       if (rt.objectId === objectId && typeof rt.fns[name] === 'function') {
-        return (rt.fns[name] as Function).bind(rt.fns);
+        return (rt.fns[name] as (...args: unknown[]) => unknown).bind(rt.fns);
       }
     }
     return null;
@@ -468,7 +468,7 @@ export class UICanvasManager implements UIActionManager {
     for (const rt of state.runtimes) {
       const fn = rt.fns[name];
       if (typeof fn === 'function') {
-        try { (fn as Function).call(rt.fns, ...args); } catch (e) { console.warn(`[UIRuntime] ${name} error (${rt.componentType}):`, e); }
+        try { (fn as (...a: unknown[]) => unknown).call(rt.fns, ...args); } catch (e) { console.warn(`[UIRuntime] ${name} error (${rt.componentType}):`, e); }
       }
     }
   }

@@ -100,7 +100,7 @@ export function ConditionEditor({ condition, onChange, availableFields }: Condit
       </div>
 
       {/* 値選択 */}
-      {condition?.fieldId && options.length > 0 && (
+      {condition?.fieldId && options.length > 0 ? (
         <div className="space-y-2">
           <Label htmlFor="condition-value">値</Label>
           <Select
@@ -113,21 +113,21 @@ export function ConditionEditor({ condition, onChange, availableFields }: Condit
             <SelectContent>
               {options.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {String(option.label)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-      )}
+      ) : null}
 
       {/* 説明テキスト */}
-      {condition?.fieldId && condition.value && (
+      {condition?.fieldId && condition.value ? (
         <p className="text-xs text-muted-foreground">
           「{selectedField?.name}」が「
           {options.find((o) => o.value === String(condition.value))?.label}」のときに表示
         </p>
-      )}
+      ) : null}
     </div>
   );
 }

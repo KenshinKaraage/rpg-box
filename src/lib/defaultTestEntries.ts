@@ -401,8 +401,6 @@ export function createTestVariables(): Variable[] {
   const numberType = createFieldTypeInstance('number')!;
   const classType = createFieldTypeInstance('class')!;
   Object.assign(classType, { classId: 'class_status' });
-  const stringType = createFieldTypeInstance('string')!;
-
   return [
     {
       id: 'var_gold',

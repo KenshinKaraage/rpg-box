@@ -8,7 +8,7 @@ import type { NamedAnimation, TweenTrack, InlineTimeline } from '@/types/ui/comp
 import { computeCycleDuration } from '@/types/ui/components/AnimationComponent';
 import { useStore } from '@/stores';
 import { getEasingNames } from '@/engine/tween/easings';
-import { getTweenPresetNames, getTweenPreset, type PresetTrack } from '@/engine/tween/presets';
+import { getTweenPresetNames, getTweenPreset } from '@/engine/tween/presets';
 import {
   useComponentOptions,
   getAnimatableDefsForComponent,

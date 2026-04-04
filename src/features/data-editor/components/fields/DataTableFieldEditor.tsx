@@ -82,15 +82,15 @@ export function DataTableFieldEditor({
 
   const handleChangeEntry = (index: number, newEntryId: string) => {
     const updated = [...value];
-    updated[index] = { ...updated[index], id: newEntryId };
+    updated[index] = { ...updated[index]!, id: newEntryId };
     onChange(updated);
   };
 
   const handleChangeColumnValue = (index: number, columnId: string, columnValue: unknown) => {
     const updated = [...value];
     updated[index] = {
-      ...updated[index],
-      values: { ...updated[index].values, [columnId]: columnValue },
+      ...updated[index]!,
+      values: { ...updated[index]!.values, [columnId]: columnValue },
     };
     onChange(updated);
   };

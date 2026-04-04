@@ -13,8 +13,7 @@ import {
 } from '@/components/ui/select';
 import { useStore } from '@/stores';
 import { getAllComponents, getComponent } from '@/types/components';
-import type { Component } from '@/types/components/Component';
-import type { MapObject } from '@/types/map';
+
 
 interface MapPropertyPanelProps {
   selectedObjectId: string | null;

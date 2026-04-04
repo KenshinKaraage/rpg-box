@@ -159,7 +159,7 @@ export function TriggerPropertyPanel({ component, onChange, objectId }: Props) {
         open={modalOpen}
         onOpenChange={setModalOpen}
         actions={component.actions ?? ([] as EditableAction[])}
-        onSave={(actions) => onChange({ actions })}
+        onSave={(actions: EditableAction[]) => onChange({ actions })}
       />
     </div>
   );

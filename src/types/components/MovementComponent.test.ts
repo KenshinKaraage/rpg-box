@@ -1,4 +1,4 @@
-import { MovementComponent, type RouteStep } from './MovementComponent';
+import { MovementComponent } from './MovementComponent';
 
 describe('MovementComponent', () => {
   it('has type "movement"', () => {

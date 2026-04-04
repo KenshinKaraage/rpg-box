@@ -177,13 +177,13 @@ export function applyLayoutOverrides(
     if (layoutComp) {
       const data = layoutComp.data as LayoutGroupData;
       const positions = resolveLayoutGroup(children, data, obj.transform.width, obj.transform.height);
-      for (const [id, pos] of positions) {
+      for (const [id, pos] of Array.from(positions)) {
         overrides.set(id, pos);
       }
     } else if (gridComp) {
       const data = gridComp.data as GridLayoutData;
       const positions = resolveGridLayout(children, data);
-      for (const [id, pos] of positions) {
+      for (const [id, pos] of Array.from(positions)) {
         overrides.set(id, pos);
       }
     }

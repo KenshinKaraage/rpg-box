@@ -115,6 +115,6 @@ function createTextTexture(
   return twgl.createTexture(gl, {
     src: canvas2d,
     minMag: gl.LINEAR,
-    premultiplyAlpha: true,
+    premultiplyAlpha: 1,
   });
 }

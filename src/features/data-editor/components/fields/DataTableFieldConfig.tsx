@@ -49,7 +49,7 @@ export function DataTableFieldConfig({
 
   const handleUpdateColumn = (index: number, updates: Partial<DataTableColumn>) => {
     const updated = [...columns];
-    updated[index] = { ...updated[index], ...updates };
+    updated[index] = { ...updated[index]!, ...updates } as DataTableColumn;
     onChange({ columns: updated });
   };
 

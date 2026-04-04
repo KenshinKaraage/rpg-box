@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useStore } from '@/stores';
+
 import type { VariablesComponent, ObjectVariable } from '@/types/components/VariablesComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
 
@@ -40,7 +40,6 @@ interface Props extends ComponentPanelProps {
 
 export function VariablesPropertyPanel({ component, onChange }: Props) {
   const entries = Object.entries(component.variables ?? {});
-  const classes = useStore((s) => s.classes);
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState('number');
 

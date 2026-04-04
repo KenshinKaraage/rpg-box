@@ -16,7 +16,7 @@ export class RepeaterComponent extends UIComponent {
 
   getPropertyDefs(): PropertyDef[] {
     return [
-      { key: 'templateId', label: 'テンプレート', type: 'string' },
+      { key: 'templateId', label: 'テンプレート', type: 'text' },
     ];
   }
 

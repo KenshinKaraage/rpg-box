@@ -11,7 +11,7 @@ function mockComponent(type: string, label: string): Component {
     serialize: () => ({}),
     deserialize: () => {},
     clone: () => mockComponent(type, label),
-    renderPropertyPanel: (props: ComponentPanelProps) => null,
+    renderPropertyPanel: (_props: ComponentPanelProps) => null,
   } as unknown as Component;
 }
 
