@@ -3671,6 +3671,43 @@ export function useAutoSave() {
 
 ---
 
+#### [T126a] [US10] ScriptList icon/color display
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] スクリプトリストにアイコン表示（getScriptIcon 使用）
+- [x] スクリプトのカラーをアイコン・テキストに適用
+- [x] event スクリプトは太字、internal は muted 表示
+
+**関連ファイル:**
+
+- `src/features/script-editor/components/ScriptList.tsx`
+
+---
+
+#### [T126b] [US10] ScriptList drag-and-drop reorder
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] スクリプトリストでD&Dによる並び替え
+- [ ] 並び順をストアに保存
+- [ ] 内部スクリプトも親内で並び替え可能
+
+**関連ファイル:**
+
+- `src/features/script-editor/components/ScriptList.tsx`
+- `src/stores/scriptSlice.ts`
+
+---
+
 #### [T127] [US10] Create ScriptEditor (Monaco wrapper)
 
 - **ステータス:** [x] 完了
@@ -3714,6 +3751,63 @@ export function useAutoSave() {
 
 ---
 
+#### [T128a] [US10] Script icon picker
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] IconPicker コンポーネント作成（RPGプリセットアイコン60種以上）
+- [x] ScriptSettingsPanel にアイコン選択追加
+- [x] Script 型に `icon` フィールド追加
+
+**関連ファイル:**
+
+- `src/features/script-editor/components/IconPicker.tsx`
+- `src/features/script-editor/components/ScriptSettingsPanel.tsx`
+
+---
+
+#### [T128b] [US10] Script color preset picker
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] ColorPresetPicker コンポーネント作成（14色プリセット）
+- [x] ScriptSettingsPanel にカラー選択追加
+- [x] Script 型に `color` フィールド追加
+- [x] ボタンにカラーコードではなくラベル名表示
+
+**関連ファイル:**
+
+- `src/features/script-editor/components/ColorPresetPicker.tsx`
+- `src/features/script-editor/components/ScriptSettingsPanel.tsx`
+
+---
+
+#### [T128c] [US10] Script type selector (event/internal)
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] ScriptSettingsPanel にスクリプト種類ドロップダウン追加
+- [x] event / internal の2択（component は別ページ）
+- [x] 種類ごとの説明テキスト表示
+
+**関連ファイル:**
+
+- `src/features/script-editor/components/ScriptSettingsPanel.tsx`
+
+---
+
 #### [T129] [US10] Create ScriptTestPanel
 
 - **ステータス:** [x] 完了
@@ -3754,6 +3848,24 @@ export function useAutoSave() {
 
 ---
 
+#### [T130a] [US10] ScriptPickerModal grid layout
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] リスト表示から4列グリッド（正方形カード）に変更
+- [x] アイコン + 名前 + カラー表示
+- [x] ダイアログ幅を modal-lg に拡大
+
+**関連ファイル:**
+
+- `src/features/event-editor/components/ScriptPickerModal.tsx`
+
+---
+
 #### [T131] [US10] Define Script types
 
 - **ステータス:** [x] 完了
@@ -3770,6 +3882,24 @@ export function useAutoSave() {
 **関連ファイル:**
 
 - `src/types/script.ts`
+
+---
+
+#### [T131a] [US10] Default script data: icon/color/type/order optimization
+
+- **ステータス:** [x] 完了
+- **ブランチ:** main
+- **PR:** -
+
+**完了条件:**
+
+- [x] 全27スクリプトにカテゴリ別カラー設定（UI基盤=青, アイテム=緑, 装備=水色, パーティ=紫, メニュー=橙, ショップ=黄, テスト=灰）
+- [x] message/choice/input_number/input_text を type: 'event' に修正
+- [ ] デフォルトスクリプトの並び順を再整理
+
+**関連ファイル:**
+
+- `src/lib/defaultTestScripts.ts`
 
 ---
 
