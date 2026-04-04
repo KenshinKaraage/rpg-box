@@ -121,7 +121,6 @@ function createBattleSkillResultClass(): CustomClass {
       f('number', { id: 'hit_rate', name: '命中率(%)', min: 0, max: 100 }),
       f('number', { id: 'crit_rate', name: 'クリティカル率(%)', min: 0, max: 100 }),
       f('number', { id: 'crit_multiplier', name: 'クリティカル倍率', min: 1, max: 10, step: 0.1 }),
-      f('string', { id: 'formula', name: 'ダメージ計算式' }),
     ],
   };
 }

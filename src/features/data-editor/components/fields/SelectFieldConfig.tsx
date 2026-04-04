@@ -9,11 +9,10 @@ import { generateId } from '@/lib/utils';
 
 interface SelectFieldConfigProps {
   options: SelectOption[];
-  placeholder?: string;
   onChange: (updates: Record<string, unknown>) => void;
 }
 
-export function SelectFieldConfig({ options, placeholder, onChange }: SelectFieldConfigProps) {
+export function SelectFieldConfig({ options, onChange }: SelectFieldConfigProps) {
   const handleAddOption = () => {
     const newOption: SelectOption = {
       value: generateId(
@@ -37,15 +36,6 @@ export function SelectFieldConfig({ options, placeholder, onChange }: SelectFiel
 
   return (
     <div className="space-y-3">
-      <div className="space-y-1">
-        <Label className="text-xs">プレースホルダー</Label>
-        <Input
-          value={placeholder ?? ''}
-          onChange={(e) => onChange({ placeholder: e.target.value || undefined })}
-          placeholder="選択してください"
-        />
-      </div>
-
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-xs">選択肢</Label>

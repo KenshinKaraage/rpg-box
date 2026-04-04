@@ -18,11 +18,6 @@ describe('SelectFieldConfig', () => {
   });
 
   describe('表示', () => {
-    it('プレースホルダーラベルが表示される', () => {
-      render(<SelectFieldConfig {...defaultProps} />);
-      expect(screen.getByText('プレースホルダー')).toBeInTheDocument();
-    });
-
     it('選択肢ラベルが表示される', () => {
       render(<SelectFieldConfig {...defaultProps} />);
       expect(screen.getByText('選択肢')).toBeInTheDocument();
@@ -51,39 +46,9 @@ describe('SelectFieldConfig', () => {
       expect(screen.getByRole('button', { name: '選択肢「通常」を削除' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: '選択肢「レア」を削除' })).toBeInTheDocument();
     });
-
-    it('placeholder が設定されている場合は入力欄に値が表示される', () => {
-      render(<SelectFieldConfig {...defaultProps} placeholder="選んでください" />);
-      expect(screen.getByDisplayValue('選んでください')).toBeInTheDocument();
-    });
-
-    it('placeholder が未設定の場合は入力欄が空になる', () => {
-      render(<SelectFieldConfig {...defaultProps} />);
-      expect(screen.getByPlaceholderText('選択してください')).toHaveValue('');
-    });
   });
 
   describe('操作', () => {
-    it('プレースホルダーを入力すると onChange が { placeholder: string } で呼ばれる', () => {
-      const onChange = jest.fn();
-      render(<SelectFieldConfig options={[]} onChange={onChange} />);
-
-      fireEvent.change(screen.getByPlaceholderText('選択してください'), {
-        target: { value: '種類を選んでください' },
-      });
-      expect(onChange).toHaveBeenCalledWith({ placeholder: '種類を選んでください' });
-    });
-
-    it('プレースホルダーを空にすると onChange が { placeholder: undefined } で呼ばれる', () => {
-      const onChange = jest.fn();
-      render(<SelectFieldConfig options={[]} onChange={onChange} placeholder="既存" />);
-
-      fireEvent.change(screen.getByPlaceholderText('選択してください'), {
-        target: { value: '' },
-      });
-      expect(onChange).toHaveBeenCalledWith({ placeholder: undefined });
-    });
-
     it('「追加」ボタンをクリックすると新しい選択肢が追加される', () => {
       const onChange = jest.fn();
       render(<SelectFieldConfig options={[]} onChange={onChange} />);

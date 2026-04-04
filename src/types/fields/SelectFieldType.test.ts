@@ -132,12 +132,6 @@ describe('SelectFieldType', () => {
       expect(field.options).toEqual(sampleOptions);
     });
 
-    it('has optional placeholder property', () => {
-      const field = new SelectFieldType();
-      expect(field.placeholder).toBeUndefined();
-      field.placeholder = '選択してください';
-      expect(field.placeholder).toBe('選択してください');
-    });
   });
 
   describe('registry', () => {

@@ -38,9 +38,6 @@ export class SelectFieldType extends FieldType<string> {
   /** 選択肢 */
   options: SelectOption[] = [];
 
-  /** プレースホルダーテキスト */
-  placeholder?: string;
-
   getDefaultValue(): string {
     const firstOption = this.options[0];
     return firstOption?.value ?? '';
@@ -92,7 +89,6 @@ export class SelectFieldType extends FieldType<string> {
         disabled={props.disabled}
         error={props.error}
         options={this.options}
-        placeholder={this.placeholder}
       />
     );
   }
@@ -101,7 +97,6 @@ export class SelectFieldType extends FieldType<string> {
     return (
       <SelectFieldConfig
         options={this.options}
-        placeholder={this.placeholder}
         onChange={props.onChange}
       />
     );

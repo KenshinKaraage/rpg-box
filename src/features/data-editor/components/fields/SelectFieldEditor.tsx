@@ -19,7 +19,6 @@ interface SelectFieldEditorProps {
   disabled?: boolean;
   error?: string;
   options: SelectOption[];
-  placeholder?: string;
 }
 
 export function SelectFieldEditor({
@@ -28,13 +27,12 @@ export function SelectFieldEditor({
   disabled,
   error,
   options,
-  placeholder,
 }: SelectFieldEditorProps) {
   return (
     <div className="space-y-1">
       <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger className={error ? 'border-red-500' : ''}>
-          <SelectValue placeholder={placeholder ?? '選択してください'} />
+          <SelectValue placeholder="選択してください" />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (

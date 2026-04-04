@@ -25,11 +25,6 @@ describe('SelectFieldEditor', () => {
     });
 
     it('プレースホルダーが表示される（値が空の場合）', () => {
-      render(<SelectFieldEditor {...defaultProps} value="" placeholder="選択してね" />);
-      expect(screen.getByText('選択してね')).toBeInTheDocument();
-    });
-
-    it('デフォルトプレースホルダーが表示される', () => {
       render(<SelectFieldEditor {...defaultProps} value="" />);
       expect(screen.getByText('選択してください')).toBeInTheDocument();
     });
