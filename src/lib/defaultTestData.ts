@@ -20,12 +20,12 @@ import {
 } from './defaultTestCanvases';
 import {
   messageScript, choiceScript, inputNumberScript, inputTextScript,
-  showStatusScript, shopScript, mapInfoScript, objTestScript,
+  showStatusScript, mapInfoScript, objTestScript,
   audioTestScript, inputTestScript, effectTestScript, animTestScript,
   partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
   equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
   healAllScript, levelUpAllScript, shopOpenScript,
-  menuOpenScript, itemScreenScript, equipScreenScript, skillScreenScript,
+  menuOpenScript, itemScreenScript, equipScreenScript, skillScreenScript, statusScreenScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
 import { createTestMap, createNpcPrefabs } from './defaultTestMap';
@@ -133,15 +133,23 @@ export async function loadDefaultTestData(): Promise<void> {
     }
   }
 
-  // Script
+  // Script (ordered by category for display)
   const scriptsToAdd = [
+    // UI基盤（event）
     messageScript, choiceScript, inputNumberScript, inputTextScript,
-    showStatusScript, shopScript, mapInfoScript, objTestScript,
+    // パーティ
+    initPartyScript, levelUpScript, levelUpAllScript, healAllScript, partyStatusScript,
+    // アイテム
+    itemAddScript, itemRemoveScript, useItemScript,
+    // 装備
+    equipItemScript, unequipItemScript,
+    // メニュー画面
+    menuOpenScript, itemScreenScript, equipScreenScript, skillScreenScript, statusScreenScript,
+    // ショップ
+    shopOpenScript,
+    // テスト用
+    showStatusScript, mapInfoScript, objTestScript,
     audioTestScript, inputTestScript, effectTestScript, animTestScript,
-    partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
-    equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
-    healAllScript, levelUpAllScript, shopOpenScript,
-    menuOpenScript, itemScreenScript, equipScreenScript, skillScreenScript,
   ];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {

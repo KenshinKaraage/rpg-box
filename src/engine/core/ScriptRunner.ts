@@ -94,7 +94,7 @@ export class ScriptRunner {
 
     const ns: Record<string, (...args: unknown[]) => unknown> = {};
     for (const s of this.scripts) {
-      if (s.callId && s.type !== 'internal') {
+      if (s.callId) {
         ns[s.callId] = (...callArgs: unknown[]): unknown => {
           const argsObj = this.resolveCallArgs(s, callArgs);
           return this.execute(s, context, argsObj);

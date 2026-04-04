@@ -373,7 +373,7 @@ export function createTestMap(resolveAssetId: AssetNameToId): GameMap {
             { text: 'Xキーでメニューを開けます。', face: '' },
           ]), resolveAssetId),
           // 商人（アイテム購入テスト）
-          createNpcObject('npc_shop', '商人', 9, 5, createScriptActions('shop_buy', [{}]), resolveAssetId),
+          createNpcObject('npc_shop', '商人', 9, 5, createScriptActions('shop_open', [{ shopItems: ["potion_hp", "potion_mp", "antidote", "iron_sword", "magic_staff", "iron_shield", "leather_hat", "leather_armor", "traveler_clothes", "power_ring"] }]), resolveAssetId),
           // 回復役（HP/MP全回復 + アイテムくれる）
           createNpcObject('npc_healer', '回復役', 7, 7, createScriptActions('heal_all', [{}]), resolveAssetId),
           // レベルアップ係
