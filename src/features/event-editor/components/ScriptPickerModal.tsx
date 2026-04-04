@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getScriptIcon } from '@/features/script-editor/components/IconPicker';
 import type { Script } from '@/types/script';
 
@@ -44,7 +39,7 @@ export function ScriptPickerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] max-w-lg">
+      <DialogContent className="max-h-[80vh] max-w-modal-lg">
         <DialogHeader>
           <DialogTitle>スクリプトを選択</DialogTitle>
         </DialogHeader>
@@ -60,41 +55,43 @@ export function ScriptPickerModal({
             />
           </div>
           <div className="max-h-[50vh] overflow-auto">
-            {/* 選択なし */}
-            <button
-              className="flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm hover:bg-accent"
-              onClick={() => handleSelect('')}
-            >
-              <span className="text-muted-foreground">（選択なし）</span>
-            </button>
             {filtered.length === 0 && search && (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                見つかりません
-              </div>
+              <div className="p-4 text-center text-sm text-muted-foreground">見つかりません</div>
             )}
-            {filtered.map((s) => {
-              const Icon = getScriptIcon(s.icon);
-              return (
+            <div className="grid grid-cols-5 gap-2 p-1">
+              {/* 選択なし */}
               <button
-                key={s.id}
-                className="flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm hover:bg-accent"
-                onClick={() => handleSelect(s.id)}
+                className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-muted-foreground/30 text-muted-foreground transition-colors hover:border-foreground/50 hover:bg-accent"
+                onClick={() => handleSelect('')}
               >
-                <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{s.name}</div>
-                  {s.description && (
-                    <div className="truncate text-xs text-muted-foreground">{s.description}</div>
-                  )}
-                </div>
-                {s.callId && (
-                  <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-                    {s.callId}
-                  </span>
-                )}
+                <span className="text-xs">なし</span>
               </button>
-              );
-            })}
+              {filtered.map((s) => {
+                const Icon = getScriptIcon(s.icon);
+                return (
+                  <button
+                    key={s.id}
+                    className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-lg border transition-colors hover:bg-accent"
+                    style={s.color ? { borderColor: s.color + '40' } : undefined}
+                    onClick={() => handleSelect(s.id)}
+                    title={[s.name, s.callId && `(${s.callId})`, s.description]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    <Icon
+                      className="h-6 w-6 shrink-0"
+                      style={s.color ? { color: s.color } : undefined}
+                    />
+                    <span
+                      className="w-full truncate px-1 text-center text-[11px] font-medium leading-tight"
+                      style={s.color ? { color: s.color } : undefined}
+                    >
+                      {s.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </DialogContent>
