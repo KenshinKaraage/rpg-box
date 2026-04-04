@@ -139,7 +139,7 @@ export function Header() {
 
       {/* Logo */}
       <Link href="/" className="mr-6 flex items-center gap-2 font-bold">
-        <span className="flex h-6 w-6 items-center justify-center rounded bg-primary text-xs text-primary-foreground">◇</span>
+        <img src="/favicon.png" alt="RPG Box" className="h-6 w-6" />
         <span>RPG Box</span>
       </Link>
 
