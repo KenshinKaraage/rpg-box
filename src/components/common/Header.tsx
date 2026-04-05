@@ -147,7 +147,7 @@ export function Header() {
           <DropdownMenu key={menu.label}>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 className={cn(
                   'text-sm font-medium',
