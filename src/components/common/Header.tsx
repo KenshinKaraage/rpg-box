@@ -151,7 +151,8 @@ export function Header() {
                 size="sm"
                 className={cn(
                   'text-sm font-medium focus-visible:ring-0 focus-visible:ring-offset-0',
-                  isActiveMenu(menu.items) && 'bg-accent text-accent-foreground'
+                  isActiveMenu(menu.items) &&
+                    'bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground'
                 )}
               >
                 {menu.label}
@@ -163,7 +164,9 @@ export function Header() {
                 <DropdownMenuItem key={item.href} asChild>
                   <Link
                     href={item.href}
-                    className={cn(pathname === item.href && 'bg-accent text-accent-foreground')}
+                    className={cn(
+                      pathname === item.href && 'bg-primary/15 text-primary font-medium'
+                    )}
                   >
                     {item.label}
                   </Link>
