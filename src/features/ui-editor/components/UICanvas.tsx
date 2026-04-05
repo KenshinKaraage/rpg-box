@@ -246,19 +246,16 @@ export function UICanvas() {
   ]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden" data-testid="ui-canvas-container">
-      <canvas
-        ref={canvasRef}
-        data-testid="ui-canvas"
-        className="block h-full w-full"
-        onMouseDown={(e) => handleMouseDown(e.nativeEvent)}
-        onMouseMove={(e) => handleMouseMoveWrapped(e.nativeEvent)}
-        onMouseUp={handleMouseUpWithSelection}
-      />
+    <div
+      className="relative h-full w-full overflow-hidden"
+      data-testid="ui-canvas-container"
+      onMouseDown={(e) => handleMouseDown(e.nativeEvent)}
+      onMouseMove={(e) => handleMouseMoveWrapped(e.nativeEvent)}
+      onMouseUp={handleMouseUpWithSelection}
+    >
+      <canvas ref={canvasRef} data-testid="ui-canvas" className="block h-full w-full" />
       {/* ツールバーオーバーレイ */}
-      <div
-        style={{ position: 'absolute', left: 8, top: 8, zIndex: 10, pointerEvents: 'none' }}
-      >
+      <div style={{ position: 'absolute', left: 8, top: 8, zIndex: 10, pointerEvents: 'none' }}>
         <UIEditorToolbar />
       </div>
       {/* DOM オーバーレイ（ハンドル用） */}
