@@ -2,7 +2,10 @@ import '@/types/ui/register';
 import { getUIComponent } from '@/types/ui';
 import type { EditorUICanvas, EditorUIObject } from '@/stores/uiEditorSlice';
 
-function createUIComponentData(type: string, overrides: Record<string, unknown> = {}): { type: string; data: unknown } {
+function createUIComponentData(
+  type: string,
+  overrides: Record<string, unknown> = {}
+): { type: string; data: unknown } {
   const Ctor = getUIComponent(type);
   if (!Ctor) return { type, data: overrides };
   const instance = new Ctor();
@@ -13,24 +16,37 @@ function createUIComponentData(type: string, overrides: Record<string, unknown> 
   return { type, data: instance.serialize() };
 }
 
-
 // ── UICanvas: メッセージ画面 ──
 
 const MSG_H = 200;
-const MSG_SHOW_Y = 0;      // 表示位置: 画面下端にぴったり
-const MSG_HIDE_Y = MSG_H;   // 隠す位置: 下に完全に隠れる
+const MSG_SHOW_Y = 0; // 表示位置: 画面下端にぴったり
+const MSG_HIDE_Y = MSG_H; // 隠す位置: 下に完全に隠れる
 
 const msgBg: EditorUIObject = {
   id: 'msg_bg',
   name: 'background',
   transform: {
-    x: 0, y: MSG_HIDE_Y, width: 1280, height: MSG_H,
-    anchorX: 'center', anchorY: 'bottom',
-    pivotX: 0.5, pivotY: 1,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    x: 0,
+    y: MSG_HIDE_Y,
+    width: 1280,
+    height: MSG_H,
+    anchorX: 'center',
+    anchorY: 'bottom',
+    pivotX: 0.5,
+    pivotY: 1,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+    createUIComponentData('shape', {
+      shapeType: 'rectangle',
+      fillColor: '#1a1a2e',
+      strokeColor: '#4a4a6a',
+      strokeWidth: 2,
+      cornerRadius: 8,
+    }),
     createUIComponentData('animation', {
       mode: 'inline',
       autoPlay: false,
@@ -40,7 +56,14 @@ const msgBg: EditorUIObject = {
           name: 'slideIn',
           timeline: {
             tracks: [
-              { property: 'transform.y', startTime: 0, duration: 300, from: MSG_HIDE_Y, to: MSG_SHOW_Y, easing: 'easeOut' },
+              {
+                property: 'transform.y',
+                startTime: 0,
+                duration: 300,
+                from: MSG_HIDE_Y,
+                to: MSG_SHOW_Y,
+                easing: 'easeOut',
+              },
             ],
           },
         },
@@ -48,7 +71,14 @@ const msgBg: EditorUIObject = {
           name: 'slideOut',
           timeline: {
             tracks: [
-              { property: 'transform.y', startTime: 0, duration: 300, from: MSG_SHOW_Y, to: MSG_HIDE_Y, easing: 'easeIn' },
+              {
+                property: 'transform.y',
+                startTime: 0,
+                duration: 300,
+                from: MSG_SHOW_Y,
+                to: MSG_HIDE_Y,
+                easing: 'easeIn',
+              },
             ],
           },
         },
@@ -62,14 +92,20 @@ const msgFace: EditorUIObject = {
   name: 'faceImage',
   parentId: 'msg_bg',
   transform: {
-    x: 32, y: 32, width: 128, height: 128,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    x: 32,
+    y: 32,
+    width: 128,
+    height: 128,
+    anchorX: 'left',
+    anchorY: 'top',
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
-  components: [
-    createUIComponentData('image', { imageId: '', opacity: 1 }),
-  ],
+  components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
 };
 
 const msgText: EditorUIObject = {
@@ -77,13 +113,28 @@ const msgText: EditorUIObject = {
   name: 'textLabel',
   parentId: 'msg_bg',
   transform: {
-    x: 200, y: 16, width: 1060, height: 168,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    x: 200,
+    y: 16,
+    width: 1060,
+    height: 168,
+    anchorX: 'left',
+    anchorY: 'top',
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('text', { content: '', fontSize: 24, color: '#ffffff', align: 'left', verticalAlign: 'top', lineHeight: 1.4 }),
+    createUIComponentData('text', {
+      content: '',
+      fontSize: 24,
+      color: '#ffffff',
+      align: 'left',
+      verticalAlign: 'top',
+      lineHeight: 1.4,
+    }),
   ],
 };
 
@@ -122,7 +173,10 @@ export const messageCanvas: EditorUICanvas = {
         },
         // 表示 + スライドイン
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: true } },
-        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideIn', wait: true } },
+        {
+          type: 'uiPlayAnimation',
+          data: { targetId: 'msg_bg', animationName: 'slideIn', wait: true },
+        },
       ],
     },
     {
@@ -161,13 +215,15 @@ export const messageCanvas: EditorUICanvas = {
       args: [],
       actions: [
         // スライドアウト + 非表示
-        { type: 'uiPlayAnimation', data: { targetId: 'msg_bg', animationName: 'slideOut', wait: true } },
+        {
+          type: 'uiPlayAnimation',
+          data: { targetId: 'msg_bg', animationName: 'slideOut', wait: true },
+        },
         { type: 'uiSetVisibility', data: { targetId: 'msg_bg', visible: false } },
       ],
     },
   ],
 };
-
 
 // ── UICanvas: 選択肢画面 ──
 // 最大6項目。各項目はテキスト + カーソル（▶）で構成
@@ -185,16 +241,43 @@ function createChoiceObjects(): EditorUIObject[] {
     id: 'choice_bg',
     name: 'background',
     transform: {
-      x: 0, y: 0, width: CHOICE_W, height: CHOICE_PAD * 2 + CHOICE_ITEM_H * CHOICE_MAX,
-      anchorX: 'center', anchorY: 'center',
-      pivotX: 0.5, pivotY: 0.5,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+      x: 0,
+      y: 0,
+      width: CHOICE_W,
+      height: CHOICE_PAD * 2 + CHOICE_ITEM_H * CHOICE_MAX,
+      anchorX: 'center',
+      anchorY: 'center',
+      pivotX: 0.5,
+      pivotY: 0.5,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: CHOICE_PAD, paddingBottom: CHOICE_PAD, paddingLeft: 32, paddingRight: 0 }),
-      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true, paddingTop: 0, paddingBottom: 0 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 0,
+        alignment: 'start',
+        paddingTop: CHOICE_PAD,
+        paddingBottom: CHOICE_PAD,
+        paddingLeft: 32,
+        paddingRight: 0,
+      }),
+      createUIComponentData('contentFit', {
+        fitWidth: false,
+        fitHeight: true,
+        paddingTop: 0,
+        paddingBottom: 0,
+      }),
     ],
   });
 
@@ -205,13 +288,28 @@ function createChoiceObjects(): EditorUIObject[] {
       name: `item${i}`,
       parentId: 'choice_bg',
       transform: {
-        x: 0, y: 0, width: CHOICE_W - 48, height: CHOICE_ITEM_H,
-        anchorX: 'left', anchorY: 'top',
-        pivotX: 0, pivotY: 0,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+        x: 0,
+        y: 0,
+        width: CHOICE_W - 48,
+        height: CHOICE_ITEM_H,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('text', { content: '', fontSize: 20, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+        createUIComponentData('text', {
+          content: '',
+          fontSize: 20,
+          color: '#ffffff',
+          align: 'left',
+          verticalAlign: 'middle',
+          lineHeight: 1.2,
+        }),
         createUIComponentData('navigationItem', { itemId: String(i) }),
       ],
     });
@@ -223,13 +321,28 @@ function createChoiceObjects(): EditorUIObject[] {
     name: 'cursor',
     parentId: 'choice_bg',
     transform: {
-      x: 10, y: CHOICE_PAD, width: 20, height: CHOICE_ITEM_H,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 10,
+      y: CHOICE_PAD,
+      width: 20,
+      height: CHOICE_ITEM_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 18, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 18,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -20, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
@@ -244,7 +357,6 @@ export const choiceCanvas: EditorUICanvas = {
   objects: createChoiceObjects(),
   functions: [],
 };
-
 
 // ── UICanvas: 数字入力画面 ──
 
@@ -261,13 +373,27 @@ function createNumberInputObjects(): EditorUIObject[] {
     id: 'numinput_bg',
     name: 'background',
     transform: {
-      x: 0, y: 0, width: NUM_TOTAL_W, height: 140,
-      anchorX: 'center', anchorY: 'center',
-      pivotX: 0.5, pivotY: 0.5,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+      x: 0,
+      y: 0,
+      width: NUM_TOTAL_W,
+      height: 140,
+      anchorX: 'center',
+      anchorY: 'center',
+      pivotX: 0.5,
+      pivotY: 0.5,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
     ],
   });
 
@@ -277,13 +403,28 @@ function createNumberInputObjects(): EditorUIObject[] {
     name: 'label',
     parentId: 'numinput_bg',
     transform: {
-      x: 16, y: 8, width: NUM_TOTAL_W - 32, height: 28,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 16,
+      y: 8,
+      width: NUM_TOTAL_W - 32,
+      height: 28,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: '', fontSize: 14, color: '#aaaaaa', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 14,
+        color: '#aaaaaa',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -297,12 +438,28 @@ function createNumberInputObjects(): EditorUIObject[] {
       name: `up${i}`,
       parentId: 'numinput_bg',
       transform: {
-        x: dx, y: 38, width: DIGIT_W, height: 20,
-        anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+        x: dx,
+        y: 38,
+        width: DIGIT_W,
+        height: 20,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('text', { content: '▲', fontSize: 14, color: '#666666', align: 'center', verticalAlign: 'middle', lineHeight: 1 }),
+        createUIComponentData('text', {
+          content: '▲',
+          fontSize: 14,
+          color: '#666666',
+          align: 'center',
+          verticalAlign: 'middle',
+          lineHeight: 1,
+        }),
       ],
     });
 
@@ -312,12 +469,28 @@ function createNumberInputObjects(): EditorUIObject[] {
       name: `digit${i}`,
       parentId: 'numinput_bg',
       transform: {
-        x: dx, y: 60, width: DIGIT_W, height: 36,
-        anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+        x: dx,
+        y: 60,
+        width: DIGIT_W,
+        height: 36,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('text', { content: '0', fontSize: 28, color: '#ffffff', align: 'center', verticalAlign: 'middle', lineHeight: 1 }),
+        createUIComponentData('text', {
+          content: '0',
+          fontSize: 28,
+          color: '#ffffff',
+          align: 'center',
+          verticalAlign: 'middle',
+          lineHeight: 1,
+        }),
       ],
     });
 
@@ -327,12 +500,28 @@ function createNumberInputObjects(): EditorUIObject[] {
       name: `down${i}`,
       parentId: 'numinput_bg',
       transform: {
-        x: dx, y: 98, width: DIGIT_W, height: 20,
-        anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+        x: dx,
+        y: 98,
+        width: DIGIT_W,
+        height: 20,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('text', { content: '▼', fontSize: 14, color: '#666666', align: 'center', verticalAlign: 'middle', lineHeight: 1 }),
+        createUIComponentData('text', {
+          content: '▼',
+          fontSize: 14,
+          color: '#666666',
+          align: 'center',
+          verticalAlign: 'middle',
+          lineHeight: 1,
+        }),
       ],
     });
   }
@@ -347,20 +536,33 @@ export const numberInputCanvas: EditorUICanvas = {
   functions: [],
 };
 
-
 // ── UICanvas: 文字列入力画面 ──
 
 const textInputBg: EditorUIObject = {
   id: 'textinput_bg',
   name: 'background',
   transform: {
-    x: 0, y: 0, width: 400, height: 100,
-    anchorX: 'center', anchorY: 'center',
-    pivotX: 0.5, pivotY: 0.5,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    x: 0,
+    y: 0,
+    width: 400,
+    height: 100,
+    anchorX: 'center',
+    anchorY: 'center',
+    pivotX: 0.5,
+    pivotY: 0.5,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+    createUIComponentData('shape', {
+      shapeType: 'rectangle',
+      fillColor: '#1a1a2e',
+      strokeColor: '#4a4a6a',
+      strokeWidth: 2,
+      cornerRadius: 8,
+    }),
   ],
 };
 
@@ -369,13 +571,28 @@ const textInputLabel: EditorUIObject = {
   name: 'label',
   parentId: 'textinput_bg',
   transform: {
-    x: 16, y: 8, width: 368, height: 28,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    x: 16,
+    y: 8,
+    width: 368,
+    height: 28,
+    anchorX: 'left',
+    anchorY: 'top',
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('text', { content: '', fontSize: 14, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    createUIComponentData('text', {
+      content: '',
+      fontSize: 14,
+      color: '#aaaaaa',
+      align: 'left',
+      verticalAlign: 'middle',
+      lineHeight: 1.2,
+    }),
   ],
 };
 
@@ -384,13 +601,28 @@ const textInputValue: EditorUIObject = {
   name: 'inputField',
   parentId: 'textinput_bg',
   transform: {
-    x: 16, y: 40, width: 368, height: 44,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    x: 16,
+    y: 40,
+    width: 368,
+    height: 44,
+    anchorX: 'left',
+    anchorY: 'top',
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('text', { content: '', fontSize: 24, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+    createUIComponentData('text', {
+      content: '',
+      fontSize: 24,
+      color: '#ffffff',
+      align: 'left',
+      verticalAlign: 'middle',
+      lineHeight: 1.2,
+    }),
     createUIComponentData('inputField', { maxLength: 20, cursorColor: '#ffdd44', placeholder: '' }),
   ],
 };
@@ -402,7 +634,6 @@ export const textInputCanvas: EditorUICanvas = {
   functions: [],
 };
 
-
 // ── UICanvas: ステータス表示 ──
 
 const statusNameText: EditorUIObject = {
@@ -410,13 +641,28 @@ const statusNameText: EditorUIObject = {
   name: 'charName',
   parentId: 'status_bg',
   transform: {
-    x: 16, y: 12, width: 300, height: 32,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    x: 16,
+    y: 12,
+    width: 300,
+    height: 32,
+    anchorX: 'left',
+    anchorY: 'top',
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('text', { content: '---', fontSize: 22, color: '#ffffff', align: 'left', verticalAlign: 'top', lineHeight: 1.2 }),
+    createUIComponentData('text', {
+      content: '---',
+      fontSize: 22,
+      color: '#ffffff',
+      align: 'left',
+      verticalAlign: 'top',
+      lineHeight: 1.2,
+    }),
   ],
 };
 
@@ -425,13 +671,28 @@ const statusHpText: EditorUIObject = {
   name: 'hpLabel',
   parentId: 'status_bg',
   transform: {
-    x: 16, y: 48, width: 300, height: 28,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    x: 16,
+    y: 48,
+    width: 300,
+    height: 28,
+    anchorX: 'left',
+    anchorY: 'top',
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('text', { content: 'HP: ---', fontSize: 18, color: '#88ff88', align: 'left', verticalAlign: 'top', lineHeight: 1.2 }),
+    createUIComponentData('text', {
+      content: 'HP: ---',
+      fontSize: 18,
+      color: '#88ff88',
+      align: 'left',
+      verticalAlign: 'top',
+      lineHeight: 1.2,
+    }),
   ],
 };
 
@@ -440,13 +701,28 @@ const statusGoldText: EditorUIObject = {
   name: 'goldLabel',
   parentId: 'status_bg',
   transform: {
-    x: 16, y: 80, width: 300, height: 28,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+    x: 16,
+    y: 80,
+    width: 300,
+    height: 28,
+    anchorX: 'left',
+    anchorY: 'top',
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('text', { content: 'Gold: ---', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'top', lineHeight: 1.2 }),
+    createUIComponentData('text', {
+      content: 'Gold: ---',
+      fontSize: 18,
+      color: '#ffdd44',
+      align: 'left',
+      verticalAlign: 'top',
+      lineHeight: 1.2,
+    }),
   ],
 };
 
@@ -454,13 +730,27 @@ const statusBg: EditorUIObject = {
   id: 'status_bg',
   name: 'background',
   transform: {
-    x: 8, y: 8, width: 340, height: 120,
-    anchorX: 'left', anchorY: 'top',
-    pivotX: 0, pivotY: 0,
-    rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+    x: 8,
+    y: 8,
+    width: 340,
+    height: 120,
+    anchorX: 'left',
+    anchorY: 'top',
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
   },
   components: [
-    createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#0a0a1e', strokeColor: '#3a3a5a', strokeWidth: 2, cornerRadius: 6 }),
+    createUIComponentData('shape', {
+      shapeType: 'rectangle',
+      fillColor: '#0a0a1e',
+      strokeColor: '#3a3a5a',
+      strokeWidth: 2,
+      cornerRadius: 6,
+    }),
   ],
 };
 
@@ -478,9 +768,33 @@ export const statusCanvas: EditorUICanvas = {
         { id: 'gold', name: 'ゴールド', fieldType: 'string', defaultValue: '' },
       ],
       actions: [
-        { type: 'uiSetProperty', data: { targetId: 'status_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'charName' } } },
-        { type: 'uiSetProperty', data: { targetId: 'status_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
-        { type: 'uiSetProperty', data: { targetId: 'status_gold', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'gold' } } },
+        {
+          type: 'uiSetProperty',
+          data: {
+            targetId: 'status_name',
+            component: 'text',
+            property: 'content',
+            valueSource: { source: 'arg', argId: 'charName' },
+          },
+        },
+        {
+          type: 'uiSetProperty',
+          data: {
+            targetId: 'status_hp',
+            component: 'text',
+            property: 'content',
+            valueSource: { source: 'arg', argId: 'hp' },
+          },
+        },
+        {
+          type: 'uiSetProperty',
+          data: {
+            targetId: 'status_gold',
+            component: 'text',
+            property: 'content',
+            valueSource: { source: 'arg', argId: 'gold' },
+          },
+        },
         { type: 'uiSetVisibility', data: { targetId: 'status_bg', visible: true } },
       ],
     },
@@ -488,13 +802,10 @@ export const statusCanvas: EditorUICanvas = {
       id: 'fn_status_hide',
       name: 'hide',
       args: [],
-      actions: [
-        { type: 'uiSetVisibility', data: { targetId: 'status_bg', visible: false } },
-      ],
+      actions: [{ type: 'uiSetVisibility', data: { targetId: 'status_bg', visible: false } }],
     },
   ],
 };
-
 
 // ── UICanvas: エフェクトテスト画面 ──
 
@@ -506,10 +817,18 @@ export const effectTestCanvas: EditorUICanvas = {
       id: 'effect_display',
       name: 'effectDisplay',
       transform: {
-        x: 0, y: 0, width: 120, height: 120,
-        anchorX: 'center', anchorY: 'center',
-        pivotX: 0.5, pivotY: 0.5,
-        rotation: 0, scaleX: 2, scaleY: 2, visible: false,
+        x: 0,
+        y: 0,
+        width: 120,
+        height: 120,
+        anchorX: 'center',
+        anchorY: 'center',
+        pivotX: 0.5,
+        pivotY: 0.5,
+        rotation: 0,
+        scaleX: 2,
+        scaleY: 2,
+        visible: true,
       },
       components: [
         createUIComponentData('effect', {
@@ -527,7 +846,6 @@ export const effectTestCanvas: EditorUICanvas = {
   functions: [],
 };
 
-
 // ── UICanvas: アニメーションテスト画面 ──
 // Tween API + AnimationComponent のテスト
 
@@ -540,13 +858,27 @@ export const animTestCanvas: EditorUICanvas = {
       id: 'anim_bg',
       name: 'background',
       transform: {
-        x: 0, y: 0, width: 400, height: 300,
-        anchorX: 'center', anchorY: 'center',
-        pivotX: 0.5, pivotY: 0.5,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+        x: 0,
+        y: 0,
+        width: 400,
+        height: 300,
+        anchorX: 'center',
+        anchorY: 'center',
+        pivotX: 0.5,
+        pivotY: 0.5,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#0a0a1e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+        createUIComponentData('shape', {
+          shapeType: 'rectangle',
+          fillColor: '#0a0a1e',
+          strokeColor: '#4a4a6a',
+          strokeWidth: 2,
+          cornerRadius: 8,
+        }),
       ],
     },
     // テスト用の矩形（アニメーション対象）
@@ -555,13 +887,27 @@ export const animTestCanvas: EditorUICanvas = {
       name: 'box',
       parentId: 'anim_bg',
       transform: {
-        x: 150, y: 100, width: 100, height: 100,
-        anchorX: 'left', anchorY: 'top',
-        pivotX: 0.5, pivotY: 0.5,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+        x: 150,
+        y: 100,
+        width: 100,
+        height: 100,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0.5,
+        pivotY: 0.5,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#4488ff', strokeColor: '#ffffff', strokeWidth: 2, cornerRadius: 4 }),
+        createUIComponentData('shape', {
+          shapeType: 'rectangle',
+          fillColor: '#4488ff',
+          strokeColor: '#ffffff',
+          strokeWidth: 2,
+          cornerRadius: 4,
+        }),
       ],
     },
     // ラベル
@@ -570,13 +916,28 @@ export const animTestCanvas: EditorUICanvas = {
       name: 'label',
       parentId: 'anim_bg',
       transform: {
-        x: 16, y: 8, width: 368, height: 28,
-        anchorX: 'left', anchorY: 'top',
-        pivotX: 0, pivotY: 0,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+        x: 16,
+        y: 8,
+        width: 368,
+        height: 28,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('text', { content: 'アニメーションテスト', fontSize: 16, color: '#aaaaaa', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+        createUIComponentData('text', {
+          content: 'アニメーションテスト',
+          fontSize: 16,
+          color: '#aaaaaa',
+          align: 'center',
+          verticalAlign: 'middle',
+          lineHeight: 1.2,
+        }),
       ],
     },
     // AnimationComponent 付きオブジェクト（slideIn テスト用）
@@ -585,14 +946,33 @@ export const animTestCanvas: EditorUICanvas = {
       name: 'slideBox',
       parentId: 'anim_bg',
       transform: {
-        x: 0, y: 250, width: 80, height: 30,
-        anchorX: 'left', anchorY: 'top',
-        pivotX: 0, pivotY: 0,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+        x: 0,
+        y: 250,
+        width: 80,
+        height: 30,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#ff4444', cornerRadius: 4 }),
-        createUIComponentData('text', { content: 'SLIDE', fontSize: 14, color: '#ffffff', align: 'center', verticalAlign: 'middle', lineHeight: 1 }),
+        createUIComponentData('shape', {
+          shapeType: 'rectangle',
+          fillColor: '#ff4444',
+          cornerRadius: 4,
+        }),
+        createUIComponentData('text', {
+          content: 'SLIDE',
+          fontSize: 14,
+          color: '#ffffff',
+          align: 'center',
+          verticalAlign: 'middle',
+          lineHeight: 1,
+        }),
         createUIComponentData('animation', {
           mode: 'inline',
           autoPlay: false,
@@ -602,7 +982,14 @@ export const animTestCanvas: EditorUICanvas = {
               name: 'slideRight',
               timeline: {
                 tracks: [
-                  { property: 'transform.x', startTime: 0, duration: 600, from: 0, to: 320, easing: 'easeInOut' },
+                  {
+                    property: 'transform.x',
+                    startTime: 0,
+                    duration: 600,
+                    from: 0,
+                    to: 320,
+                    easing: 'easeInOut',
+                  },
                 ],
                 loopType: 'none',
               },
@@ -611,7 +998,14 @@ export const animTestCanvas: EditorUICanvas = {
               name: 'slideBack',
               timeline: {
                 tracks: [
-                  { property: 'transform.x', startTime: 0, duration: 600, from: 320, to: 0, easing: 'easeInOut' },
+                  {
+                    property: 'transform.x',
+                    startTime: 0,
+                    duration: 600,
+                    from: 320,
+                    to: 0,
+                    easing: 'easeInOut',
+                  },
                 ],
                 loopType: 'none',
               },
@@ -623,7 +1017,6 @@ export const animTestCanvas: EditorUICanvas = {
   ],
   functions: [],
 };
-
 
 // ── UICanvas: パーティステータス（TemplateController + LayoutGroup テスト） ──
 
@@ -637,15 +1030,42 @@ function createPartyStatusObjects(): EditorUIObject[] {
     id: 'party_bg',
     name: 'background',
     transform: {
-      x: 0, y: 0, width: 320, height: 280,
-      anchorX: 'center', anchorY: 'center',
-      pivotX: 0.5, pivotY: 0.5,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+      x: 0,
+      y: 0,
+      width: 320,
+      height: 280,
+      anchorX: 'center',
+      anchorY: 'center',
+      pivotX: 0.5,
+      pivotY: 0.5,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
-      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true, paddingTop: 0, paddingBottom: 0 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 4,
+        alignment: 'start',
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
+      createUIComponentData('contentFit', {
+        fitWidth: false,
+        fitHeight: true,
+        paddingTop: 0,
+        paddingBottom: 0,
+      }),
     ],
   });
 
@@ -655,13 +1075,28 @@ function createPartyStatusObjects(): EditorUIObject[] {
     name: 'title',
     parentId: 'party_bg',
     transform: {
-      x: 0, y: 0, width: 288, height: 28,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 0,
+      y: 0,
+      width: 288,
+      height: 28,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: 'パーティ', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: 'パーティ',
+        fontSize: 18,
+        color: '#ffdd44',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('layoutElement', { participate: true, space: 4 }),
     ],
   });
@@ -672,13 +1107,25 @@ function createPartyStatusObjects(): EditorUIObject[] {
     name: 'memberTemplate',
     parentId: 'party_bg',
     transform: {
-      x: 0, y: 0, width: 288, height: PARTY_MEMBER_H,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+      x: 0,
+      y: 0,
+      width: 288,
+      height: PARTY_MEMBER_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 4,
+      }),
       createUIComponentData('templateController', {
         args: [
           { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
@@ -687,9 +1134,33 @@ function createPartyStatusObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'party_member_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'party_member_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'party_member_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'party_member_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'party_member_hp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'hp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'party_member_mp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'mp' },
+            },
+          },
         ],
       }),
     ],
@@ -701,13 +1172,28 @@ function createPartyStatusObjects(): EditorUIObject[] {
     name: 'name',
     parentId: 'party_member_template',
     transform: {
-      x: 8, y: 4, width: 120, height: 20,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 8,
+      y: 4,
+      width: 120,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: '---', fontSize: 16, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '---',
+        fontSize: 16,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -717,13 +1203,28 @@ function createPartyStatusObjects(): EditorUIObject[] {
     name: 'hp',
     parentId: 'party_member_template',
     transform: {
-      x: 8, y: 24, width: 120, height: 18,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 8,
+      y: 24,
+      width: 120,
+      height: 18,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: 'HP: ---', fontSize: 14, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: 'HP: ---',
+        fontSize: 14,
+        color: '#88ff88',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -733,13 +1234,28 @@ function createPartyStatusObjects(): EditorUIObject[] {
     name: 'mp',
     parentId: 'party_member_template',
     transform: {
-      x: 140, y: 24, width: 120, height: 18,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 140,
+      y: 24,
+      width: 120,
+      height: 18,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: 'MP: ---', fontSize: 14, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: 'MP: ---',
+        fontSize: 14,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -771,10 +1287,18 @@ function createMenuObjects(): EditorUIObject[] {
     id: 'menu_bg',
     name: 'background',
     transform: {
-      x: 0, y: 0, width: MENU_W, height: MENU_H,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 0,
+      y: 0,
+      width: MENU_W,
+      height: MENU_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
       createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' }),
@@ -787,15 +1311,37 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'commandWindow',
     parentId: 'menu_bg',
     transform: {
-      x: 16, y: 16, width: CMD_W, height: CMD_H,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 16,
+      y: 16,
+      width: CMD_W,
+      height: CMD_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 0,
+        alignment: 'start',
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
       createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
     ],
   });
@@ -808,13 +1354,28 @@ function createMenuObjects(): EditorUIObject[] {
       name: `cmd${i}`,
       parentId: 'menu_cmd',
       transform: {
-        x: 0, y: 0, width: CMD_W - 32, height: 44,
-        anchorX: 'left', anchorY: 'top',
-        pivotX: 0, pivotY: 0,
-        rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+        x: 0,
+        y: 0,
+        width: CMD_W - 32,
+        height: 44,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
       },
       components: [
-        createUIComponentData('text', { content: commands[i], fontSize: 20, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+        createUIComponentData('text', {
+          content: commands[i],
+          fontSize: 20,
+          color: '#ffffff',
+          align: 'left',
+          verticalAlign: 'middle',
+          lineHeight: 1.2,
+        }),
         createUIComponentData('navigationItem', { itemId: String(i) }),
       ],
     });
@@ -826,13 +1387,28 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'cmdCursor',
     parentId: 'menu_cmd',
     transform: {
-      x: 0, y: 12, width: 16, height: 44,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 0,
+      y: 12,
+      width: 16,
+      height: 44,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
@@ -844,13 +1420,27 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'goldWindow',
     parentId: 'menu_bg',
     transform: {
-      x: 16, y: CMD_H + 32, width: CMD_W, height: GOLD_H,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 16,
+      y: CMD_H + 32,
+      width: CMD_W,
+      height: GOLD_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
     ],
   });
 
@@ -859,13 +1449,28 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'goldText',
     parentId: 'menu_gold',
     transform: {
-      x: 16, y: 0, width: CMD_W - 32, height: GOLD_H,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 16,
+      y: 0,
+      width: CMD_W - 32,
+      height: GOLD_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: '0 G', fontSize: 18, color: '#ffdd44', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '0 G',
+        fontSize: 18,
+        color: '#ffdd44',
+        align: 'right',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -875,14 +1480,36 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'partyWindow',
     parentId: 'menu_bg',
     transform: {
-      x: CMD_W + 32, y: 16, width: MEMBER_W, height: MENU_H - 32,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: CMD_W + 32,
+      y: 16,
+      width: MEMBER_W,
+      height: MENU_H - 32,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 4,
+        alignment: 'start',
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
       createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
     ],
   });
@@ -893,13 +1520,25 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'memberTemplate',
     parentId: 'menu_party',
     transform: {
-      x: 0, y: 0, width: MEMBER_W - 32, height: MEMBER_H,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: false,
+      x: 0,
+      y: 0,
+      width: MEMBER_W - 32,
+      height: MEMBER_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 4,
+      }),
       createUIComponentData('templateController', {
         args: [
           { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
@@ -910,11 +1549,51 @@ function createMenuObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'menu_member_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'menu_member_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
-          { type: 'uiSetProperty', data: { targetId: 'menu_member_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'menu_member_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'menu_member_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'menu_member_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'menu_member_level',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'level' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'menu_member_hp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'hp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'menu_member_mp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'mp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'menu_member_face',
+              component: 'image',
+              property: 'imageId',
+              valueSource: { source: 'arg', argId: 'face' },
+            },
+          },
         ],
       }),
     ],
@@ -926,14 +1605,20 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'face',
     parentId: 'menu_member_template',
     transform: {
-      x: 8, y: 8, width: 64, height: 64,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 8,
+      y: 8,
+      width: 64,
+      height: 64,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
-    components: [
-      createUIComponentData('image', { imageId: '', opacity: 1 }),
-    ],
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
   });
 
   // テンプレート子: 名前
@@ -942,13 +1627,28 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'name',
     parentId: 'menu_member_template',
     transform: {
-      x: 80, y: 8, width: 200, height: 24,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 80,
+      y: 8,
+      width: 200,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '---',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -958,13 +1658,28 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'level',
     parentId: 'menu_member_template',
     transform: {
-      x: 300, y: 8, width: 120, height: 24,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 300,
+      y: 8,
+      width: 120,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: 'Lv.1', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: 'Lv.1',
+        fontSize: 18,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -974,13 +1689,28 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'hp',
     parentId: 'menu_member_template',
     transform: {
-      x: 80, y: 40, width: 200, height: 20,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 80,
+      y: 40,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: 'HP: ---', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: 'HP: ---',
+        fontSize: 16,
+        color: '#88ff88',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -990,13 +1720,28 @@ function createMenuObjects(): EditorUIObject[] {
     name: 'mp',
     parentId: 'menu_member_template',
     transform: {
-      x: 80, y: 64, width: 200, height: 20,
-      anchorX: 'left', anchorY: 'top',
-      pivotX: 0, pivotY: 0,
-      rotation: 0, scaleX: 1, scaleY: 1, visible: true,
+      x: 80,
+      y: 64,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
     },
     components: [
-      createUIComponentData('text', { content: 'MP: ---', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: 'MP: ---',
+        fontSize: 16,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
@@ -1023,8 +1768,23 @@ function createItemScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'item_bg',
     name: 'background',
-    transform: { x: 0, y: 0, width: 1280, height: 720, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' })],
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' }),
+    ],
   });
 
   // ── ヘッダー: 説明ウィンドウ ──
@@ -1032,16 +1792,59 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_desc_win',
     name: 'descWindow',
     parentId: 'item_bg',
-    transform: { x: 16, y: 16, width: 1248, height: 60, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 })],
+    transform: {
+      x: 16,
+      y: 16,
+      width: 1248,
+      height: 60,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+    ],
   });
 
   objects.push({
     id: 'item_desc_text',
     name: 'descText',
     parentId: 'item_desc_win',
-    transform: { x: 16, y: 0, width: 1216, height: 60, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'アイテムを選択してください', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: 16,
+      y: 0,
+      width: 1216,
+      height: 60,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'アイテムを選択してください',
+        fontSize: 18,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   // ── アイテム一覧ウィンドウ（2列グリッド） ──
@@ -1049,11 +1852,41 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_list_win',
     name: 'listWindow',
     parentId: 'item_bg',
-    transform: { x: 16, y: 92, width: 1248, height: 600, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    transform: {
+      x: 16,
+      y: 92,
+      width: 1248,
+      height: 600,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
-      createUIComponentData('navigation', { direction: 'grid', wrap: true, initialIndex: 0, columns: 2 }),
-      createUIComponentData('gridLayout', { columns: 2, spacingX: 8, spacingY: 0, cellWidth: ITEM_COL_W, cellHeight: ITEM_ROW_H }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('navigation', {
+        direction: 'grid',
+        wrap: true,
+        initialIndex: 0,
+        columns: 2,
+      }),
+      createUIComponentData('gridLayout', {
+        columns: 2,
+        spacingX: 8,
+        spacingY: 0,
+        cellWidth: ITEM_COL_W,
+        cellHeight: ITEM_ROW_H,
+      }),
     ],
   });
 
@@ -1062,7 +1895,20 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_row_template',
     name: 'itemTemplate',
     parentId: 'item_list_win',
-    transform: { x: 0, y: 0, width: ITEM_COL_W, height: ITEM_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: 0,
+      y: 0,
+      width: ITEM_COL_W,
+      height: ITEM_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
       createUIComponentData('templateController', {
         args: [
@@ -1071,8 +1917,24 @@ function createItemScreenObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'item_row_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'item_row_count', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'count' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'item_row_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'item_row_count',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'count' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
@@ -1083,16 +1945,60 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_row_name',
     name: 'name',
     parentId: 'item_row_template',
-    transform: { x: 24, y: 0, width: ITEM_COL_W - 100, height: ITEM_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: 24,
+      y: 0,
+      width: ITEM_COL_W - 100,
+      height: ITEM_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   objects.push({
     id: 'item_row_count',
     name: 'count',
     parentId: 'item_row_template',
-    transform: { x: ITEM_COL_W - 80, y: 0, width: 60, height: ITEM_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#aaaaaa', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: ITEM_COL_W - 80,
+      y: 0,
+      width: 60,
+      height: ITEM_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#aaaaaa',
+        align: 'right',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   // カーソル
@@ -1100,9 +2006,29 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_list_cursor',
     name: 'listCursor',
     parentId: 'item_list_win',
-    transform: { x: 0, y: 0, width: 20, height: ITEM_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    transform: {
+      x: 0,
+      y: 0,
+      width: 20,
+      height: ITEM_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: 0, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
@@ -1113,9 +2039,26 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_char_header',
     name: 'charHeader',
     parentId: 'item_bg',
-    transform: { x: 16, y: 92, width: 1248, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: 16,
+      y: 92,
+      width: 1248,
+      height: 40,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 8,
+      }),
     ],
   });
 
@@ -1123,19 +2066,68 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_char_header_text',
     name: 'charHeaderText',
     parentId: 'item_char_header',
-    transform: { x: 16, y: 0, width: 1216, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '使うキャラクターを選んでください', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: 16,
+      y: 0,
+      width: 1216,
+      height: 40,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '使うキャラクターを選んでください',
+        fontSize: 18,
+        color: '#ffdd44',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   objects.push({
     id: 'item_char_win',
     name: 'charWindow',
     parentId: 'item_bg',
-    transform: { x: 16, y: 140, width: 1248, height: 560, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: 16,
+      y: 140,
+      width: 1248,
+      height: 560,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#ffdd44', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#ffdd44',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 4,
+        alignment: 'start',
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
       createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
     ],
   });
@@ -1145,9 +2137,26 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_char_template',
     name: 'charTemplate',
     parentId: 'item_char_win',
-    transform: { x: 0, y: 0, width: 1216, height: ITEM_CHAR_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1216,
+      height: ITEM_CHAR_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 4,
+      }),
       createUIComponentData('templateController', {
         args: [
           { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
@@ -1158,11 +2167,51 @@ function createItemScreenObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'item_char_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'item_char_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
-          { type: 'uiSetProperty', data: { targetId: 'item_char_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'item_char_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'item_char_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'item_char_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'item_char_level',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'level' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'item_char_hp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'hp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'item_char_mp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'mp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'item_char_face',
+              component: 'image',
+              property: 'imageId',
+              valueSource: { source: 'arg', argId: 'face' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
@@ -1173,7 +2222,20 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_char_face',
     name: 'face',
     parentId: 'item_char_template',
-    transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    transform: {
+      x: 8,
+      y: 8,
+      width: 64,
+      height: 64,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
   });
 
@@ -1181,32 +2243,120 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_char_name',
     name: 'name',
     parentId: 'item_char_template',
-    transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: 80,
+      y: 8,
+      width: 200,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '---',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   objects.push({
     id: 'item_char_level',
     name: 'level',
     parentId: 'item_char_template',
-    transform: { x: 300, y: 8, width: 120, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'Lv.1', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: 300,
+      y: 8,
+      width: 120,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'Lv.1',
+        fontSize: 18,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   objects.push({
     id: 'item_char_hp',
     name: 'hp',
     parentId: 'item_char_template',
-    transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'HP: ---', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: 80,
+      y: 40,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'HP: ---',
+        fontSize: 16,
+        color: '#88ff88',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   objects.push({
     id: 'item_char_mp',
     name: 'mp',
     parentId: 'item_char_template',
-    transform: { x: 80, y: 64, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'MP: ---', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: 80,
+      y: 64,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'MP: ---',
+        fontSize: 16,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   // キャラ選択カーソル
@@ -1214,9 +2364,29 @@ function createItemScreenObjects(): EditorUIObject[] {
     id: 'item_char_cursor',
     name: 'charCursor',
     parentId: 'item_char_win',
-    transform: { x: 0, y: 12, width: 16, height: ITEM_CHAR_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    transform: {
+      x: 0,
+      y: 12,
+      width: 16,
+      height: ITEM_CHAR_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
@@ -1246,8 +2416,23 @@ function createEquipScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'equip_bg',
     name: 'background',
-    transform: { x: 0, y: 0, width: 1280, height: 720, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' })],
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' }),
+    ],
   });
 
   // ── ヘッダー ──
@@ -1255,16 +2440,57 @@ function createEquipScreenObjects(): EditorUIObject[] {
     id: 'equip_header',
     name: 'header',
     parentId: 'equip_bg',
-    transform: { x: 16, y: 16, width: 1248, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })],
+    transform: {
+      x: 16,
+      y: 16,
+      width: 1248,
+      height: 40,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 8,
+      }),
+    ],
   });
 
   objects.push({
     id: 'equip_header_text',
     name: 'headerText',
     parentId: 'equip_header',
-    transform: { x: 16, y: 0, width: 1216, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'キャラクターを選んでください', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    transform: {
+      x: 16,
+      y: 0,
+      width: 1216,
+      height: 40,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'キャラクターを選んでください',
+        fontSize: 18,
+        color: '#ffdd44',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   // ── キャラ選択ウィンドウ ──
@@ -1272,11 +2498,38 @@ function createEquipScreenObjects(): EditorUIObject[] {
     id: 'equip_char_win',
     name: 'charWindow',
     parentId: 'equip_bg',
-    transform: { x: 16, y: 72, width: 1248, height: 620, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    transform: {
+      x: 16,
+      y: 72,
+      width: 1248,
+      height: 620,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 4,
+        alignment: 'start',
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
       createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
     ],
   });
@@ -1286,9 +2539,26 @@ function createEquipScreenObjects(): EditorUIObject[] {
     id: 'equip_char_template',
     name: 'charTemplate',
     parentId: 'equip_char_win',
-    transform: { x: 0, y: 0, width: 1216, height: EQUIP_CHAR_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1216,
+      height: EQUIP_CHAR_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 4,
+      }),
       createUIComponentData('templateController', {
         args: [
           { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
@@ -1299,74 +2569,428 @@ function createEquipScreenObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'equip_char_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'equip_char_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
-          { type: 'uiSetProperty', data: { targetId: 'equip_char_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'equip_char_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'equip_char_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'equip_char_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'equip_char_level',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'level' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'equip_char_hp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'hp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'equip_char_mp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'mp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'equip_char_face',
+              component: 'image',
+              property: 'imageId',
+              valueSource: { source: 'arg', argId: 'face' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
     ],
   });
 
-  objects.push({ id: 'equip_char_face', name: 'face', parentId: 'equip_char_template',
-    transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
-  objects.push({ id: 'equip_char_name', name: 'name', parentId: 'equip_char_template',
-    transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'equip_char_level', name: 'level', parentId: 'equip_char_template',
-    transform: { x: 300, y: 8, width: 120, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'Lv.1', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'equip_char_hp', name: 'hp', parentId: 'equip_char_template',
-    transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'HP: ---', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'equip_char_mp', name: 'mp', parentId: 'equip_char_template',
-    transform: { x: 80, y: 64, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'MP: ---', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({
+    id: 'equip_char_face',
+    name: 'face',
+    parentId: 'equip_char_template',
+    transform: {
+      x: 8,
+      y: 8,
+      width: 64,
+      height: 64,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
+  });
+  objects.push({
+    id: 'equip_char_name',
+    name: 'name',
+    parentId: 'equip_char_template',
+    transform: {
+      x: 80,
+      y: 8,
+      width: 200,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '---',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'equip_char_level',
+    name: 'level',
+    parentId: 'equip_char_template',
+    transform: {
+      x: 300,
+      y: 8,
+      width: 120,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'Lv.1',
+        fontSize: 18,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'equip_char_hp',
+    name: 'hp',
+    parentId: 'equip_char_template',
+    transform: {
+      x: 80,
+      y: 40,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'HP: ---',
+        fontSize: 16,
+        color: '#88ff88',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'equip_char_mp',
+    name: 'mp',
+    parentId: 'equip_char_template',
+    transform: {
+      x: 80,
+      y: 64,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'MP: ---',
+        fontSize: 16,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
 
   // キャラ選択カーソル
-  objects.push({ id: 'equip_char_cursor', name: 'charCursor', parentId: 'equip_char_win',
-    transform: { x: 0, y: 12, width: 16, height: EQUIP_CHAR_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+  objects.push({
+    id: 'equip_char_cursor',
+    name: 'charCursor',
+    parentId: 'equip_char_win',
+    transform: {
+      x: 0,
+      y: 12,
+      width: 16,
+      height: EQUIP_CHAR_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
-    ], });
+    ],
+  });
 
   // ── 選択中キャラ情報（スロット選択時に表示） ──
   objects.push({
-    id: 'equip_member_win', name: 'memberWindow', parentId: 'equip_bg',
-    transform: { x: 16, y: 72, width: 1248, height: 88, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })],
+    id: 'equip_member_win',
+    name: 'memberWindow',
+    parentId: 'equip_bg',
+    transform: {
+      x: 16,
+      y: 72,
+      width: 1248,
+      height: 88,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 8,
+      }),
+    ],
   });
-  objects.push({ id: 'equip_member_face', name: 'memberFace', parentId: 'equip_member_win',
-    transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
-  objects.push({ id: 'equip_member_name', name: 'memberName', parentId: 'equip_member_win',
-    transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'equip_member_level', name: 'memberLevel', parentId: 'equip_member_win',
-    transform: { x: 300, y: 8, width: 100, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'equip_member_hp', name: 'memberHp', parentId: 'equip_member_win',
-    transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'equip_member_mp', name: 'memberMp', parentId: 'equip_member_win',
-    transform: { x: 80, y: 62, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({
+    id: 'equip_member_face',
+    name: 'memberFace',
+    parentId: 'equip_member_win',
+    transform: {
+      x: 8,
+      y: 8,
+      width: 64,
+      height: 64,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
+  });
+  objects.push({
+    id: 'equip_member_name',
+    name: 'memberName',
+    parentId: 'equip_member_win',
+    transform: {
+      x: 80,
+      y: 8,
+      width: 200,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'equip_member_level',
+    name: 'memberLevel',
+    parentId: 'equip_member_win',
+    transform: {
+      x: 300,
+      y: 8,
+      width: 100,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'equip_member_hp',
+    name: 'memberHp',
+    parentId: 'equip_member_win',
+    transform: {
+      x: 80,
+      y: 40,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#88ff88',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'equip_member_mp',
+    name: 'memberMp',
+    parentId: 'equip_member_win',
+    transform: {
+      x: 80,
+      y: 62,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
 
   // ── スロット一覧ウィンドウ（キャラ選択後に表示） ──
   objects.push({
     id: 'equip_slot_win',
     name: 'slotWindow',
     parentId: 'equip_bg',
-    transform: { x: 16, y: 176, width: EQUIP_SLOT_W, height: 240, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: 16,
+      y: 176,
+      width: EQUIP_SLOT_W,
+      height: 240,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 0,
+        alignment: 'start',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
     ],
   });
 
@@ -1375,7 +2999,20 @@ function createEquipScreenObjects(): EditorUIObject[] {
     id: 'equip_slot_template',
     name: 'slotTemplate',
     parentId: 'equip_slot_win',
-    transform: { x: 0, y: 0, width: EQUIP_SLOT_W - 32, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: 0,
+      y: 0,
+      width: EQUIP_SLOT_W - 32,
+      height: EQUIP_SLOT_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
       createUIComponentData('templateController', {
         args: [
@@ -1384,40 +3021,159 @@ function createEquipScreenObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'equip_slot_label', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'slotLabel' } } },
-          { type: 'uiSetProperty', data: { targetId: 'equip_slot_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'equipName' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'equip_slot_label',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'slotLabel' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'equip_slot_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'equipName' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
     ],
   });
 
-  objects.push({ id: 'equip_slot_label', name: 'slotLabel', parentId: 'equip_slot_template',
-    transform: { x: 0, y: 0, width: 80, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'equip_slot_name', name: 'equipName', parentId: 'equip_slot_template',
-    transform: { x: 80, y: 0, width: EQUIP_SLOT_W - 112, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({
+    id: 'equip_slot_label',
+    name: 'slotLabel',
+    parentId: 'equip_slot_template',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 80,
+      height: EQUIP_SLOT_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'equip_slot_name',
+    name: 'equipName',
+    parentId: 'equip_slot_template',
+    transform: {
+      x: 80,
+      y: 0,
+      width: EQUIP_SLOT_W - 112,
+      height: EQUIP_SLOT_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
 
   // スロットカーソル
-  objects.push({ id: 'equip_slot_cursor', name: 'slotCursor', parentId: 'equip_slot_win',
-    transform: { x: 0, y: 8, width: 16, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+  objects.push({
+    id: 'equip_slot_cursor',
+    name: 'slotCursor',
+    parentId: 'equip_slot_win',
+    transform: {
+      x: 0,
+      y: 8,
+      width: 16,
+      height: EQUIP_SLOT_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 14, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 14,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
-    ], });
+    ],
+  });
 
   // ── 装備候補一覧ウィンドウ ──
   objects.push({
     id: 'equip_list_win',
     name: 'listWindow',
     parentId: 'equip_bg',
-    transform: { x: EQUIP_SLOT_W + 32, y: 176, width: EQUIP_LIST_W - 32, height: 528, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: EQUIP_SLOT_W + 32,
+      y: 176,
+      width: EQUIP_LIST_W - 32,
+      height: 528,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 0,
+        alignment: 'start',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
     ],
   });
 
@@ -1426,47 +3182,161 @@ function createEquipScreenObjects(): EditorUIObject[] {
     id: 'equip_item_template',
     name: 'itemTemplate',
     parentId: 'equip_list_win',
-    transform: { x: 0, y: 0, width: EQUIP_LIST_W - 64, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    transform: {
+      x: 0,
+      y: 0,
+      width: EQUIP_LIST_W - 64,
+      height: EQUIP_SLOT_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
       createUIComponentData('templateController', {
         args: [{ id: 'name', name: '名前', fieldType: 'string', defaultValue: '' }],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'equip_item_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'equip_item_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
     ],
   });
 
-  objects.push({ id: 'equip_item_name', name: 'name', parentId: 'equip_item_template',
-    transform: { x: 24, y: 0, width: EQUIP_LIST_W - 96, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({
+    id: 'equip_item_name',
+    name: 'name',
+    parentId: 'equip_item_template',
+    transform: {
+      x: 24,
+      y: 0,
+      width: EQUIP_LIST_W - 96,
+      height: EQUIP_SLOT_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
 
   // 装備候補カーソル
-  objects.push({ id: 'equip_list_cursor', name: 'listCursor', parentId: 'equip_list_win',
-    transform: { x: 0, y: 8, width: 16, height: EQUIP_SLOT_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+  objects.push({
+    id: 'equip_list_cursor',
+    name: 'listCursor',
+    parentId: 'equip_list_win',
+    transform: {
+      x: 0,
+      y: 8,
+      width: 16,
+      height: EQUIP_SLOT_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 14, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 14,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
-    ], });
+    ],
+  });
 
   // ── ステータス比較ウィンドウ（スロットウィンドウの下） ──
   objects.push({
     id: 'equip_stat_win',
     name: 'statWindow',
     parentId: 'equip_bg',
-    transform: { x: 16, y: 424, width: EQUIP_SLOT_W, height: 280, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 })],
+    transform: {
+      x: 16,
+      y: 424,
+      width: EQUIP_SLOT_W,
+      height: 280,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+    ],
   });
 
   objects.push({
     id: 'equip_stat_text',
     name: 'statText',
     parentId: 'equip_stat_win',
-    transform: { x: 16, y: 8, width: EQUIP_SLOT_W - 32, height: 356, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 14, color: '#ffffff', align: 'left', verticalAlign: 'top', lineHeight: 1.6 })],
+    transform: {
+      x: 16,
+      y: 8,
+      width: EQUIP_SLOT_W - 32,
+      height: 356,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 14,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'top',
+        lineHeight: 1.6,
+      }),
+    ],
   });
 
   return objects;
@@ -1488,18 +3358,64 @@ function createShopObjects(): EditorUIObject[] {
 
   // 全体背景
   objects.push({
-    id: 'shop_bg', name: 'background', transform: { x: 0, y: 0, width: 1280, height: 720, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' })],
+    id: 'shop_bg',
+    name: 'background',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' }),
+    ],
   });
 
   // ── コマンドウィンドウ（買う/売る/やめる） ──
   objects.push({
-    id: 'shop_cmd_win', name: 'cmdWindow', parentId: 'shop_bg',
-    transform: { x: 16, y: 16, width: 200, height: 160, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    id: 'shop_cmd_win',
+    name: 'cmdWindow',
+    parentId: 'shop_bg',
+    transform: {
+      x: 16,
+      y: 16,
+      width: 200,
+      height: 160,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 0, alignment: 'start', paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 0,
+        alignment: 'start',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
       createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
     ],
   });
@@ -1507,20 +3423,64 @@ function createShopObjects(): EditorUIObject[] {
   const cmds = ['買う', '売る', 'やめる'];
   for (let i = 0; i < cmds.length; i++) {
     objects.push({
-      id: `shop_cmd_${i}`, name: `cmd${i}`, parentId: 'shop_cmd_win',
-      transform: { x: 0, y: 0, width: 168, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+      id: `shop_cmd_${i}`,
+      name: `cmd${i}`,
+      parentId: 'shop_cmd_win',
+      transform: {
+        x: 0,
+        y: 0,
+        width: 168,
+        height: 40,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
+      },
       components: [
-        createUIComponentData('text', { content: cmds[i], fontSize: 20, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 }),
+        createUIComponentData('text', {
+          content: cmds[i],
+          fontSize: 20,
+          color: '#ffffff',
+          align: 'left',
+          verticalAlign: 'middle',
+          lineHeight: 1.2,
+        }),
         createUIComponentData('navigationItem', { itemId: String(i) }),
       ],
     });
   }
 
   objects.push({
-    id: 'shop_cmd_cursor', name: 'cmdCursor', parentId: 'shop_cmd_win',
-    transform: { x: 0, y: 8, width: 16, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    id: 'shop_cmd_cursor',
+    name: 'cmdCursor',
+    parentId: 'shop_cmd_win',
+    transform: {
+      x: 0,
+      y: 8,
+      width: 16,
+      height: 40,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
@@ -1528,45 +3488,186 @@ function createShopObjects(): EditorUIObject[] {
 
   // ── 所持金ウィンドウ ──
   objects.push({
-    id: 'shop_gold_win', name: 'goldWindow', parentId: 'shop_bg',
-    transform: { x: 16, y: 192, width: 200, height: 48, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 })],
+    id: 'shop_gold_win',
+    name: 'goldWindow',
+    parentId: 'shop_bg',
+    transform: {
+      x: 16,
+      y: 192,
+      width: 200,
+      height: 48,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+    ],
   });
 
   objects.push({
-    id: 'shop_gold_text', name: 'goldText', parentId: 'shop_gold_win',
-    transform: { x: 16, y: 0, width: 168, height: 48, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '0 G', fontSize: 18, color: '#ffdd44', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 })],
+    id: 'shop_gold_text',
+    name: 'goldText',
+    parentId: 'shop_gold_win',
+    transform: {
+      x: 16,
+      y: 0,
+      width: 168,
+      height: 48,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '0 G',
+        fontSize: 18,
+        color: '#ffdd44',
+        align: 'right',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   // ── 説明ヘッダー ──
   objects.push({
-    id: 'shop_desc_win', name: 'descWindow', parentId: 'shop_bg',
-    transform: { x: 232, y: 16, width: 1032, height: 56, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 })],
+    id: 'shop_desc_win',
+    name: 'descWindow',
+    parentId: 'shop_bg',
+    transform: {
+      x: 232,
+      y: 16,
+      width: 1032,
+      height: 56,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+    ],
   });
 
   objects.push({
-    id: 'shop_desc_text', name: 'descText', parentId: 'shop_desc_win',
-    transform: { x: 16, y: 0, width: 1000, height: 56, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    id: 'shop_desc_text',
+    name: 'descText',
+    parentId: 'shop_desc_win',
+    transform: {
+      x: 16,
+      y: 0,
+      width: 1000,
+      height: 56,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   // ── 商品一覧ウィンドウ（2列グリッド） ──
   objects.push({
-    id: 'shop_list_win', name: 'listWindow', parentId: 'shop_bg',
-    transform: { x: 232, y: 88, width: 1032, height: 616, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    id: 'shop_list_win',
+    name: 'listWindow',
+    parentId: 'shop_bg',
+    transform: {
+      x: 232,
+      y: 88,
+      width: 1032,
+      height: 616,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
-      createUIComponentData('navigation', { direction: 'grid', wrap: true, initialIndex: 0, columns: 2 }),
-      createUIComponentData('gridLayout', { columns: 2, spacingX: 8, spacingY: 0, cellWidth: 500, cellHeight: SHOP_ROW_H }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('navigation', {
+        direction: 'grid',
+        wrap: true,
+        initialIndex: 0,
+        columns: 2,
+      }),
+      createUIComponentData('gridLayout', {
+        columns: 2,
+        spacingX: 8,
+        spacingY: 0,
+        cellWidth: 500,
+        cellHeight: SHOP_ROW_H,
+      }),
     ],
   });
 
   // 商品テンプレート（名前 + 価格）
   objects.push({
-    id: 'shop_item_template', name: 'itemTemplate', parentId: 'shop_list_win',
-    transform: { x: 0, y: 0, width: 500, height: SHOP_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    id: 'shop_item_template',
+    name: 'itemTemplate',
+    parentId: 'shop_list_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 500,
+      height: SHOP_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
       createUIComponentData('templateController', {
         args: [
@@ -1575,8 +3676,24 @@ function createShopObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'shop_item_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'shop_item_price', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'price' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'shop_item_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'shop_item_price',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'price' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
@@ -1584,23 +3701,93 @@ function createShopObjects(): EditorUIObject[] {
   });
 
   objects.push({
-    id: 'shop_item_name', name: 'name', parentId: 'shop_item_template',
-    transform: { x: 24, y: 0, width: 340, height: SHOP_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })],
+    id: 'shop_item_name',
+    name: 'name',
+    parentId: 'shop_item_template',
+    transform: {
+      x: 24,
+      y: 0,
+      width: 340,
+      height: SHOP_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   objects.push({
-    id: 'shop_item_price', name: 'price', parentId: 'shop_item_template',
-    transform: { x: 380, y: 0, width: 100, height: SHOP_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 })],
+    id: 'shop_item_price',
+    name: 'price',
+    parentId: 'shop_item_template',
+    transform: {
+      x: 380,
+      y: 0,
+      width: 100,
+      height: SHOP_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#aaaaaa',
+        align: 'right',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
   });
 
   // 商品カーソル
   objects.push({
-    id: 'shop_list_cursor', name: 'listCursor', parentId: 'shop_list_win',
-    transform: { x: 0, y: 0, width: 20, height: SHOP_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    id: 'shop_list_cursor',
+    name: 'listCursor',
+    parentId: 'shop_list_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 20,
+      height: SHOP_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: 0, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
@@ -1623,32 +3810,151 @@ const SKILL_ROW_H = 36;
 function createSkillScreenObjects(): EditorUIObject[] {
   const objects: EditorUIObject[] = [];
 
-  objects.push({ id: 'skill_bg', name: 'background', transform: { x: 0, y: 0, width: 1280, height: 720, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' })], });
+  objects.push({
+    id: 'skill_bg',
+    name: 'background',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000aa' }),
+    ],
+  });
 
   // ヘッダー
-  objects.push({ id: 'skill_header', name: 'header', parentId: 'skill_bg',
-    transform: { x: 16, y: 16, width: 1248, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })], });
-  objects.push({ id: 'skill_header_text', name: 'headerText', parentId: 'skill_header',
-    transform: { x: 16, y: 0, width: 1216, height: 40, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
-    components: [createUIComponentData('text', { content: 'キャラクターを選んでください', fontSize: 18, color: '#ffdd44', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({
+    id: 'skill_header',
+    name: 'header',
+    parentId: 'skill_bg',
+    transform: {
+      x: 16,
+      y: 16,
+      width: 1248,
+      height: 40,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 8,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_header_text',
+    name: 'headerText',
+    parentId: 'skill_header',
+    transform: {
+      x: 16,
+      y: 0,
+      width: 1216,
+      height: 40,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'キャラクターを選んでください',
+        fontSize: 18,
+        color: '#ffdd44',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
 
   // キャラ選択（装備画面と同じ構造）
-  objects.push({ id: 'skill_char_win', name: 'charWindow', parentId: 'skill_bg',
-    transform: { x: 16, y: 72, width: 1248, height: 620, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+  objects.push({
+    id: 'skill_char_win',
+    name: 'charWindow',
+    parentId: 'skill_bg',
+    transform: {
+      x: 16,
+      y: 72,
+      width: 1248,
+      height: 620,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 4,
+        alignment: 'start',
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
       createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
-    ], });
+    ],
+  });
 
   // キャラテンプレート
-  objects.push({ id: 'skill_char_template', name: 'charTemplate', parentId: 'skill_char_win',
-    transform: { x: 0, y: 0, width: 1216, height: 120, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+  objects.push({
+    id: 'skill_char_template',
+    name: 'charTemplate',
+    parentId: 'skill_char_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1216,
+      height: 120,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 4,
+      }),
       createUIComponentData('templateController', {
         args: [
           { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
@@ -1659,47 +3965,392 @@ function createSkillScreenObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'skill_char_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_char_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_char_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_char_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_char_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_char_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_char_level',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'level' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_char_hp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'hp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_char_mp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'mp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_char_face',
+              component: 'image',
+              property: 'imageId',
+              valueSource: { source: 'arg', argId: 'face' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
-    ], });
-  objects.push({ id: 'skill_char_face', name: 'face', parentId: 'skill_char_template', transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
-  objects.push({ id: 'skill_char_name', name: 'name', parentId: 'skill_char_template', transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_char_level', name: 'level', parentId: 'skill_char_template', transform: { x: 300, y: 8, width: 120, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: 'Lv.1', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_char_hp', name: 'hp', parentId: 'skill_char_template', transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: 'HP: ---', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_char_mp', name: 'mp', parentId: 'skill_char_template', transform: { x: 80, y: 64, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: 'MP: ---', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_char_cursor', name: 'charCursor', parentId: 'skill_char_win', transform: { x: 0, y: 12, width: 16, height: 120, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    ],
+  });
+  objects.push({
+    id: 'skill_char_face',
+    name: 'face',
+    parentId: 'skill_char_template',
+    transform: {
+      x: 8,
+      y: 8,
+      width: 64,
+      height: 64,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
+  });
+  objects.push({
+    id: 'skill_char_name',
+    name: 'name',
+    parentId: 'skill_char_template',
+    transform: {
+      x: 80,
+      y: 8,
+      width: 200,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '---',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_char_level',
+    name: 'level',
+    parentId: 'skill_char_template',
+    transform: {
+      x: 300,
+      y: 8,
+      width: 120,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'Lv.1',
+        fontSize: 18,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_char_hp',
+    name: 'hp',
+    parentId: 'skill_char_template',
+    transform: {
+      x: 80,
+      y: 40,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'HP: ---',
+        fontSize: 16,
+        color: '#88ff88',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_char_mp',
+    name: 'mp',
+    parentId: 'skill_char_template',
+    transform: {
+      x: 80,
+      y: 64,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: 'MP: ---',
+        fontSize: 16,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_char_cursor',
+    name: 'charCursor',
+    parentId: 'skill_char_win',
+    transform: {
+      x: 0,
+      y: 12,
+      width: 16,
+      height: 120,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
-    ], });
+    ],
+  });
 
   // キャラ情報バー（スキル選択時）
-  objects.push({ id: 'skill_member_win', name: 'memberWindow', parentId: 'skill_bg',
-    transform: { x: 16, y: 72, width: 1248, height: 88, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
-    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 8 })], });
-  objects.push({ id: 'skill_member_face', name: 'memberFace', parentId: 'skill_member_win', transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
-  objects.push({ id: 'skill_member_name', name: 'memberName', parentId: 'skill_member_win', transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_member_mp', name: 'memberMp', parentId: 'skill_member_win', transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
+  objects.push({
+    id: 'skill_member_win',
+    name: 'memberWindow',
+    parentId: 'skill_bg',
+    transform: {
+      x: 16,
+      y: 72,
+      width: 1248,
+      height: 88,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 8,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_member_face',
+    name: 'memberFace',
+    parentId: 'skill_member_win',
+    transform: {
+      x: 8,
+      y: 8,
+      width: 64,
+      height: 64,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
+  });
+  objects.push({
+    id: 'skill_member_name',
+    name: 'memberName',
+    parentId: 'skill_member_win',
+    transform: {
+      x: 80,
+      y: 8,
+      width: 200,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_member_mp',
+    name: 'memberMp',
+    parentId: 'skill_member_win',
+    transform: {
+      x: 80,
+      y: 40,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
 
   // スキル一覧（2列グリッド）
-  objects.push({ id: 'skill_list_win', name: 'listWindow', parentId: 'skill_bg',
-    transform: { x: 16, y: 176, width: 1248, height: 528, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+  objects.push({
+    id: 'skill_list_win',
+    name: 'listWindow',
+    parentId: 'skill_bg',
+    transform: {
+      x: 16,
+      y: 176,
+      width: 1248,
+      height: 528,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#4a4a6a', strokeWidth: 2, cornerRadius: 8 }),
-      createUIComponentData('navigation', { direction: 'grid', wrap: true, initialIndex: 0, columns: 2 }),
-      createUIComponentData('gridLayout', { columns: 2, spacingX: 8, spacingY: 0, cellWidth: 600, cellHeight: SKILL_ROW_H }),
-    ], });
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('navigation', {
+        direction: 'grid',
+        wrap: true,
+        initialIndex: 0,
+        columns: 2,
+      }),
+      createUIComponentData('gridLayout', {
+        columns: 2,
+        spacingX: 8,
+        spacingY: 0,
+        cellWidth: 600,
+        cellHeight: SKILL_ROW_H,
+      }),
+    ],
+  });
 
   // スキルテンプレート
-  objects.push({ id: 'skill_row_template', name: 'skillTemplate', parentId: 'skill_list_win',
-    transform: { x: 0, y: 0, width: 600, height: SKILL_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+  objects.push({
+    id: 'skill_row_template',
+    name: 'skillTemplate',
+    parentId: 'skill_list_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 600,
+      height: SKILL_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
       createUIComponentData('templateController', {
         args: [
@@ -1708,34 +4359,183 @@ function createSkillScreenObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'skill_row_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_row_cost', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'cost' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_row_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_row_cost',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'cost' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
-    ], });
-  objects.push({ id: 'skill_row_name', name: 'name', parentId: 'skill_row_template', transform: { x: 24, y: 0, width: 440, height: SKILL_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_row_cost', name: 'cost', parentId: 'skill_row_template', transform: { x: 480, y: 0, width: 100, height: SKILL_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#aaaaaa', align: 'right', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_list_cursor', name: 'listCursor', parentId: 'skill_list_win', transform: { x: 0, y: 0, width: 20, height: SKILL_ROW_H, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    ],
+  });
+  objects.push({
+    id: 'skill_row_name',
+    name: 'name',
+    parentId: 'skill_row_template',
+    transform: {
+      x: 24,
+      y: 0,
+      width: 440,
+      height: SKILL_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_row_cost',
+    name: 'cost',
+    parentId: 'skill_row_template',
+    transform: {
+      x: 480,
+      y: 0,
+      width: 100,
+      height: SKILL_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#aaaaaa',
+        align: 'right',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_list_cursor',
+    name: 'listCursor',
+    parentId: 'skill_list_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 20,
+      height: SKILL_ROW_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: 0, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
-    ], });
+    ],
+  });
 
   // 対象選択（キャラ一覧、アイテム画面と同じ）
-  objects.push({ id: 'skill_target_win', name: 'targetWindow', parentId: 'skill_bg',
-    transform: { x: 16, y: 176, width: 1248, height: 528, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+  objects.push({
+    id: 'skill_target_win',
+    name: 'targetWindow',
+    parentId: 'skill_bg',
+    transform: {
+      x: 16,
+      y: 176,
+      width: 1248,
+      height: 528,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#1a1a2e', strokeColor: '#ffdd44', strokeWidth: 2, cornerRadius: 8 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#ffdd44',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
       createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', { direction: 'vertical', spacing: 4, alignment: 'start', paddingTop: 12, paddingBottom: 12, paddingLeft: 16, paddingRight: 16 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 4,
+        alignment: 'start',
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
       createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
-    ], });
-  objects.push({ id: 'skill_target_template', name: 'targetTemplate', parentId: 'skill_target_win',
-    transform: { x: 0, y: 0, width: 1216, height: 120, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: false },
+    ],
+  });
+  objects.push({
+    id: 'skill_target_template',
+    name: 'targetTemplate',
+    parentId: 'skill_target_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1216,
+      height: 120,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#2a2a4e', cornerRadius: 4 }),
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 4,
+      }),
       createUIComponentData('templateController', {
         args: [
           { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
@@ -1746,26 +4546,223 @@ function createSkillScreenObjects(): EditorUIObject[] {
         ],
         onSpawnActions: [],
         onApplyActions: [
-          { type: 'uiSetProperty', data: { targetId: 'skill_target_name', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'name' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_target_level', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'level' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_target_hp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'hp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_target_mp', component: 'text', property: 'content', valueSource: { source: 'arg', argId: 'mp' } } },
-          { type: 'uiSetProperty', data: { targetId: 'skill_target_face', component: 'image', property: 'imageId', valueSource: { source: 'arg', argId: 'face' } } },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_target_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_target_level',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'level' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_target_hp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'hp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_target_mp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'mp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'skill_target_face',
+              component: 'image',
+              property: 'imageId',
+              valueSource: { source: 'arg', argId: 'face' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
-    ], });
-  objects.push({ id: 'skill_target_face', name: 'face', parentId: 'skill_target_template', transform: { x: 8, y: 8, width: 64, height: 64, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('image', { imageId: '', opacity: 1 })], });
-  objects.push({ id: 'skill_target_name', name: 'name', parentId: 'skill_target_template', transform: { x: 80, y: 8, width: 200, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '---', fontSize: 18, color: '#ffffff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_target_level', name: 'level', parentId: 'skill_target_template', transform: { x: 300, y: 8, width: 120, height: 24, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 18, color: '#aaaaaa', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_target_hp', name: 'hp', parentId: 'skill_target_template', transform: { x: 80, y: 40, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88ff88', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_target_mp', name: 'mp', parentId: 'skill_target_template', transform: { x: 80, y: 64, width: 200, height: 20, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true }, components: [createUIComponentData('text', { content: '', fontSize: 16, color: '#88bbff', align: 'left', verticalAlign: 'middle', lineHeight: 1.2 })], });
-  objects.push({ id: 'skill_target_cursor', name: 'targetCursor', parentId: 'skill_target_win', transform: { x: 0, y: 12, width: 16, height: 120, anchorX: 'left', anchorY: 'top', pivotX: 0, pivotY: 0, rotation: 0, scaleX: 1, scaleY: 1, visible: true },
+    ],
+  });
+  objects.push({
+    id: 'skill_target_face',
+    name: 'face',
+    parentId: 'skill_target_template',
+    transform: {
+      x: 8,
+      y: 8,
+      width: 64,
+      height: 64,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
+  });
+  objects.push({
+    id: 'skill_target_name',
+    name: 'name',
+    parentId: 'skill_target_template',
+    transform: {
+      x: 80,
+      y: 8,
+      width: 200,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
     components: [
-      createUIComponentData('text', { content: '▶', fontSize: 16, color: '#ffdd44', align: 'center', verticalAlign: 'middle', lineHeight: 1.2 }),
+      createUIComponentData('text', {
+        content: '---',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_target_level',
+    name: 'level',
+    parentId: 'skill_target_template',
+    transform: {
+      x: 300,
+      y: 8,
+      width: 120,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_target_hp',
+    name: 'hp',
+    parentId: 'skill_target_template',
+    transform: {
+      x: 80,
+      y: 40,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#88ff88',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_target_mp',
+    name: 'mp',
+    parentId: 'skill_target_template',
+    transform: {
+      x: 80,
+      y: 64,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'skill_target_cursor',
+    name: 'targetCursor',
+    parentId: 'skill_target_win',
+    transform: {
+      x: 0,
+      y: 12,
+      width: 16,
+      height: 120,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
-    ], });
+    ],
+  });
 
   return objects;
 }
