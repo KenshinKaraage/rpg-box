@@ -3933,11 +3933,55 @@ function createSkillScreenObjects(): EditorUIObject[] {
     ],
   });
 
+  // ── キャラ選択ビュー（グループ） ──
+  objects.push({
+    id: 'skill_char_view',
+    name: 'charView',
+    parentId: 'skill_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+
+  // ── スキル詳細ビュー（グループ） ──
+  objects.push({
+    id: 'skill_detail_view',
+    name: 'detailView',
+    parentId: 'skill_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+
   // キャラ選択（装備画面と同じ構造）
   objects.push({
     id: 'skill_char_win',
     name: 'charWindow',
-    parentId: 'skill_bg',
+    parentId: 'skill_char_view',
     transform: {
       x: 16,
       y: 72,
@@ -4231,7 +4275,7 @@ function createSkillScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'skill_member_win',
     name: 'memberWindow',
-    parentId: 'skill_bg',
+    parentId: 'skill_detail_view',
     transform: {
       x: 16,
       y: 72,
@@ -4337,7 +4381,7 @@ function createSkillScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'skill_list_win',
     name: 'listWindow',
-    parentId: 'skill_bg',
+    parentId: 'skill_detail_view',
     transform: {
       x: 16,
       y: 176,
@@ -4520,7 +4564,7 @@ function createSkillScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'skill_target_win',
     name: 'targetWindow',
-    parentId: 'skill_bg',
+    parentId: 'skill_detail_view',
     transform: {
       x: 16,
       y: 176,

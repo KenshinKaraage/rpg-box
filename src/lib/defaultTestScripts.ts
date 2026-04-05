@@ -2002,6 +2002,8 @@ function applySkillEffect(eff, targetMember) {
 
 UI["skill_screen"].show();
 const headerText = UI["skill_screen"].getObject("headerText");
+const charView = UI["skill_screen"].getObject("charView");
+const detailView = UI["skill_screen"].getObject("detailView");
 const charWin = UI["skill_screen"].getObject("charWindow");
 const memberWin = UI["skill_screen"].getObject("memberWindow");
 const listWin = UI["skill_screen"].getObject("listWindow");
@@ -2013,9 +2015,8 @@ const targetTmpl = UI["skill_screen"].getObject("targetTemplate");
 // キャラ選択ループ
 while (true) {
   headerText.setProperty("text", "content", "キャラクターを選んでください");
-  charWin.visible = true;
-  memberWin.visible = false;
-  listWin.visible = false;
+  charView.visible = true;
+  detailView.visible = false;
   targetWin.visible = false;
 
   const charMembers = buildCharMembers();
@@ -2050,9 +2051,8 @@ while (true) {
   }
 
   // スキル一覧
-  charWin.visible = false;
-  memberWin.visible = true;
-  listWin.visible = true;
+  charView.visible = false;
+  detailView.visible = true;
 
   const mf = UI["skill_screen"].getObject("memberFace");
   const mn = UI["skill_screen"].getObject("memberName");
