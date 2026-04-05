@@ -1,6 +1,6 @@
 'use client';
 
-import { Play } from 'lucide-react';
+import { ChevronDown, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
@@ -155,6 +155,7 @@ export function Header() {
                 )}
               >
                 {menu.label}
+                <ChevronDown className="ml-1 h-3 w-3 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-60">
