@@ -10,13 +10,11 @@ import { loadDefaultTestData } from '@/lib/defaultTestData';
 import { SaveIndicator } from '@/components/common/SaveIndicator';
 import { Button } from '@/components/ui/button';
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { TestPlayOverlay, useTestPlay } from '@/features/test-play';
 import { buildProjectData } from '@/features/test-play/buildProjectData';
@@ -144,38 +142,36 @@ export function Header() {
       </Link>
 
       {/* Navigation */}
-      <NavigationMenu>
-        <NavigationMenuList>
-          {navigationItems.map((menu) => (
-            <NavigationMenuItem key={menu.label}>
-              <NavigationMenuTrigger
-                className={cn(isActiveMenu(menu.items) && 'bg-accent text-accent-foreground')}
+      <nav className="flex items-center gap-1">
+        {navigationItems.map((menu) => (
+          <DropdownMenu key={menu.label}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'text-sm font-medium',
+                  isActiveMenu(menu.items) && 'bg-accent text-accent-foreground'
+                )}
               >
                 {menu.label}
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="w-60 list-none p-2">
-                  {menu.items.map((item) => (
-                    <li key={item.href}>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            'block whitespace-nowrap rounded-md px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground',
-                            pathname === item.href && 'bg-accent text-accent-foreground'
-                          )}
-                        >
-                          {item.label}
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          ))}
-        </NavigationMenuList>
-      </NavigationMenu>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-60">
+              {menu.items.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link
+                    href={item.href}
+                    className={cn(pathname === item.href && 'bg-accent text-accent-foreground')}
+                  >
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ))}
+      </nav>
 
       {/* Spacer */}
       <div className="flex-1" />
