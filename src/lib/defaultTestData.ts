@@ -9,29 +9,75 @@
  */
 
 import { useStore } from '@/stores';
+import { applyLayoutOverrides } from '@/features/ui-editor/renderer/layoutResolver';
+import type { EditorUICanvas } from '@/stores/uiEditorSlice';
 import { defaultDataTypes } from './defaultDataTypes';
 import { defaultClasses } from './defaultClasses';
 import { importDefaultAssets } from './importDefaultAssets';
 
 import {
-  messageCanvas, choiceCanvas, numberInputCanvas, textInputCanvas,
-  statusCanvas, effectTestCanvas, animTestCanvas, partyStatusCanvas,
-  menuCanvas, itemScreenCanvas, equipScreenCanvas, shopCanvas, skillScreenCanvas,
+  messageCanvas,
+  choiceCanvas,
+  numberInputCanvas,
+  textInputCanvas,
+  statusCanvas,
+  effectTestCanvas,
+  animTestCanvas,
+  partyStatusCanvas,
+  menuCanvas,
+  itemScreenCanvas,
+  equipScreenCanvas,
+  shopCanvas,
+  skillScreenCanvas,
 } from './defaultTestCanvases';
 import {
-  messageScript, choiceScript, inputNumberScript, inputTextScript,
-  showStatusScript, mapInfoScript, objTestScript,
-  audioTestScript, inputTestScript, effectTestScript, animTestScript,
-  partyStatusScript, itemAddScript, itemRemoveScript, useItemScript,
-  equipItemScript, unequipItemScript, initPartyScript, levelUpScript,
-  healAllScript, levelUpAllScript, shopOpenScript,
-  menuOpenScript, itemScreenScript, equipScreenScript, skillScreenScript, statusScreenScript,
+  messageScript,
+  choiceScript,
+  inputNumberScript,
+  inputTextScript,
+  showStatusScript,
+  mapInfoScript,
+  objTestScript,
+  audioTestScript,
+  inputTestScript,
+  effectTestScript,
+  animTestScript,
+  partyStatusScript,
+  itemAddScript,
+  itemRemoveScript,
+  useItemScript,
+  equipItemScript,
+  unequipItemScript,
+  initPartyScript,
+  levelUpScript,
+  healAllScript,
+  levelUpAllScript,
+  shopOpenScript,
+  menuOpenScript,
+  itemScreenScript,
+  equipScreenScript,
+  skillScreenScript,
+  statusScreenScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
 import { createTestMap, createNpcPrefabs } from './defaultTestMap';
 import type { AssetNameToId } from './defaultTestMap';
 
 // ── Store に投入 ──
+
+/** キャンバスのオブジェクトをレイアウトコンポーネントに従って整列する */
+function alignCanvas(canvas: EditorUICanvas): EditorUICanvas {
+  const clone = structuredClone(canvas);
+  const overrides = applyLayoutOverrides(clone.objects);
+  for (const obj of clone.objects) {
+    const pos = overrides.get(obj.id);
+    if (pos) {
+      obj.transform.x = pos.x;
+      obj.transform.y = pos.y;
+    }
+  }
+  return clone;
+}
 
 export async function loadDefaultTestData(): Promise<void> {
   const state = useStore.getState();
@@ -43,7 +89,7 @@ export async function loadDefaultTestData(): Promise<void> {
   const freshState = useStore.getState();
   const resolveAssetId: AssetNameToId = (name) => {
     const asset = freshState.assets.find((a) => a.name === name);
-    return asset?.id ?? name;  // 見つからなければ name をそのまま返す
+    return asset?.id ?? name; // 見つからなければ name をそのまま返す
   };
 
   // デフォルトクラス
@@ -86,43 +132,43 @@ export async function loadDefaultTestData(): Promise<void> {
 
   // UICanvas（structuredClone で渡して Immer との参照共有を防ぐ）
   if (!state.uiCanvases.find((c) => c.id === 'message')) {
-    state.addUICanvas(structuredClone(messageCanvas));
+    state.addUICanvas(alignCanvas(messageCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'status_hud')) {
-    state.addUICanvas(structuredClone(statusCanvas));
+    state.addUICanvas(alignCanvas(statusCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'choice')) {
-    state.addUICanvas(structuredClone(choiceCanvas));
+    state.addUICanvas(alignCanvas(choiceCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'number_input')) {
-    state.addUICanvas(structuredClone(numberInputCanvas));
+    state.addUICanvas(alignCanvas(numberInputCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'text_input')) {
-    state.addUICanvas(structuredClone(textInputCanvas));
+    state.addUICanvas(alignCanvas(textInputCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'effect_test')) {
-    state.addUICanvas(structuredClone(effectTestCanvas));
+    state.addUICanvas(alignCanvas(effectTestCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'anim_test')) {
-    state.addUICanvas(structuredClone(animTestCanvas));
+    state.addUICanvas(alignCanvas(animTestCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'party_status')) {
-    state.addUICanvas(structuredClone(partyStatusCanvas));
+    state.addUICanvas(alignCanvas(partyStatusCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'menu')) {
-    state.addUICanvas(structuredClone(menuCanvas));
+    state.addUICanvas(alignCanvas(menuCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'item_screen')) {
-    state.addUICanvas(structuredClone(itemScreenCanvas));
+    state.addUICanvas(alignCanvas(itemScreenCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'equip_screen')) {
-    state.addUICanvas(structuredClone(equipScreenCanvas));
+    state.addUICanvas(alignCanvas(equipScreenCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'shop')) {
-    state.addUICanvas(structuredClone(shopCanvas));
+    state.addUICanvas(alignCanvas(shopCanvas));
   }
   if (!state.uiCanvases.find((c) => c.id === 'skill_screen')) {
-    state.addUICanvas(structuredClone(skillScreenCanvas));
+    state.addUICanvas(alignCanvas(skillScreenCanvas));
   }
 
   // Prefab（NPC テンプレート）
@@ -136,20 +182,39 @@ export async function loadDefaultTestData(): Promise<void> {
   // Script (ordered by category for display)
   const scriptsToAdd = [
     // UI基盤（event）
-    messageScript, choiceScript, inputNumberScript, inputTextScript,
+    messageScript,
+    choiceScript,
+    inputNumberScript,
+    inputTextScript,
     // パーティ
-    initPartyScript, levelUpScript, levelUpAllScript, healAllScript, partyStatusScript,
+    initPartyScript,
+    levelUpScript,
+    levelUpAllScript,
+    healAllScript,
+    partyStatusScript,
     // アイテム
-    itemAddScript, itemRemoveScript, useItemScript,
+    itemAddScript,
+    itemRemoveScript,
+    useItemScript,
     // 装備
-    equipItemScript, unequipItemScript,
+    equipItemScript,
+    unequipItemScript,
     // メニュー画面
-    menuOpenScript, itemScreenScript, equipScreenScript, skillScreenScript, statusScreenScript,
+    menuOpenScript,
+    itemScreenScript,
+    equipScreenScript,
+    skillScreenScript,
+    statusScreenScript,
     // ショップ
     shopOpenScript,
     // テスト用
-    showStatusScript, mapInfoScript, objTestScript,
-    audioTestScript, inputTestScript, effectTestScript, animTestScript,
+    showStatusScript,
+    mapInfoScript,
+    objTestScript,
+    audioTestScript,
+    inputTestScript,
+    effectTestScript,
+    animTestScript,
   ];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {
@@ -163,5 +228,9 @@ export async function loadDefaultTestData(): Promise<void> {
   }
 
   // ゲーム設定: 開始マップを設定
-  state.updateGameSettings({ startMapId: 'test_map', menuScriptId: 'menu_open', startScriptId: 'init_party' });
+  state.updateGameSettings({
+    startMapId: 'test_map',
+    menuScriptId: 'menu_open',
+    startScriptId: 'init_party',
+  });
 }
