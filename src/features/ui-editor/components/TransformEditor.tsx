@@ -36,6 +36,11 @@ function NumberField({
   disabled?: boolean;
 }) {
   const [localValue, setLocalValue] = useState(String(value));
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setLocalValue(String(value));
+  }
 
   return (
     <div className="flex items-center gap-1">
@@ -75,7 +80,11 @@ interface TransformEditorProps {
   layoutManaged?: boolean;
 }
 
-export function TransformEditor({ transform, onUpdate, layoutManaged = false }: TransformEditorProps) {
+export function TransformEditor({
+  transform,
+  onUpdate,
+  layoutManaged = false,
+}: TransformEditorProps) {
   return (
     <div className="space-y-3" data-testid="transform-editor">
       {/* Position */}
@@ -84,8 +93,18 @@ export function TransformEditor({ transform, onUpdate, layoutManaged = false }: 
           位置{layoutManaged && <span className="ml-1 text-muted-foreground">(レイアウト)</span>}
         </legend>
         <div className="grid grid-cols-2 gap-2">
-          <NumberField label="X" value={transform.x} onChange={(v) => onUpdate({ x: v })} disabled={layoutManaged} />
-          <NumberField label="Y" value={transform.y} onChange={(v) => onUpdate({ y: v })} disabled={layoutManaged} />
+          <NumberField
+            label="X"
+            value={transform.x}
+            onChange={(v) => onUpdate({ x: v })}
+            disabled={layoutManaged}
+          />
+          <NumberField
+            label="Y"
+            value={transform.y}
+            onChange={(v) => onUpdate({ y: v })}
+            disabled={layoutManaged}
+          />
         </div>
       </fieldset>
 
@@ -184,7 +203,9 @@ export function TransformEditor({ transform, onUpdate, layoutManaged = false }: 
           checked={transform.visible !== false}
           onCheckedChange={(checked) => onUpdate({ visible: !!checked })}
         />
-        <Label htmlFor="transform-visible" className="text-xs">表示</Label>
+        <Label htmlFor="transform-visible" className="text-xs">
+          表示
+        </Label>
       </div>
 
       {/* Rotation & Scale */}
