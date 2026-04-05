@@ -1,10 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import {
-  worldToScreen,
-  screenToWorld,
-} from '../hooks/useUISelection';
+import { worldToScreen, screenToWorld } from '../hooks/useUISelection';
 import { resolveAllTransforms } from '../renderer/transformResolver';
 import { useStore } from '@/stores';
 import type { UIEditorViewport, EditorUIObject } from '@/stores/uiEditorSlice';
@@ -13,10 +10,7 @@ import type { UIEditorViewport, EditorUIObject } from '@/stores/uiEditorSlice';
 // Types
 // ──────────────────────────────────────────────
 
-type HandleDirection =
-  | 'nw' | 'n' | 'ne'
-  | 'w'        | 'e'
-  | 'sw' | 's' | 'se';
+type HandleDirection = 'nw' | 'n' | 'ne' | 'w' | 'e' | 'sw' | 's' | 'se';
 
 interface TransformHandlesProps {
   objects: EditorUIObject[];
@@ -31,9 +25,14 @@ const HANDLE_SIZE = 8;
 const ROTATE_OFFSET = 24;
 
 const CURSOR_MAP: Record<HandleDirection, string> = {
-  nw: 'nwse-resize', n: 'ns-resize', ne: 'nesw-resize',
-  w: 'ew-resize',                      e: 'ew-resize',
-  sw: 'nesw-resize', s: 'ns-resize', se: 'nwse-resize',
+  nw: 'nwse-resize',
+  n: 'ns-resize',
+  ne: 'nesw-resize',
+  w: 'ew-resize',
+  e: 'ew-resize',
+  sw: 'nesw-resize',
+  s: 'ns-resize',
+  se: 'nwse-resize',
 };
 
 // ──────────────────────────────────────────────
@@ -79,9 +78,8 @@ export function TransformHandles({
   // Use resolveAllTransforms for correct anchor/rotation/scale handling
   const worldRects = resolveAllTransforms(objects, canvasWidth, canvasHeight);
 
-  const selectedObject = selectedObjectIds.length === 1
-    ? objects.find((o) => o.id === selectedObjectIds[0])
-    : null;
+  const selectedObject =
+    selectedObjectIds.length === 1 ? objects.find((o) => o.id === selectedObjectIds[0]) : null;
   if (!selectedObject || !canvasId) return null;
 
   const worldRect = worldRects.get(selectedObject.id);
@@ -102,10 +100,17 @@ export function TransformHandles({
 
   // ── Move: drag the body ──
   const startMove = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
     e.stopPropagation();
     const world = screenToWorld(
-      e.clientX - (e.currentTarget as HTMLElement).closest('[data-testid="ui-canvas-container"]')!.getBoundingClientRect().left,
-      e.clientY - (e.currentTarget as HTMLElement).closest('[data-testid="ui-canvas-container"]')!.getBoundingClientRect().top,
+      e.clientX -
+        (e.currentTarget as HTMLElement)
+          .closest('[data-testid="ui-canvas-container"]')!
+          .getBoundingClientRect().left,
+      e.clientY -
+        (e.currentTarget as HTMLElement)
+          .closest('[data-testid="ui-canvas-container"]')!
+          .getBoundingClientRect().top,
       viewport
     );
     dragRef.current = {
@@ -150,8 +155,11 @@ export function TransformHandles({
 
   // ── Resize handle ──
   const startResize = (handle: HandleDirection, e: React.MouseEvent) => {
+    if (e.button !== 0) return;
     e.stopPropagation();
-    const container = (e.currentTarget as HTMLElement).closest('[data-testid="ui-canvas-container"]');
+    const container = (e.currentTarget as HTMLElement).closest(
+      '[data-testid="ui-canvas-container"]'
+    );
     if (!container) return;
     const rect = container.getBoundingClientRect();
     const world = screenToWorld(e.clientX - rect.left, e.clientY - rect.top, viewport);
@@ -188,9 +196,15 @@ export function TransformHandles({
 
       const h = drag.handle;
       if (h.includes('e')) newW = Math.max(1, drag.startObjW + dx);
-      if (h.includes('w')) { newW = Math.max(1, drag.startObjW - dx); newX = drag.startObjX + dx; }
+      if (h.includes('w')) {
+        newW = Math.max(1, drag.startObjW - dx);
+        newX = drag.startObjX + dx;
+      }
       if (h.includes('s')) newH = Math.max(1, drag.startObjH + dy);
-      if (h.includes('n')) { newH = Math.max(1, drag.startObjH - dy); newY = drag.startObjY + dy; }
+      if (h.includes('n')) {
+        newH = Math.max(1, drag.startObjH - dy);
+        newY = drag.startObjY + dy;
+      }
 
       newX = snapValue(newX, gridSize, snapToGrid);
       newY = snapValue(newY, gridSize, snapToGrid);
@@ -214,8 +228,11 @@ export function TransformHandles({
 
   // ── Rotate handle ──
   const startRotate = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
     e.stopPropagation();
-    const container = (e.currentTarget as HTMLElement).closest('[data-testid="ui-canvas-container"]');
+    const container = (e.currentTarget as HTMLElement).closest(
+      '[data-testid="ui-canvas-container"]'
+    );
     if (!container) return;
     const rect = container.getBoundingClientRect();
     const cx = absX;
