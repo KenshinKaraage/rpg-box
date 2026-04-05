@@ -55,13 +55,6 @@ const navigationItems = [
       { href: '/ui/shaders', label: 'シェーダー' },
     ],
   },
-  {
-    label: 'ゲーム設定',
-    items: [
-      { href: '/settings/info', label: 'ゲーム情報' },
-      { href: '/settings/assets', label: 'アセット管理' },
-    ],
-  },
 ];
 
 export function Header() {
