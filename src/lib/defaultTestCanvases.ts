@@ -2493,11 +2493,55 @@ function createEquipScreenObjects(): EditorUIObject[] {
     ],
   });
 
+  // ── キャラ選択ビュー（グループ） ──
+  objects.push({
+    id: 'equip_char_view',
+    name: 'charView',
+    parentId: 'equip_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+
+  // ── 装備詳細ビュー（グループ） ──
+  objects.push({
+    id: 'equip_detail_view',
+    name: 'detailView',
+    parentId: 'equip_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+
   // ── キャラ選択ウィンドウ ──
   objects.push({
     id: 'equip_char_win',
     name: 'charWindow',
-    parentId: 'equip_bg',
+    parentId: 'equip_char_view',
     transform: {
       x: 16,
       y: 72,
@@ -2794,7 +2838,7 @@ function createEquipScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'equip_member_win',
     name: 'memberWindow',
-    parentId: 'equip_bg',
+    parentId: 'equip_detail_view',
     transform: {
       x: 16,
       y: 72,
@@ -2958,7 +3002,7 @@ function createEquipScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'equip_slot_win',
     name: 'slotWindow',
-    parentId: 'equip_bg',
+    parentId: 'equip_detail_view',
     transform: {
       x: 16,
       y: 176,
@@ -3141,7 +3185,7 @@ function createEquipScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'equip_list_win',
     name: 'listWindow',
-    parentId: 'equip_bg',
+    parentId: 'equip_detail_view',
     transform: {
       x: EQUIP_SLOT_W + 32,
       y: 176,
@@ -3283,7 +3327,7 @@ function createEquipScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'equip_stat_win',
     name: 'statWindow',
-    parentId: 'equip_bg',
+    parentId: 'equip_detail_view',
     transform: {
       x: 16,
       y: 424,
