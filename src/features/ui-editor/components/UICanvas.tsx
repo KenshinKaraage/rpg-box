@@ -119,12 +119,13 @@ export function UICanvas() {
     return () => observer.disconnect();
   }, []);
 
-  // ホイールイベント（passive:false 必須）
+  // ホイールイベント（passive:false 必須、コンテナに付けてオーバーレイ上でも動作）
+  const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
-    return () => canvas.removeEventListener('wheel', handleWheel);
+    const container = containerRef.current;
+    if (!container) return;
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
   // レンダリング
@@ -247,6 +248,7 @@ export function UICanvas() {
 
   return (
     <div
+      ref={containerRef}
       className="relative h-full w-full overflow-hidden"
       data-testid="ui-canvas-container"
       onMouseDown={(e) => handleMouseDown(e.nativeEvent)}
