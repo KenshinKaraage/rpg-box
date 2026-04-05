@@ -150,7 +150,7 @@ export function Header() {
                 variant="outline"
                 size="sm"
                 className={cn(
-                  'text-sm font-medium',
+                  'text-sm font-medium focus-visible:ring-0 focus-visible:ring-offset-0',
                   isActiveMenu(menu.items) && 'bg-accent text-accent-foreground'
                 )}
               >
