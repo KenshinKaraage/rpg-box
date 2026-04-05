@@ -1,154 +1,17 @@
 /**
  * LayoutGroup / GridLayout の子オブジェクト配置計算
  *
- * LayoutGroup/GridLayout コンポーネントを持つ親オブジェクトの子に対して
- * transform の x/y を自動計算する。
+ * 実際の計算ロジックは各コンポーネントクラスの static メソッドに委譲する。
  */
 import type { EditorUIObject, SerializedUIComponent } from '@/stores/uiEditorSlice';
-
-interface LayoutElementData {
-  participate?: boolean;
-  space?: number;
-}
-
-function getLayoutElement(child: EditorUIObject): LayoutElementData | null {
-  const comp = child.components.find((c) => c.type === 'layoutElement');
-  return comp ? (comp.data as LayoutElementData) : null;
-}
-
-interface LayoutGroupData {
-  direction?: 'horizontal' | 'vertical';
-  spacing?: number;
-  paddingTop?: number;
-  paddingBottom?: number;
-  paddingLeft?: number;
-  paddingRight?: number;
-  alignment?: 'start' | 'center' | 'end';
-  reverseOrder?: boolean;
-}
-
-interface GridLayoutData {
-  columns?: number;
-  spacingX?: number;
-  spacingY?: number;
-  cellWidth?: number;
-  cellHeight?: number;
-}
+import { LayoutGroupComponent } from '@/types/ui/components/LayoutGroupComponent';
+import { GridLayoutComponent } from '@/types/ui/components/GridLayoutComponent';
 
 /**
- * LayoutGroup の子オブジェクトの配置を計算
+ * オブジェクト配列の中から Layout コンポーネントを持つ親を探し、
+ * 子の配置を計算する。
  *
- * @param children 子オブジェクト配列（配列順 = 描画順）
- * @param layoutData LayoutGroup コンポーネントのデータ
- * @param parentWidth 親オブジェクトの幅
- * @param parentHeight 親オブジェクトの高さ
- * @returns objectId → { x, y } のオフセットマップ
- */
-export function resolveLayoutGroup(
-  children: EditorUIObject[],
-  layoutData: LayoutGroupData,
-  parentWidth: number,
-  parentHeight: number
-): Map<string, { x: number; y: number }> {
-  const result = new Map<string, { x: number; y: number }>();
-  const direction = layoutData.direction ?? 'vertical';
-  const spacing = layoutData.spacing ?? 0;
-  const padTop = layoutData.paddingTop ?? 0;
-  const padBottom = layoutData.paddingBottom ?? 0;
-  const padLeft = layoutData.paddingLeft ?? 0;
-  const padRight = layoutData.paddingRight ?? 0;
-  const alignment = layoutData.alignment ?? 'start';
-  const reverse = layoutData.reverseOrder ?? false;
-
-  // padding を差し引いた alignment 用サイズ
-  const innerWidth = parentWidth - padLeft - padRight;
-  const innerHeight = parentHeight - padTop - padBottom;
-
-  const ordered = reverse ? [...children].reverse() : children;
-
-  // cursor は padding 開始位置からスタート
-  let cursor = direction === 'vertical' ? padTop : padLeft;
-
-  for (const child of ordered) {
-    const le = getLayoutElement(child);
-    if (le && le.participate === false) continue;
-
-    const w = child.transform.width;
-    const h = child.transform.height;
-    const extraSpace = le?.space ?? 0;
-
-    let x: number;
-    let y: number;
-
-    if (direction === 'vertical') {
-      y = cursor;
-      x = padLeft + resolveAlignment(alignment, w, innerWidth);
-      cursor += h + spacing + extraSpace;
-    } else {
-      x = cursor;
-      y = padTop + resolveAlignment(alignment, h, innerHeight);
-      cursor += w + spacing + extraSpace;
-    }
-
-    result.set(child.id, { x, y });
-  }
-
-  return result;
-}
-
-/**
- * GridLayout の子オブジェクトの配置を計算
- *
- * @param children 子オブジェクト配列
- * @param gridData GridLayout コンポーネントのデータ
- * @returns objectId → { x, y } のオフセットマップ
- */
-export function resolveGridLayout(
-  children: EditorUIObject[],
-  gridData: GridLayoutData
-): Map<string, { x: number; y: number }> {
-  const result = new Map<string, { x: number; y: number }>();
-  const columns = Math.max(1, gridData.columns ?? 2);
-  const spacingX = gridData.spacingX ?? 0;
-  const spacingY = gridData.spacingY ?? 0;
-
-  let idx = 0;
-  for (const child of children) {
-    const le = getLayoutElement(child);
-    if (le && le.participate === false) continue;
-
-    const col = idx % columns;
-    const row = Math.floor(idx / columns);
-
-    const cellW = gridData.cellWidth ?? child.transform.width;
-    const cellH = gridData.cellHeight ?? child.transform.height;
-
-    const x = col * (cellW + spacingX);
-    const y = row * (cellH + spacingY);
-
-    result.set(child.id, { x, y });
-    idx++;
-  }
-
-  return result;
-}
-
-function resolveAlignment(alignment: 'start' | 'center' | 'end', childSize: number, parentSize: number): number {
-  switch (alignment) {
-    case 'start':
-      return 0;
-    case 'center':
-      return (parentSize - childSize) / 2;
-    case 'end':
-      return parentSize - childSize;
-  }
-}
-
-/**
- * オブジェクト配列の中から特定の親の子を取得し、
- * Layout コンポーネントに基づいて配置を解決する
- *
- * @returns 変更された transform を持つオブジェクト配列のコピー
+ * @returns objectId → { x, y } のオーバーライドマップ
  */
 export function applyLayoutOverrides(
   objects: EditorUIObject[]
@@ -174,18 +37,25 @@ export function applyLayoutOverrides(
 
     if (children.length === 0) continue;
 
+    let positions: Map<string, { x: number; y: number }>;
     if (layoutComp) {
-      const data = layoutComp.data as LayoutGroupData;
-      const positions = resolveLayoutGroup(children, data, obj.transform.width, obj.transform.height);
-      for (const [id, pos] of Array.from(positions)) {
-        overrides.set(id, pos);
-      }
+      positions = LayoutGroupComponent.alignChildren(
+        children,
+        layoutComp.data as Record<string, unknown>,
+        obj.transform.width,
+        obj.transform.height
+      );
     } else if (gridComp) {
-      const data = gridComp.data as GridLayoutData;
-      const positions = resolveGridLayout(children, data);
-      for (const [id, pos] of Array.from(positions)) {
-        overrides.set(id, pos);
-      }
+      positions = GridLayoutComponent.alignChildren(
+        children,
+        gridComp.data as Record<string, unknown>
+      );
+    } else {
+      continue;
+    }
+
+    for (const [id, pos] of Array.from(positions)) {
+      overrides.set(id, pos);
     }
   }
 

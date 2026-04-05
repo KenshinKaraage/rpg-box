@@ -1,8 +1,19 @@
-import { resolveLayoutGroup, resolveGridLayout, applyLayoutOverrides } from './layoutResolver';
+import { applyLayoutOverrides } from './layoutResolver';
+import { LayoutGroupComponent } from '@/types/ui/components/LayoutGroupComponent';
+import { GridLayoutComponent } from '@/types/ui/components/GridLayoutComponent';
 import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject } from '@/stores/uiEditorSlice';
 
-function makeChild(id: string, w: number, h: number, components: EditorUIObject['components'] = []): EditorUIObject {
+// Aliases for the static methods (replacing old exports)
+const resolveLayoutGroup = LayoutGroupComponent.alignChildren;
+const resolveGridLayout = GridLayoutComponent.alignChildren;
+
+function makeChild(
+  id: string,
+  w: number,
+  h: number,
+  components: EditorUIObject['components'] = []
+): EditorUIObject {
   return {
     id,
     name: id,
@@ -35,21 +46,36 @@ describe('resolveLayoutGroup', () => {
 
   it('aligns children to center (vertical)', () => {
     const children = [makeChild('a', 60, 40)];
-    const result = resolveLayoutGroup(children, { direction: 'vertical', alignment: 'center' }, 200, 400);
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'vertical', alignment: 'center' },
+      200,
+      400
+    );
 
     expect(result.get('a')).toEqual({ x: 70, y: 0 }); // (200 - 60) / 2
   });
 
   it('aligns children to end (vertical)', () => {
     const children = [makeChild('a', 60, 40)];
-    const result = resolveLayoutGroup(children, { direction: 'vertical', alignment: 'end' }, 200, 400);
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'vertical', alignment: 'end' },
+      200,
+      400
+    );
 
     expect(result.get('a')).toEqual({ x: 140, y: 0 }); // 200 - 60
   });
 
   it('reverses order', () => {
     const children = [makeChild('a', 100, 30), makeChild('b', 100, 50)];
-    const result = resolveLayoutGroup(children, { direction: 'vertical', reverseOrder: true, spacing: 0 }, 100, 200);
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'vertical', reverseOrder: true, spacing: 0 },
+      100,
+      200
+    );
 
     // Reversed: b comes first, then a
     expect(result.get('b')).toEqual({ x: 0, y: 0 });
@@ -76,10 +102,17 @@ describe('resolveLayoutGroup', () => {
 
   it('applies padding to layout start position and alignment area', () => {
     const children = [makeChild('a', 100, 40), makeChild('b', 100, 60)];
-    const result = resolveLayoutGroup(children, {
-      direction: 'vertical', spacing: 5,
-      paddingTop: 10, paddingLeft: 20,
-    }, 300, 400);
+    const result = resolveLayoutGroup(
+      children,
+      {
+        direction: 'vertical',
+        spacing: 5,
+        paddingTop: 10,
+        paddingLeft: 20,
+      },
+      300,
+      400
+    );
 
     expect(result.get('a')).toEqual({ x: 20, y: 10 }); // paddingLeft, paddingTop
     expect(result.get('b')).toEqual({ x: 20, y: 55 }); // 10 + 40 + 5
@@ -118,12 +151,14 @@ describe('resolveGridLayout', () => {
   });
 
   it('uses cellWidth/cellHeight when specified', () => {
-    const children = [
-      makeChild('a', 30, 30),
-      makeChild('b', 30, 30),
-      makeChild('c', 30, 30),
-    ];
-    const result = resolveGridLayout(children, { columns: 2, cellWidth: 100, cellHeight: 80, spacingX: 5, spacingY: 5 });
+    const children = [makeChild('a', 30, 30), makeChild('b', 30, 30), makeChild('c', 30, 30)];
+    const result = resolveGridLayout(children, {
+      columns: 2,
+      cellWidth: 100,
+      cellHeight: 80,
+      spacingX: 5,
+      spacingY: 5,
+    });
 
     expect(result.get('a')).toEqual({ x: 0, y: 0 });
     expect(result.get('b')).toEqual({ x: 105, y: 0 }); // 100 + 5

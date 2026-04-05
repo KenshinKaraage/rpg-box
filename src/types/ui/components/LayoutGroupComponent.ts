@@ -1,4 +1,35 @@
-import { UIComponent, type PropertyDef } from '../UIComponent';
+import { UIComponent, type PropertyDef, type EditorActionContext } from '../UIComponent';
+
+interface LayoutChild {
+  id: string;
+  transform: { width: number; height: number };
+  components: { type: string; data: unknown }[];
+}
+
+interface LayoutElementData {
+  participate?: boolean;
+  space?: number;
+}
+
+function getLayoutElement(child: LayoutChild): LayoutElementData | null {
+  const comp = child.components.find((c) => c.type === 'layoutElement');
+  return comp ? (comp.data as LayoutElementData) : null;
+}
+
+function resolveAlignment(
+  alignment: 'start' | 'center' | 'end',
+  childSize: number,
+  parentSize: number
+): number {
+  switch (alignment) {
+    case 'center':
+      return (parentSize - childSize) / 2;
+    case 'end':
+      return parentSize - childSize;
+    default:
+      return 0;
+  }
+}
 
 export class LayoutGroupComponent extends UIComponent {
   readonly type = 'layoutGroup';
@@ -41,6 +72,88 @@ export class LayoutGroupComponent extends UIComponent {
       },
       { key: 'reverseOrder', label: '逆順', type: 'boolean' },
     ];
+  }
+
+  getEditorActions() {
+    return [{ label: '子オブジェクトを整列', icon: 'align', key: 'align' }];
+  }
+
+  private static align(context: EditorActionContext): Map<string, { x: number; y: number }> {
+    return LayoutGroupComponent.alignChildren(
+      context.children,
+      context.componentData,
+      context.parentTransform.width,
+      context.parentTransform.height
+    );
+  }
+
+  static executeEditorAction(
+    key: string,
+    context: EditorActionContext
+  ): Map<string, { x: number; y: number }> | null {
+    if (key === 'align') return LayoutGroupComponent.align(context);
+    return null;
+  }
+
+  static onAttach(context: EditorActionContext): Map<string, { x: number; y: number }> | null {
+    return LayoutGroupComponent.align(context);
+  }
+
+  static onPropertyChange(
+    context: EditorActionContext
+  ): Map<string, { x: number; y: number }> | null {
+    return LayoutGroupComponent.align(context);
+  }
+
+  /**
+   * 子オブジェクトの配置を計算する（エディタ・layoutResolver 共用）
+   */
+  static alignChildren(
+    children: LayoutChild[],
+    data: Record<string, unknown>,
+    parentWidth: number,
+    parentHeight: number
+  ): Map<string, { x: number; y: number }> {
+    const result = new Map<string, { x: number; y: number }>();
+    const direction = (data.direction as string) ?? 'vertical';
+    const spacing = (data.spacing as number) ?? 0;
+    const padTop = (data.paddingTop as number) ?? 0;
+    const padBottom = (data.paddingBottom as number) ?? 0;
+    const padLeft = (data.paddingLeft as number) ?? 0;
+    const padRight = (data.paddingRight as number) ?? 0;
+    const alignment = (data.alignment as 'start' | 'center' | 'end') ?? 'start';
+    const reverse = (data.reverseOrder as boolean) ?? false;
+
+    const innerWidth = parentWidth - padLeft - padRight;
+    const innerHeight = parentHeight - padTop - padBottom;
+    const ordered = reverse ? [...children].reverse() : children;
+    let cursor = direction === 'vertical' ? padTop : padLeft;
+
+    for (const child of ordered) {
+      const le = getLayoutElement(child);
+      if (le && le.participate === false) continue;
+
+      const w = child.transform.width;
+      const h = child.transform.height;
+      const extraSpace = le?.space ?? 0;
+
+      let x: number;
+      let y: number;
+
+      if (direction === 'vertical') {
+        y = cursor;
+        x = padLeft + resolveAlignment(alignment, w, innerWidth);
+        cursor += h + spacing + extraSpace;
+      } else {
+        x = cursor;
+        y = padTop + resolveAlignment(alignment, h, innerHeight);
+        cursor += w + spacing + extraSpace;
+      }
+
+      result.set(child.id, { x, y });
+    }
+
+    return result;
   }
 
   serialize(): Record<string, unknown> {

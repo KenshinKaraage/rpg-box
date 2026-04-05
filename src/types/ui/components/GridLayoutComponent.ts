@@ -1,4 +1,14 @@
-import { UIComponent, type PropertyDef } from '../UIComponent';
+import { UIComponent, type PropertyDef, type EditorActionContext } from '../UIComponent';
+
+interface LayoutChild {
+  id: string;
+  transform: { width: number; height: number };
+  components: { type: string; data: unknown }[];
+}
+
+interface LayoutElementData {
+  participate?: boolean;
+}
 
 export class GridLayoutComponent extends UIComponent {
   readonly type = 'gridLayout';
@@ -18,6 +28,61 @@ export class GridLayoutComponent extends UIComponent {
       { key: 'cellWidth', label: 'セル幅', type: 'number', min: 0 },
       { key: 'cellHeight', label: 'セル高', type: 'number', min: 0 },
     ];
+  }
+
+  getEditorActions() {
+    return [{ label: '子オブジェクトを整列', icon: 'align', key: 'align' }];
+  }
+
+  private static align(context: EditorActionContext): Map<string, { x: number; y: number }> {
+    return GridLayoutComponent.alignChildren(context.children, context.componentData);
+  }
+
+  static executeEditorAction(
+    key: string,
+    context: EditorActionContext
+  ): Map<string, { x: number; y: number }> | null {
+    if (key === 'align') return GridLayoutComponent.align(context);
+    return null;
+  }
+
+  static onAttach(context: EditorActionContext): Map<string, { x: number; y: number }> | null {
+    return GridLayoutComponent.align(context);
+  }
+
+  static onPropertyChange(
+    context: EditorActionContext
+  ): Map<string, { x: number; y: number }> | null {
+    return GridLayoutComponent.align(context);
+  }
+
+  /**
+   * 子オブジェクトの配置を計算する（エディタ・layoutResolver 共用）
+   */
+  static alignChildren(
+    children: LayoutChild[],
+    data: Record<string, unknown>
+  ): Map<string, { x: number; y: number }> {
+    const result = new Map<string, { x: number; y: number }>();
+    const columns = Math.max(1, (data.columns as number) ?? 2);
+    const spacingX = (data.spacingX as number) ?? 0;
+    const spacingY = (data.spacingY as number) ?? 0;
+
+    let idx = 0;
+    for (const child of children) {
+      const le = child.components.find((c) => c.type === 'layoutElement');
+      if (le && (le.data as LayoutElementData)?.participate === false) continue;
+
+      const col = idx % columns;
+      const row = Math.floor(idx / columns);
+      const cellW = (data.cellWidth as number) || child.transform.width;
+      const cellH = (data.cellHeight as number) || child.transform.height;
+
+      result.set(child.id, { x: col * (cellW + spacingX), y: row * (cellH + spacingY) });
+      idx++;
+    }
+
+    return result;
   }
 
   serialize(): Record<string, unknown> {

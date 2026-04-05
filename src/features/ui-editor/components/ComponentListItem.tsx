@@ -1,7 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Maximize2, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import {
+  AlignVerticalJustifyStart,
+  Maximize2,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/stores';
 import { getUIComponent } from '@/types/ui';
@@ -19,18 +25,28 @@ interface ComponentListItemProps {
   onRemove: () => void;
   onUpdateData: (data: unknown) => void;
   onTransformUpdate?: (updates: Partial<RectTransform>) => void;
+  onAction?: (componentType: string, actionKey: string) => void;
 }
 
-export function ComponentListItem({ component, onRemove, onUpdateData, onTransformUpdate }: ComponentListItemProps) {
+export function ComponentListItem({
+  component,
+  onRemove,
+  onUpdateData,
+  onTransformUpdate,
+  onAction,
+}: ComponentListItemProps) {
   const [expanded, setExpanded] = useState(false);
 
   // Get label and property defs from registry
   const Ctor = getUIComponent(component.type);
   const instance = Ctor ? new Ctor() : null;
   const label = instance ? instance.label : component.type;
+  const editorActions = instance?.getEditorActions() ?? [];
   const hasEditor =
     instance != null &&
-    (instance.getPropertyDefs().length > 0 || component.type === 'templateController');
+    (instance.getPropertyDefs().length > 0 ||
+      component.type === 'templateController' ||
+      editorActions.length > 0);
 
   const compData = (component.data ?? {}) as Record<string, unknown>;
 
@@ -66,23 +82,39 @@ export function ComponentListItem({ component, onRemove, onUpdateData, onTransfo
         </Button>
       </div>
       {expanded && component.type === 'templateController' && (
-        <TemplateControllerEditor
-          data={compData}
-          onChange={(updated) => onUpdateData(updated)}
-        />
+        <TemplateControllerEditor data={compData} onChange={(updated) => onUpdateData(updated)} />
       )}
-      {expanded && instance != null && instance.getPropertyDefs().length > 0 && component.type !== 'templateController' && (
-        <ComponentPropertyEditor
-          componentType={component.type}
-          data={compData}
-          onChange={(updated) => onUpdateData(updated)}
-        />
-      )}
+      {expanded &&
+        instance != null &&
+        instance.getPropertyDefs().length > 0 &&
+        component.type !== 'templateController' && (
+          <ComponentPropertyEditor
+            componentType={component.type}
+            data={compData}
+            onChange={(updated) => onUpdateData(updated)}
+          />
+        )}
       {expanded && component.type === 'image' && onTransformUpdate && (
         <ImageNativeSizeButton
           imageId={compData.imageId as string | undefined}
           onTransformUpdate={onTransformUpdate}
         />
+      )}
+      {expanded && editorActions.length > 0 && (
+        <div className="space-y-1 px-2 pb-2">
+          {editorActions.map((action) => (
+            <Button
+              key={action.key}
+              size="sm"
+              variant="outline"
+              className="h-7 w-full gap-1 text-xs"
+              onClick={() => onAction?.(component.type, action.key)}
+            >
+              {action.icon === 'align' && <AlignVerticalJustifyStart className="h-3 w-3" />}
+              {action.label}
+            </Button>
+          ))}
+        </div>
       )}
     </div>
   );

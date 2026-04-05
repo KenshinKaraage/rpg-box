@@ -51,7 +51,7 @@ export function UIPropertyPanel() {
   // Only show panel for single selection
   const selectedObject: EditorUIObject | null =
     selectedObjectIds.length === 1 && selectedCanvas
-      ? selectedCanvas.objects.find((o) => o.id === selectedObjectIds[0]) ?? null
+      ? (selectedCanvas.objects.find((o) => o.id === selectedObjectIds[0]) ?? null)
       : null;
 
   const handleTransformUpdate = useCallback(
@@ -64,6 +64,48 @@ export function UIPropertyPanel() {
     [selectedCanvasId, selectedObject, updateUIObject]
   );
 
+  /** 座標変更マップを適用する共通ヘルパー */
+  const applyPositions = useCallback(
+    (result: Map<string, { x: number; y: number }> | null) => {
+      if (!result || !selectedCanvasId || !selectedCanvas) return;
+      for (const [childId, pos] of Array.from(result)) {
+        const child = selectedCanvas.objects.find((c) => c.id === childId);
+        if (child) {
+          updateUIObject(selectedCanvasId, childId, {
+            transform: { ...child.transform, x: pos.x, y: pos.y },
+          });
+        }
+      }
+    },
+    [selectedCanvasId, selectedCanvas, updateUIObject]
+  );
+
+  /** コンポーネントの静的メソッドを呼ぶヘルパー */
+  const callStaticHook = useCallback(
+    (type: string, hookName: string, compData: Record<string, unknown>, extraArgs?: unknown[]) => {
+      if (!selectedObject || !selectedCanvas) return;
+      const Ctor = getUIComponent(type);
+      if (!Ctor) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const hook = (Ctor as any)[hookName];
+      if (typeof hook !== 'function') return;
+      const children = selectedCanvas.objects.filter((o) => o.parentId === selectedObject.id);
+      const context = {
+        componentData: compData,
+        parentTransform: {
+          width: selectedObject.transform.width,
+          height: selectedObject.transform.height,
+        },
+        children,
+      };
+      const result: Map<string, { x: number; y: number }> | null = extraArgs
+        ? hook(...extraArgs, context)
+        : hook(context);
+      applyPositions(result);
+    },
+    [selectedObject, selectedCanvas, applyPositions]
+  );
+
   const handleAddComponent = useCallback(
     (type: string) => {
       if (!selectedCanvasId || !selectedObject) return;
@@ -72,8 +114,9 @@ export function UIPropertyPanel() {
       const instance = new Ctor();
       const data = instance.serialize();
       addUIComponent(selectedCanvasId, selectedObject.id, { type, data });
+      callStaticHook(type, 'onAttach', data as Record<string, unknown>);
     },
-    [selectedCanvasId, selectedObject, addUIComponent]
+    [selectedCanvasId, selectedObject, addUIComponent, callStaticHook]
   );
 
   const handleRemoveComponent = useCallback(
@@ -88,8 +131,24 @@ export function UIPropertyPanel() {
     (type: string, data: unknown) => {
       if (!selectedCanvasId || !selectedObject) return;
       updateUIComponent(selectedCanvasId, selectedObject.id, type, data);
+      callStaticHook(type, 'onPropertyChange', (data ?? {}) as Record<string, unknown>);
     },
-    [selectedCanvasId, selectedObject, updateUIComponent]
+    [selectedCanvasId, selectedObject, updateUIComponent, callStaticHook]
+  );
+
+  const handleComponentAction = useCallback(
+    (componentType: string, actionKey: string) => {
+      if (!selectedObject) return;
+      const comp = selectedObject.components.find((c) => c.type === componentType);
+      if (!comp) return;
+      callStaticHook(
+        componentType,
+        'executeEditorAction',
+        (comp.data ?? {}) as Record<string, unknown>,
+        [actionKey]
+      );
+    },
+    [selectedObject, callStaticHook]
   );
 
   // Components available for adding (exclude already attached)
@@ -171,9 +230,7 @@ export function UIPropertyPanel() {
         </div>
 
         {selectedObject.components.length === 0 ? (
-          <div className="py-2 text-center text-xs text-muted-foreground">
-            コンポーネントなし
-          </div>
+          <div className="py-2 text-center text-xs text-muted-foreground">コンポーネントなし</div>
         ) : (
           <div className="space-y-1">
             {selectedObject.components.map((comp) => (
@@ -183,6 +240,7 @@ export function UIPropertyPanel() {
                 onRemove={() => handleRemoveComponent(comp.type)}
                 onUpdateData={(data) => handleUpdateComponentData(comp.type, data)}
                 onTransformUpdate={handleTransformUpdate}
+                onAction={handleComponentAction}
               />
             ))}
           </div>

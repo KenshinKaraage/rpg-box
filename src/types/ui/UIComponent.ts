@@ -56,6 +56,22 @@ export interface RectTransform {
 }
 
 /**
+ * エディタアクション実行時のコンテキスト
+ */
+export interface EditorActionContext {
+  /** コンポーネントのデータ */
+  componentData: Record<string, unknown>;
+  /** 親オブジェクトの transform */
+  parentTransform: { width: number; height: number };
+  /** 子オブジェクト一覧 */
+  children: {
+    id: string;
+    transform: { width: number; height: number };
+    components: { type: string; data: unknown }[];
+  }[];
+}
+
+/**
  * UIオブジェクトのインターフェース
  * 画面上に配置されるUI要素を表現する
  */
@@ -186,6 +202,44 @@ export abstract class UIComponent {
    * @returns Reactノード
    */
   renderPropertyPanel(): ReactNode {
+    return null;
+  }
+
+  /**
+   * エディタ用アクション定義を返す。
+   * コンポーネント固有のボタン（整列など）を動的に生成するために使用。
+   */
+  getEditorActions(): { label: string; icon?: string; key: string }[] {
+    return [];
+  }
+
+  /**
+   * エディタアクションを実行する。
+   * getEditorActions() で返したアクションの実行ロジック。
+   * 子オブジェクトの座標変更など、transform 更新のマップを返す。
+   */
+  static executeEditorAction(
+    _key: string,
+    _context: EditorActionContext
+  ): Map<string, { x: number; y: number }> | null {
+    return null;
+  }
+
+  /**
+   * コンポーネントがオブジェクトに追加された時に呼ばれるフック。
+   * 子オブジェクトの座標変更マップを返す。
+   */
+  static onAttach(_context: EditorActionContext): Map<string, { x: number; y: number }> | null {
+    return null;
+  }
+
+  /**
+   * コンポーネントのプロパティが変更された時に呼ばれるフック。
+   * 子オブジェクトの座標変更マップを返す。
+   */
+  static onPropertyChange(
+    _context: EditorActionContext
+  ): Map<string, { x: number; y: number }> | null {
     return null;
   }
 
