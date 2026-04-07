@@ -150,12 +150,24 @@ function createItemType(): DataType {
         { value: 'accessory', label: 'アクセサリ' },
         { value: 'key', label: '大事なもの' },
       ],
+      visibilityMap: {
+        consumable: ['effects', 'target', 'usable_scene'],
+        weapon: ['equip_slot', 'status_bonus', 'element_bonus'],
+        armor: ['equip_slot', 'status_bonus', 'status_resistance'],
+        accessory: ['equip_slot', 'status_bonus'],
+      },
     }),
     f('number', { id: 'price', name: '価格', min: 0, max: 999999 }),
-    f('classList', { id: 'effects', name: '効果', classId: EFFECT_CLASS_ID }),
+    f('classList', {
+      id: 'effects',
+      name: '効果',
+      classId: EFFECT_CLASS_ID,
+      displayCondition: { fieldId: 'item_type', value: 'consumable' },
+    }),
     f('select', {
       id: 'target',
       name: '使用対象',
+      displayCondition: { fieldId: 'item_type', value: 'consumable' },
       options: [
         { value: 'single_ally', label: '味方単体' },
         { value: 'all_allies', label: '味方全体' },
@@ -165,6 +177,7 @@ function createItemType(): DataType {
     f('select', {
       id: 'equip_slot',
       name: '装備部位',
+      displayCondition: { fieldId: 'item_type', value: 'weapon' },
       options: [
         { value: 'none', label: 'なし' },
         { value: 'weapon', label: '武器' },
@@ -174,12 +187,28 @@ function createItemType(): DataType {
         { value: 'accessory', label: 'アクセサリ' },
       ],
     }),
-    f('class', { id: 'status_bonus', name: 'ステータスボーナス', classId: STATUS_CLASS_ID }),
-    f('dataSelect', { id: 'element_bonus', name: '属性ボーナス', referenceTypeId: 'element' }),
-    f('dataList', { id: 'status_resistance', name: '状態異常耐性', referenceTypeId: 'status' }),
+    f('class', {
+      id: 'status_bonus',
+      name: 'ステータスボーナス',
+      classId: STATUS_CLASS_ID,
+      displayCondition: { fieldId: 'item_type', value: 'weapon' },
+    }),
+    f('dataSelect', {
+      id: 'element_bonus',
+      name: '属性ボーナス',
+      referenceTypeId: 'element',
+      displayCondition: { fieldId: 'item_type', value: 'weapon' },
+    }),
+    f('dataList', {
+      id: 'status_resistance',
+      name: '状態異常耐性',
+      referenceTypeId: 'status',
+      displayCondition: { fieldId: 'item_type', value: 'armor' },
+    }),
     f('select', {
       id: 'usable_scene',
       name: '使用可能シーン',
+      displayCondition: { fieldId: 'item_type', value: 'consumable' },
       options: [
         { value: 'battle', label: '戦闘中' },
         { value: 'menu', label: 'メニュー' },

@@ -38,6 +38,9 @@ export class SelectFieldType extends FieldType<string> {
   /** 選択肢 */
   options: SelectOption[] = [];
 
+  /** 選択肢ごとの表示フィールド: { optionValue: [fieldId, ...] } */
+  visibilityMap?: Record<string, string[]>;
+
   getDefaultValue(): string {
     const firstOption = this.options[0];
     return firstOption?.value ?? '';
@@ -97,6 +100,8 @@ export class SelectFieldType extends FieldType<string> {
     return (
       <SelectFieldConfig
         options={this.options}
+        visibilityMap={this.visibilityMap}
+        context={props.context}
         onChange={props.onChange}
       />
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NAME_FIELD_ID, type DataType } from '@/types/data';
@@ -31,6 +31,12 @@ export function DataTypeEditor({
 }: DataTypeEditorProps) {
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
   const [fieldSelectorOpen, setFieldSelectorOpen] = useState(false);
+
+  // configContext に allFields を追加（各フィールドの renderConfig で利用）
+  const enrichedContext = useMemo<FieldConfigContext | undefined>(() => {
+    const allFields = dataType.fields.map((f) => ({ id: f.id, name: f.name }));
+    return configContext ? { ...configContext, allFields } : { allFields };
+  }, [configContext, dataType.fields]);
 
   const handleAddField = (type: string) => {
     const newField = createFieldTypeInstance(type);
@@ -78,6 +84,34 @@ export function DataTypeEditor({
     if (!newField) return;
     Object.assign(newField, field, updates);
     onReplaceField(dataType.id, fieldId, newField);
+
+    // visibilityMap が変更された場合、他フィールドの displayCondition を同期
+    if ('visibilityMap' in updates) {
+      const vMap = updates.visibilityMap as Record<string, string[]> | undefined;
+      for (const sibling of dataType.fields) {
+        if (sibling.id === fieldId) continue;
+        // この select フィールドの visibilityMap に含まれるか探す
+        let newCondition: { fieldId: string; value: unknown } | undefined;
+        if (vMap) {
+          for (const [optValue, fieldIds] of Object.entries(vMap)) {
+            if (fieldIds.includes(sibling.id)) {
+              newCondition = { fieldId, value: optValue };
+              break;
+            }
+          }
+        }
+        // 現在の displayCondition と異なる場合のみ更新
+        const current = sibling.displayCondition;
+        const same =
+          current?.fieldId === newCondition?.fieldId && current?.value === newCondition?.value;
+        if (!same) {
+          const updatedSibling = createFieldTypeInstance(sibling.type);
+          if (!updatedSibling) continue;
+          Object.assign(updatedSibling, sibling, { displayCondition: newCondition });
+          onReplaceField(dataType.id, sibling.id, updatedSibling);
+        }
+      }
+    }
   };
 
   const toggleExpand = (fieldId: string) => {
@@ -132,7 +166,7 @@ export function DataTypeEditor({
                 onConfigChange={(updates) => handleConfigChange(field.id, updates)}
                 onDelete={() => onDeleteField(dataType.id, field.id)}
                 undeletable={field.id === NAME_FIELD_ID}
-                configContext={configContext}
+                configContext={enrichedContext}
               />
             ))}
           </div>

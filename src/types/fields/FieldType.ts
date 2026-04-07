@@ -54,6 +54,8 @@ export interface FieldConfigContext {
   classes?: Array<{ id: string; name: string }>;
   /** 利用可能なデータ型一覧（DataSelectFieldType等用） */
   dataTypes?: Array<{ id: string; name: string }>;
+  /** 同データ型内の全フィールド一覧（SelectFieldType の visibilityMap 設定用） */
+  allFields?: Array<{ id: string; name: string }>;
 }
 
 /**
