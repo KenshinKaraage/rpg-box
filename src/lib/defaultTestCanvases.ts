@@ -1847,11 +1847,55 @@ function createItemScreenObjects(): EditorUIObject[] {
     ],
   });
 
+  // ── アイテム一覧ビュー（グループ） ──
+  objects.push({
+    id: 'item_list_view',
+    name: 'listView',
+    parentId: 'item_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+
+  // ── キャラ選択ビュー（グループ） ──
+  objects.push({
+    id: 'item_char_view',
+    name: 'charView',
+    parentId: 'item_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+
   // ── アイテム一覧ウィンドウ（2列グリッド） ──
   objects.push({
     id: 'item_list_win',
     name: 'listWindow',
-    parentId: 'item_bg',
+    parentId: 'item_list_view',
     transform: {
       x: 16,
       y: 92,
@@ -2038,7 +2082,7 @@ function createItemScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'item_char_header',
     name: 'charHeader',
-    parentId: 'item_bg',
+    parentId: 'item_char_view',
     transform: {
       x: 16,
       y: 92,
@@ -2095,7 +2139,7 @@ function createItemScreenObjects(): EditorUIObject[] {
   objects.push({
     id: 'item_char_win',
     name: 'charWindow',
-    parentId: 'item_bg',
+    parentId: 'item_char_view',
     transform: {
       x: 16,
       y: 140,

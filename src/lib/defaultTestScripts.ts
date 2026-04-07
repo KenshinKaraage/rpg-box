@@ -1462,6 +1462,8 @@ const itemRows = allItems.map(e => {
 
 // 画面表示
 UI["item_screen"].show();
+const listView = UI["item_screen"].getObject("listView");
+const charView = UI["item_screen"].getObject("charView");
 
 // TemplateController でアイテム一覧を生成
 const tmpl = UI["item_screen"].getObject("itemTemplate");
@@ -1550,12 +1552,10 @@ while (true) {
       };
     });
 
-    // ヘッダー + キャラウィンドウ表示、アイテムリスト非表示
-    const charHeader = UI["item_screen"].getObject("charHeader");
+    // キャラ選択ビューに切り替え
     const charWin = UI["item_screen"].getObject("charWindow");
-    if (charHeader) charHeader.visible = true;
-    charWin.visible = true;
-    listWin.visible = false;
+    listView.visible = false;
+    charView.visible = true;
 
     const charTmpl = UI["item_screen"].getObject("charTemplate");
     if (charTmpl) {
@@ -1639,10 +1639,9 @@ while (true) {
       if (!curEntry || curEntry.count <= 0) break;
     }
 
-    // 元に戻す
-    if (charHeader) charHeader.visible = false;
-    charWin.visible = false;
-    listWin.visible = true;
+    // アイテム一覧ビューに戻す
+    charView.visible = false;
+    listView.visible = true;
 
     // インベントリ更新後にアイテム一覧を再構築
     const updatedInv = Variable["inventory"];
