@@ -92,10 +92,19 @@ function createEffectClass(): CustomClass {
           { value: 'debuff', label: 'デバフ' },
           { value: 'status', label: '状態異常' },
         ],
+        visibilityMap: {
+          damage: ['value', 'target'],
+          heal: ['value'],
+          heal_mp: ['value'],
+          buff: ['status_effect', 'duration'],
+          debuff: ['status_effect', 'duration'],
+          status: ['status_id', 'duration'],
+        },
       }),
       f('select', {
         id: 'target',
         name: '対象',
+        displayCondition: { fieldId: 'effect_type', value: 'damage' },
         options: [
           { value: 'self', label: '自分' },
           { value: 'single_enemy', label: '敵単体' },
@@ -105,8 +114,32 @@ function createEffectClass(): CustomClass {
           { value: 'all', label: '全体' },
         ],
       }),
-      f('number', { id: 'value', name: '効果値', min: 0, max: 99999 }),
-      f('number', { id: 'duration', name: '持続ターン', min: 0, max: 99 }),
+      f('number', {
+        id: 'value',
+        name: '効果値',
+        min: 0,
+        max: 99999,
+        displayCondition: { fieldId: 'effect_type', value: 'damage' },
+      }),
+      f('class', {
+        id: 'status_effect',
+        name: 'ステータス変化量',
+        classId: STATUS_CLASS_ID,
+        displayCondition: { fieldId: 'effect_type', value: 'buff' },
+      }),
+      f('dataSelect', {
+        id: 'status_id',
+        name: '状態異常',
+        referenceTypeId: 'status',
+        displayCondition: { fieldId: 'effect_type', value: 'status' },
+      }),
+      f('number', {
+        id: 'duration',
+        name: '持続ターン',
+        min: 0,
+        max: 99,
+        displayCondition: { fieldId: 'effect_type', value: 'buff' },
+      }),
     ],
   };
 }
