@@ -125,6 +125,7 @@ describe('ScriptRunner', () => {
     const child: Script = {
       id: 'child-1',
       name: '_calcDamage',
+      callId: '_calcDamage',
       type: 'internal',
       content: 'return args[0] - args[1];',
       parentId: 'parent-1',
@@ -154,6 +155,7 @@ describe('ScriptRunner', () => {
     const child: Script = {
       id: 'c',
       name: '_helper',
+      callId: '_helper',
       type: 'internal',
       content: 'return await _subHelper();',
       parentId: 'p',
@@ -165,6 +167,7 @@ describe('ScriptRunner', () => {
     const grandchild: Script = {
       id: 'gc',
       name: '_subHelper',
+      callId: '_subHelper',
       type: 'internal',
       content: 'return 99;',
       parentId: 'c',
@@ -267,11 +270,11 @@ describe('ScriptRunner', () => {
     expect(result).toBe(30);
   });
 
-  it('Script namespace is not available for internal scripts callId', async () => {
+  it('Script namespace includes internal scripts with callId', async () => {
     const internalScript: Script = {
       id: 'int',
       name: '_helper',
-      callId: 'should_not_appear',
+      callId: 'my_helper',
       type: 'internal',
       content: 'return 1;',
       parentId: 'main',
@@ -284,7 +287,7 @@ describe('ScriptRunner', () => {
       id: 'main',
       name: 'メイン',
       type: 'event',
-      content: 'return typeof Script.should_not_appear;',
+      content: 'return typeof Script.my_helper;',
       args: [],
       returns: [],
       fields: [],
@@ -294,7 +297,7 @@ describe('ScriptRunner', () => {
 
     const context = createMockContext();
     const result = await runner.execute(mainScript, context);
-    expect(result).toBe('undefined');
+    expect(result).toBe('function');
   });
 
   it('calls other scripts via Script namespace with positional args', async () => {

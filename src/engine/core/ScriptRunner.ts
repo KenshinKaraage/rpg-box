@@ -48,7 +48,12 @@ export class ScriptRunner {
    *
    * isAsync scripts return Promise<unknown>, sync scripts return unknown directly.
    */
-  execute(script: Script, context: GameContext, argValues?: Record<string, unknown>, selfObject?: unknown): unknown {
+  execute(
+    script: Script,
+    context: GameContext,
+    argValues?: Record<string, unknown>,
+    selfObject?: unknown
+  ): unknown {
     const internalFns = this.resolveInternalScripts(script.id, context);
     const ns = this.getScriptNamespace(context);
     return this.compileAndRun(
@@ -150,15 +155,8 @@ export class ScriptRunner {
       const childInternalFns = this.resolveInternalScripts(child.id, context);
       const ns = this.getScriptNamespace(context);
 
-      fns[child.name] = async (...args: unknown[]): Promise<unknown> => {
-        return this.compileAndRun(
-          child.content,
-          context,
-          ns,
-          { ...childInternalFns },
-          [],
-          args
-        );
+      fns[child.callId ?? child.id] = async (...args: unknown[]): Promise<unknown> => {
+        return this.compileAndRun(child.content, context, ns, { ...childInternalFns }, [], args);
       };
     }
 
