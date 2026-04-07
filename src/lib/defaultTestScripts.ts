@@ -1514,6 +1514,8 @@ nav.setOnIndexChange((idx) => {
 
 // アイテム選択ループ
 while (true) {
+  listView.visible = true;
+  charView.visible = false;
   nav.activate();
   const selected = await nav.result();
 
