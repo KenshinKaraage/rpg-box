@@ -1,5 +1,5 @@
 /**
- * GameEngine - Main engine class with postMessage protocol
+ * TestEngine - Main engine class with postMessage protocol
  *
  * Receives EditorMessage events, initializes GameContext and ScriptRunner,
  * executes scripts, and sends results back via EngineMessage.
@@ -21,7 +21,7 @@ import { ScriptRunner } from './ScriptRunner';
 
 export type MessageSender = (message: EngineMessage) => void;
 
-export class GameEngine {
+export class TestEngine {
   private sendMessage: MessageSender;
 
   constructor(sendMessage: MessageSender) {
@@ -49,12 +49,12 @@ export class GameEngine {
     } else if (config.mode === 'event') {
       await this.executeEvent(config);
     } else if (config.mode === 'full') {
-      // Full mode is handled externally by GameRuntime (requires a canvas).
-      // GameEngine sends a log message indicating this.
+      // Full mode is handled externally by GameEngine (requires a canvas).
+      // TestEngine sends a log message indicating this.
       this.sendMessage({
         type: 'log',
         level: 'info',
-        message: 'Full mode should be started via GameRuntime directly.',
+        message: 'Full mode should be started via GameEngine directly.',
       });
     }
   }

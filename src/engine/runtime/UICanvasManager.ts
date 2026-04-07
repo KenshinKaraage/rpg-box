@@ -71,7 +71,6 @@ interface CanvasState {
   showOrder: number;
 }
 
-
 export interface UICanvasRuntimeProxy {
   show(): void;
   hide(): void;
@@ -101,7 +100,14 @@ export interface UIObjectRuntimeProxy {
 
 /** UIObjectRuntimeProxy で直接アクセス可能な transform キー */
 const TRANSFORM_KEYS = new Set([
-  'x', 'y', 'width', 'height', 'scaleX', 'scaleY', 'rotation', 'visible',
+  'x',
+  'y',
+  'width',
+  'height',
+  'scaleX',
+  'scaleY',
+  'rotation',
+  'visible',
 ]);
 
 // ── UICanvasManager ──
@@ -115,15 +121,12 @@ export class UICanvasManager implements UIActionManager {
   private canvases = new Map<string, CanvasState>();
   private needsRedraw = false;
   private showOrderCounter = 0;
-  /** self.waitFrames に注入するコールバック（GameRuntime が設定） */
+  /** self.waitFrames に注入するコールバック（GameEngine が設定） */
   private waitFramesCallback: ((frames: number) => Promise<void>) | null = null;
   private tweenAPI: unknown = null;
   private inputAPI: unknown = null;
 
-  constructor(
-    gl: WebGLRenderingContext,
-    getAssetData: (assetId: string) => string | null
-  ) {
+  constructor(gl: WebGLRenderingContext, getAssetData: (assetId: string) => string | null) {
     this.gl = gl;
     this.programs = createRendererPrograms(gl);
     this.getAssetData = getAssetData;
@@ -235,7 +238,12 @@ export class UICanvasManager implements UIActionManager {
    * オブジェクトとその子孫をディープクローンし、新しい親の下に追加する。
    * @returns { rootId, idMap } — rootId はクローンされたルートのID、idMap は元ID→新IDのマッピング
    */
-  cloneObject(canvasId: string, sourceId: string, newParentId: string, idPrefix?: string): { rootId: string; idMap: Record<string, string> } | null {
+  cloneObject(
+    canvasId: string,
+    sourceId: string,
+    newParentId: string,
+    idPrefix?: string
+  ): { rootId: string; idMap: Record<string, string> } | null {
     const state = this.canvases.get(canvasId);
     if (!state) return null;
     const source = state.data.objects.find((o) => o.id === sourceId);
@@ -268,7 +276,9 @@ export class UICanvasManager implements UIActionManager {
     if (!rootId) return null;
 
     const mapObj: Record<string, string> = {};
-    idMap.forEach((v, k) => { mapObj[k] = v; });
+    idMap.forEach((v, k) => {
+      mapObj[k] = v;
+    });
 
     // キャンバスに追加
     for (const clone of clones) {
@@ -333,7 +343,10 @@ export class UICanvasManager implements UIActionManager {
     args: Record<string, unknown> = {},
     depth: number = 0
   ): Promise<void> {
-    console.log(`[UICanvasManager] executeFunction: canvas="${canvasId}", fn="${functionName}", args=`, args);
+    console.log(
+      `[UICanvasManager] executeFunction: canvas="${canvasId}", fn="${functionName}", args=`,
+      args
+    );
     if (depth > 10) {
       console.error(`UIFunction call depth exceeded (max 10): ${functionName}`);
       return;
@@ -451,7 +464,11 @@ export class UICanvasManager implements UIActionManager {
   }
 
   /** オブジェクトに紐づくランタイム関数を取得（this を rt.fns にバインド） */
-  getComponentFunction(canvasId: string, objectId: string, name: string): ((...args: unknown[]) => unknown) | null {
+  getComponentFunction(
+    canvasId: string,
+    objectId: string,
+    name: string
+  ): ((...args: unknown[]) => unknown) | null {
     const state = this.canvases.get(canvasId);
     if (!state) return null;
     for (const rt of state.runtimes) {
@@ -468,7 +485,11 @@ export class UICanvasManager implements UIActionManager {
     for (const rt of state.runtimes) {
       const fn = rt.fns[name];
       if (typeof fn === 'function') {
-        try { (fn as (...a: unknown[]) => unknown).call(rt.fns, ...args); } catch (e) { console.warn(`[UIRuntime] ${name} error (${rt.componentType}):`, e); }
+        try {
+          (fn as (...a: unknown[]) => unknown).call(rt.fns, ...args);
+        } catch (e) {
+          console.warn(`[UIRuntime] ${name} error (${rt.componentType}):`, e);
+        }
       }
     }
   }
@@ -496,19 +517,26 @@ export class UICanvasManager implements UIActionManager {
           if (!compData._runtimeState) compData._runtimeState = {};
           const selfCtx = {
             object: this.wrapObjectProxyById(canvasId, objId),
-            get children() { return mgr.getChildProxies(canvasId, objId); },
+            get children() {
+              return mgr.getChildProxies(canvasId, objId);
+            },
             state: compData._runtimeState as Record<string, unknown>,
             waitFrames: (frames: number) => this.waitFramesCallback?.(frames) ?? Promise.resolve(),
             tween: this.tweenAPI,
             input: this.inputAPI,
             /** オブジェクトクローン（TemplateController 用） */
-            cloneObject: (sourceId: string, parentId: string, idPrefix?: string) => mgr.cloneObject(canvasId, sourceId, parentId, idPrefix),
+            cloneObject: (sourceId: string, parentId: string, idPrefix?: string) =>
+              mgr.cloneObject(canvasId, sourceId, parentId, idPrefix),
             /** オブジェクト削除 */
             removeObject: (objectId: string) => mgr.removeObject(canvasId, objectId),
             /** クローンされたオブジェクトのプロキシを取得 */
             getObjectById: (objectId: string) => mgr.wrapObjectProxyById(canvasId, objectId),
             /** UIAction リストを実行（idMap で targetId をリマップ） */
-            executeActions: async (actions: SerializedAction[], args: Record<string, unknown>, idMap?: Record<string, string>) => {
+            executeActions: async (
+              actions: SerializedAction[],
+              args: Record<string, unknown>,
+              idMap?: Record<string, string>
+            ) => {
               for (const action of actions) {
                 const remapped = idMap ? remapActionTargetIds(action, idMap) : action;
                 await mgr.executeAction(canvasId, remapped, args, 0);
@@ -519,7 +547,10 @@ export class UICanvasManager implements UIActionManager {
           // ({ onShow() {}, onInput(button) {}, getResult() {} })
           // eslint-disable-next-line @typescript-eslint/no-implied-eval
           // templateController はテンプレートの親IDを state に注入
-          const fns = new Function('self', `const Input = self.input; const Tween = self.tween; return (${script})`)(selfCtx) as Record<string, unknown>;
+          const fns = new Function(
+            'self',
+            `const Input = self.input; const Tween = self.tween; return (${script})`
+          )(selfCtx) as Record<string, unknown>;
           state.runtimes.push({ objectId: obj.id, componentType: comp.type, fns });
         } catch (e) {
           console.error(`[UIRuntime] compile error (${comp.type}):`, e);
@@ -579,17 +610,17 @@ export class UICanvasManager implements UIActionManager {
       .map((o) => this.wrapObjectProxy(canvasId, o));
   }
 
-  /** self.waitFrames 用コールバックを設定（GameRuntime から呼ぶ） */
+  /** self.waitFrames 用コールバックを設定（GameEngine から呼ぶ） */
   setWaitFrames(fn: (frames: number) => Promise<void>): void {
     this.waitFramesCallback = fn;
   }
 
-  /** self.tween 用の TweenScriptAPI を設定（GameRuntime から呼ぶ） */
+  /** self.tween 用の TweenScriptAPI を設定（GameEngine から呼ぶ） */
   setTweenAPI(api: unknown): void {
     this.tweenAPI = api;
   }
 
-  /** self.input 用の InputAPI を設定（GameRuntime から呼ぶ） */
+  /** self.input 用の InputAPI を設定（GameEngine から呼ぶ） */
   setInputAPI(api: unknown): void {
     this.inputAPI = api;
   }
@@ -630,7 +661,6 @@ export class UICanvasManager implements UIActionManager {
     }
   }
 
-
   private createObjectProxy(canvasId: string, objectName: string): UIObjectRuntimeProxy | null {
     const state = this.canvases.get(canvasId);
     if (!state) return null;
@@ -655,9 +685,7 @@ export class UICanvasManager implements UIActionManager {
         }
         if (prop === 'getChild') {
           return (name: string): UIObjectRuntimeProxy | null => {
-            const child = state.data.objects.find(
-              (o) => o.parentId === obj.id && o.name === name
-            );
+            const child = state.data.objects.find((o) => o.parentId === obj.id && o.name === name);
             return child ? mgr.wrapObjectProxy(canvasId, child) : null;
           };
         }
@@ -678,7 +706,9 @@ export class UICanvasManager implements UIActionManager {
         if (prop === 'getComponent') {
           return (type: string) => {
             // ランタイム関数（this バインド維持のため直接返す）
-            const rt = state.runtimes.find((r) => r.objectId === obj.id && r.componentType === type);
+            const rt = state.runtimes.find(
+              (r) => r.objectId === obj.id && r.componentType === type
+            );
             if (rt) return rt.fns;
             // ランタイムなし → 静的データのみ
             const comp = obj.components.find((c) => c.type === type);

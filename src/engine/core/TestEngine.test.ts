@@ -5,15 +5,15 @@ import type { ScriptModeConfig, EventModeConfig, EngineMessage } from '../types'
 import '../actions/register';
 import '../values/register';
 
-import { GameEngine } from './GameEngine';
+import { TestEngine } from './TestEngine';
 
-describe('GameEngine', () => {
-  let engine: GameEngine;
+describe('TestEngine', () => {
+  let engine: TestEngine;
   let sentMessages: EngineMessage[];
 
   beforeEach(() => {
     sentMessages = [];
-    engine = new GameEngine((msg: EngineMessage) => {
+    engine = new TestEngine((msg: EngineMessage) => {
       sentMessages.push(msg);
     });
   });
@@ -257,13 +257,13 @@ describe('GameEngine', () => {
   });
 });
 
-describe('GameEngine event mode', () => {
-  let engine: GameEngine;
+describe('TestEngine event mode', () => {
+  let engine: TestEngine;
   let sentMessages: EngineMessage[];
 
   beforeEach(() => {
     sentMessages = [];
-    engine = new GameEngine((msg: EngineMessage) => {
+    engine = new TestEngine((msg: EngineMessage) => {
       sentMessages.push(msg);
     });
   });

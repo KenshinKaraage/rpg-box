@@ -1,6 +1,6 @@
 /**
  * Evaluates trigger components on map objects each frame.
- * Returns the first triggered event (if any) for the GameRuntime to execute.
+ * Returns the first triggered event (if any) for the GameEngine to execute.
  *
  * Priority order: Talk > Touch/Step > Auto > Input
  */
@@ -37,7 +37,7 @@ export class TriggerSystem {
   /** Frame counters for interval-based auto triggers. */
   private autoTriggerCounters = new Map<string, number>();
 
-  /** Notify that an object completed a grid move (call from GameRuntime). */
+  /** Notify that an object completed a grid move (call from GameEngine). */
   notifyMoveCompleted(obj: RuntimeObject, fromX: number, fromY: number): void {
     this.moveCompletions.set(obj.id, { fromX, fromY });
   }
@@ -55,7 +55,9 @@ export class TriggerSystem {
 
     // 1. Talk triggers (confirm + facing direction)
     if (ctrl && input.isJustPressed('confirm')) {
-      console.log(`[TriggerSystem] confirm pressed, checking talk triggers. ctrl at (${ctrl.gridX}, ${ctrl.gridY}) facing ${ctrl.facing}`);
+      console.log(
+        `[TriggerSystem] confirm pressed, checking talk triggers. ctrl at (${ctrl.gridX}, ${ctrl.gridY}) facing ${ctrl.facing}`
+      );
       const result = this.checkTalkTriggers(world, ctrl);
       if (result) {
         console.log(`[TriggerSystem] talk trigger hit:`, result.eventId, result.targetObject.id);
@@ -130,7 +132,11 @@ export class TriggerSystem {
       if (touch) {
         const hasActions = Array.isArray(touch.actions) && (touch.actions as unknown[]).length > 0;
         if (touch.eventId || hasActions) {
-          return { eventId: touch.eventId as string, targetObject: obj, triggerType: 'touchTrigger' };
+          return {
+            eventId: touch.eventId as string,
+            targetObject: obj,
+            triggerType: 'touchTrigger',
+          };
         }
       }
 
@@ -189,11 +195,16 @@ export class TriggerSystem {
       const trigger = obj.components['inputTrigger'];
       if (!trigger || !trigger.key) continue;
 
-      const hasActions = Array.isArray(trigger.actions) && (trigger.actions as unknown[]).length > 0;
+      const hasActions =
+        Array.isArray(trigger.actions) && (trigger.actions as unknown[]).length > 0;
       if (!trigger.eventId && !hasActions) continue;
 
       if (input.isJustPressed(trigger.key as GameButton)) {
-        return { eventId: trigger.eventId as string, targetObject: obj, triggerType: 'inputTrigger' };
+        return {
+          eventId: trigger.eventId as string,
+          targetObject: obj,
+          triggerType: 'inputTrigger',
+        };
       }
     }
     return null;

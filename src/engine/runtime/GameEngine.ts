@@ -1,5 +1,5 @@
 /**
- * GameRuntime — entry point that wires all subsystems together.
+ * GameEngine — entry point that wires all subsystems together.
  *
  * Lifecycle: construct → start → (update/render loop) → stop
  */
@@ -41,9 +41,9 @@ interface FrameWaiter {
   resolve: () => void;
 }
 
-// ── GameRuntime ──
+// ── GameEngine ──
 
-export class GameRuntime {
+export class GameEngine {
   private gl: WebGLRenderingContext;
   private projectData: ProjectData;
 
@@ -127,9 +127,7 @@ export class GameRuntime {
     this.canvas.focus();
 
     // Load UI canvases
-    this.uiCanvasManager.loadCanvases(
-      projectData.uiCanvases as unknown as UICanvasData[]
-    );
+    this.uiCanvasManager.loadCanvases(projectData.uiCanvases as unknown as UICanvasData[]);
 
     // Load start map
     await this.loadMap(settings.startMapId);
@@ -137,8 +135,8 @@ export class GameRuntime {
     // Warn if no player object found
     if (!this.world.activeController) {
       console.warn(
-        '[GameRuntime] No object with ControllerComponent found on start map. ' +
-        'Player movement will not work. Place an object with ControllerComponent on the map.'
+        '[GameEngine] No object with ControllerComponent found on start map. ' +
+          'Player movement will not work. Place an object with ControllerComponent on the map.'
       );
     }
 
@@ -150,16 +148,38 @@ export class GameRuntime {
     this.context.sound = this.audioManager.createSoundAPI();
     // Tween 用の薄いプロキシ（Camera の overlay プロパティを双方向バインド）
     const cam = this.camera;
-    const overlayProxy: Record<string, unknown> & { id: string; overlayR: number; overlayG: number; overlayB: number; overlayA: number } = {
+    const overlayProxy: Record<string, unknown> & {
+      id: string;
+      overlayR: number;
+      overlayG: number;
+      overlayB: number;
+      overlayA: number;
+    } = {
       id: '__camera__',
-      get overlayR() { return cam.overlayR; },
-      set overlayR(v: number) { cam.overlayR = v; },
-      get overlayG() { return cam.overlayG; },
-      set overlayG(v: number) { cam.overlayG = v; },
-      get overlayB() { return cam.overlayB; },
-      set overlayB(v: number) { cam.overlayB = v; },
-      get overlayA() { return cam.overlayA; },
-      set overlayA(v: number) { cam.overlayA = v; },
+      get overlayR() {
+        return cam.overlayR;
+      },
+      set overlayR(v: number) {
+        cam.overlayR = v;
+      },
+      get overlayG() {
+        return cam.overlayG;
+      },
+      set overlayG(v: number) {
+        cam.overlayG = v;
+      },
+      get overlayB() {
+        return cam.overlayB;
+      },
+      set overlayB(v: number) {
+        cam.overlayB = v;
+      },
+      get overlayA() {
+        return cam.overlayA;
+      },
+      set overlayA(v: number) {
+        cam.overlayA = v;
+      },
     };
     this.context.camera = {
       panTo: (x, y) => cam.panTo(x, y),
@@ -178,9 +198,11 @@ export class GameRuntime {
     const inputAPI = {
       waitKey: (button: import('./InputManager').GameButton) => this.input.pressed(button),
       isDown: (button: import('./InputManager').GameButton) => this.input.isDown(button),
-      isJustPressed: (button: import('./InputManager').GameButton) => this.input.isJustPressed(button),
+      isJustPressed: (button: import('./InputManager').GameButton) =>
+        this.input.isJustPressed(button),
       getJustPressedKeys: () => this.input.getJustPressedKeys(),
-      startTextInput: (initial?: string, sx?: number, sy?: number) => this.input.startTextInput(initial, sx, sy),
+      startTextInput: (initial?: string, sx?: number, sy?: number) =>
+        this.input.startTextInput(initial, sx, sy),
       stopTextInput: () => this.input.stopTextInput(),
       getTextValue: () => this.input.getTextValue(),
       isTextConfirmed: () => this.input.isTextConfirmed(),
@@ -208,7 +230,11 @@ export class GameRuntime {
       if (!obj.components['variables']) obj.components['variables'] = { variables: {} };
       const vars = obj.components['variables'].variables as Record<string, unknown>;
       const existing = vars[varName];
-      if (existing && typeof existing === 'object' && 'fieldType' in (existing as Record<string, unknown>)) {
+      if (
+        existing &&
+        typeof existing === 'object' &&
+        'fieldType' in (existing as Record<string, unknown>)
+      ) {
         (existing as Record<string, unknown>).value = value;
       } else {
         vars[varName] = value;
@@ -249,13 +275,17 @@ export class GameRuntime {
     });
 
     // ゲーム開始スクリプトの実行
-    const startScriptId = (this.projectData.gameSettings as { startScriptId?: string }).startScriptId;
+    const startScriptId = (this.projectData.gameSettings as { startScriptId?: string })
+      .startScriptId;
     if (startScriptId && this.context && this.sharedScriptRunner) {
       const startScript = this.projectData.scripts.find(
         (s: { id: string; callId?: string }) => s.callId === startScriptId || s.id === startScriptId
       );
       if (startScript) {
-        await (this.sharedScriptRunner.execute(startScript as never, this.context) as Promise<unknown>);
+        await (this.sharedScriptRunner.execute(
+          startScript as never,
+          this.context
+        ) as Promise<unknown>);
       }
     }
 
@@ -280,14 +310,18 @@ export class GameRuntime {
   /** スクリプトを実行（ScriptTestPanel 用） */
   async executeScript(scriptId: string, args?: Record<string, unknown>): Promise<unknown> {
     if (!this.context || !this.sharedScriptRunner) {
-      throw new Error('GameRuntime not started');
+      throw new Error('GameEngine not started');
     }
     const script = this.projectData.scripts.find((s) => s.id === scriptId);
     if (!script) throw new Error(`Script "${scriptId}" not found`);
     this.eventRunning = true;
     this.world.setEventRunning(true);
     try {
-      return await (this.sharedScriptRunner.execute(script, this.context, args) as Promise<unknown>);
+      return await (this.sharedScriptRunner.execute(
+        script,
+        this.context,
+        args
+      ) as Promise<unknown>);
     } finally {
       this.eventRunning = false;
       this.world.setEventRunning(false);
@@ -318,7 +352,7 @@ export class GameRuntime {
     const { projectData } = this;
     const map = projectData.maps.find((m) => m.id === mapId);
     if (!map) {
-      console.warn(`[GameRuntime] Map not found: ${mapId}`);
+      console.warn(`[GameEngine] Map not found: ${mapId}`);
       return;
     }
 
@@ -382,7 +416,7 @@ export class GameRuntime {
 
     // Trigger evaluation (skip while an event is already running)
     if (this.eventRunning && this.input.isJustPressed('confirm')) {
-      console.log('[GameRuntime] confirm pressed but eventRunning=true, skipping triggers');
+      console.log('[GameEngine] confirm pressed but eventRunning=true, skipping triggers');
     }
     if (!this.eventRunning) {
       const triggerResult = this.triggerSystem.update(this.world, this.input);
@@ -393,7 +427,12 @@ export class GameRuntime {
           if (talk?.facePlayer && this.world.activeController) {
             const ctrl = this.world.activeController;
             // プレイヤーの向きの逆方向をNPCに設定
-            const OPPOSITE: Record<string, string> = { up: 'down', down: 'up', left: 'right', right: 'left' };
+            const OPPOSITE: Record<string, string> = {
+              up: 'down',
+              down: 'up',
+              left: 'right',
+              right: 'left',
+            };
             triggerResult.targetObject.facing = (OPPOSITE[ctrl.facing] ?? 'down') as Direction;
           }
         }
@@ -418,14 +457,16 @@ export class GameRuntime {
       if (menuScript && this.context && this.sharedScriptRunner) {
         this.eventRunning = true;
         this.world.setEventRunning(true);
-        (this.sharedScriptRunner.execute(menuScript as never, this.context) as Promise<unknown>).then(() => {
-          this.eventRunning = false;
-          this.world.setEventRunning(false);
-        }).catch((e: unknown) => {
-          console.error('[GameRuntime] Menu script error:', e);
-          this.eventRunning = false;
-          this.world.setEventRunning(false);
-        });
+        (this.sharedScriptRunner.execute(menuScript as never, this.context) as Promise<unknown>)
+          .then(() => {
+            this.eventRunning = false;
+            this.world.setEventRunning(false);
+          })
+          .catch((e: unknown) => {
+            console.error('[GameEngine] Menu script error:', e);
+            this.eventRunning = false;
+            this.world.setEventRunning(false);
+          });
       }
     }
 
@@ -459,7 +500,7 @@ export class GameRuntime {
   private executeTriggeredEvent(eventId: string, selfObject?: unknown): void {
     const template = this.projectData.eventTemplates.find((t) => t.id === eventId);
     if (!template) {
-      console.warn(`[GameRuntime] Event template not found: ${eventId}`);
+      console.warn(`[GameEngine] Event template not found: ${eventId}`);
       return;
     }
 
@@ -475,7 +516,7 @@ export class GameRuntime {
     });
 
     if (!this.context) {
-      console.error('[GameRuntime] GameContext not initialized');
+      console.error('[GameEngine] GameContext not initialized');
       return;
     }
 
@@ -486,7 +527,7 @@ export class GameRuntime {
     eventRunner
       .run(actions, this.context, null, selfObject ? { selfObject } : undefined)
       .catch((err) => {
-        console.error(`[GameRuntime] Event error (${eventId}):`, err);
+        console.error(`[GameEngine] Event error (${eventId}):`, err);
       })
       .finally(() => {
         this.eventRunning = false;
@@ -498,10 +539,20 @@ export class GameRuntime {
   /** Extract local actions from the trigger component that fired. */
   private getLocalActionsFromTrigger(obj: RuntimeObject): unknown[] | null {
     // Check each trigger component type for local actions
-    const triggerTypes = ['talkTrigger', 'touchTrigger', 'stepTrigger', 'autoTrigger', 'inputTrigger'];
+    const triggerTypes = [
+      'talkTrigger',
+      'touchTrigger',
+      'stepTrigger',
+      'autoTrigger',
+      'inputTrigger',
+    ];
     for (const type of triggerTypes) {
       const trigger = obj.components[type];
-      if (trigger?.actions && Array.isArray(trigger.actions) && (trigger.actions as unknown[]).length > 0) {
+      if (
+        trigger?.actions &&
+        Array.isArray(trigger.actions) &&
+        (trigger.actions as unknown[]).length > 0
+      ) {
         return trigger.actions as unknown[];
       }
     }
@@ -511,7 +562,7 @@ export class GameRuntime {
   /** Execute locally-defined actions (not from a template). */
   private executeLocalActions(rawActions: unknown[], selfObject?: unknown): void {
     if (!this.context) {
-      console.error('[GameRuntime] GameContext not initialized');
+      console.error('[GameEngine] GameContext not initialized');
       return;
     }
 
@@ -530,7 +581,7 @@ export class GameRuntime {
     eventRunner
       .run(actions, this.context, null, selfObject ? { selfObject } : undefined)
       .catch((err) => {
-        console.error('[GameRuntime] Local event error:', err);
+        console.error('[GameEngine] Local event error:', err);
       })
       .finally(() => {
         this.eventRunning = false;
@@ -579,7 +630,9 @@ export class GameRuntime {
         const obj = world.spawnFromPrefab(prefab, x, y);
         return obj ? createObjectProxy(obj, world) : null;
       },
-      destroy: (id) => { world.removeObject(id); },
+      destroy: (id) => {
+        world.removeObject(id);
+      },
     };
   }
 
@@ -592,11 +645,12 @@ export class GameRuntime {
         type: v.fieldType.type,
         defaultValue: v.initialValue,
       })),
-      classes: this.projectData.classes?.map((c) => ({
-        id: c.id,
-        name: c.name,
-        fields: c.fields?.map((f) => ({ id: f.id, fieldType: f.type })) ?? [],
-      })) ?? [],
+      classes:
+        this.projectData.classes?.map((c) => ({
+          id: c.id,
+          name: c.name,
+          fields: c.fields?.map((f) => ({ id: f.id, fieldType: f.type })) ?? [],
+        })) ?? [],
       dataTypes: this.projectData.dataTypes?.map((dt) => ({ id: dt.id, name: dt.name })) ?? [],
       dataEntries: this.projectData.dataEntries ?? {},
     };

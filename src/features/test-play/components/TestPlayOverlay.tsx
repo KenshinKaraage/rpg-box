@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Fullscreen overlay that runs GameRuntime for test play.
+ * Fullscreen overlay that runs GameEngine for test play.
  * Renders a WebGL canvas at the game's configured resolution.
  */
 
@@ -9,18 +9,18 @@ import { useCallback, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ProjectData } from '@/lib/storage/types';
-import { GameRuntime } from '@/engine/runtime/GameRuntime';
+import { GameEngine } from '@/engine/runtime/GameEngine';
 
 interface TestPlayOverlayProps {
   projectData: ProjectData;
   onClose: () => void;
-  /** GameRuntime の start 完了後に呼ばれるコールバック */
-  onStarted?: (runtime: GameRuntime) => void;
+  /** GameEngine の start 完了後に呼ばれるコールバック */
+  onStarted?: (runtime: GameEngine) => void;
 }
 
 export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const runtimeRef = useRef<GameRuntime | null>(null);
+  const runtimeRef = useRef<GameEngine | null>(null);
 
   const stopGame = useCallback(() => {
     if (runtimeRef.current) {
@@ -29,7 +29,7 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
     }
   }, []);
 
-  // Initialize and start GameRuntime
+  // Initialize and start GameEngine
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -38,23 +38,26 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
     canvas.width = resolution.width;
     canvas.height = resolution.height;
 
-    let runtime: GameRuntime;
+    let runtime: GameEngine;
     try {
-      runtime = new GameRuntime(canvas, projectData);
+      runtime = new GameEngine(canvas, projectData);
       runtimeRef.current = runtime;
     } catch (err) {
-      console.error('[TestPlay] Failed to create GameRuntime:', err);
+      console.error('[TestPlay] Failed to create GameEngine:', err);
       return;
     }
 
     let stopped = false;
-    runtime.start().then(() => {
-      if (stopped) return; // StrictMode cleanup 後は実行しない
-      canvas.focus();
-      onStarted?.(runtime);
-    }).catch((err) => {
-      console.error('[TestPlay] Failed to start game:', err);
-    });
+    runtime
+      .start()
+      .then(() => {
+        if (stopped) return; // StrictMode cleanup 後は実行しない
+        canvas.focus();
+        onStarted?.(runtime);
+      })
+      .catch((err) => {
+        console.error('[TestPlay] Failed to start game:', err);
+      });
 
     return () => {
       stopped = true;

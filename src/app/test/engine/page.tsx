@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { GameEngine } from '@/engine/core/GameEngine';
+import { TestEngine } from '@/engine/core/TestEngine';
 import type { EngineMessage, EngineProjectData, SerializedAction } from '@/engine/types';
 import '@/engine/actions/register';
 import '@/engine/values/register';
@@ -82,9 +82,7 @@ return { damage, remaining, defeated: remaining <= 0 };
     { id: 'v6', name: 'counter', type: 'number', defaultValue: 0 },
   ],
   classes: [],
-  dataTypes: [
-    { id: 'item', name: 'アイテム' },
-  ],
+  dataTypes: [{ id: 'item', name: 'アイテム' }],
   dataEntries: {
     item: [
       { id: 'potion', typeId: 'item', values: { name: 'ポーション', price: 50 } },
@@ -106,7 +104,7 @@ function createScenarios(): Scenario[] {
       description: 'スクリプトを実行し、変数の読み書きとconsole.logの転送を確認',
       run: async (addLog) => {
         const messages: EngineMessage[] = [];
-        const engine = new GameEngine((msg) => {
+        const engine = new TestEngine((msg) => {
           messages.push(msg);
           logEngineMessage(msg, addLog);
         });
@@ -131,7 +129,7 @@ function createScenarios(): Scenario[] {
       name: '2. スクリプト実行 (戦闘)',
       description: '変数を使った戦闘計算スクリプト',
       run: async (addLog) => {
-        const engine = new GameEngine((msg) => logEngineMessage(msg, addLog));
+        const engine = new TestEngine((msg) => logEngineMessage(msg, addLog));
 
         addLog({ type: 'action', message: '▶ スクリプト "Battle Simulation" を実行...' });
 
@@ -172,7 +170,7 @@ function createScenarios(): Scenario[] {
           },
         ];
 
-        const engine = new GameEngine((msg) => logEngineMessage(msg, addLog));
+        const engine = new TestEngine((msg) => logEngineMessage(msg, addLog));
 
         addLog({ type: 'action', message: '▶ イベント実行: gold = 100 → +50 → ×2 = 300' });
 
@@ -226,12 +224,11 @@ function createScenarios(): Scenario[] {
           },
         ];
 
-        const engine = new GameEngine((msg) => logEngineMessage(msg, addLog));
+        const engine = new TestEngine((msg) => logEngineMessage(msg, addLog));
 
         addLog({
           type: 'action',
-          message:
-            '▶ 条件分岐: player_hp(100) > 50 ? → HP+20 : HP=999',
+          message: '▶ 条件分岐: player_hp(100) > 50 ? → HP+20 : HP=999',
         });
 
         await engine.handleMessage({
@@ -278,7 +275,7 @@ function createScenarios(): Scenario[] {
           },
         ];
 
-        const engine = new GameEngine((msg) => logEngineMessage(msg, addLog));
+        const engine = new TestEngine((msg) => logEngineMessage(msg, addLog));
 
         addLog({
           type: 'action',
@@ -349,7 +346,7 @@ function createScenarios(): Scenario[] {
           },
         ];
 
-        const engine = new GameEngine((msg) => logEngineMessage(msg, addLog));
+        const engine = new TestEngine((msg) => logEngineMessage(msg, addLog));
 
         addLog({
           type: 'action',
@@ -373,7 +370,7 @@ function createScenarios(): Scenario[] {
       name: '7. エラーハンドリング',
       description: '存在しないスクリプトの実行、ランタイムエラーの確認',
       run: async (addLog) => {
-        const engine = new GameEngine((msg) => logEngineMessage(msg, addLog));
+        const engine = new TestEngine((msg) => logEngineMessage(msg, addLog));
 
         addLog({ type: 'action', message: '▶ 存在しないスクリプトを実行...' });
         await engine.handleMessage({
@@ -403,7 +400,7 @@ function createScenarios(): Scenario[] {
             },
           ],
         };
-        const engine2 = new GameEngine((msg) => logEngineMessage(msg, addLog));
+        const engine2 = new TestEngine((msg) => logEngineMessage(msg, addLog));
         await engine2.handleMessage({
           type: 'start',
           config: {
@@ -448,7 +445,7 @@ return { itemCount: items.length, potionPrice: potion.price };
           ],
         };
 
-        const engine = new GameEngine((msg) => logEngineMessage(msg, addLog));
+        const engine = new TestEngine((msg) => logEngineMessage(msg, addLog));
 
         addLog({ type: 'action', message: '▶ データアクセステスト...' });
 
@@ -554,10 +551,7 @@ export default function EngineDebugPage() {
   const scenarios = createScenarios();
 
   const addLog = useCallback((entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
-    setLogs((prev) => [
-      ...prev,
-      { ...entry, id: nextId.current++, timestamp: Date.now() },
-    ]);
+    setLogs((prev) => [...prev, { ...entry, id: nextId.current++, timestamp: Date.now() }]);
   }, []);
 
   const runScenario = useCallback(
@@ -602,9 +596,7 @@ export default function EngineDebugPage() {
       <div className="flex items-center justify-between border-b border-gray-800 px-6 py-3">
         <div>
           <h1 className="text-lg font-bold">Engine Debug Viewer</h1>
-          <p className="text-xs text-gray-500">
-            GameEngine の処理フローをリアルタイムで可視化
-          </p>
+          <p className="text-xs text-gray-500">TestEngine の処理フローをリアルタイムで可視化</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -672,7 +664,8 @@ export default function EngineDebugPage() {
                       hour: '2-digit',
                       minute: '2-digit',
                       second: '2-digit',
-                    })}.{String(log.timestamp % 1000).padStart(3, '0')}
+                    })}
+                    .{String(log.timestamp % 1000).padStart(3, '0')}
                   </span>
                   <span className={getLogColor(log.type)}>
                     {log.message}

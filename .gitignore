@@ -49,3 +49,8 @@ coverage/
 screenshot/
 .vercel
 default_game/
+output/
+
+# Internal docs (AI-generated plans/specs)
+docs/plans/
+docs/superpowers/

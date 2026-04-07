@@ -12,7 +12,7 @@ import type { GameButton } from './InputManager';
 import type { TweenScriptAPI } from '../tween/TweenManager';
 
 // =============================================================================
-// Runtime Extension Types (set by GameRuntime for action integration)
+// Runtime Extension Types (set by GameEngine for action integration)
 // =============================================================================
 
 export interface MapChangeRequest {
@@ -75,7 +75,14 @@ export interface CameraAPI {
   /** スクリーンオーバーレイ色を即座に設定（RGBA 0-1） */
   setOverlay(r: number, g: number, b: number, a: number): void;
   /** オーバーレイの Tween 対象オブジェクト（overlayR/G/B/A プロパティを持つ） */
-  getOverlayTarget(): { id: string; overlayR: number; overlayG: number; overlayB: number; overlayA: number; [k: string]: unknown };
+  getOverlayTarget(): {
+    id: string;
+    overlayR: number;
+    overlayG: number;
+    overlayB: number;
+    overlayA: number;
+    [k: string]: unknown;
+  };
   /** ズーム・パン・シェイク・オーバーレイをすべてリセット */
   reset(): void;
 }
@@ -206,10 +213,10 @@ export class GameContext {
   /** 現在実行中のイベントの次のアクション情報 */
   currentEvent: CurrentEventInfo = { nextAction: null };
 
-  /** Set by MapAction, consumed by GameRuntime after event execution. */
+  /** Set by MapAction, consumed by GameEngine after event execution. */
   pendingMapChange: MapChangeRequest | null = null;
 
-  /** オブジェクト変数アクセス（GameRuntime が注入） */
+  /** オブジェクト変数アクセス（GameEngine が注入） */
   getObjectVariable: (objectName: string, varName: string) => unknown = () => undefined;
   setObjectVariable: (objectName: string, varName: string, value: unknown) => void = () => {};
 
@@ -229,22 +236,22 @@ export class GameContext {
     this.save = createSaveAPI();
   }
 
-  /** Inject UI proxies (called by GameRuntime after UICanvasManager setup). */
+  /** Inject UI proxies (called by GameEngine after UICanvasManager setup). */
   setUIProxies(proxies: Record<string, UICanvasRuntimeProxy>): void {
     this.ui = proxies;
   }
 
-  /** Inject Input API backed by a real InputManager (called by GameRuntime). */
+  /** Inject Input API backed by a real InputManager (called by GameEngine). */
   setInputAPI(api: InputAPI): void {
     this.input = api;
   }
 
-  /** Inject Map API backed by GameWorld (called by GameRuntime). */
+  /** Inject Map API backed by GameWorld (called by GameEngine). */
   setMapAPI(api: MapAPI): void {
     this.map = api;
   }
 
-  /** Inject Object API backed by GameWorld (called by GameRuntime). */
+  /** Inject Object API backed by GameWorld (called by GameEngine). */
   setObjectAPI(api: ObjectAPI): void {
     this.object = api;
   }
@@ -254,7 +261,7 @@ export class GameContext {
     this.currentEvent = { nextAction: next };
   }
 
-  /** Inject runtime callbacks (called by GameRuntime after construction). */
+  /** Inject runtime callbacks (called by GameEngine after construction). */
   setRuntimeCallbacks(callbacks: RuntimeCallbacks): void {
     this.runtimeCallbacks = callbacks;
   }
@@ -358,25 +365,58 @@ function createScriptAPI(variableAPI: VariableAPI, ctx: GameContext): GameScript
 
 function createSoundAPI(): SoundAPI {
   return {
-    playBGM() { /* stub */ },
-    stopBGM() { /* stub */ },
-    playSE() { /* stub */ },
-    stopAll() { /* stub */ },
+    playBGM() {
+      /* stub */
+    },
+    stopBGM() {
+      /* stub */
+    },
+    playSE() {
+      /* stub */
+    },
+    stopAll() {
+      /* stub */
+    },
   };
 }
 
 function createCameraAPI(): CameraAPI {
-  const overlayTarget: { id: string; overlayR: number; overlayG: number; overlayB: number; overlayA: number; [k: string]: unknown } = {
-    id: '__camera_stub__', overlayR: 0, overlayG: 0, overlayB: 0, overlayA: 0,
+  const overlayTarget: {
+    id: string;
+    overlayR: number;
+    overlayG: number;
+    overlayB: number;
+    overlayA: number;
+    [k: string]: unknown;
+  } = {
+    id: '__camera_stub__',
+    overlayR: 0,
+    overlayG: 0,
+    overlayB: 0,
+    overlayA: 0,
   };
   return {
-    panTo() { /* stub */ },
-    resetPan() { /* stub */ },
-    shake() { /* stub */ },
-    setZoom() { /* stub */ },
-    setOverlay() { /* stub */ },
-    getOverlayTarget() { return overlayTarget; },
-    reset() { /* stub */ },
+    panTo() {
+      /* stub */
+    },
+    resetPan() {
+      /* stub */
+    },
+    shake() {
+      /* stub */
+    },
+    setZoom() {
+      /* stub */
+    },
+    setOverlay() {
+      /* stub */
+    },
+    getOverlayTarget() {
+      return overlayTarget;
+    },
+    reset() {
+      /* stub */
+    },
   };
 }
 
@@ -393,21 +433,41 @@ function createSaveAPI(): SaveAPI {
 
 function createStubObjectAPI(): ObjectAPI {
   return {
-    find() { return null; },
-    findById() { return null; },
-    findAtTile() { return null; },
-    create() { return null; },
-    destroy() { /* stub */ },
+    find() {
+      return null;
+    },
+    findById() {
+      return null;
+    },
+    findAtTile() {
+      return null;
+    },
+    create() {
+      return null;
+    },
+    destroy() {
+      /* stub */
+    },
   };
 }
 
 function createStubMapAPI(): MapAPI {
   return {
-    getCurrentId() { return null; },
-    getWidth() { return 0; },
-    getHeight() { return 0; },
-    getTile() { return null; },
-    changeMap() { /* stub */ },
+    getCurrentId() {
+      return null;
+    },
+    getWidth() {
+      return 0;
+    },
+    getHeight() {
+      return 0;
+    },
+    getTile() {
+      return null;
+    },
+    changeMap() {
+      /* stub */
+    },
   };
 }
 
@@ -425,11 +485,23 @@ function createStubInputAPI(): InputAPI {
     getJustPressedKeys(): string[] {
       return [];
     },
-    startTextInput() { /* stub */ },
-    stopTextInput() { /* stub */ },
-    getTextValue() { return ''; },
-    isTextConfirmed() { return false; },
-    isTextCancelled() { return false; },
-    getTextCursorPos() { return 0; },
+    startTextInput() {
+      /* stub */
+    },
+    stopTextInput() {
+      /* stub */
+    },
+    getTextValue() {
+      return '';
+    },
+    isTextConfirmed() {
+      return false;
+    },
+    isTextCancelled() {
+      return false;
+    },
+    getTextCursorPos() {
+      return 0;
+    },
   };
 }

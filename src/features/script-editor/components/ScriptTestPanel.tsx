@@ -6,8 +6,8 @@ import { Play, Monitor, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { GameEngine } from '@/engine/core/GameEngine';
-import type { GameRuntime } from '@/engine/runtime/GameRuntime';
+import { TestEngine } from '@/engine/core/TestEngine';
+import type { GameEngine } from '@/engine/runtime/GameEngine';
 import type { EngineMessage, ScriptModeConfig } from '@/engine/types';
 import type { ProjectData } from '@/lib/storage/types';
 import { useStore } from '@/stores';
@@ -70,12 +70,7 @@ function ArrayArgField({
               placeholder={fieldType}
             />
           )}
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 w-7 p-0"
-            onClick={() => handleRemove(i)}
-          >
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleRemove(i)}>
             <X className="h-3 w-3" />
           </Button>
         </div>
@@ -147,13 +142,14 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
   }
 
   const handleRuntimeStarted = useCallback(
-    (runtime: GameRuntime) => {
+    (runtime: GameEngine) => {
       if (!script) return;
       const args: Record<string, unknown> = {};
       for (const arg of script.args) {
         args[arg.id] = argValues[arg.id] ?? arg.defaultValue ?? '';
       }
-      runtime.executeScript(script.id, args)
+      runtime
+        .executeScript(script.id, args)
         .then((value) => {
           setUiTestData(null);
           setResult(value !== undefined ? JSON.stringify(value) : 'undefined');
@@ -239,7 +235,7 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
       args,
     };
 
-    const engine = new GameEngine((msg: EngineMessage) => {
+    const engine = new TestEngine((msg: EngineMessage) => {
       switch (msg.type) {
         case 'log':
           logs.push(msg.message);
@@ -265,7 +261,7 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
     setReturnTypeErrors(typeErrors);
   };
 
-  // UI付きテストプレイ: GameRuntime 上で実行
+  // UI付きテストプレイ: GameEngine 上で実行
   const handleExecuteWithUI = () => {
     const data = buildProjectDataWithEmptyMap();
     setUiTestData(data);
@@ -284,22 +280,25 @@ export function ScriptTestPanel({ script }: ScriptTestPanelProps) {
                 return (
                   <div key={arg.id} className="space-y-1">
                     <Label htmlFor={`test-arg-${arg.id}`} className="text-xs">
-                      {arg.name}（{arg.fieldType}{arg.isArray ? '[]' : ''}）
+                      {arg.name}（{arg.fieldType}
+                      {arg.isArray ? '[]' : ''}）
                     </Label>
                     {arg.isArray ? (
                       <ArrayArgField
                         argId={arg.id}
                         fieldType={arg.fieldType}
-                        value={(argValues[arg.id] as unknown[] | undefined) ?? (arg.defaultValue as unknown[] | undefined) ?? []}
+                        value={
+                          (argValues[arg.id] as unknown[] | undefined) ??
+                          (arg.defaultValue as unknown[] | undefined) ??
+                          []
+                        }
                         onChange={(v) => setArgValues((prev) => ({ ...prev, [arg.id]: v }))}
                         referenceTypeId={arg.referenceTypeId}
                       />
                     ) : Renderer ? (
                       <Renderer
                         value={argValues[arg.id]}
-                        onChange={(v) =>
-                          setArgValues((prev) => ({ ...prev, [arg.id]: v }))
-                        }
+                        onChange={(v) => setArgValues((prev) => ({ ...prev, [arg.id]: v }))}
                         placeholder={arg.fieldType}
                         referenceTypeId={arg.referenceTypeId}
                       />

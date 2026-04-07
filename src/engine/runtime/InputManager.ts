@@ -66,7 +66,8 @@ export class InputManager {
     // 隠し input（IME 対応テキスト入力用）
     const input = document.createElement('input');
     input.type = 'text';
-    input.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0.01;font-size:16px;';
+    input.style.cssText =
+      'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0.01;font-size:16px;';
     input.addEventListener('keydown', this.onHiddenInputKeyDown);
     target.parentElement?.appendChild(input);
     this.hiddenInput = input;
@@ -133,7 +134,7 @@ export class InputManager {
 
   /**
    * Resolve waiters for buttons that were just pressed this frame.
-   * Called by GameRuntime each frame after update().
+   * Called by GameEngine each frame after update().
    */
   processWaiters(): void {
     if (this.waiters.length === 0) return;
@@ -193,12 +194,18 @@ export class InputManager {
   }
 
   /** Enter が押されたか */
-  isTextConfirmed(): boolean { return this._textConfirmed; }
+  isTextConfirmed(): boolean {
+    return this._textConfirmed;
+  }
 
   /** Escape が押されたか */
-  isTextCancelled(): boolean { return this._textCancelled; }
+  isTextCancelled(): boolean {
+    return this._textCancelled;
+  }
 
-  get textInputActive(): boolean { return this._textInputActive; }
+  get textInputActive(): boolean {
+    return this._textInputActive;
+  }
 
   private onHiddenInputKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Enter') {
