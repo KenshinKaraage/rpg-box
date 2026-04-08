@@ -2559,6 +2559,7 @@ itemView.visible = false;
 const cmdWin = UI["battle"].getObject("commandWindow");
 
 while (true) {
+  msgText.setProperty("text", "content", memberName + "のターン");
   const nav = cmdWin.getComponent("navigation");
   nav.activate();
   const selected = await nav.result();
