@@ -108,6 +108,7 @@ export async function loadDefaultTestData(): Promise<void> {
 
   // サンプルデータエントリ（画像フィールドのアセット名→IDを解決）
   const IMAGE_FIELDS = ['face_graphic', 'walk_graphic', 'icon', 'graphic'];
+  const EFFECT_FIELDS = ['visual_effect', 'use_effect'];
   for (const [typeId, entries] of Object.entries(sampleDataEntries)) {
     for (const entry of entries) {
       const existing = state.dataEntries[typeId];
@@ -116,6 +117,15 @@ export async function loadDefaultTestData(): Promise<void> {
         for (const field of IMAGE_FIELDS) {
           if (resolved.values[field] && typeof resolved.values[field] === 'string') {
             resolved.values[field] = resolveAssetId(resolved.values[field] as string);
+          }
+        }
+        for (const field of EFFECT_FIELDS) {
+          const eff = resolved.values[field];
+          if (eff && typeof eff === 'object' && (eff as Record<string, unknown>).effectId) {
+            resolved.values[field] = {
+              ...(eff as Record<string, unknown>),
+              effectId: resolveAssetId((eff as Record<string, unknown>).effectId as string),
+            };
           }
         }
         state.addDataEntry(resolved);
