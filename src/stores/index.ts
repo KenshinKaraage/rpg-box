@@ -10,7 +10,7 @@ import type { ProjectData } from '@/lib/storage/types';
 import { hydrateDataType } from '@/types/data';
 import { hydrateCustomClass } from '@/types/customClass';
 import { hydrateVariable } from '@/types/variable';
-import { hydrateGameMap, hydrateChipset } from '@/types/map';
+import { hydrateGameMap, hydrateChipset, hydratePrefab } from '@/types/map';
 
 import { createUISlice, UISlice } from './uiSlice';
 import { createGameSettingsSlice, GameSettingsSlice } from './gameSettingsSlice';
@@ -71,7 +71,7 @@ export const useStore = create<StoreState>()(
         state.variables = data.variables.map(hydrateVariable) as typeof state.variables;
         state.maps = data.maps.map(hydrateGameMap) as typeof state.maps;
         state.chipsets = data.chipsets.map(hydrateChipset) as typeof state.chipsets;
-        state.prefabs = data.prefabs as unknown as typeof state.prefabs;
+        state.prefabs = data.prefabs.map(hydratePrefab) as unknown as typeof state.prefabs;
         state.eventTemplates = data.eventTemplates as unknown as typeof state.eventTemplates;
         state.uiCanvases = data.uiCanvases as unknown as typeof state.uiCanvases;
         state.uiTemplates = data.uiTemplates as unknown as typeof state.uiTemplates;

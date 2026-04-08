@@ -104,6 +104,23 @@ export function hydrateGameMap(plain: any): GameMap {
 }
 
 /**
+ * プレーンオブジェクト（JSON由来）の Prefab を Component インスタンス付きに復元
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydratePrefab(plain: any): Prefab {
+  return {
+    ...plain,
+    prefab: {
+      ...plain.prefab,
+      components: (plain.prefab?.components ?? []).map((c: Record<string, unknown>) => {
+        if (typeof (c as { serialize?: unknown }).serialize === 'function') return c;
+        return hydrateComponent(c) ?? c;
+      }),
+    },
+  };
+}
+
+/**
  * プレーンオブジェクト（JSON由来）の Chipset を FieldType インスタンス付きに復元
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
