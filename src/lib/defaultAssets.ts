@@ -92,6 +92,8 @@ export const DEFAULT_ASSET_GROUPS: DefaultAssetGroup[] = [
       { path: '/assets/images/effect/effect_firebomb.png', name: 'effect_firebomb' },
       { path: '/assets/images/effect/effect_up.png', name: 'effect_up' },
       { path: '/assets/images/effect/effect_down.png', name: 'effect_down' },
+      { path: '/assets/images/effect/effect_heal.png', name: 'effect_heal' },
+      { path: '/assets/images/effect/effect_magiccircle.png', name: 'effect_magiccircle' },
     ],
   },
   {
