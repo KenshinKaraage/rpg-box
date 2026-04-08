@@ -2423,10 +2423,14 @@ const skillView = UI["battle"].getObject("skillView");
 const itemView = UI["battle"].getObject("itemView");
 const msgText = UI["battle"].getObject("messageText");
 const msgWin = UI["battle"].getObject("messageWindow");
+const enemyCursor = UI["battle"].getObject("enemyCursor");
+const partyCursor = UI["battle"].getObject("partyCursor");
 cmdView.visible = false;
 skillView.visible = false;
 itemView.visible = false;
 msgWin.visible = false;
+enemyCursor.visible = false;
+partyCursor.visible = false;
 
 UI["battle"].show();
 updateEnemyDisplay();
@@ -2685,7 +2689,18 @@ setNavItemIds(skillWin);
 cmdView.visible = false;
 skillView.visible = true;
 
+const msgText = UI["battle"].getObject("messageText");
 const nav = skillWin.getComponent("navigation");
+nav.setOnIndexChange((idx) => {
+  const sid = usable[idx];
+  const sk = sid ? Data.skill[sid] : null;
+  if (sk && msgText) msgText.setProperty("text", "content", sk.description || sk.name);
+});
+if (usable[0]) {
+  const sk0 = Data.skill[usable[0]];
+  if (sk0 && msgText) msgText.setProperty("text", "content", sk0.description || sk0.name);
+}
+
 nav.activate();
 const selected = await nav.result();
 
@@ -2756,7 +2771,18 @@ setNavItemIds(itemWin);
 cmdView.visible = false;
 itemView.visible = true;
 
+const msgText = UI["battle"].getObject("messageText");
 const nav = itemWin.getComponent("navigation");
+nav.setOnIndexChange((idx) => {
+  const e = consumables[idx];
+  const it = e ? Data.item[e.itemId] : null;
+  if (it && msgText) msgText.setProperty("text", "content", it.description || it.name);
+});
+if (consumables[0]) {
+  const it0 = Data.item[consumables[0].itemId];
+  if (it0 && msgText) msgText.setProperty("text", "content", it0.description || it0.name);
+}
+
 nav.activate();
 const selected = await nav.result();
 
@@ -2806,12 +2832,24 @@ cmdView.visible = false;
 const partyAnim = partyWin.getComponent("animation");
 if (partyAnim) await partyAnim.play("slideCenter");
 
+const msgText = UI["battle"].getObject("messageText");
+const enemyCursor = UI["battle"].getObject("enemyCursor");
+enemyCursor.visible = true;
+
+// カーソル移動時にヘッダーに敵名を表示
 setNavItemIds(enemyArea);
 const nav = enemyArea.getComponent("navigation");
+nav.setOnIndexChange((idx) => {
+  const e = alive[idx];
+  if (e && msgText) msgText.setProperty("text", "content", e.name);
+});
+if (alive[0] && msgText) msgText.setProperty("text", "content", alive[0].name);
+
 nav.activate();
 const selected = await nav.result();
 
-// パーティを元に戻す
+// カーソル非表示、パーティを元に戻す
+enemyCursor.visible = false;
 if (partyAnim) await partyAnim.play("slideBack");
 cmdView.visible = true;
 
@@ -2853,12 +2891,18 @@ cmdView.visible = false;
 const partyAnim = partyWin.getComponent("animation");
 if (partyAnim) await partyAnim.play("slideCenter");
 
+const msgText = UI["battle"].getObject("messageText");
+const partyCursor = UI["battle"].getObject("partyCursor");
+partyCursor.visible = true;
+msgText.setProperty("text", "content", "キャラクターを選択してください");
+
 setNavItemIds(partyWin);
 const nav = partyWin.getComponent("navigation");
 nav.activate();
 const selected = await nav.result();
 
-// パーティを元に戻す
+// カーソル非表示、パーティを元に戻す
+partyCursor.visible = false;
 if (partyAnim) await partyAnim.play("slideBack");
 cmdView.visible = true;
 
