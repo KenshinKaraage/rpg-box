@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
-import { Header } from '@/components/common/Header';
+import { AppShell } from '@/components/common/AppShell';
 
 import './globals.css';
 
@@ -23,8 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ja" className={inter.variable}>
       <body className={`${inter.className} flex min-h-screen flex-col bg-background antialiased`}>
-        <Header />
-        <main className="flex-1 min-h-0 overflow-hidden">{children}</main>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

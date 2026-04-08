@@ -46,12 +46,19 @@ export function AutoSaveProvider() {
 
         // 1. 構造データを先にロード
         const saved = await storage.loadProject(SAVE_ID_STRUCTURE);
-        if (!saved?.data) return;
+        if (!saved?.data) {
+          useStore.getState().setIsRestoring(false);
+          return;
+        }
 
         const state = useStore.getState();
-        if (state.dataTypes.length > 0 || state.maps.length > 0) return;
+        if (state.dataTypes.length > 0 || state.maps.length > 0) {
+          state.setIsRestoring(false);
+          return;
+        }
 
         state.loadProjectData(saved.data as ProjectData);
+        state.setIsRestoring(false);
         console.log(`[AutoSave] Structure restored (${Math.round(performance.now() - t0)}ms)`);
 
         // 2. アセットデータを後からロード
@@ -73,6 +80,7 @@ export function AutoSaveProvider() {
         console.log(`[AutoSave] Total restore: ${Math.round(performance.now() - t0)}ms`);
       } catch (e) {
         console.warn('[AutoSave] Failed to restore:', e);
+        useStore.getState().setIsRestoring(false);
       }
     })();
   }, []);
