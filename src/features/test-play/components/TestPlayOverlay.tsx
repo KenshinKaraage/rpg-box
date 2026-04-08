@@ -51,7 +51,7 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
     runtime
       .start()
       .then(() => {
-        if (stopped) return; // StrictMode cleanup 後は実行しない
+        if (stopped) return;
         canvas.focus();
         onStarted?.(runtime);
       })
@@ -113,6 +113,7 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
         tabIndex={0}
         className="block max-h-full max-w-full outline-none"
         style={{ imageRendering: 'pixelated', objectFit: 'contain' }}
+        onMouseDown={() => canvasRef.current?.focus()}
       />
     </div>
   );
