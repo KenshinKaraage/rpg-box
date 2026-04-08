@@ -26,8 +26,6 @@ export function AutoSaveProvider() {
     if (!tempData?.data) return;
 
     const state = useStore.getState();
-    // 既にデフォルトデータが読み込まれている場合はスキップ
-    // (データが空の場合のみ復元)
     if (state.dataTypes.length > 0 || state.maps.length > 0) return;
 
     try {
@@ -44,18 +42,30 @@ export function AutoSaveProvider() {
   // ストア変更を検知して自動保存
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let isFirst = true;
+    let isSaving = false;
 
-    const unsubscribe = useStore.subscribe(() => {
-      // 初回（復元直後）の通知はスキップ
-      if (isFirst) {
-        isFirst = false;
-        return;
+    const unsubscribe = useStore.subscribe((state, prevState) => {
+      // saveStatus の変更だけなら無視（自分自身のmarkAsUnsaved/Savedによるループ防止）
+      if (state.saveStatus !== prevState.saveStatus) {
+        // saveStatus 以外に変更があるかチェック
+        const keys = Object.keys(state) as (keyof typeof state)[];
+        const hasOtherChange = keys.some((k) => k !== 'saveStatus' && state[k] !== prevState[k]);
+        if (!hasOtherChange) return;
       }
 
+      // 保存処理中の再帰呼び出しを防止
+      if (isSaving) return;
+
       if (timeoutId) clearTimeout(timeoutId);
+
+      // 即座に未保存マークをつける
+      isSaving = true;
+      state.markAsUnsaved();
+      isSaving = false;
+
       timeoutId = setTimeout(() => {
         try {
+          isSaving = true;
           const data = buildProjectData();
           const storage = getLocalStorage();
           storage.saveTempData({
@@ -64,12 +74,12 @@ export function AutoSaveProvider() {
             data,
           });
           useStore.getState().markAsSaved();
+          isSaving = false;
         } catch (e) {
+          isSaving = false;
           console.warn('[AutoSave] Save failed:', e);
         }
       }, DEBOUNCE_MS);
-
-      useStore.getState().markAsUnsaved();
     });
 
     return () => {
