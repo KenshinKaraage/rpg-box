@@ -122,12 +122,9 @@ export async function loadDefaultTestData(): Promise<void> {
         for (const field of EFFECT_FIELDS) {
           const eff = resolved.values[field];
           if (eff && typeof eff === 'object' && (eff as Record<string, unknown>).imageId) {
-            const originalId = (eff as Record<string, unknown>).imageId as string;
-            const resolvedId = resolveAssetId(originalId);
-            console.log(`[DefaultData] Effect ${field}: ${originalId} → ${resolvedId}`);
             resolved.values[field] = {
               ...(eff as Record<string, unknown>),
-              imageId: resolvedId,
+              imageId: resolveAssetId((eff as Record<string, unknown>).imageId as string),
             };
           }
         }
