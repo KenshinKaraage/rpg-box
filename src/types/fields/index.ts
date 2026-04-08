@@ -37,6 +37,7 @@ import { DataSelectFieldType } from './DataSelectFieldType';
 import { DataListFieldType } from './DataListFieldType';
 import { ClassListFieldType } from './ClassListFieldType';
 import { DataTableFieldType } from './DataTableFieldType';
+import { EffectFieldType } from './EffectFieldType';
 
 export {
   NumberFieldType,
@@ -52,10 +53,12 @@ export {
   DataListFieldType,
   ClassListFieldType,
   DataTableFieldType,
+  EffectFieldType,
 };
 export type { SelectOption } from './SelectFieldType';
 export type { ClassValue } from './ClassFieldType';
 export type { DataTableRow, DataTableColumn } from './DataTableFieldType';
+export type { EffectValue } from './EffectFieldType';
 
 // 組み込みフィールドタイプの登録
 import { registerFieldType } from './registry';
@@ -73,3 +76,4 @@ registerFieldType('dataSelect', DataSelectFieldType);
 registerFieldType('dataList', DataListFieldType);
 registerFieldType('classList', ClassListFieldType);
 registerFieldType('dataTable', DataTableFieldType);
+registerFieldType('effect', EffectFieldType);
