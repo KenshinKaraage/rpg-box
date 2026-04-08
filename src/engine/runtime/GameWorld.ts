@@ -85,6 +85,10 @@ export class GameWorld {
     return this.currentMap;
   }
 
+  get isEventRunning(): boolean {
+    return this.eventRunning;
+  }
+
   setEventRunning(running: boolean): void {
     this.eventRunning = running;
   }
@@ -141,13 +145,20 @@ export class GameWorld {
     return completions;
   }
 
-  canMove(movingObj: RuntimeObject, fromX: number, fromY: number, toX: number, toY: number): boolean {
+  canMove(
+    movingObj: RuntimeObject,
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number
+  ): boolean {
     if (!this.currentMap) return false;
-    if (toX < 0 || toY < 0 || toX >= this.currentMap.width || toY >= this.currentMap.height) return false;
+    if (toX < 0 || toY < 0 || toX >= this.currentMap.width || toY >= this.currentMap.height)
+      return false;
 
     const movingCollider = movingObj.components['collider'];
     const collideLayers: string[] | null = movingCollider
-      ? (movingCollider.collideLayers as string[]) ?? null
+      ? ((movingCollider.collideLayers as string[]) ?? null)
       : null;
 
     // タイルレイヤーとの衝突判定
@@ -252,7 +263,8 @@ export class GameWorld {
 
       const step = steps[currentIndex]!;
       // 新形式: { type, direction } or 旧形式: string
-      const stepType = typeof step === 'object' && step !== null ? (step as { type: string }).type : 'move';
+      const stepType =
+        typeof step === 'object' && step !== null ? (step as { type: string }).type : 'move';
       const stepDir = typeof step === 'string' ? step : (step as { direction: string }).direction;
 
       if (stepType === 'face') {
@@ -349,9 +361,7 @@ export class GameWorld {
     const prefab = prefabs.find((p) => p.id === obj.prefabId);
     if (!prefab) return obj;
 
-    const mergedComponents: SerializedComponent[] = [
-      ...prefab.prefab.components,
-    ];
+    const mergedComponents: SerializedComponent[] = [...prefab.prefab.components];
     for (const oc of obj.components) {
       const idx = mergedComponents.findIndex((c) => c.type === oc.type);
       if (idx >= 0) {
@@ -367,11 +377,17 @@ export class GameWorld {
     const components: Record<string, Record<string, unknown>> = {};
     for (const comp of obj.components) {
       // Component クラスインスタンスの場合は serialize() でデータ取得
-      if (typeof (comp as unknown as { serialize: () => Record<string, unknown> }).serialize === 'function') {
-        components[comp.type] = (comp as unknown as { serialize: () => Record<string, unknown> }).serialize();
+      if (
+        typeof (comp as unknown as { serialize: () => Record<string, unknown> }).serialize ===
+        'function'
+      ) {
+        components[comp.type] = (
+          comp as unknown as { serialize: () => Record<string, unknown> }
+        ).serialize();
       } else {
         // SerializedComponent（storage types）の場合は .data を使う
-        components[comp.type] = ((comp as unknown as { data: unknown }).data as Record<string, unknown>) ?? {};
+        components[comp.type] =
+          ((comp as unknown as { data: unknown }).data as Record<string, unknown>) ?? {};
       }
     }
 

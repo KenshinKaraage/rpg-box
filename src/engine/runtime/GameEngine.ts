@@ -417,6 +417,23 @@ export class GameEngine {
       this.triggerSystem.notifyMoveCompleted(obj, fromX, fromY);
     }
 
+    // Debug: 方向キーが押されているのに移動できない場合のログ
+    if (
+      this.input.isDown('up') ||
+      this.input.isDown('down') ||
+      this.input.isDown('left') ||
+      this.input.isDown('right')
+    ) {
+      const ctrl = this.world.activeController;
+      if (!ctrl) {
+        console.warn('[GameEngine] Direction pressed but no activeController');
+      } else if (!ctrl.components['controller']) {
+        console.warn('[GameEngine] Direction pressed but controller component missing');
+      } else if (this.world.isEventRunning) {
+        console.warn('[GameEngine] Direction pressed but world.eventRunning=true');
+      }
+    }
+
     // Trigger evaluation (skip while an event is already running)
     if (this.eventRunning && this.input.isJustPressed('confirm')) {
       console.log('[GameEngine] confirm pressed but eventRunning=true, skipping triggers');
