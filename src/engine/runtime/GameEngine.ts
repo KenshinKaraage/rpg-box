@@ -67,6 +67,9 @@ export class GameEngine {
   /** True while an event is being executed (blocks new triggers). */
   private eventRunning = false;
 
+  /** Set to true by stop() to abort pending async start(). */
+  private stopped = false;
+
   /** Shared context for all event/script execution (persists variable state). */
   private context: GameContext | null = null;
   private sharedScriptRunner: ScriptRunner | null = null;
@@ -131,6 +134,7 @@ export class GameEngine {
 
     // Load start map
     await this.loadMap(settings.startMapId);
+    if (this.stopped) return;
 
     // Warn if no player object found
     if (!this.world.activeController) {
@@ -289,6 +293,8 @@ export class GameEngine {
       }
     }
 
+    if (this.stopped) return;
+
     // Ensure canvas has focus (may have been lost during async init)
     this.canvas.focus();
 
@@ -297,6 +303,7 @@ export class GameEngine {
   }
 
   stop(): void {
+    this.stopped = true;
     this.gameLoop.stop();
     this.input.detach();
     this.mapRenderer.dispose();
