@@ -2421,13 +2421,11 @@ function updateEnemyDisplay() {
 const cmdView = UI["battle"].getObject("commandView");
 const skillView = UI["battle"].getObject("skillView");
 const itemView = UI["battle"].getObject("itemView");
-const targetView = UI["battle"].getObject("targetView");
 const msgText = UI["battle"].getObject("messageText");
 const msgWin = UI["battle"].getObject("messageWindow");
 cmdView.visible = false;
 skillView.visible = false;
 itemView.visible = false;
-targetView.visible = false;
 msgWin.visible = false;
 
 UI["battle"].show();
@@ -2529,7 +2527,6 @@ export const battleCommandScript: Script = {
   content: `const cmdView = UI["battle"].getObject("commandView");
 const skillView = UI["battle"].getObject("skillView");
 const itemView = UI["battle"].getObject("itemView");
-const targetView = UI["battle"].getObject("targetView");
 const msgText = UI["battle"].getObject("messageText");
 const msgWin = UI["battle"].getObject("messageWindow");
 
@@ -2554,7 +2551,6 @@ msgText.setProperty("text", "content", memberName + "のターン");
 cmdView.visible = true;
 skillView.visible = false;
 itemView.visible = false;
-targetView.visible = false;
 
 const cmdWin = UI["battle"].getObject("commandWindow");
 
