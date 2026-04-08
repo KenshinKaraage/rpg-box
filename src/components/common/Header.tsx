@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 
 import { HamburgerMenu } from '@/components/common/HamburgerMenu';
 import { loadDefaultTestData } from '@/lib/defaultTestData';
+import { IndexedDBStorageProvider } from '@/lib/storage/indexedDB';
 import { SaveIndicator } from '@/components/common/SaveIndicator';
 import { Button } from '@/components/ui/button';
 import {
@@ -104,6 +105,18 @@ export function Header() {
     [importProject, loadProjectData]
   );
 
+  const handleReset = useCallback(async () => {
+    if (!window.confirm('プロジェクトをリセットしますか？全てのデータが消えます。')) return;
+    try {
+      const storage = new IndexedDBStorageProvider();
+      await storage.deleteProject('autosave');
+      await storage.deleteProject('autosave_assets');
+    } catch (e) {
+      console.warn('[Reset] Failed to clear IndexedDB:', e);
+    }
+    window.location.reload();
+  }, []);
+
   return (
     <header className="flex h-12 items-center border-b bg-card px-4 shadow-sm">
       {/* Hamburger menu */}
@@ -111,6 +124,7 @@ export function Header() {
         <HamburgerMenu
           project={{
             onLoadTestData: loadDefaultTestData,
+            onClearTempData: handleReset,
           }}
           export={{
             onExportProject: handleExport,
