@@ -4905,3 +4905,1222 @@ export const skillScreenCanvas: EditorUICanvas = {
   objects: createSkillScreenObjects(),
   functions: [],
 };
+
+// ── UICanvas: バトル画面 ──
+
+const BTL_CMD_W = 200;
+const BTL_CMD_H = 40;
+const BTL_CARD_W = 160;
+const BTL_CARD_H = 200;
+const BTL_LIST_W = 500;
+const BTL_LIST_H = 36;
+
+function createBattleObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  // 全体背景
+  objects.push({
+    id: 'btl_bg',
+    name: 'background',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000' })],
+  });
+
+  // ── 敵表示エリア（上半分） ──
+  objects.push({
+    id: 'btl_enemy_area',
+    name: 'enemyArea',
+    parentId: 'btl_bg',
+    transform: {
+      x: 16,
+      y: 16,
+      width: 1248,
+      height: 360,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('layoutGroup', {
+        direction: 'horizontal',
+        spacing: 24,
+        alignment: 'center',
+        paddingTop: 40,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
+    ],
+  });
+
+  // 敵テンプレート
+  objects.push({
+    id: 'btl_enemy_tmpl',
+    name: 'enemyTemplate',
+    parentId: 'btl_enemy_area',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 280,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'graphic', name: '画像', fieldType: 'string', defaultValue: '' },
+          { id: 'hp', name: 'HP', fieldType: 'string', defaultValue: '' },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+  objects.push({
+    id: 'btl_enemy_img',
+    name: 'enemyImage',
+    parentId: 'btl_enemy_tmpl',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 200,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
+  });
+  objects.push({
+    id: 'btl_enemy_name',
+    name: 'enemyName',
+    parentId: 'btl_enemy_tmpl',
+    transform: {
+      x: 0,
+      y: 208,
+      width: 200,
+      height: 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#ffffff',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_enemy_hp',
+    name: 'enemyHp',
+    parentId: 'btl_enemy_tmpl',
+    transform: {
+      x: 0,
+      y: 236,
+      width: 200,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 14,
+        color: '#88ff88',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+
+  // ── パーティステータス（下部、カード形式） ──
+  objects.push({
+    id: 'btl_party_win',
+    name: 'partyWindow',
+    parentId: 'btl_bg',
+    transform: {
+      x: 16,
+      y: 400,
+      width: 848,
+      height: BTL_CARD_H + 24,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('layoutGroup', {
+        direction: 'horizontal',
+        spacing: 12,
+        alignment: 'start',
+        paddingTop: 12,
+        paddingLeft: 12,
+        paddingRight: 12,
+      }),
+    ],
+  });
+
+  // パーティカードテンプレート（正方形: 画像 + 名前 + HPバー + MPバー + 状態異常）
+  objects.push({
+    id: 'btl_party_tmpl',
+    name: 'partyTemplate',
+    parentId: 'btl_party_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: BTL_CARD_W,
+      height: BTL_CARD_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#2a2a4e',
+        cornerRadius: 8,
+      }),
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'face', name: '顔', fieldType: 'string', defaultValue: '' },
+          { id: 'hp', name: 'HP', fieldType: 'string', defaultValue: '' },
+          { id: 'mp', name: 'MP', fieldType: 'string', defaultValue: '' },
+          { id: 'hpRate', name: 'HP率', fieldType: 'number', defaultValue: 1 },
+          { id: 'mpRate', name: 'MP率', fieldType: 'number', defaultValue: 1 },
+          { id: 'status', name: '状態', fieldType: 'string', defaultValue: '' },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+  // 顔画像
+  objects.push({
+    id: 'btl_party_face',
+    name: 'memberFace',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 8,
+      y: 8,
+      width: 64,
+      height: 64,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [createUIComponentData('image', { imageId: '', opacity: 1 })],
+  });
+  // 名前
+  objects.push({
+    id: 'btl_party_name',
+    name: 'memberName',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 80,
+      y: 8,
+      width: 72,
+      height: 20,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 14,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  // HPバー背景
+  objects.push({
+    id: 'btl_party_hp_bg',
+    name: 'hpBarBg',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 8,
+      y: 80,
+      width: 144,
+      height: 12,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#333333',
+        cornerRadius: 2,
+      }),
+    ],
+  });
+  // HPバー（FillMask）
+  objects.push({
+    id: 'btl_party_hp_bar',
+    name: 'hpBar',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 8,
+      y: 80,
+      width: 144,
+      height: 12,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#44cc44',
+        cornerRadius: 2,
+      }),
+      createUIComponentData('fillMask', { direction: 'horizontal', fillAmount: 1, reverse: false }),
+    ],
+  });
+  // HP数値
+  objects.push({
+    id: 'btl_party_hp_text',
+    name: 'memberHp',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 8,
+      y: 94,
+      width: 144,
+      height: 16,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 11,
+        color: '#88ff88',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  // MPバー背景
+  objects.push({
+    id: 'btl_party_mp_bg',
+    name: 'mpBarBg',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 8,
+      y: 114,
+      width: 144,
+      height: 12,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#333333',
+        cornerRadius: 2,
+      }),
+    ],
+  });
+  // MPバー（FillMask）
+  objects.push({
+    id: 'btl_party_mp_bar',
+    name: 'mpBar',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 8,
+      y: 114,
+      width: 144,
+      height: 12,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#4488ff',
+        cornerRadius: 2,
+      }),
+      createUIComponentData('fillMask', { direction: 'horizontal', fillAmount: 1, reverse: false }),
+    ],
+  });
+  // MP数値
+  objects.push({
+    id: 'btl_party_mp_text',
+    name: 'memberMp',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 8,
+      y: 128,
+      width: 144,
+      height: 16,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 11,
+        color: '#88bbff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  // 状態異常
+  objects.push({
+    id: 'btl_party_status',
+    name: 'memberStatus',
+    parentId: 'btl_party_tmpl',
+    transform: {
+      x: 8,
+      y: 148,
+      width: 144,
+      height: 16,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 11,
+        color: '#ff8844',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+
+  // ── メッセージ表示 ──
+  objects.push({
+    id: 'btl_msg_win',
+    name: 'messageWindow',
+    parentId: 'btl_bg',
+    transform: {
+      x: 16,
+      y: 400,
+      width: 848,
+      height: 60,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_msg_text',
+    name: 'messageText',
+    parentId: 'btl_msg_win',
+    transform: {
+      x: 16,
+      y: 8,
+      width: 816,
+      height: 44,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 18,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.4,
+      }),
+    ],
+  });
+
+  // ── コマンドビュー ──
+  objects.push({
+    id: 'btl_cmd_view',
+    name: 'commandView',
+    parentId: 'btl_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+  objects.push({
+    id: 'btl_cmd_win',
+    name: 'commandWindow',
+    parentId: 'btl_cmd_view',
+    transform: {
+      x: 16,
+      y: 476,
+      width: BTL_CMD_W + 32,
+      height: 228,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#ffdd44',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 0,
+        alignment: 'start',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ],
+  });
+
+  const cmds = ['たたかう', 'スキル', 'アイテム', 'にげる'];
+  for (let i = 0; i < cmds.length; i++) {
+    objects.push({
+      id: `btl_cmd_${i}`,
+      name: `cmd${i}`,
+      parentId: 'btl_cmd_win',
+      transform: {
+        x: 0,
+        y: 0,
+        width: BTL_CMD_W,
+        height: BTL_CMD_H,
+        anchorX: 'left',
+        anchorY: 'top',
+        pivotX: 0,
+        pivotY: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        visible: true,
+      },
+      components: [
+        createUIComponentData('text', {
+          content: cmds[i],
+          fontSize: 20,
+          color: '#ffffff',
+          align: 'left',
+          verticalAlign: 'middle',
+          lineHeight: 1.2,
+        }),
+        createUIComponentData('navigationItem', { itemId: String(i) }),
+      ],
+    });
+  }
+  objects.push({
+    id: 'btl_cmd_cursor',
+    name: 'cmdCursor',
+    parentId: 'btl_cmd_win',
+    transform: {
+      x: 0,
+      y: 8,
+      width: 16,
+      height: BTL_CMD_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 16,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  // ── スキルビュー ──
+  objects.push({
+    id: 'btl_skill_view',
+    name: 'skillView',
+    parentId: 'btl_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+  objects.push({
+    id: 'btl_skill_win',
+    name: 'skillWindow',
+    parentId: 'btl_skill_view',
+    transform: {
+      x: 16,
+      y: 476,
+      width: 848,
+      height: 228,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('gridLayout', {
+        columns: 2,
+        spacingX: 8,
+        spacingY: 0,
+        cellWidth: BTL_LIST_W / 2,
+        cellHeight: BTL_LIST_H,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_skill_tmpl',
+    name: 'skillTemplate',
+    parentId: 'btl_skill_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: BTL_LIST_W / 2,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'cost', name: 'コスト', fieldType: 'string', defaultValue: '' },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+  objects.push({
+    id: 'btl_skill_name',
+    name: 'skillName',
+    parentId: 'btl_skill_tmpl',
+    transform: {
+      x: 8,
+      y: 0,
+      width: 150,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_skill_cost',
+    name: 'skillCost',
+    parentId: 'btl_skill_tmpl',
+    transform: {
+      x: 160,
+      y: 0,
+      width: 80,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 14,
+        color: '#88bbff',
+        align: 'right',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_skill_cursor',
+    name: 'skillCursor',
+    parentId: 'btl_skill_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 16,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 14,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+      createUIComponentData('navigationCursor', { offsetX: -4, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  // ── アイテムビュー（スキルビューと同じ構造） ──
+  objects.push({
+    id: 'btl_item_view',
+    name: 'itemView',
+    parentId: 'btl_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+  objects.push({
+    id: 'btl_item_win',
+    name: 'itemWindow',
+    parentId: 'btl_item_view',
+    transform: {
+      x: 16,
+      y: 476,
+      width: 848,
+      height: 228,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#4a4a6a',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('gridLayout', {
+        columns: 2,
+        spacingX: 8,
+        spacingY: 0,
+        cellWidth: BTL_LIST_W / 2,
+        cellHeight: BTL_LIST_H,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_item_tmpl',
+    name: 'itemTemplate',
+    parentId: 'btl_item_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: BTL_LIST_W / 2,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('templateController', {
+        args: [
+          { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
+          { id: 'count', name: '個数', fieldType: 'string', defaultValue: '' },
+        ],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+  objects.push({
+    id: 'btl_item_name',
+    name: 'itemName',
+    parentId: 'btl_item_tmpl',
+    transform: {
+      x: 8,
+      y: 0,
+      width: 150,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_item_count',
+    name: 'itemCount',
+    parentId: 'btl_item_tmpl',
+    transform: {
+      x: 160,
+      y: 0,
+      width: 80,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 14,
+        color: '#aaaaaa',
+        align: 'right',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_item_cursor',
+    name: 'itemCursor',
+    parentId: 'btl_item_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 16,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 14,
+        color: '#ffdd44',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+      createUIComponentData('navigationCursor', { offsetX: -4, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  // ── ターゲット選択ビュー（敵選択に使用、NavigationはenemyAreaを使う） ──
+  objects.push({
+    id: 'btl_target_view',
+    name: 'targetView',
+    parentId: 'btl_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 1280,
+      height: 720,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [],
+  });
+  objects.push({
+    id: 'btl_target_win',
+    name: 'targetWindow',
+    parentId: 'btl_target_view',
+    transform: {
+      x: 16,
+      y: 476,
+      width: 300,
+      height: 228,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#1a1a2e',
+        strokeColor: '#ff6644',
+        strokeWidth: 2,
+        cornerRadius: 8,
+      }),
+      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('layoutGroup', {
+        direction: 'vertical',
+        spacing: 0,
+        alignment: 'start',
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
+      }),
+      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
+    ],
+  });
+  objects.push({
+    id: 'btl_target_tmpl',
+    name: 'targetTemplate',
+    parentId: 'btl_target_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 268,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('templateController', {
+        args: [{ id: 'name', name: '名前', fieldType: 'string', defaultValue: '' }],
+      }),
+      createUIComponentData('navigationItem', { itemId: '0' }),
+    ],
+  });
+  objects.push({
+    id: 'btl_target_name',
+    name: 'targetName',
+    parentId: 'btl_target_tmpl',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 268,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '',
+        fontSize: 16,
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+    ],
+  });
+  objects.push({
+    id: 'btl_target_cursor',
+    name: 'targetCursor',
+    parentId: 'btl_target_win',
+    transform: {
+      x: 0,
+      y: 8,
+      width: 16,
+      height: BTL_LIST_H,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▶',
+        fontSize: 14,
+        color: '#ff6644',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
+      createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  // ── エフェクト表示用オブジェクト ──
+  objects.push({
+    id: 'btl_effect',
+    name: 'effectObj',
+    parentId: 'btl_bg',
+    transform: {
+      x: 540,
+      y: 100,
+      width: 200,
+      height: 200,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('image', { imageId: '', opacity: 1 }),
+      createUIComponentData('effect', {
+        effectId: '',
+        frameWidth: 0,
+        frameHeight: 0,
+        frameCount: 1,
+        intervalMs: 100,
+        loop: false,
+        onComplete: 'hide',
+      }),
+    ],
+  });
+
+  return objects;
+}
+
+export const battleCanvas: EditorUICanvas = {
+  id: 'battle',
+  name: 'バトル画面',
+  objects: createBattleObjects(),
+  functions: [],
+};
