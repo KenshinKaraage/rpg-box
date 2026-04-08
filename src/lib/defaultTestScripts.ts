@@ -2323,3 +2323,1040 @@ UI["equip_screen"].hide();`,
   icon: 'user',
   color: '#f97316',
 };
+
+// ── Script: バトル ──
+
+export const battleScript: Script = {
+  id: 'battle',
+  name: 'バトル',
+  callId: 'battle',
+  type: 'event',
+  content: `// ── 敵グループ取得・敵配列構築 ──
+const group = Data.enemy_group[enemyGroupId];
+if (!group) { return { result: "win" }; }
+const enemies = [];
+const membersArr = group.members || [];
+for (const mem of membersArr) {
+  const count = mem.count || 1;
+  for (let i = 0; i < count; i++) {
+    const e = Data.enemy[mem.enemy];
+    if (!e) continue;
+    const stats = e.base_stats || {};
+    enemies.push({
+      enemyId: mem.enemy,
+      name: e.name || "???",
+      graphic: e.graphic || "",
+      currentHp: stats.hp || 30,
+      maxHp: stats.hp || 30,
+      stats: { ...stats },
+      exp: e.exp || 0,
+      gold: e.gold || 0,
+      drop_items: e.drop_items || [],
+      action_patterns: e.action_patterns || [],
+      alive: true,
+    });
+  }
+}
+
+const party = Variable["party"];
+if (!Array.isArray(party) || party.length === 0) { return { result: "win" }; }
+let result = "win";
+
+// ── ヘルパー ──
+function setNavItemIds(win) {
+  const children = win.getChildren();
+  let i = 0;
+  for (const c of children) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+function updatePartyCards() {
+  const pt = Variable["party"];
+  const tmpl = UI["battle"].getObject("partyTemplate");
+  if (!tmpl) return;
+  const cards = pt.map(m => {
+    const ch = Data.character[m.characterId];
+    const n = ch ? ch.name : "???";
+    const maxHp = m.stats?.hp || 1;
+    const maxMp = m.stats?.mp || 1;
+    const statusText = (m.statusEffects || []).map(s => {
+      const st = Data.status[s]; return st ? st.name : s;
+    }).join(",");
+    return {
+      name: n,
+      face: ch ? ch.face_graphic : "",
+      hp: "HP " + (m.currentHp ?? 0) + "/" + maxHp,
+      mp: "MP " + (m.currentMp ?? 0) + "/" + maxMp,
+      hpRate: maxHp > 0 ? (m.currentHp ?? 0) / maxHp : 0,
+      mpRate: maxMp > 0 ? (m.currentMp ?? 0) / maxMp : 0,
+      status: statusText,
+    };
+  });
+  const tc = tmpl.getComponent("templateController");
+  if (tc) tc.applyList(cards);
+  const pw = UI["battle"].getObject("partyWindow");
+  const lo = pw.getComponent("layoutGroup");
+  if (lo) lo.align();
+}
+
+function updateEnemyDisplay() {
+  const tmpl = UI["battle"].getObject("enemyTemplate");
+  if (!tmpl) return;
+  const rows = enemies.filter(e => e.alive).map(e => ({
+    name: e.name,
+    graphic: e.graphic,
+    hp: "HP " + e.currentHp + "/" + e.maxHp,
+  }));
+  const tc = tmpl.getComponent("templateController");
+  if (tc) tc.applyList(rows);
+  const ea = UI["battle"].getObject("enemyArea");
+  const lo = ea.getComponent("layoutGroup");
+  if (lo) lo.align();
+}
+
+// ── UI初期化 ──
+const cmdView = UI["battle"].getObject("commandView");
+const skillView = UI["battle"].getObject("skillView");
+const itemView = UI["battle"].getObject("itemView");
+const targetView = UI["battle"].getObject("targetView");
+const msgText = UI["battle"].getObject("messageText");
+const msgWin = UI["battle"].getObject("messageWindow");
+cmdView.visible = false;
+skillView.visible = false;
+itemView.visible = false;
+targetView.visible = false;
+msgWin.visible = false;
+
+UI["battle"].show();
+updateEnemyDisplay();
+updatePartyCards();
+setNavItemIds(UI["battle"].getObject("commandWindow"));
+
+await scriptAPI.waitFrames(10);
+
+// ── メインバトルループ ──
+let battleOver = false;
+while (!battleOver) {
+  const commands = [];
+
+  // パーティメンバーのコマンド入力
+  for (let mi = 0; mi < party.length; mi++) {
+    if ((party[mi].currentHp ?? 0) <= 0) continue;
+    const cmd = await Script.battle_command({ memberIdx: mi, enemies, party });
+    if (cmd.type === "flee") {
+      const flee = await Script.battle_flee();
+      if (flee.success) { result = "flee"; battleOver = true; break; }
+      continue;
+    }
+    commands.push({
+      actorType: "party",
+      actorIdx: mi,
+      type: cmd.type,
+      skillId: cmd.skillId || "",
+      itemId: cmd.itemId || "",
+      targetIdx: cmd.targetIdx ?? 0,
+      speed: party[mi].stats?.spd || 1,
+    });
+  }
+  if (battleOver) break;
+
+  // 敵のAI
+  const partyAlive = [];
+  for (let pi = 0; pi < party.length; pi++) {
+    if ((party[pi].currentHp ?? 0) > 0) partyAlive.push(pi);
+  }
+  for (let ei = 0; ei < enemies.length; ei++) {
+    if (!enemies[ei].alive) continue;
+    const aiCmd = await Script.battle_enemy_ai({ enemy: enemies[ei], partyAlive });
+    commands.push({
+      actorType: "enemy",
+      actorIdx: ei,
+      type: aiCmd.type,
+      skillId: aiCmd.skillId || "",
+      itemId: "",
+      targetIdx: aiCmd.targetIdx ?? 0,
+      speed: enemies[ei].stats?.spd || 1,
+    });
+  }
+
+  // ターン実行
+  await Script.battle_turn_order({ commands, enemies, party });
+
+  // 勝敗判定
+  const allEnemiesDead = enemies.every(e => !e.alive);
+  const allPartyDead = party.every(m => (m.currentHp ?? 0) <= 0);
+  if (allEnemiesDead) { result = "win"; battleOver = true; }
+  else if (allPartyDead) { result = "lose"; battleOver = true; }
+
+  updatePartyCards();
+  updateEnemyDisplay();
+}
+
+// ── 勝利処理 ──
+if (result === "win") {
+  await Script.battle_result({ enemies });
+}
+
+UI["battle"].hide();
+return { result };`,
+  args: [
+    {
+      id: 'enemyGroupId',
+      name: '敵グループID',
+      fieldType: 'string',
+      required: true,
+      defaultValue: '',
+    },
+  ],
+  returns: [{ id: 'result', name: '結果', fieldType: 'string', isArray: false }],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトルコマンド選択 ──
+
+export const battleCommandScript: Script = {
+  id: 'battle_command',
+  name: 'バトルコマンド',
+  callId: 'battle_command',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const cmdView = UI["battle"].getObject("commandView");
+const skillView = UI["battle"].getObject("skillView");
+const itemView = UI["battle"].getObject("itemView");
+const targetView = UI["battle"].getObject("targetView");
+const msgText = UI["battle"].getObject("messageText");
+const msgWin = UI["battle"].getObject("messageWindow");
+
+function setNavItemIds(win) {
+  const children = win.getChildren();
+  let i = 0;
+  for (const c of children) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+// メンバー名表示
+const member = party[memberIdx];
+const ch = Data.character[member.characterId];
+const memberName = ch ? ch.name : "???";
+
+msgWin.visible = true;
+msgText.setProperty("text", "content", memberName + "のターン");
+
+cmdView.visible = true;
+skillView.visible = false;
+itemView.visible = false;
+targetView.visible = false;
+
+const cmdWin = UI["battle"].getObject("commandWindow");
+
+while (true) {
+  const nav = cmdWin.getComponent("navigation");
+  nav.activate();
+  const selected = await nav.result();
+  const sel = selected === null ? -1 : parseInt(selected, 10);
+
+  if (sel === 0) {
+    // たたかう → 敵選択
+    const tgt = await Script.battle_target_enemy({ enemies });
+    if (tgt !== null) {
+      cmdView.visible = false;
+      msgWin.visible = false;
+      return { type: "attack", targetIdx: tgt.targetIdx };
+    }
+  } else if (sel === 1) {
+    // スキル
+    const sk = await Script.battle_skill({ memberIdx });
+    if (sk !== null) {
+      const skill = Data.skill[sk.skillId];
+      const side = skill ? (skill.target_side || "enemy") : "enemy";
+      const scope = skill ? (skill.target_scope || "single") : "single";
+      if (scope === "all") {
+        cmdView.visible = false;
+        msgWin.visible = false;
+        return { type: "skill", skillId: sk.skillId, targetIdx: 0 };
+      }
+      if (side === "ally" || side === "self") {
+        const tgt = await Script.battle_target_ally({ party });
+        if (tgt !== null) {
+          cmdView.visible = false;
+          msgWin.visible = false;
+          return { type: "skill", skillId: sk.skillId, targetIdx: tgt.targetIdx };
+        }
+      } else {
+        const tgt = await Script.battle_target_enemy({ enemies });
+        if (tgt !== null) {
+          cmdView.visible = false;
+          msgWin.visible = false;
+          return { type: "skill", skillId: sk.skillId, targetIdx: tgt.targetIdx };
+        }
+      }
+    }
+    // キャンセル → コマンドに戻る
+    cmdView.visible = true;
+    skillView.visible = false;
+  } else if (sel === 2) {
+    // アイテム
+    const it = await Script.battle_item();
+    if (it !== null) {
+      const tgt = await Script.battle_target_ally({ party });
+      if (tgt !== null) {
+        cmdView.visible = false;
+        msgWin.visible = false;
+        return { type: "item", itemId: it.itemId, targetIdx: tgt.targetIdx };
+      }
+    }
+    cmdView.visible = true;
+    itemView.visible = false;
+  } else if (sel === 3) {
+    // にげる
+    cmdView.visible = false;
+    msgWin.visible = false;
+    return { type: "flee" };
+  }
+}`,
+  args: [
+    { id: 'memberIdx', name: 'メンバー番号', fieldType: 'number', required: true, defaultValue: 0 },
+    { id: 'enemies', name: '敵配列', fieldType: 'string', required: true, defaultValue: '' },
+    { id: 'party', name: 'パーティ', fieldType: 'string', required: true, defaultValue: '' },
+  ],
+  returns: [{ id: 'command', name: 'コマンド', fieldType: 'string', isArray: false }],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトルスキル選択 ──
+
+export const battleSkillScript: Script = {
+  id: 'battle_skill',
+  name: 'バトルスキル選択',
+  callId: 'battle_skill',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const skillView = UI["battle"].getObject("skillView");
+const cmdView = UI["battle"].getObject("commandView");
+const skillWin = UI["battle"].getObject("skillWindow");
+const skillTmpl = UI["battle"].getObject("skillTemplate");
+
+function setNavItemIds(win) {
+  const children = win.getChildren();
+  let i = 0;
+  for (const c of children) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+const pt = Variable["party"];
+const member = pt[memberIdx];
+const skills = member.skills || [];
+const usable = skills.filter(sid => {
+  const sk = Data.skill[sid];
+  if (!sk) return false;
+  if (sk.usable_scene === "field") return false;
+  return (member.currentMp ?? 0) >= (sk.mp_cost || 0);
+});
+
+if (usable.length === 0) {
+  const msgText = UI["battle"].getObject("messageText");
+  msgText.setProperty("text", "content", "使えるスキルがありません");
+  await scriptAPI.waitFrames(30);
+  return null;
+}
+
+const rows = usable.map(sid => {
+  const sk = Data.skill[sid];
+  return { name: sk ? sk.name : sid, cost: "MP" + (sk ? sk.mp_cost : 0) };
+});
+
+const tc = skillTmpl.getComponent("templateController");
+if (tc) await tc.applyList(rows);
+const gl = skillWin.getComponent("gridLayout");
+if (gl) gl.align();
+setNavItemIds(skillWin);
+
+cmdView.visible = false;
+skillView.visible = true;
+
+const nav = skillWin.getComponent("navigation");
+nav.activate();
+const selected = await nav.result();
+
+skillView.visible = false;
+if (selected === null) return null;
+const idx = parseInt(selected, 10);
+if (idx < 0 || idx >= usable.length) return null;
+return { skillId: usable[idx] };`,
+  args: [
+    { id: 'memberIdx', name: 'メンバー番号', fieldType: 'number', required: true, defaultValue: 0 },
+  ],
+  returns: [{ id: 'skill', name: 'スキル', fieldType: 'string', isArray: false }],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトルアイテム選択 ──
+
+export const battleItemScript: Script = {
+  id: 'battle_item',
+  name: 'バトルアイテム選択',
+  callId: 'battle_item',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const itemView = UI["battle"].getObject("itemView");
+const cmdView = UI["battle"].getObject("commandView");
+const itemWin = UI["battle"].getObject("itemWindow");
+const itemTmpl = UI["battle"].getObject("itemTemplate");
+
+function setNavItemIds(win) {
+  const children = win.getChildren();
+  let i = 0;
+  for (const c of children) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+const inv = Variable["inventory"];
+const consumables = (inv || []).filter(e => {
+  if (e.count <= 0) return false;
+  const it = Data.item[e.itemId];
+  if (!it) return false;
+  return it.item_type === "consumable" && it.usable_scene !== "field";
+});
+
+if (consumables.length === 0) {
+  const msgText = UI["battle"].getObject("messageText");
+  msgText.setProperty("text", "content", "使えるアイテムがありません");
+  await scriptAPI.waitFrames(30);
+  return null;
+}
+
+const rows = consumables.map(e => {
+  const it = Data.item[e.itemId];
+  return { name: it ? it.name : e.itemId, count: "x" + e.count };
+});
+
+const tc = itemTmpl.getComponent("templateController");
+if (tc) await tc.applyList(rows);
+const gl = itemWin.getComponent("gridLayout");
+if (gl) gl.align();
+setNavItemIds(itemWin);
+
+cmdView.visible = false;
+itemView.visible = true;
+
+const nav = itemWin.getComponent("navigation");
+nav.activate();
+const selected = await nav.result();
+
+itemView.visible = false;
+if (selected === null) return null;
+const idx = parseInt(selected, 10);
+if (idx < 0 || idx >= consumables.length) return null;
+return { itemId: consumables[idx].itemId };`,
+  args: [],
+  returns: [{ id: 'item', name: 'アイテム', fieldType: 'string', isArray: false }],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトル敵ターゲット選択 ──
+
+export const battleTargetEnemyScript: Script = {
+  id: 'battle_target_enemy',
+  name: '敵ターゲット選択',
+  callId: 'battle_target_enemy',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const targetView = UI["battle"].getObject("targetView");
+const targetWin = UI["battle"].getObject("targetWindow");
+const targetTmpl = UI["battle"].getObject("targetTemplate");
+
+function setNavItemIds(win) {
+  const children = win.getChildren();
+  let i = 0;
+  for (const c of children) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+const alive = [];
+for (let i = 0; i < enemies.length; i++) {
+  if (enemies[i].alive) alive.push({ idx: i, name: enemies[i].name });
+}
+if (alive.length === 0) return null;
+
+const rows = alive.map(a => ({ name: a.name }));
+const tc = targetTmpl.getComponent("templateController");
+if (tc) await tc.applyList(rows);
+const lo = targetWin.getComponent("layoutGroup");
+if (lo) lo.align();
+const cf = targetWin.getComponent("contentFit");
+if (cf) cf.fit();
+setNavItemIds(targetWin);
+
+targetView.visible = true;
+const nav = targetWin.getComponent("navigation");
+nav.activate();
+const selected = await nav.result();
+targetView.visible = false;
+
+if (selected === null) return null;
+const selIdx = parseInt(selected, 10);
+if (selIdx < 0 || selIdx >= alive.length) return null;
+return { targetIdx: alive[selIdx].idx };`,
+  args: [{ id: 'enemies', name: '敵配列', fieldType: 'string', required: true, defaultValue: '' }],
+  returns: [{ id: 'target', name: 'ターゲット', fieldType: 'string', isArray: false }],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトル味方ターゲット選択 ──
+
+export const battleTargetAllyScript: Script = {
+  id: 'battle_target_ally',
+  name: '味方ターゲット選択',
+  callId: 'battle_target_ally',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const targetView = UI["battle"].getObject("targetView");
+const targetWin = UI["battle"].getObject("targetWindow");
+const targetTmpl = UI["battle"].getObject("targetTemplate");
+
+function setNavItemIds(win) {
+  const children = win.getChildren();
+  let i = 0;
+  for (const c of children) {
+    if (!c.visible) continue;
+    const ni = c.getComponentData("navigationItem");
+    if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
+  }
+}
+
+const rows = party.map(m => {
+  const ch = Data.character[m.characterId];
+  return { name: (ch ? ch.name : "???") + " HP" + (m.currentHp ?? 0) };
+});
+const tc = targetTmpl.getComponent("templateController");
+if (tc) await tc.applyList(rows);
+const lo = targetWin.getComponent("layoutGroup");
+if (lo) lo.align();
+const cf = targetWin.getComponent("contentFit");
+if (cf) cf.fit();
+setNavItemIds(targetWin);
+
+targetView.visible = true;
+const nav = targetWin.getComponent("navigation");
+nav.activate();
+const selected = await nav.result();
+targetView.visible = false;
+
+if (selected === null) return null;
+const selIdx = parseInt(selected, 10);
+if (selIdx < 0 || selIdx >= party.length) return null;
+return { targetIdx: selIdx };`,
+  args: [{ id: 'party', name: 'パーティ', fieldType: 'string', required: true, defaultValue: '' }],
+  returns: [{ id: 'target', name: 'ターゲット', fieldType: 'string', isArray: false }],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトルターン順序 ──
+
+export const battleTurnOrderScript: Script = {
+  id: 'battle_turn_order',
+  name: 'ターン順序',
+  callId: 'battle_turn_order',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const sorted = [...commands].sort((a, b) => (b.speed || 0) - (a.speed || 0));
+const msgText = UI["battle"].getObject("messageText");
+const msgWin = UI["battle"].getObject("messageWindow");
+msgWin.visible = true;
+
+for (const cmd of sorted) {
+  // 死亡チェック
+  if (cmd.actorType === "party") {
+    if ((party[cmd.actorIdx].currentHp ?? 0) <= 0) continue;
+  } else {
+    if (!enemies[cmd.actorIdx].alive) continue;
+  }
+
+  // アクター名
+  let actorName = "";
+  if (cmd.actorType === "party") {
+    const ch = Data.character[party[cmd.actorIdx].characterId];
+    actorName = ch ? ch.name : "???";
+  } else {
+    actorName = enemies[cmd.actorIdx].name;
+  }
+
+  // メッセージ表示
+  if (cmd.type === "attack") {
+    msgText.setProperty("text", "content", actorName + "の攻撃！");
+  } else if (cmd.type === "skill") {
+    const sk = Data.skill[cmd.skillId];
+    msgText.setProperty("text", "content", actorName + "は" + (sk ? sk.name : "スキル") + "を使った！");
+  } else if (cmd.type === "item") {
+    const it = Data.item[cmd.itemId];
+    msgText.setProperty("text", "content", actorName + "は" + (it ? it.name : "アイテム") + "を使った！");
+  }
+  await scriptAPI.waitFrames(15);
+
+  await Script.battle_execute({ cmd, enemies, party });
+
+  // 更新
+  // HP/MPバー更新はbattle_execute内で行う
+  await scriptAPI.waitFrames(10);
+}
+
+msgWin.visible = false;`,
+  args: [
+    { id: 'commands', name: 'コマンド配列', fieldType: 'string', required: true, defaultValue: '' },
+    { id: 'enemies', name: '敵配列', fieldType: 'string', required: true, defaultValue: '' },
+    { id: 'party', name: 'パーティ', fieldType: 'string', required: true, defaultValue: '' },
+  ],
+  returns: [],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトル逃走 ──
+
+export const battleFleeScript: Script = {
+  id: 'battle_flee',
+  name: 'バトル逃走',
+  callId: 'battle_flee',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const msgText = UI["battle"].getObject("messageText");
+const msgWin = UI["battle"].getObject("messageWindow");
+msgWin.visible = true;
+
+const success = Math.random() < 0.5;
+if (success) {
+  msgText.setProperty("text", "content", "うまく逃げ切った！");
+} else {
+  msgText.setProperty("text", "content", "逃げられなかった！");
+}
+await scriptAPI.waitFrames(40);
+msgWin.visible = false;
+return { success };`,
+  args: [],
+  returns: [{ id: 'success', name: '成功', fieldType: 'boolean', isArray: false }],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトル敵AI ──
+
+export const battleEnemyAIScript: Script = {
+  id: 'battle_enemy_ai',
+  name: '敵AI',
+  callId: 'battle_enemy_ai',
+  type: 'internal',
+  parentId: 'battle',
+  content: `// ランダムに生存パーティメンバーを攻撃
+const targetIdx = partyAlive[Math.floor(Math.random() * partyAlive.length)];
+const patterns = enemy.action_patterns || [];
+
+// スキル使用チェック
+for (const pat of patterns) {
+  if (!pat.skill || pat.skill === "") continue;
+  const sk = Data.skill[pat.skill];
+  if (!sk) continue;
+  // 条件チェック
+  let condOk = true;
+  if (pat.condition === "hp_low") {
+    condOk = enemy.currentHp < enemy.maxHp * 0.3;
+  }
+  if (!condOk) continue;
+  // 優先度に基づく確率（priority/10）
+  if (Math.random() < (pat.priority || 5) / 10) {
+    return { type: "skill", skillId: pat.skill, targetIdx };
+  }
+}
+
+return { type: "attack", targetIdx };`,
+  args: [
+    { id: 'enemy', name: '敵データ', fieldType: 'string', required: true, defaultValue: '' },
+    {
+      id: 'partyAlive',
+      name: '生存パーティ',
+      fieldType: 'string',
+      required: true,
+      defaultValue: '',
+    },
+  ],
+  returns: [{ id: 'command', name: 'コマンド', fieldType: 'string', isArray: false }],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトルコマンド実行 ──
+
+export const battleExecuteScript: Script = {
+  id: 'battle_execute',
+  name: 'コマンド実行',
+  callId: 'battle_execute',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const msgText = UI["battle"].getObject("messageText");
+const effectObj = UI["battle"].getObject("effectObj");
+
+function updatePartyCards() {
+  const pt = Variable["party"];
+  const tmpl = UI["battle"].getObject("partyTemplate");
+  if (!tmpl) return;
+  const cards = pt.map(m => {
+    const ch = Data.character[m.characterId];
+    const n = ch ? ch.name : "???";
+    const maxHp = m.stats?.hp || 1;
+    const maxMp = m.stats?.mp || 1;
+    const statusText = (m.statusEffects || []).map(s => {
+      const st = Data.status[s]; return st ? st.name : s;
+    }).join(",");
+    return {
+      name: n,
+      face: ch ? ch.face_graphic : "",
+      hp: "HP " + (m.currentHp ?? 0) + "/" + maxHp,
+      mp: "MP " + (m.currentMp ?? 0) + "/" + maxMp,
+      hpRate: maxHp > 0 ? (m.currentHp ?? 0) / maxHp : 0,
+      mpRate: maxMp > 0 ? (m.currentMp ?? 0) / maxMp : 0,
+      status: statusText,
+    };
+  });
+  const tc = tmpl.getComponent("templateController");
+  if (tc) tc.applyList(cards);
+  const pw = UI["battle"].getObject("partyWindow");
+  const lo = pw.getComponent("layoutGroup");
+  if (lo) lo.align();
+}
+
+function updateEnemyDisplay() {
+  const tmpl = UI["battle"].getObject("enemyTemplate");
+  if (!tmpl) return;
+  const rows = enemies.filter(e => e.alive).map(e => ({
+    name: e.name,
+    graphic: e.graphic,
+    hp: "HP " + e.currentHp + "/" + e.maxHp,
+  }));
+  const tc = tmpl.getComponent("templateController");
+  if (tc) tc.applyList(rows);
+  const ea = UI["battle"].getObject("enemyArea");
+  const lo = ea.getComponent("layoutGroup");
+  if (lo) lo.align();
+}
+
+async function playEffect(data) {
+  if (!data || !data.imageId) return;
+  const comp = effectObj.getComponent("effect");
+  if (!comp) return;
+  comp.set(data);
+  effectObj.visible = true;
+  await comp.play(data);
+  effectObj.visible = false;
+}
+
+if (cmd.type === "attack") {
+  // 物理攻撃
+  let atk = 0;
+  let targetName = "";
+  if (cmd.actorType === "party") {
+    atk = party[cmd.actorIdx].stats?.atk || 10;
+    // 武器ボーナス
+    const weapon = party[cmd.actorIdx].weapon;
+    if (weapon) {
+      const wData = Data.item[weapon];
+      if (wData && wData.stats) atk += wData.stats.atk || 0;
+    }
+  } else {
+    atk = enemies[cmd.actorIdx].stats?.atk || 10;
+  }
+
+  if (cmd.actorType === "party") {
+    // パーティ→敵
+    const target = enemies[cmd.targetIdx];
+    if (!target || !target.alive) { return; }
+    const def = target.stats?.def || 0;
+    const damage = Math.max(1, Math.floor(atk - def / 2));
+    target.currentHp = Math.max(0, target.currentHp - damage);
+    targetName = target.name;
+    msgText.setProperty("text", "content", targetName + "に" + damage + "のダメージ！");
+    if (target.currentHp <= 0) {
+      target.alive = false;
+      await scriptAPI.waitFrames(10);
+      msgText.setProperty("text", "content", targetName + "を倒した！");
+    }
+  } else {
+    // 敵→パーティ
+    const target = party[cmd.targetIdx];
+    if (!target || (target.currentHp ?? 0) <= 0) { return; }
+    const def = target.stats?.def || 0;
+    const damage = Math.max(1, Math.floor(atk - def / 2));
+    target.currentHp = Math.max(0, (target.currentHp ?? 0) - damage);
+    const tch = Data.character[target.characterId];
+    targetName = tch ? tch.name : "???";
+    msgText.setProperty("text", "content", targetName + "に" + damage + "のダメージ！");
+    if (target.currentHp <= 0) {
+      await scriptAPI.waitFrames(10);
+      msgText.setProperty("text", "content", targetName + "は倒れた…");
+    }
+  }
+  await scriptAPI.waitFrames(15);
+} else if (cmd.type === "skill") {
+  const skill = Data.skill[cmd.skillId];
+  if (!skill) return;
+
+  // MP消費（パーティのみ）
+  if (cmd.actorType === "party") {
+    party[cmd.actorIdx].currentMp = Math.max(0, (party[cmd.actorIdx].currentMp ?? 0) - (skill.mp_cost || 0));
+  }
+
+  // エフェクト再生
+  if (skill.visual_effect) {
+    await playEffect(skill.visual_effect);
+  }
+
+  const effects = skill.effects || [];
+  const scope = skill.target_scope || "single";
+  const side = skill.target_side || "enemy";
+
+  for (const eff of effects) {
+    const val = eff.value || 0;
+
+    if (eff.effect_type === "damage") {
+      if (scope === "all" && side === "enemy") {
+        // 全体攻撃
+        for (const e of enemies) {
+          if (!e.alive) continue;
+          const mdef = e.stats?.mdef || 0;
+          const dmg = Math.max(1, Math.floor(val - mdef / 2));
+          e.currentHp = Math.max(0, e.currentHp - dmg);
+          msgText.setProperty("text", "content", e.name + "に" + dmg + "のダメージ！");
+          await scriptAPI.waitFrames(8);
+          if (e.currentHp <= 0) { e.alive = false; msgText.setProperty("text", "content", e.name + "を倒した！"); await scriptAPI.waitFrames(8); }
+        }
+      } else if (side === "enemy") {
+        const target = enemies[cmd.targetIdx];
+        if (target && target.alive) {
+          const mdef = target.stats?.mdef || 0;
+          const dmg = Math.max(1, Math.floor(val - mdef / 2));
+          target.currentHp = Math.max(0, target.currentHp - dmg);
+          msgText.setProperty("text", "content", target.name + "に" + dmg + "のダメージ！");
+          if (target.currentHp <= 0) { target.alive = false; await scriptAPI.waitFrames(8); msgText.setProperty("text", "content", target.name + "を倒した！"); }
+        }
+      } else {
+        // 味方にダメージ（自傷技等）
+        const target = party[cmd.targetIdx];
+        if (target) {
+          const dmg = Math.max(1, val);
+          target.currentHp = Math.max(0, (target.currentHp ?? 0) - dmg);
+        }
+      }
+    } else if (eff.effect_type === "heal") {
+      if (scope === "all" && side === "ally") {
+        for (const m of party) {
+          const maxHp = m.stats?.hp || 9999;
+          m.currentHp = Math.min(maxHp, (m.currentHp ?? 0) + val);
+          const tch = Data.character[m.characterId];
+          msgText.setProperty("text", "content", (tch ? tch.name : "???") + "のHPが" + val + "回復！");
+          await scriptAPI.waitFrames(8);
+        }
+      } else if (side === "ally" || side === "self") {
+        const target = party[cmd.targetIdx];
+        if (target) {
+          const maxHp = target.stats?.hp || 9999;
+          target.currentHp = Math.min(maxHp, (target.currentHp ?? 0) + val);
+          const tch = Data.character[target.characterId];
+          msgText.setProperty("text", "content", (tch ? tch.name : "???") + "のHPが" + val + "回復！");
+        }
+      }
+    } else if (eff.effect_type === "heal_mp") {
+      const target = party[cmd.targetIdx];
+      if (target) {
+        const maxMp = target.stats?.mp || 9999;
+        target.currentMp = Math.min(maxMp, (target.currentMp ?? 0) + val);
+      }
+    } else if (eff.effect_type === "add_status") {
+      const target = (side === "enemy") ? enemies[cmd.targetIdx] : party[cmd.targetIdx];
+      if (target) {
+        if (!target.statusEffects) target.statusEffects = [];
+        if (!target.statusEffects.includes(eff.status || "")) {
+          target.statusEffects.push(eff.status || "");
+          const st = Data.status[eff.status || ""];
+          msgText.setProperty("text", "content", (target.name || "???") + "は" + (st ? st.name : eff.status) + "になった！");
+          await scriptAPI.waitFrames(10);
+        }
+      }
+    } else if (eff.effect_type === "remove_status") {
+      const target = (side === "ally") ? party[cmd.targetIdx] : enemies[cmd.targetIdx];
+      if (target && target.statusEffects) {
+        const si = target.statusEffects.indexOf(eff.status || "");
+        if (si >= 0) target.statusEffects.splice(si, 1);
+      }
+    } else if (eff.effect_type === "buff") {
+      // バフ（ステータス増加）
+      if (side === "self" || side === "ally") {
+        const target = party[cmd.actorType === "party" ? cmd.actorIdx : cmd.targetIdx];
+        if (target && target.stats) {
+          const statKey = eff.stat || "atk";
+          target.stats[statKey] = (target.stats[statKey] || 0) + val;
+          const tch = Data.character[target.characterId];
+          msgText.setProperty("text", "content", (tch ? tch.name : "???") + "の" + statKey + "が" + val + "上がった！");
+          await scriptAPI.waitFrames(10);
+        }
+      }
+    }
+  }
+  await scriptAPI.waitFrames(10);
+} else if (cmd.type === "item") {
+  const item = Data.item[cmd.itemId];
+  if (!item) return;
+
+  // インベントリから消費
+  const inv = Variable["inventory"];
+  const invIdx = (inv || []).findIndex(e => e.itemId === cmd.itemId);
+  if (invIdx >= 0) {
+    inv[invIdx].count -= 1;
+    if (inv[invIdx].count <= 0) inv.splice(invIdx, 1);
+  }
+
+  // エフェクト再生
+  if (item.use_effect) {
+    await playEffect(item.use_effect);
+  }
+
+  // アイテム効果適用
+  const effects = item.effects || [];
+  for (const eff of effects) {
+    const val = eff.value || 0;
+    const target = party[cmd.targetIdx];
+    if (!target) continue;
+    if (eff.effect_type === "heal") {
+      const maxHp = target.stats?.hp || 9999;
+      target.currentHp = Math.min(maxHp, (target.currentHp ?? 0) + val);
+      const tch = Data.character[target.characterId];
+      msgText.setProperty("text", "content", (tch ? tch.name : "???") + "のHPが" + val + "回復！");
+    } else if (eff.effect_type === "heal_mp") {
+      const maxMp = target.stats?.mp || 9999;
+      target.currentMp = Math.min(maxMp, (target.currentMp ?? 0) + val);
+      const tch = Data.character[target.characterId];
+      msgText.setProperty("text", "content", (tch ? tch.name : "???") + "のMPが" + val + "回復！");
+    } else if (eff.effect_type === "remove_status") {
+      if (target.statusEffects) {
+        const si = target.statusEffects.indexOf(eff.status || "");
+        if (si >= 0) target.statusEffects.splice(si, 1);
+      }
+    }
+  }
+  await scriptAPI.waitFrames(10);
+}
+
+updatePartyCards();
+updateEnemyDisplay();`,
+  args: [
+    { id: 'cmd', name: 'コマンド', fieldType: 'string', required: true, defaultValue: '' },
+    { id: 'enemies', name: '敵配列', fieldType: 'string', required: true, defaultValue: '' },
+    { id: 'party', name: 'パーティ', fieldType: 'string', required: true, defaultValue: '' },
+  ],
+  returns: [],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};
+
+// ── Script: バトル結果 ──
+
+export const battleResultScript: Script = {
+  id: 'battle_result',
+  name: 'バトル結果',
+  callId: 'battle_result',
+  type: 'internal',
+  parentId: 'battle',
+  content: `const msgText = UI["battle"].getObject("messageText");
+const msgWin = UI["battle"].getObject("messageWindow");
+msgWin.visible = true;
+
+// 経験値・ゴールド集計
+let totalExp = 0;
+let totalGold = 0;
+for (const e of enemies) {
+  totalExp += e.exp || 0;
+  totalGold += e.gold || 0;
+}
+
+msgText.setProperty("text", "content", "戦闘に勝利！");
+await scriptAPI.waitFrames(40);
+
+msgText.setProperty("text", "content", totalExp + " EXP、" + totalGold + " ゴールド を獲得！");
+await scriptAPI.waitFrames(40);
+
+// ゴールド加算
+Variable["gold"] = (Variable["gold"] || 0) + totalGold;
+
+// 経験値加算（生存メンバーに均等配分）
+const pt = Variable["party"];
+const alive = pt.filter(m => (m.currentHp ?? 0) > 0);
+if (alive.length > 0) {
+  const expEach = Math.floor(totalExp / alive.length);
+  for (const m of alive) {
+    m.exp = (m.exp || 0) + expEach;
+  }
+}
+
+// ドロップアイテム
+for (const e of enemies) {
+  const drops = e.drop_items || [];
+  for (const drop of drops) {
+    if (!drop.item) continue;
+    const rate = drop.rate || 0;
+    if (Math.random() * 100 < rate) {
+      const it = Data.item[drop.item];
+      const itemName = it ? it.name : drop.item;
+      msgText.setProperty("text", "content", itemName + " を手に入れた！");
+      await scriptAPI.waitFrames(30);
+      // インベントリに追加
+      await Script.item_add({ itemId: drop.item, count: 1 });
+    }
+  }
+}
+
+msgWin.visible = false;`,
+  args: [{ id: 'enemies', name: '敵配列', fieldType: 'string', required: true, defaultValue: '' }],
+  returns: [],
+  fields: [],
+  isAsync: true,
+  icon: 'swords',
+  color: '#ef4444',
+};

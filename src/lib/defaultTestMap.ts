@@ -54,7 +54,10 @@ function createPlayerObject(x: number, y: number, resolveAssetId: AssetNameToId)
   };
 }
 
-function createScriptActions(scriptId: string, argsList: Record<string, unknown>[]): ScriptAction[] {
+function createScriptActions(
+  scriptId: string,
+  argsList: Record<string, unknown>[]
+): ScriptAction[] {
   return argsList.map((args) => {
     const action = new ScriptAction();
     action.scriptId = scriptId;
@@ -63,7 +66,14 @@ function createScriptActions(scriptId: string, argsList: Record<string, unknown>
   });
 }
 
-function createNpcObject(id: string, name: string, x: number, y: number, actions: ScriptAction[], resolveAssetId: AssetNameToId): MapObject {
+function createNpcObject(
+  id: string,
+  name: string,
+  x: number,
+  y: number,
+  actions: ScriptAction[],
+  resolveAssetId: AssetNameToId
+): MapObject {
   const transform = new TransformComponent();
   transform.x = x;
   transform.y = y;
@@ -84,7 +94,6 @@ function createNpcObject(id: string, name: string, x: number, y: number, actions
     components: [transform, collider, createWalkSprite('walk_ian', resolveAssetId), talk],
   };
 }
-
 
 // ── 占い師NPC: イベントブロック + VariablesComponent テスト ──
 
@@ -123,18 +132,28 @@ function createFortunetellerObject(x: number, y: number, resolveAssetId: AssetNa
 
   // 3. SwitchAction: job_choice の値で分岐
   const switchAction = new SwitchAction();
-  switchAction.operand = { type: 'objectVariable', objectName: '占い師', variableName: 'job_choice' };
+  switchAction.operand = {
+    type: 'objectVariable',
+    objectName: '占い師',
+    variableName: 'job_choice',
+  };
 
   // メッセージに変数展開を使用:
   // {obj:self:talk_count} → オブジェクト変数 talk_count の値
   // {gold} → ゲーム変数 gold の値
   const msg0 = new ScriptAction();
   msg0.scriptId = 'message';
-  msg0.args = { text: 'あなたは「剣士」を選びましたね。（{obj:self:talk_count}回目, 所持金:{gold}G）', face: '' };
+  msg0.args = {
+    text: 'あなたは「剣士」を選びましたね。（{obj:self:talk_count}回目, 所持金:{gold}G）',
+    face: '',
+  };
 
   const msg1 = new ScriptAction();
   msg1.scriptId = 'message';
-  msg1.args = { text: 'あなたは「魔法使い」を選びましたね。（{obj:self:talk_count}回目）', face: '' };
+  msg1.args = {
+    text: 'あなたは「魔法使い」を選びましたね。（{obj:self:talk_count}回目）',
+    face: '',
+  };
 
   const msg2 = new ScriptAction();
   msg2.scriptId = 'message';
@@ -323,13 +342,30 @@ function createActionTestObject(x: number, y: number, resolveAssetId: AssetNameT
   talk.direction = 'any';
   talk.facePlayer = true;
   talk.actions = [
-    msgStart, faceRight, msgFace, faceDown,
-    hideNpc, msgHide, showNpc, msgShow,
-    shake, waitShake, msgShake,
-    flash, waitFlash, msgFlash,
-    fadeOut, msgFadeOut, fadeIn, msgFadeIn,
-    zoomIn, msgZoom, camReset,
-    walkNpc, msgWalk, moveNpcBack,
+    msgStart,
+    faceRight,
+    msgFace,
+    faceDown,
+    hideNpc,
+    msgHide,
+    showNpc,
+    msgShow,
+    shake,
+    waitShake,
+    msgShake,
+    flash,
+    waitFlash,
+    msgFlash,
+    fadeOut,
+    msgFadeOut,
+    fadeIn,
+    msgFadeIn,
+    zoomIn,
+    msgZoom,
+    camReset,
+    walkNpc,
+    msgWalk,
+    moveNpcBack,
     msgDone,
   ];
 
@@ -368,20 +404,72 @@ export function createTestMap(resolveAssetId: AssetNameToId): GameMap {
         objects: [
           createPlayerObject(5, 5, resolveAssetId),
           // 村人（メッセージテスト）
-          createNpcObject('npc_villager', '村人', 7, 5, createScriptActions('message', [
-            { text: 'ようこそ！ここはテスト村です。', face: '', close: false },
-            { text: 'Xキーでメニューを開けます。', face: '' },
-          ]), resolveAssetId),
+          createNpcObject(
+            'npc_villager',
+            '村人',
+            7,
+            5,
+            createScriptActions('message', [
+              { text: 'ようこそ！ここはテスト村です。', face: '', close: false },
+              { text: 'Xキーでメニューを開けます。', face: '' },
+            ]),
+            resolveAssetId
+          ),
           // 商人（アイテム購入テスト）
-          createNpcObject('npc_shop', '商人', 9, 5, createScriptActions('shop_open', [{ shopItems: ["potion_hp", "potion_mp", "antidote", "iron_sword", "magic_staff", "iron_shield", "leather_hat", "leather_armor", "traveler_clothes", "power_ring"] }]), resolveAssetId),
+          createNpcObject(
+            'npc_shop',
+            '商人',
+            9,
+            5,
+            createScriptActions('shop_open', [
+              {
+                shopItems: [
+                  'potion_hp',
+                  'potion_mp',
+                  'antidote',
+                  'iron_sword',
+                  'magic_staff',
+                  'iron_shield',
+                  'leather_hat',
+                  'leather_armor',
+                  'traveler_clothes',
+                  'power_ring',
+                ],
+              },
+            ]),
+            resolveAssetId
+          ),
           // 回復役（HP/MP全回復 + アイテムくれる）
-          createNpcObject('npc_healer', '回復役', 7, 7, createScriptActions('heal_all', [{}]), resolveAssetId),
+          createNpcObject(
+            'npc_healer',
+            '回復役',
+            7,
+            7,
+            createScriptActions('heal_all', [{}]),
+            resolveAssetId
+          ),
           // レベルアップ係
-          createNpcObject('npc_trainer', '訓練士', 9, 7, createScriptActions('level_up_all', [{}]), resolveAssetId),
+          createNpcObject(
+            'npc_trainer',
+            '訓練士',
+            9,
+            7,
+            createScriptActions('level_up_all', [{}]),
+            resolveAssetId
+          ),
           // 占い師（イベントブロック + VariablesComponent テスト）
           createFortunetellerObject(11, 5, resolveAssetId),
           // 操作テスト（Camera/Object アクション）
           createActionTestObject(11, 7, resolveAssetId),
+          // バトルテスト
+          createNpcObject(
+            'npc_battle',
+            'バトル係',
+            13,
+            5,
+            createScriptActions('battle', [{ enemyGroupId: 'field_slime' }]),
+            resolveAssetId
+          ),
         ],
       },
     ],
@@ -437,15 +525,10 @@ export function createNpcPrefabs(resolveAssetId: AssetNameToId): Prefab[] {
       id: 'prefab_npc_static',
       name: 'NPC（固定）',
       prefab: {
-        components: [
-          basicCollider.clone(),
-          createWalkSprite('walk_lex', resolveAssetId),
-        ],
+        components: [basicCollider.clone(), createWalkSprite('walk_lex', resolveAssetId)],
       },
     },
   ];
 }
 
 // ── Store に投入 ──
-
-

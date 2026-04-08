@@ -59,6 +59,17 @@ import {
   equipScreenScript,
   skillScreenScript,
   statusScreenScript,
+  battleScript,
+  battleCommandScript,
+  battleSkillScript,
+  battleItemScript,
+  battleTargetEnemyScript,
+  battleTargetAllyScript,
+  battleTurnOrderScript,
+  battleFleeScript,
+  battleEnemyAIScript,
+  battleExecuteScript,
+  battleResultScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
 import { createTestMap, createNpcPrefabs } from './defaultTestMap';
@@ -221,6 +232,18 @@ export async function loadDefaultTestData(): Promise<void> {
     statusScreenScript,
     // ショップ
     shopOpenScript,
+    // バトル
+    battleScript,
+    battleCommandScript,
+    battleSkillScript,
+    battleItemScript,
+    battleTargetEnemyScript,
+    battleTargetAllyScript,
+    battleTurnOrderScript,
+    battleFleeScript,
+    battleEnemyAIScript,
+    battleExecuteScript,
+    battleResultScript,
     // テスト用
     showStatusScript,
     mapInfoScript,
