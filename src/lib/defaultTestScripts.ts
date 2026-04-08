@@ -2786,6 +2786,8 @@ export const battleTargetEnemyScript: Script = {
   type: 'internal',
   parentId: 'battle',
   content: `const enemyArea = UI["battle"].getObject("enemyArea");
+const partyWin = UI["battle"].getObject("partyWindow");
+const cmdView = UI["battle"].getObject("commandView");
 
 function setNavItemIds(win) {
   const ch = win.getChildren();
@@ -2803,10 +2805,19 @@ for (let i = 0; i < enemies.length; i++) {
 }
 if (alive.length === 0) return null;
 
+// コマンドを隠してパーティを中央に寄せる
+cmdView.visible = false;
+const partyAnim = partyWin.getComponent("animation");
+if (partyAnim) await partyAnim.play("slideCenter");
+
 setNavItemIds(enemyArea);
 const nav = enemyArea.getComponent("navigation");
 nav.activate();
 const selected = await nav.result();
+
+// パーティを元に戻す
+if (partyAnim) await partyAnim.play("slideBack");
+cmdView.visible = true;
 
 if (selected === null) return null;
 const selIdx = parseInt(selected, 10);
@@ -2829,6 +2840,7 @@ export const battleTargetAllyScript: Script = {
   type: 'internal',
   parentId: 'battle',
   content: `const partyWin = UI["battle"].getObject("partyWindow");
+const cmdView = UI["battle"].getObject("commandView");
 
 function setNavItemIds(win) {
   const ch = win.getChildren();
@@ -2840,10 +2852,19 @@ function setNavItemIds(win) {
   }
 }
 
+// コマンドを隠してパーティを中央に寄せる
+cmdView.visible = false;
+const partyAnim = partyWin.getComponent("animation");
+if (partyAnim) await partyAnim.play("slideCenter");
+
 setNavItemIds(partyWin);
 const nav = partyWin.getComponent("navigation");
 nav.activate();
 const selected = await nav.result();
+
+// パーティを元に戻す
+if (partyAnim) await partyAnim.play("slideBack");
+cmdView.visible = true;
 
 if (selected === null) return null;
 const selIdx = parseInt(selected, 10);

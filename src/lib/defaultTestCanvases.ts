@@ -5177,6 +5177,43 @@ function createBattleObjects(): EditorUIObject[] {
         paddingRight: 12,
       }),
       createUIComponentData('navigation', { direction: 'horizontal', wrap: true, initialIndex: 0 }),
+      createUIComponentData('animation', {
+        mode: 'inline',
+        autoPlay: false,
+        loop: false,
+        animations: [
+          {
+            name: 'slideCenter',
+            timeline: {
+              tracks: [
+                {
+                  property: 'transform.x',
+                  from: 260,
+                  to: 16,
+                  startTime: 0,
+                  duration: 150,
+                  easing: 'easeOutQuad',
+                },
+              ],
+            },
+          },
+          {
+            name: 'slideBack',
+            timeline: {
+              tracks: [
+                {
+                  property: 'transform.x',
+                  from: 16,
+                  to: 260,
+                  startTime: 0,
+                  duration: 150,
+                  easing: 'easeOutQuad',
+                },
+              ],
+            },
+          },
+        ],
+      }),
     ],
   });
 
@@ -5806,7 +5843,12 @@ function createBattleObjects(): EditorUIObject[] {
         strokeWidth: 2,
         cornerRadius: 8,
       }),
-      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('navigation', {
+        direction: 'grid',
+        columns: 2,
+        wrap: true,
+        initialIndex: 0,
+      }),
       createUIComponentData('gridLayout', {
         columns: 2,
         spacingX: 8,
@@ -6001,7 +6043,12 @@ function createBattleObjects(): EditorUIObject[] {
         strokeWidth: 2,
         cornerRadius: 8,
       }),
-      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
+      createUIComponentData('navigation', {
+        direction: 'grid',
+        columns: 2,
+        wrap: true,
+        initialIndex: 0,
+      }),
       createUIComponentData('gridLayout', {
         columns: 2,
         spacingX: 8,
