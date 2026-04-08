@@ -76,7 +76,10 @@ function hydrateComponent(plain: Record<string, unknown>): Component | null {
   const Ctor = getComponent(type);
   if (!Ctor) return null;
   const instance = new Ctor();
-  instance.deserialize(plain);
+  // buildProjectData は { type, data: {...} } 形式で保存する
+  // 直接プロパティが入っている場合もある（マップオブジェクト）
+  const data = (plain.data as Record<string, unknown>) ?? plain;
+  instance.deserialize(data);
   return instance;
 }
 
