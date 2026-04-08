@@ -66,7 +66,6 @@ export class GameEngine {
 
   /** True while an event is being executed (blocks new triggers). */
   private eventRunning = false;
-  private focusCheckCounter = 0;
 
   /** Shared context for all event/script execution (persists variable state). */
   private context: GameContext | null = null;
@@ -390,14 +389,6 @@ export class GameEngine {
   // ── Private: Update ──
 
   private update(dt: number): void {
-    // 60フレームに1回（約1秒に1回）フォーカスチェック
-    if (++this.focusCheckCounter >= 60) {
-      this.focusCheckCounter = 0;
-      if (document.activeElement !== this.canvas) {
-        this.canvas.focus();
-      }
-    }
-
     this.input.update();
     this.input.processWaiters();
 
