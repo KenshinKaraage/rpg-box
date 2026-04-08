@@ -4996,6 +4996,35 @@ function createBattleObjects(): EditorUIObject[] {
           { id: 'graphic', name: '画像', fieldType: 'string', defaultValue: '' },
           { id: 'hp', name: 'HP', fieldType: 'string', defaultValue: '' },
         ],
+        onApplyActions: [
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_enemy_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_enemy_img',
+              component: 'image',
+              property: 'imageId',
+              valueSource: { source: 'arg', argId: 'graphic' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_enemy_hp',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'hp' },
+            },
+          },
+        ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
     ],
@@ -5085,7 +5114,7 @@ function createBattleObjects(): EditorUIObject[] {
     name: 'partyWindow',
     parentId: 'btl_bg',
     transform: {
-      x: 16,
+      x: 216,
       y: 400,
       width: 848,
       height: BTL_CARD_H + 24,
@@ -5144,6 +5173,71 @@ function createBattleObjects(): EditorUIObject[] {
           { id: 'hpRate', name: 'HP率', fieldType: 'number', defaultValue: 1 },
           { id: 'mpRate', name: 'MP率', fieldType: 'number', defaultValue: 1 },
           { id: 'status', name: '状態', fieldType: 'string', defaultValue: '' },
+        ],
+        onApplyActions: [
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_party_face',
+              component: 'image',
+              property: 'imageId',
+              valueSource: { source: 'arg', argId: 'face' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_party_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_party_hp_text',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'hp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_party_mp_text',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'mp' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_party_hp_bar',
+              component: 'fillMask',
+              property: 'fillAmount',
+              valueSource: { source: 'arg', argId: 'hpRate' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_party_mp_bar',
+              component: 'fillMask',
+              property: 'fillAmount',
+              valueSource: { source: 'arg', argId: 'mpRate' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_party_status',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'status' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
@@ -5407,7 +5501,7 @@ function createBattleObjects(): EditorUIObject[] {
     name: 'messageWindow',
     parentId: 'btl_bg',
     transform: {
-      x: 16,
+      x: 216,
       y: 400,
       width: 848,
       height: 60,
@@ -5486,7 +5580,7 @@ function createBattleObjects(): EditorUIObject[] {
     name: 'commandWindow',
     parentId: 'btl_cmd_view',
     transform: {
-      x: 16,
+      x: 524,
       y: 476,
       width: BTL_CMD_W + 32,
       height: 228,
@@ -5667,6 +5761,26 @@ function createBattleObjects(): EditorUIObject[] {
           { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
           { id: 'cost', name: 'コスト', fieldType: 'string', defaultValue: '' },
         ],
+        onApplyActions: [
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_skill_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_skill_cost',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'cost' },
+            },
+          },
+        ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
     ],
@@ -5841,6 +5955,26 @@ function createBattleObjects(): EditorUIObject[] {
         args: [
           { id: 'name', name: '名前', fieldType: 'string', defaultValue: '' },
           { id: 'count', name: '個数', fieldType: 'string', defaultValue: '' },
+        ],
+        onApplyActions: [
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_item_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_item_count',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'count' },
+            },
+          },
         ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
@@ -6017,6 +6151,17 @@ function createBattleObjects(): EditorUIObject[] {
     components: [
       createUIComponentData('templateController', {
         args: [{ id: 'name', name: '名前', fieldType: 'string', defaultValue: '' }],
+        onApplyActions: [
+          {
+            type: 'uiSetProperty',
+            data: {
+              targetId: 'btl_target_name',
+              component: 'text',
+              property: 'content',
+              valueSource: { source: 'arg', argId: 'name' },
+            },
+          },
+        ],
       }),
       createUIComponentData('navigationItem', { itemId: '0' }),
     ],
