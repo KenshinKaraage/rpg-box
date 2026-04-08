@@ -2,21 +2,87 @@
 
 import { useState } from 'react';
 import {
-  Sword, Shield, Crosshair, Target, Zap, Flame, Snowflake, Wind,
-  Heart, HeartPulse, Star, Sparkles, Crown, Gem, Diamond,
-  Package, ShoppingBag, Coins, Wallet,
-  Scroll, BookOpen, FileText, Map, Compass,
-  MessageSquare, MessageCircle, HelpCircle, AlertTriangle, Info,
-  Users, User, UserPlus, Skull,
-  Move, ArrowRight, ArrowUp, RotateCw, Footprints,
-  Eye, EyeOff, Lock, Unlock, Key,
-  Music, Volume2, Play,
-  Sun, Moon, Cloud, CloudRain, Droplets,
-  Settings, Save,
+  Sword,
+  Swords,
+  Shield,
+  ShieldAlert,
+  Crosshair,
+  Target,
+  Zap,
+  Flame,
+  Snowflake,
+  Wind,
+  Heart,
+  HeartPulse,
+  Star,
+  Sparkles,
+  Crown,
+  Gem,
+  Diamond,
+  Package,
+  ShoppingBag,
+  Coins,
+  Wallet,
+  Scroll,
+  BookOpen,
+  FileText,
+  Map,
+  Compass,
+  MessageSquare,
+  MessageCircle,
+  HelpCircle,
+  AlertTriangle,
+  Info,
+  Users,
+  User,
+  UserPlus,
+  Skull,
+  Ghost,
+  Bug,
+  Move,
+  ArrowRight,
+  ArrowUp,
+  RotateCw,
+  Footprints,
+  Eye,
+  EyeOff,
+  Lock,
+  Unlock,
+  Key,
+  Music,
+  Volume2,
+  Play,
+  Sun,
+  Moon,
+  Cloud,
+  CloudRain,
+  Droplets,
+  Settings,
+  Save,
+  RefreshCw,
+  Trash2,
+  Plus,
   X,
-  Camera, Image, Palette, Wand2, Sparkle,
-  Timer, Clock, Hourglass,
-  Home, Building, TreePine, Mountain,
+  Camera,
+  Image,
+  Palette,
+  Wand2,
+  Sparkle,
+  Timer,
+  Clock,
+  Hourglass,
+  Home,
+  Building,
+  TreePine,
+  Mountain,
+  Anchor,
+  Flag,
+  Award,
+  Trophy,
+  CircleDot,
+  Dice6,
+  Feather,
+  Leaf,
   type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +91,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 const ICON_PRESETS: { name: string; icon: LucideIcon; category: string }[] = [
   // 戦闘
   { name: 'sword', icon: Sword, category: '戦闘' },
+  { name: 'swords', icon: Swords, category: '戦闘' },
   { name: 'shield', icon: Shield, category: '戦闘' },
+  { name: 'shield-alert', icon: ShieldAlert, category: '戦闘' },
   { name: 'crosshair', icon: Crosshair, category: '戦闘' },
   { name: 'target', icon: Target, category: '戦闘' },
   { name: 'zap', icon: Zap, category: '戦闘' },
@@ -33,12 +101,16 @@ const ICON_PRESETS: { name: string; icon: LucideIcon; category: string }[] = [
   { name: 'snowflake', icon: Snowflake, category: '戦闘' },
   { name: 'wind', icon: Wind, category: '戦闘' },
   { name: 'skull', icon: Skull, category: '戦闘' },
+  { name: 'ghost', icon: Ghost, category: '戦闘' },
+  { name: 'bug', icon: Bug, category: '戦闘' },
   // ステータス
   { name: 'heart', icon: Heart, category: 'ステータス' },
   { name: 'heart-pulse', icon: HeartPulse, category: 'ステータス' },
   { name: 'star', icon: Star, category: 'ステータス' },
   { name: 'sparkles', icon: Sparkles, category: 'ステータス' },
   { name: 'crown', icon: Crown, category: 'ステータス' },
+  { name: 'award', icon: Award, category: 'ステータス' },
+  { name: 'trophy', icon: Trophy, category: 'ステータス' },
   // アイテム
   { name: 'gem', icon: Gem, category: 'アイテム' },
   { name: 'diamond', icon: Diamond, category: 'アイテム' },
@@ -87,9 +159,14 @@ const ICON_PRESETS: { name: string; icon: LucideIcon; category: string }[] = [
   // システム
   { name: 'settings', icon: Settings, category: 'システム' },
   { name: 'save', icon: Save, category: 'システム' },
+  { name: 'refresh-cw', icon: RefreshCw, category: 'システム' },
+  { name: 'trash-2', icon: Trash2, category: 'システム' },
+  { name: 'plus', icon: Plus, category: 'システム' },
   { name: 'timer', icon: Timer, category: 'システム' },
   { name: 'clock', icon: Clock, category: 'システム' },
   { name: 'hourglass', icon: Hourglass, category: 'システム' },
+  { name: 'circle-dot', icon: CircleDot, category: 'システム' },
+  { name: 'dice-6', icon: Dice6, category: 'システム' },
   // 演出
   { name: 'camera', icon: Camera, category: '演出' },
   { name: 'image', icon: Image, category: '演出' },
@@ -101,6 +178,11 @@ const ICON_PRESETS: { name: string; icon: LucideIcon; category: string }[] = [
   { name: 'building', icon: Building, category: '場所' },
   { name: 'tree-pine', icon: TreePine, category: '場所' },
   { name: 'mountain', icon: Mountain, category: '場所' },
+  { name: 'anchor', icon: Anchor, category: '場所' },
+  { name: 'flag', icon: Flag, category: '場所' },
+  // 自然
+  { name: 'feather', icon: Feather, category: '自然' },
+  { name: 'leaf', icon: Leaf, category: '自然' },
 ];
 
 /** アイコン名 → コンポーネント */
@@ -136,7 +218,10 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
           {/* なし */}
           <button
             className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-accent"
-            onClick={() => { onChange(undefined); setOpen(false); }}
+            onClick={() => {
+              onChange(undefined);
+              setOpen(false);
+            }}
           >
             <X className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">なし</span>
@@ -152,7 +237,10 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
                       key={p.name}
                       className={`flex h-8 w-8 items-center justify-center rounded hover:bg-accent ${value === p.name ? 'bg-accent ring-1 ring-primary' : ''}`}
                       title={p.name}
-                      onClick={() => { onChange(p.name); setOpen(false); }}
+                      onClick={() => {
+                        onChange(p.name);
+                        setOpen(false);
+                      }}
                     >
                       <Icon className="h-4 w-4" />
                     </button>
