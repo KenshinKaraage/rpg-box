@@ -132,6 +132,7 @@ function createSkillType(): DataType {
         { value: 'none', label: '使用不可' },
       ],
     }),
+    f('effect', { id: 'visual_effect', name: 'エフェクト' }),
     f('audio', { id: 'se', name: '効果音' }),
   ]);
 }
@@ -151,7 +152,7 @@ function createItemType(): DataType {
         { value: 'key', label: '大事なもの' },
       ],
       visibilityMap: {
-        consumable: ['effects', 'target', 'usable_scene'],
+        consumable: ['effects', 'target', 'usable_scene', 'use_effect'],
         weapon: ['equip_slot', 'status_bonus', 'element_bonus'],
         armor: ['equip_slot', 'status_bonus', 'status_resistance'],
         accessory: ['equip_slot', 'status_bonus'],
@@ -215,6 +216,11 @@ function createItemType(): DataType {
         { value: 'both', label: '両方' },
         { value: 'none', label: '使用不可' },
       ],
+    }),
+    f('effect', {
+      id: 'use_effect',
+      name: '使用時エフェクト',
+      displayCondition: { fieldId: 'item_type', value: 'consumable' },
     }),
     f('audio', { id: 'use_se', name: '使用時SE' }),
   ]);
