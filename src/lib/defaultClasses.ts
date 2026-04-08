@@ -29,7 +29,7 @@ function f(type: string, props: Record<string, unknown>): FieldType<any> {
 /** ステータスクラスID */
 export const STATUS_CLASS_ID = 'class_status';
 
-/** エフェクトクラスID */
+/** 効果クラスID */
 export const EFFECT_CLASS_ID = 'class_effect';
 
 /** バトルスキル結果クラスID */
@@ -78,12 +78,12 @@ function createStatusClass(): CustomClass {
 function createEffectClass(): CustomClass {
   return {
     id: EFFECT_CLASS_ID,
-    name: 'エフェクト',
-    description: 'スキル・アイテムの効果定義',
+    name: '効果',
+    description: 'スキル・アイテムの効果（回復、バフ、状態異常等）',
     fields: [
       f('select', {
         id: 'effect_type',
-        name: 'エフェクト種類',
+        name: '効果種類',
         options: [
           { value: 'damage', label: 'ダメージ' },
           { value: 'heal', label: 'HP回復' },

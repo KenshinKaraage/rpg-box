@@ -119,7 +119,7 @@ function createSkillType(): DataType {
       name: 'バトル結果',
       classId: BATTLE_SKILL_RESULT_CLASS_ID,
     }),
-    f('classList', { id: 'effects', name: 'エフェクト', classId: EFFECT_CLASS_ID }),
+    f('classList', { id: 'effects', name: '効果', classId: EFFECT_CLASS_ID }),
     f('dataSelect', { id: 'element', name: '属性', referenceTypeId: 'element' }),
     f('dataList', { id: 'status_effects', name: '状態異常効果', referenceTypeId: 'status' }),
     f('select', {

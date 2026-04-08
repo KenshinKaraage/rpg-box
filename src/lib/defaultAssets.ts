@@ -75,7 +75,10 @@ export const DEFAULT_ASSET_GROUPS: DefaultAssetGroup[] = [
       { path: '/assets/images/character_walk/character_walk_alice.png', name: 'walk_alice' },
       { path: '/assets/images/character_walk/character_walk_ian.png', name: 'walk_ian' },
       { path: '/assets/images/character_walk/character_walk_lex.png', name: 'walk_lex' },
-      { path: '/assets/images/character_walk/character_walk_marguerite.png', name: 'walk_marguerite' },
+      {
+        path: '/assets/images/character_walk/character_walk_marguerite.png',
+        name: 'walk_marguerite',
+      },
     ],
   },
   {
@@ -117,8 +120,20 @@ export const DEFAULT_ASSET_GROUPS: DefaultAssetGroup[] = [
   },
   {
     folderName: 'SE（エフェクト）',
+    assets: [{ path: '/assets/sounds/se_effect/ビシッとツッコミ2.mp3', name: 'se_hit' }],
+  },
+  {
+    folderName: '敵画像',
     assets: [
-      { path: '/assets/sounds/se_effect/ビシッとツッコミ2.mp3', name: 'se_hit' },
+      { path: '/assets/images/enemy/slime.bmp', name: 'enemy_slime' },
+      { path: '/assets/images/enemy/goblin.bmp', name: 'enemy_goblin' },
+      { path: '/assets/images/enemy/ox.bmp', name: 'enemy_ox' },
+      { path: '/assets/images/enemy/golem.bmp', name: 'enemy_golem' },
+      { path: '/assets/images/enemy/wyvern.bmp', name: 'enemy_wyvern' },
+      { path: '/assets/images/enemy/fireDragon.bmp', name: 'enemy_fire_dragon' },
+      { path: '/assets/images/enemy/greenDragon.bmp', name: 'enemy_green_dragon' },
+      { path: '/assets/images/enemy/iceDragon.bmp', name: 'enemy_ice_dragon' },
+      { path: '/assets/images/enemy/whiteDragon.bmp', name: 'enemy_white_dragon' },
     ],
   },
 ];
