@@ -6082,16 +6082,16 @@ function createBattleObjects(): EditorUIObject[] {
     ],
   });
 
-  // ── エフェクト表示用オブジェクト ──
+  // ── エフェクト表示用オブジェクト（スクリプトで対象位置に移動して再生） ──
   objects.push({
     id: 'btl_effect',
     name: 'effectObj',
     parentId: 'btl_bg',
     transform: {
-      x: 540,
-      y: 100,
-      width: 200,
-      height: 200,
+      x: 0,
+      y: 0,
+      width: 120,
+      height: 120,
       anchorX: 'left',
       anchorY: 'top',
       pivotX: 0,
