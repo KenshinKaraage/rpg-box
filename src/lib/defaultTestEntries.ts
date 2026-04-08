@@ -229,7 +229,7 @@ export const sampleDataEntries: Record<string, DataEntry[]> = {
         status_effects: [],
         usable_scene: 'battle',
         visual_effect: {
-          effectId: 'effect_fire',
+          imageId: 'effect_fire',
           frameWidth: 120,
           frameHeight: 120,
           frameCount: 8,
@@ -255,7 +255,7 @@ export const sampleDataEntries: Record<string, DataEntry[]> = {
         status_effects: [],
         usable_scene: 'both',
         visual_effect: {
-          effectId: 'effect_heal',
+          imageId: 'effect_heal',
           frameWidth: 120,
           frameHeight: 120,
           frameCount: 8,
@@ -281,7 +281,7 @@ export const sampleDataEntries: Record<string, DataEntry[]> = {
         status_effects: [],
         usable_scene: 'both',
         visual_effect: {
-          effectId: 'effect_heal',
+          imageId: 'effect_heal',
           frameWidth: 120,
           frameHeight: 120,
           frameCount: 8,
@@ -307,7 +307,7 @@ export const sampleDataEntries: Record<string, DataEntry[]> = {
         status_effects: [],
         usable_scene: 'battle',
         visual_effect: {
-          effectId: 'effect_up',
+          imageId: 'effect_up',
           frameWidth: 120,
           frameHeight: 120,
           frameCount: 10,

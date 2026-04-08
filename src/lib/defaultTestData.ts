@@ -121,10 +121,10 @@ export async function loadDefaultTestData(): Promise<void> {
         }
         for (const field of EFFECT_FIELDS) {
           const eff = resolved.values[field];
-          if (eff && typeof eff === 'object' && (eff as Record<string, unknown>).effectId) {
+          if (eff && typeof eff === 'object' && (eff as Record<string, unknown>).imageId) {
             resolved.values[field] = {
               ...(eff as Record<string, unknown>),
-              effectId: resolveAssetId((eff as Record<string, unknown>).effectId as string),
+              imageId: resolveAssetId((eff as Record<string, unknown>).imageId as string),
             };
           }
         }

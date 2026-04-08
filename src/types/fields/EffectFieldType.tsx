@@ -14,7 +14,7 @@ import { EffectFieldEditor } from '@/features/data-editor/components/fields/Effe
  * UIのEffectComponentにそのまま渡せる構造
  */
 export interface EffectValue {
-  effectId: string;
+  imageId: string;
   frameWidth: number;
   frameHeight: number;
   frameCount: number;
@@ -34,7 +34,7 @@ export class EffectFieldType extends FieldType<EffectValue> {
 
   getDefaultValue(): EffectValue {
     return {
-      effectId: '',
+      imageId: '',
       frameWidth: 0,
       frameHeight: 0,
       frameCount: 1,
@@ -43,7 +43,7 @@ export class EffectFieldType extends FieldType<EffectValue> {
   }
 
   validate(value: EffectValue): ValidationResult {
-    if (this.required && !value.effectId) {
+    if (this.required && !value.imageId) {
       return { valid: false, message: 'エフェクト画像を選択してください' };
     }
     return { valid: true };
@@ -57,7 +57,7 @@ export class EffectFieldType extends FieldType<EffectValue> {
     if (!data || typeof data !== 'object') return this.getDefaultValue();
     const d = data as Record<string, unknown>;
     return {
-      effectId: (d.effectId as string) ?? '',
+      imageId: (d.effectId as string) ?? '',
       frameWidth: (d.frameWidth as number) ?? 0,
       frameHeight: (d.frameHeight as number) ?? 0,
       frameCount: (d.frameCount as number) ?? 1,

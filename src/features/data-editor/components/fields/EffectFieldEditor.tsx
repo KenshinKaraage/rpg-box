@@ -38,8 +38,8 @@ export function EffectFieldEditor({ value, onChange, disabled, error }: EffectFi
       <div className="space-y-1">
         <Label className="text-xs">エフェクト画像</Label>
         <Select
-          value={value.effectId || '__none__'}
-          onValueChange={(v) => update({ effectId: v === '__none__' ? '' : v })}
+          value={value.imageId || '__none__'}
+          onValueChange={(v) => update({ imageId: v === '__none__' ? '' : v })}
           disabled={disabled}
         >
           <SelectTrigger className="text-xs">
@@ -105,9 +105,9 @@ export function EffectFieldEditor({ value, onChange, disabled, error }: EffectFi
       </div>
 
       {/* プレビュー */}
-      {value.effectId && value.frameWidth > 0 && value.frameHeight > 0 && (
+      {value.imageId && value.frameWidth > 0 && value.frameHeight > 0 && (
         <EffectPreview
-          assetId={value.effectId}
+          assetId={value.imageId}
           frameWidth={value.frameWidth}
           frameHeight={value.frameHeight}
           frameCount={value.frameCount}

@@ -141,7 +141,8 @@ export class EffectComponent extends UIComponent {
   },
 
   set(data) {
-    if (data.effectId !== undefined) self.object.setProperty("effect", "effectId", data.effectId);
+    const imgId = data.imageId ?? data.effectId;
+    if (imgId !== undefined) self.object.setProperty("effect", "effectId", imgId);
     if (data.frameWidth !== undefined) self.state.fw = data.frameWidth;
     if (data.frameHeight !== undefined) self.state.fh = data.frameHeight;
     if (data.frameCount !== undefined) self.state.count = data.frameCount;
