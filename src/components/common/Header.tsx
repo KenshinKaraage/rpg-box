@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
+import { AutoSaveProvider } from '@/components/common/AutoSaveProvider';
 import { HamburgerMenu } from '@/components/common/HamburgerMenu';
 import { loadDefaultTestData } from '@/lib/defaultTestData';
 import { SaveIndicator } from '@/components/common/SaveIndicator';
@@ -127,6 +128,8 @@ export function Header() {
         className="hidden"
         onChange={handleFileChange}
       />
+
+      <AutoSaveProvider />
 
       {/* Logo */}
       <Link href="/" className="mr-6 flex items-center gap-2 font-bold">
