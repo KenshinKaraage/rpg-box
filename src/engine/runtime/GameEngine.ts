@@ -510,11 +510,16 @@ export class GameEngine {
     if (!template.actions || template.actions.length === 0) return;
 
     // Deserialize actions
-    const actions = template.actions.map((a) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const actions = template.actions.map((a: any) => {
+      // Already a class instance
+      if (typeof a.fromJSON === 'function' && typeof a.toJSON === 'function') return a;
       const ActionClass = getAction(a.type);
       if (!ActionClass) throw new Error(`Unknown action type: ${a.type}`);
       const action = new ActionClass();
-      action.fromJSON(a.data as Record<string, unknown>);
+      // Support both { type, data: {...} } and flat { type, scriptId, ... } formats
+      const data = a.data ?? a;
+      action.fromJSON(data as Record<string, unknown>);
       return action;
     });
 
@@ -569,12 +574,14 @@ export class GameEngine {
       return;
     }
 
-    const actions = rawActions.map((a) => {
-      const raw = a as { type: string; data?: Record<string, unknown> };
-      const ActionClass = getAction(raw.type);
-      if (!ActionClass) throw new Error(`Unknown action type: ${raw.type}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const actions = rawActions.map((a: any) => {
+      if (typeof a.fromJSON === 'function' && typeof a.toJSON === 'function') return a;
+      const ActionClass = getAction(a.type);
+      if (!ActionClass) throw new Error(`Unknown action type: ${a.type}`);
       const action = new ActionClass();
-      if (raw.data) action.fromJSON(raw.data);
+      const data = a.data ?? a;
+      action.fromJSON(data as Record<string, unknown>);
       return action;
     });
 
