@@ -28,7 +28,9 @@ export function buildProjectData(): ProjectData {
       prefab: {
         components: p.prefab.components.map((c) => ({
           type: c.type,
-          data: c.serialize() as Record<string, unknown>,
+          data: (typeof c.serialize === 'function'
+            ? c.serialize()
+            : (c as unknown as Record<string, unknown>).data) as Record<string, unknown>,
         })),
       },
     })),
