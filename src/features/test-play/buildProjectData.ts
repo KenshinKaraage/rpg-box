@@ -37,7 +37,16 @@ export function buildProjectData(): ProjectData {
 
     // Events (stored on map objects, top-level list not used yet)
     events: [],
-    eventTemplates: state.eventTemplates as unknown as ProjectData['eventTemplates'],
+    eventTemplates: state.eventTemplates.map((t) => ({
+      ...t,
+      actions: t.actions.map((a) => ({
+        type: a.type,
+        data:
+          typeof a.toJSON === 'function'
+            ? a.toJSON()
+            : ((a as unknown as { data?: unknown }).data ?? a),
+      })),
+    })) as unknown as ProjectData['eventTemplates'],
 
     // UI — structuredClone で Immer frozen proxy を解除（UICanvasManager が直接変更する）
     uiCanvases: structuredClone(state.uiCanvases) as unknown as ProjectData['uiCanvases'],

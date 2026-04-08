@@ -7,35 +7,18 @@ import { IndexedDBStorageProvider } from '@/lib/storage/indexedDB';
 import type { ProjectData } from '@/lib/storage/types';
 
 const DEBOUNCE_MS = 1000;
-const SAVE_ID_STRUCTURE = 'autosave';
-const SAVE_ID_ASSETS = 'autosave_assets';
+const SAVE_ID = 'autosave';
 
 const storage = new IndexedDBStorageProvider();
 
-/** アセットデータを除いた軽量版を作る */
-function buildLightProjectData(): ProjectData {
-  const full = buildProjectData();
-  return {
-    ...full,
-    assets: full.assets.map((a) => ({ ...a, data: '' })),
-  };
-}
-
-/** アセットデータだけ抽出 */
-function buildAssetData(): ProjectData['assets'] {
-  const state = useStore.getState();
-  return state.assets as unknown as ProjectData['assets'];
-}
-
 /**
  * ストアの変更を検知してIndexedDBに自動保存するプロバイダ。
- * 構造データ（軽量）とアセットデータ（重い）を分けて保存する。
- * 起動時は構造データを先にロードし、アセットは非同期で後からロード。
+ * 起動時にIndexedDBから復元も行う。
  */
 export function AutoSaveProvider() {
   const hasRestored = useRef(false);
 
-  // 起動時に復元: 構造データ → アセットデータ
+  // 起動時に復元
   useEffect(() => {
     if (hasRestored.current) return;
     hasRestored.current = true;
@@ -44,8 +27,7 @@ export function AutoSaveProvider() {
       try {
         const t0 = performance.now();
 
-        // 1. 構造データを先にロード
-        const saved = await storage.loadProject(SAVE_ID_STRUCTURE);
+        const saved = await storage.loadProject(SAVE_ID);
         if (!saved?.data) {
           useStore.getState().setIsRestoring(false);
           return;
@@ -59,25 +41,7 @@ export function AutoSaveProvider() {
 
         state.loadProjectData(saved.data as ProjectData);
         state.setIsRestoring(false);
-        console.log(`[AutoSave] Structure restored (${Math.round(performance.now() - t0)}ms)`);
-
-        // 2. アセットデータを後からロード
-        const t1 = performance.now();
-        const assetSaved = await storage.loadProject(SAVE_ID_ASSETS);
-        if (assetSaved?.data?.assets) {
-          const assets = assetSaved.data.assets as unknown as typeof state.assets;
-          for (const asset of assets) {
-            if (asset.data) {
-              const existing = useStore.getState().assets.find((a) => a.id === asset.id);
-              if (existing && !existing.data) {
-                useStore.getState().updateAsset(asset.id, { data: asset.data });
-              }
-            }
-          }
-          console.log(`[AutoSave] Assets restored (${Math.round(performance.now() - t1)}ms)`);
-        }
-
-        console.log(`[AutoSave] Total restore: ${Math.round(performance.now() - t0)}ms`);
+        console.log(`[AutoSave] Restored (${Math.round(performance.now() - t0)}ms)`);
       } catch (e) {
         console.warn('[AutoSave] Failed to restore:', e);
         useStore.getState().setIsRestoring(false);
@@ -105,34 +69,19 @@ export function AutoSaveProvider() {
       state.markAsUnsaved();
       isSaving = false;
 
-      const assetsChanged = state.assets !== prevState.assets;
-
       timeoutId = setTimeout(() => {
         isSaving = true;
         const now = new Date();
+        const data = buildProjectData();
 
-        // 構造データは毎回保存（軽い）
-        const lightData = buildLightProjectData();
-        const structurePromise = storage.saveProject({
-          id: SAVE_ID_STRUCTURE,
-          name: lightData.gameSettings?.title || 'Untitled',
-          createdAt: now,
-          updatedAt: now,
-          data: lightData,
-        });
-
-        // アセットは変更があった時だけ保存
-        const assetPromise = assetsChanged
-          ? storage.saveProject({
-              id: SAVE_ID_ASSETS,
-              name: 'assets',
-              createdAt: now,
-              updatedAt: now,
-              data: { assets: buildAssetData() } as unknown as ProjectData,
-            })
-          : Promise.resolve();
-
-        Promise.all([structurePromise, assetPromise])
+        storage
+          .saveProject({
+            id: SAVE_ID,
+            name: data.gameSettings?.title || 'Untitled',
+            createdAt: now,
+            updatedAt: now,
+            data,
+          })
           .then(() => {
             useStore.getState().markAsSaved();
             isSaving = false;
