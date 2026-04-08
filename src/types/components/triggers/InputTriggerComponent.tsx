@@ -18,7 +18,13 @@ export class InputTriggerComponent extends Component {
     return {
       eventId: this.eventId,
       key: this.key,
-      actions: this.actions.map((a) => ({ type: a.type, data: a.toJSON() })),
+      actions: this.actions.map((a) => ({
+        type: a.type,
+        data:
+          typeof a.toJSON === 'function'
+            ? a.toJSON()
+            : ((a as unknown as { data?: unknown }).data ?? a),
+      })),
     };
   }
 
@@ -45,6 +51,8 @@ export class InputTriggerComponent extends Component {
   }
 
   renderPropertyPanel(props: ComponentPanelProps): ReactNode {
-    return <TriggerPropertyPanel component={this} onChange={props.onChange} objectId={props.objectId} />;
+    return (
+      <TriggerPropertyPanel component={this} onChange={props.onChange} objectId={props.objectId} />
+    );
   }
 }

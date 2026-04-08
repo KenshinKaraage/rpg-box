@@ -21,7 +21,13 @@ export class TalkTriggerComponent extends Component {
       eventId: this.eventId,
       direction: this.direction,
       facePlayer: this.facePlayer,
-      actions: this.actions.map((a) => ({ type: a.type, data: a.toJSON() })),
+      actions: this.actions.map((a) => ({
+        type: a.type,
+        data:
+          typeof a.toJSON === 'function'
+            ? a.toJSON()
+            : ((a as unknown as { data?: unknown }).data ?? a),
+      })),
     };
   }
 
@@ -49,6 +55,8 @@ export class TalkTriggerComponent extends Component {
   }
 
   renderPropertyPanel(props: ComponentPanelProps): ReactNode {
-    return <TriggerPropertyPanel component={this} onChange={props.onChange} objectId={props.objectId} />;
+    return (
+      <TriggerPropertyPanel component={this} onChange={props.onChange} objectId={props.objectId} />
+    );
   }
 }
