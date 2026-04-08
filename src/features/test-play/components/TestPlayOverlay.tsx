@@ -48,7 +48,6 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
     }
 
     let stopped = false;
-    canvas.focus();
     runtime
       .start()
       .then(() => {
@@ -88,6 +87,7 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black"
       style={{ zIndex: 9999 }}
+      onClick={() => canvasRef.current?.focus()}
     >
       {/* Stop button */}
       <div className="absolute right-4 top-4 z-10">

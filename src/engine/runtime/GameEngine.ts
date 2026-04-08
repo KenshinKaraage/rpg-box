@@ -289,6 +289,9 @@ export class GameEngine {
       }
     }
 
+    // Ensure canvas has focus (may have been lost during async init)
+    this.canvas.focus();
+
     // Start game loop
     this.gameLoop.start();
   }
