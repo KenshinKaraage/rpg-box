@@ -29,6 +29,7 @@ import {
   equipScreenCanvas,
   shopCanvas,
   skillScreenCanvas,
+  battleCanvas,
 } from './defaultTestCanvases';
 import {
   messageScript,
@@ -179,6 +180,9 @@ export async function loadDefaultTestData(): Promise<void> {
   }
   if (!state.uiCanvases.find((c) => c.id === 'skill_screen')) {
     state.addUICanvas(alignCanvas(skillScreenCanvas));
+  }
+  if (!state.uiCanvases.find((c) => c.id === 'battle')) {
+    state.addUICanvas(alignCanvas(battleCanvas));
   }
 
   // Prefab（NPC テンプレート）
