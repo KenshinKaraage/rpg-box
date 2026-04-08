@@ -1,4 +1,5 @@
 import type { Component } from './components/Component';
+import { getComponent } from './components';
 import type { FieldType } from './fields/FieldType';
 import { hydrateFields } from './fields';
 
@@ -69,10 +70,36 @@ export interface Prefab {
  * プレーンオブジェクト（JSON由来）の GameMap を FieldType インスタンス付きに復元
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function hydrateComponent(plain: Record<string, unknown>): Component | null {
+  const type = plain.type as string | undefined;
+  if (!type) return null;
+  const Ctor = getComponent(type);
+  if (!Ctor) return null;
+  const instance = new Ctor();
+  instance.deserialize(plain);
+  return instance;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function hydrateMapObject(plain: Record<string, any>): MapObject {
+  return {
+    ...plain,
+    components: (plain.components ?? []).map((c: Record<string, unknown>) => {
+      if (typeof c.serialize === 'function') return c; // already a class instance
+      return hydrateComponent(c) ?? c;
+    }),
+  } as MapObject;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hydrateGameMap(plain: any): GameMap {
   return {
     ...plain,
     fields: hydrateFields(plain.fields ?? []),
+    layers: (plain.layers ?? []).map((layer: Record<string, unknown>) => ({
+      ...layer,
+      objects: (layer.objects as Record<string, unknown>[] | undefined)?.map(hydrateMapObject),
+    })),
   };
 }
 
