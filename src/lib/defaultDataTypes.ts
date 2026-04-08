@@ -254,7 +254,7 @@ function createEnemyGroupType(): DataType {
 }
 
 function createStatusType(): DataType {
-  return dt('status', '異常状態', '状態異常の定義', [
+  return dt('status', '異常状態', '状態異常・ステータス変動の定義', [
     f('textarea', { id: 'description', name: '説明' }),
     f('image', { id: 'icon', name: 'アイコン' }),
     f('select', {
@@ -262,13 +262,30 @@ function createStatusType(): DataType {
       name: '効果種類',
       options: [
         { value: 'damage_over_time', label: '継続ダメージ' },
-        { value: 'stat_down', label: 'ステータス低下' },
+        { value: 'stat_change', label: 'ステータス変動' },
         { value: 'disable', label: '行動不能' },
         { value: 'confusion', label: '混乱' },
         { value: 'other', label: 'その他' },
       ],
+      visibilityMap: {
+        damage_over_time: ['effect_value'],
+        stat_change: ['stat_modifier'],
+        other: ['effect_value'],
+      },
     }),
-    f('number', { id: 'effect_value', name: '効果値', min: 0, max: 9999 }),
+    f('number', {
+      id: 'effect_value',
+      name: '効果値',
+      min: 0,
+      max: 9999,
+      displayCondition: { fieldId: 'effect_type', value: 'damage_over_time' },
+    }),
+    f('class', {
+      id: 'stat_modifier',
+      name: 'ステータス変動量',
+      classId: STATUS_CLASS_ID,
+      displayCondition: { fieldId: 'effect_type', value: 'stat_change' },
+    }),
     f('number', { id: 'duration', name: '持続ターン', min: 0, max: 99 }),
     f('select', {
       id: 'cancel_condition',

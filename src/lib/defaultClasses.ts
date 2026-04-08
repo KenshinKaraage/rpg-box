@@ -79,7 +79,7 @@ function createEffectClass(): CustomClass {
   return {
     id: EFFECT_CLASS_ID,
     name: '効果',
-    description: 'スキル・アイテムの効果（回復、バフ、状態異常等）',
+    description: 'スキル・アイテムの効果（ダメージ、回復、状態異常付与/解除）',
     fields: [
       f('select', {
         id: 'effect_type',
@@ -88,31 +88,16 @@ function createEffectClass(): CustomClass {
           { value: 'damage', label: 'ダメージ' },
           { value: 'heal', label: 'HP回復' },
           { value: 'heal_mp', label: 'MP回復' },
-          { value: 'buff', label: 'バフ' },
-          { value: 'debuff', label: 'デバフ' },
-          { value: 'status', label: '状態異常' },
+          { value: 'add_status', label: '状態異常付与' },
+          { value: 'remove_status', label: '状態異常解除' },
         ],
         visibilityMap: {
-          damage: ['value', 'target'],
+          damage: ['value'],
           heal: ['value'],
           heal_mp: ['value'],
-          buff: ['status_effect', 'duration'],
-          debuff: ['status_effect', 'duration'],
-          status: ['status_id', 'duration'],
+          add_status: ['status_id'],
+          remove_status: ['status_id'],
         },
-      }),
-      f('select', {
-        id: 'target',
-        name: '対象',
-        displayCondition: { fieldId: 'effect_type', value: 'damage' },
-        options: [
-          { value: 'self', label: '自分' },
-          { value: 'single_enemy', label: '敵単体' },
-          { value: 'all_enemies', label: '敵全体' },
-          { value: 'single_ally', label: '味方単体' },
-          { value: 'all_allies', label: '味方全体' },
-          { value: 'all', label: '全体' },
-        ],
       }),
       f('number', {
         id: 'value',
@@ -121,24 +106,11 @@ function createEffectClass(): CustomClass {
         max: 99999,
         displayCondition: { fieldId: 'effect_type', value: 'damage' },
       }),
-      f('class', {
-        id: 'status_effect',
-        name: 'ステータス変化量',
-        classId: STATUS_CLASS_ID,
-        displayCondition: { fieldId: 'effect_type', value: 'buff' },
-      }),
       f('dataSelect', {
         id: 'status_id',
         name: '状態異常',
         referenceTypeId: 'status',
-        displayCondition: { fieldId: 'effect_type', value: 'status' },
-      }),
-      f('number', {
-        id: 'duration',
-        name: '持続ターン',
-        min: 0,
-        max: 99,
-        displayCondition: { fieldId: 'effect_type', value: 'buff' },
+        displayCondition: { fieldId: 'effect_type', value: 'add_status' },
       }),
     ],
   };

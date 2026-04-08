@@ -958,13 +958,8 @@ function applyEffect(eff, targetMember, targetCh) {
       targetMember.currentHp = Math.max(0, (targetMember.currentHp || 0) - val);
       break;
     }
-    case "buff": {
-      // バフ: 攻撃力を一時的に上げる（簡易実装）
-      targetMember.stats.atk = (targetMember.stats.atk || 0) + val;
-      break;
-    }
-    case "debuff": {
-      targetMember.stats.def = Math.max(0, (targetMember.stats.def || 0) - val);
+    case "remove_status": {
+      // 状態異常解除（メニュー画面用簡易実装）
       break;
     }
   }
