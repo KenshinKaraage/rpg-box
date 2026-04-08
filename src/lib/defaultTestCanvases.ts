@@ -4939,14 +4939,14 @@ function createBattleObjects(): EditorUIObject[] {
     components: [createUIComponentData('shape', { shapeType: 'rectangle', fillColor: '#000000' })],
   });
 
-  // ── 敵表示エリア（上半分） ──
+  // ── 敵表示エリア（中央） ──
   objects.push({
     id: 'btl_enemy_area',
     name: 'enemyArea',
     parentId: 'btl_bg',
     transform: {
       x: 16,
-      y: 16,
+      y: 80,
       width: 1248,
       height: 360,
       anchorX: 'left',
@@ -5109,16 +5109,16 @@ function createBattleObjects(): EditorUIObject[] {
     ],
   });
 
-  // ── パーティステータス（下部、カード形式） ──
+  // ── パーティステータス（下部右側、カード形式） ──
   objects.push({
     id: 'btl_party_win',
     name: 'partyWindow',
     parentId: 'btl_bg',
     transform: {
-      x: 216,
-      y: 400,
-      width: 848,
-      height: BTL_CARD_H + 24,
+      x: 260,
+      y: 460,
+      width: 1004,
+      height: 244,
       anchorX: 'left',
       anchorY: 'top',
       pivotX: 0,
@@ -5502,10 +5502,10 @@ function createBattleObjects(): EditorUIObject[] {
     name: 'messageWindow',
     parentId: 'btl_bg',
     transform: {
-      x: 216,
-      y: 400,
-      width: 848,
-      height: 60,
+      x: 16,
+      y: 16,
+      width: 1248,
+      height: 48,
       anchorX: 'left',
       anchorY: 'top',
       pivotX: 0,
@@ -5532,8 +5532,8 @@ function createBattleObjects(): EditorUIObject[] {
     transform: {
       x: 16,
       y: 8,
-      width: 816,
-      height: 44,
+      width: 1216,
+      height: 32,
       anchorX: 'left',
       anchorY: 'top',
       pivotX: 0,
@@ -5581,10 +5581,10 @@ function createBattleObjects(): EditorUIObject[] {
     name: 'commandWindow',
     parentId: 'btl_cmd_view',
     transform: {
-      x: 524,
-      y: 476,
-      width: BTL_CMD_W + 32,
-      height: 228,
+      x: 16,
+      y: 460,
+      width: 232,
+      height: 244,
       anchorX: 'left',
       anchorY: 'top',
       pivotX: 0,
@@ -5708,9 +5708,9 @@ function createBattleObjects(): EditorUIObject[] {
     parentId: 'btl_skill_view',
     transform: {
       x: 16,
-      y: 476,
-      width: 848,
-      height: 228,
+      y: 460,
+      width: 1248,
+      height: 244,
       anchorX: 'left',
       anchorY: 'top',
       pivotX: 0,
@@ -5903,9 +5903,9 @@ function createBattleObjects(): EditorUIObject[] {
     parentId: 'btl_item_view',
     transform: {
       x: 16,
-      y: 476,
-      width: 848,
-      height: 228,
+      y: 460,
+      width: 1248,
+      height: 244,
       anchorX: 'left',
       anchorY: 'top',
       pivotX: 0,
@@ -6098,9 +6098,9 @@ function createBattleObjects(): EditorUIObject[] {
     parentId: 'btl_target_view',
     transform: {
       x: 16,
-      y: 476,
+      y: 460,
       width: 300,
-      height: 228,
+      height: 244,
       anchorX: 'left',
       anchorY: 'top',
       pivotX: 0,
@@ -6225,6 +6225,37 @@ function createBattleObjects(): EditorUIObject[] {
       }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
+    ],
+  });
+
+  // ── ターゲット選択カーソル矢印（敵/味方選択時にスクリプトで移動） ──
+  objects.push({
+    id: 'btl_select_arrow',
+    name: 'selectArrow',
+    parentId: 'btl_bg',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 40,
+      height: 30,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '\u25bc',
+        fontSize: 24,
+        color: '#ff6644',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
     ],
   });
 
