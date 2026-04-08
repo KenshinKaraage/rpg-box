@@ -48,6 +48,7 @@ export function TestPlayOverlay({ projectData, onClose, onStarted }: TestPlayOve
     }
 
     let stopped = false;
+    canvas.focus();
     runtime
       .start()
       .then(() => {
