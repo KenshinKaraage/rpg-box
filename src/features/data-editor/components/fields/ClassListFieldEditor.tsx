@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useStore } from '@/stores';
 import type { ClassValue } from '@/types/fields/ClassFieldType';
+import { computeFieldVisibility } from '../../utils/conditionEvaluator';
 
 interface ClassListFieldEditorProps {
   value: ClassValue[];
@@ -139,19 +140,25 @@ export function ClassListFieldEditor({
           </div>
           <CollapsibleContent>
             <div className="ml-7 mt-1 space-y-2 rounded-md border bg-muted/30 p-3">
-              {customClass.fields.map((field) => (
-                <div key={field.id} className="space-y-1">
-                  <Label className="text-xs font-medium">
-                    {field.name}
-                    {field.required && <span className="ml-1 text-red-500">*</span>}
-                  </Label>
-                  {field.renderEditor({
-                    value: item[field.id] ?? field.getDefaultValue(),
-                    onChange: (newValue) => handleFieldChange(index, field.id, newValue),
-                    disabled,
-                  })}
-                </div>
-              ))}
+              {(() => {
+                const visibility = computeFieldVisibility(customClass.fields, item);
+                return customClass.fields.map((field) => {
+                  if (!visibility[field.id]) return null;
+                  return (
+                    <div key={field.id} className="space-y-1">
+                      <Label className="text-xs font-medium">
+                        {field.name}
+                        {field.required && <span className="ml-1 text-red-500">*</span>}
+                      </Label>
+                      {field.renderEditor({
+                        value: item[field.id] ?? field.getDefaultValue(),
+                        onChange: (newValue) => handleFieldChange(index, field.id, newValue),
+                        disabled,
+                      })}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </CollapsibleContent>
         </Collapsible>
