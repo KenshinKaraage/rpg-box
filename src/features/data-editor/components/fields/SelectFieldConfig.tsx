@@ -1,10 +1,15 @@
 'use client';
 
-import { Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { SelectOption } from '@/types/fields/SelectFieldType';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { generateId } from '@/lib/utils';
@@ -115,34 +120,66 @@ export function SelectFieldConfig({
         )}
       </div>
 
-      {/* 条件付き表示: 選択肢ごとに表示するフィールドを設定 */}
+      {/* 条件付き表示: 選択肢ごとに表示するフィールドをマルチセレクト */}
       {allFields.length > 0 && options.length > 0 && (
         <div className="space-y-2">
           <Label className="text-xs">条件付き表示</Label>
           <p className="text-[11px] text-muted-foreground">選択肢ごとに表示するフィールドを設定</p>
           <div className="space-y-2">
-            {options.map((opt) => (
-              <div key={opt.value} className="rounded border p-2 space-y-1">
-                <span className="text-xs font-medium">{opt.label || opt.value}</span>
-                <div className="flex flex-wrap gap-x-3 gap-y-1">
-                  {allFields.map((f) => {
-                    const isChecked = visibilityMap?.[opt.value]?.includes(f.id) ?? false;
-                    return (
-                      <label key={f.id} className="flex items-center gap-1 text-[11px]">
-                        <Checkbox
-                          checked={isChecked}
-                          onCheckedChange={(checked) =>
-                            handleToggleField(opt.value, f.id, checked === true)
-                          }
-                          className="h-3.5 w-3.5"
-                        />
-                        {f.name || f.id}
-                      </label>
-                    );
-                  })}
+            {options.map((opt) => {
+              const selected = visibilityMap?.[opt.value] ?? [];
+              return (
+                <div key={opt.value} className="space-y-1">
+                  <span className="text-xs font-medium">{opt.label || opt.value}</span>
+                  <div className="flex items-start gap-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 gap-1 text-xs">
+                          フィールド追加
+                          <ChevronDown className="h-3 w-3 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="max-h-60 overflow-auto">
+                        {allFields.map((f) => (
+                          <DropdownMenuCheckboxItem
+                            key={f.id}
+                            checked={selected.includes(f.id)}
+                            onCheckedChange={(checked) =>
+                              handleToggleField(opt.value, f.id, checked)
+                            }
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            {f.name || f.id}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  {selected.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {selected.map((fId) => {
+                        const f = allFields.find((af) => af.id === fId);
+                        return (
+                          <span
+                            key={fId}
+                            className="inline-flex items-center gap-0.5 rounded bg-primary/10 px-1.5 py-0.5 text-[11px] text-primary"
+                          >
+                            {f?.name || fId}
+                            <button
+                              className="ml-0.5 hover:text-destructive"
+                              onClick={() => handleToggleField(opt.value, fId, false)}
+                              aria-label={`${f?.name || fId}を除外`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
