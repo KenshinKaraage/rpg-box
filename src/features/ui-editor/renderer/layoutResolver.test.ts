@@ -128,6 +128,87 @@ describe('resolveLayoutGroup', () => {
     expect(result.get('a')).toEqual({ x: 0, y: 0 });
     expect(result.get('b')).toEqual({ x: 0, y: 65 }); // 40 + 5 (spacing) + 20 (extra space)
   });
+  it('justify center (vertical) offsets children on main axis', () => {
+    // Parent 400 tall, children total 40+10+60=110, offset=(400-110)/2=145
+    const children = [makeChild('a', 100, 40), makeChild('b', 100, 60)];
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'vertical', spacing: 10, justify: 'center' },
+      200,
+      400
+    );
+
+    expect(result.get('a')).toEqual({ x: 0, y: 145 });
+    expect(result.get('b')).toEqual({ x: 0, y: 195 }); // 145 + 40 + 10
+  });
+
+  it('justify end (vertical) pushes children to bottom', () => {
+    const children = [makeChild('a', 100, 40), makeChild('b', 100, 60)];
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'vertical', spacing: 10, justify: 'end' },
+      200,
+      400
+    );
+
+    // total=110, offset=400-110=290
+    expect(result.get('a')).toEqual({ x: 0, y: 290 });
+    expect(result.get('b')).toEqual({ x: 0, y: 340 });
+  });
+
+  it('justify center (horizontal) centers children horizontally', () => {
+    // Parent 400 wide, children total 80+10+60=150, offset=(400-150)/2=125
+    const children = [makeChild('a', 80, 50), makeChild('b', 60, 50)];
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'horizontal', spacing: 10, justify: 'center' },
+      400,
+      100
+    );
+
+    expect(result.get('a')).toEqual({ x: 125, y: 0 });
+    expect(result.get('b')).toEqual({ x: 215, y: 0 }); // 125 + 80 + 10
+  });
+
+  it('justify end (horizontal) pushes children to right', () => {
+    const children = [makeChild('a', 80, 50), makeChild('b', 60, 50)];
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'horizontal', spacing: 10, justify: 'end' },
+      400,
+      100
+    );
+
+    // total=150, offset=400-150=250
+    expect(result.get('a')).toEqual({ x: 250, y: 0 });
+    expect(result.get('b')).toEqual({ x: 340, y: 0 });
+  });
+
+  it('justify center + alignment center (vertical) centers both axes', () => {
+    const children = [makeChild('a', 60, 40)];
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'vertical', alignment: 'center', justify: 'center' },
+      200,
+      400
+    );
+
+    // x = (200-60)/2 = 70, y = (400-40)/2 = 180
+    expect(result.get('a')).toEqual({ x: 70, y: 180 });
+  });
+
+  it('justify center + alignment center (horizontal) centers both axes', () => {
+    const children = [makeChild('a', 80, 30)];
+    const result = resolveLayoutGroup(
+      children,
+      { direction: 'horizontal', alignment: 'center', justify: 'center' },
+      400,
+      200
+    );
+
+    // x = (400-80)/2 = 160, y = (200-30)/2 = 85
+    expect(result.get('a')).toEqual({ x: 160, y: 85 });
+  });
 });
 
 // ────────────────────────────────────────────────
