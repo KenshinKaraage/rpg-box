@@ -102,6 +102,12 @@ export class EffectComponent extends UIComponent {
 
     return `({
   onShow() {
+    self.state.fw = ${fw};
+    self.state.fh = ${fh};
+    self.state.count = ${count};
+    self.state.interval = ${interval};
+    self.state.loop = ${loop};
+    self.state.onComplete = ${onComplete};
     self.state.elapsed = 0;
     self.state.frame = -1;
     self.state.finished = false;
@@ -113,12 +119,12 @@ export class EffectComponent extends UIComponent {
     if (self.state.finished) return;
 
     self.state.elapsed += dt * 1000;
-    const newFrame = Math.floor(self.state.elapsed / ${interval});
+    const newFrame = Math.floor(self.state.elapsed / self.state.interval);
 
-    if (!${loop} && newFrame >= ${count}) {
+    if (!self.state.loop && newFrame >= self.state.count) {
       self.state.finished = true;
-      this._setFrame(${count} - 1);
-      if (${onComplete} === "hide") {
+      this._setFrame(self.state.count - 1);
+      if (self.state.onComplete === "hide") {
         self.object.visible = false;
       }
       if (self.state._resolve) {
@@ -128,15 +134,24 @@ export class EffectComponent extends UIComponent {
       return;
     }
 
-    const frame = ${loop} ? newFrame % ${count} : Math.min(newFrame, ${count} - 1);
+    const frame = self.state.loop ? newFrame % self.state.count : Math.min(newFrame, self.state.count - 1);
     if (frame !== self.state.frame) {
       this._setFrame(frame);
     }
   },
 
-  async play() {
+  set(data) {
+    if (data.effectId !== undefined) self.object.setProperty("effect", "effectId", data.effectId);
+    if (data.frameWidth !== undefined) self.state.fw = data.frameWidth;
+    if (data.frameHeight !== undefined) self.state.fh = data.frameHeight;
+    if (data.frameCount !== undefined) self.state.count = data.frameCount;
+    if (data.intervalMs !== undefined) self.state.interval = data.intervalMs;
+  },
+
+  async play(data) {
+    if (data) this.set(data);
     this.reset();
-    if (${loop}) return; // ループ再生は完了を待たない
+    if (self.state.loop) return;
     return new Promise((resolve) => {
       self.state._resolve = resolve;
     });
@@ -144,10 +159,10 @@ export class EffectComponent extends UIComponent {
 
   _setFrame(frame) {
     self.state.frame = frame;
-    self.object.setProperty("effect", "cropX", frame * ${fw});
+    self.object.setProperty("effect", "cropX", frame * self.state.fw);
     self.object.setProperty("effect", "cropY", 0);
-    self.object.setProperty("effect", "cropW", ${fw});
-    self.object.setProperty("effect", "cropH", ${fh});
+    self.object.setProperty("effect", "cropW", self.state.fw);
+    self.object.setProperty("effect", "cropH", self.state.fh);
   },
 
   isFinished() {
