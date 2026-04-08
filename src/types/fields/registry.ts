@@ -123,7 +123,7 @@ export function hydrateFieldType(plain: Record<string, unknown>): FieldType<any>
   // サブクラス固有プロパティをコピー（type, label, tsType は readonly なのでスキップ）
   const skip = new Set(['type', 'label', 'tsType', 'id', 'name', 'required', 'displayCondition']);
   for (const key of Object.keys(plain)) {
-    if (!skip.has(key) && key in instance) {
+    if (!skip.has(key)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (instance as any)[key] = plain[key];
     }
