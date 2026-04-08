@@ -5,13 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useStore } from '@/stores';
 import type { EffectValue } from '@/types/fields/EffectFieldType';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { ImageFieldEditor } from './ImageFieldEditor';
 
 interface EffectFieldEditorProps {
   value: EffectValue;
@@ -22,38 +16,23 @@ interface EffectFieldEditorProps {
 
 /**
  * エフェクトフィールドエディタ
- * エフェクト画像選択 + フレーム設定 + アニメーションプレビュー
+ * 画像フィールド（モーダル選択）+ フレーム設定 + アニメーションプレビュー
  */
 export function EffectFieldEditor({ value, onChange, disabled, error }: EffectFieldEditorProps) {
-  const assets = useStore((s) => s.assets);
-  const imageAssets = assets.filter((a) => a.type === 'image');
-
   const update = (updates: Partial<EffectValue>) => {
     onChange({ ...value, ...updates });
   };
 
   return (
     <div className="space-y-3 rounded-md border p-3">
-      {/* 画像選択 */}
+      {/* 画像選択（ImageFieldEditor を再利用） */}
       <div className="space-y-1">
         <Label className="text-xs">エフェクト画像</Label>
-        <Select
-          value={value.imageId || '__none__'}
-          onValueChange={(v) => update({ imageId: v === '__none__' ? '' : v })}
-          disabled={disabled}
-        >
-          <SelectTrigger className="text-xs">
-            <SelectValue placeholder="画像を選択" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">なし</SelectItem>
-            {imageAssets.map((a) => (
-              <SelectItem key={a.id} value={a.id}>
-                {a.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ImageFieldEditor
+          value={value.imageId || null}
+          onChange={(id) => update({ imageId: id ?? '' })}
+          showPreview={false}
+        />
       </div>
 
       {/* フレーム設定 */}
@@ -160,7 +139,7 @@ function EffectPreview({
 
     const img = new Image();
     img.src = asset.data as string;
-    img.onload = () => {
+    const draw = () => {
       canvas.width = frameWidth;
       canvas.height = frameHeight;
       ctx.clearRect(0, 0, frameWidth, frameHeight);
@@ -176,22 +155,10 @@ function EffectPreview({
         frameHeight
       );
     };
-    // キャッシュ済みの場合
     if (img.complete && img.naturalWidth > 0) {
-      canvas.width = frameWidth;
-      canvas.height = frameHeight;
-      ctx.clearRect(0, 0, frameWidth, frameHeight);
-      ctx.drawImage(
-        img,
-        frame * frameWidth,
-        0,
-        frameWidth,
-        frameHeight,
-        0,
-        0,
-        frameWidth,
-        frameHeight
-      );
+      draw();
+    } else {
+      img.onload = draw;
     }
   }, [asset, frame, frameWidth, frameHeight]);
 
