@@ -42,6 +42,8 @@ export function AutoSaveProvider() {
 
     (async () => {
       try {
+        const t0 = performance.now();
+
         // 1. 構造データを先にロード
         const saved = await storage.loadProject(SAVE_ID_STRUCTURE);
         if (!saved?.data) return;
@@ -50,9 +52,10 @@ export function AutoSaveProvider() {
         if (state.dataTypes.length > 0 || state.maps.length > 0) return;
 
         state.loadProjectData(saved.data as ProjectData);
-        console.log('[AutoSave] Structure restored');
+        console.log(`[AutoSave] Structure restored (${Math.round(performance.now() - t0)}ms)`);
 
         // 2. アセットデータを後からロード
+        const t1 = performance.now();
         const assetSaved = await storage.loadProject(SAVE_ID_ASSETS);
         if (assetSaved?.data?.assets) {
           const assets = assetSaved.data.assets as unknown as typeof state.assets;
@@ -64,8 +67,10 @@ export function AutoSaveProvider() {
               }
             }
           }
-          console.log('[AutoSave] Assets restored');
+          console.log(`[AutoSave] Assets restored (${Math.round(performance.now() - t1)}ms)`);
         }
+
+        console.log(`[AutoSave] Total restore: ${Math.round(performance.now() - t0)}ms`);
       } catch (e) {
         console.warn('[AutoSave] Failed to restore:', e);
       }
