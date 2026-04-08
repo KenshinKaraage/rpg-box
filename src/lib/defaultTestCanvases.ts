@@ -5154,9 +5154,9 @@ function createBattleObjects(): EditorUIObject[] {
     name: 'partyWindow',
     parentId: 'btl_bg',
     transform: {
-      x: 122,
+      x: 150,
       y: -16,
-      width: 1004,
+      width: 760,
       height: 244,
       anchorX: 'center',
       anchorY: 'bottom',
@@ -5171,7 +5171,8 @@ function createBattleObjects(): EditorUIObject[] {
       createUIComponentData('layoutGroup', {
         direction: 'horizontal',
         spacing: 12,
-        alignment: 'start',
+        alignment: 'center',
+        justify: 'center',
         paddingTop: 12,
         paddingLeft: 12,
         paddingRight: 12,
@@ -5188,7 +5189,7 @@ function createBattleObjects(): EditorUIObject[] {
               tracks: [
                 {
                   property: 'transform.x',
-                  from: 122,
+                  from: 150,
                   to: 0,
                   startTime: 0,
                   duration: 150,
@@ -5204,7 +5205,7 @@ function createBattleObjects(): EditorUIObject[] {
                 {
                   property: 'transform.x',
                   from: 0,
-                  to: 122,
+                  to: 150,
                   startTime: 0,
                   duration: 150,
                   easing: 'easeOutQuad',
@@ -5696,7 +5697,7 @@ function createBattleObjects(): EditorUIObject[] {
     name: 'commandWindow',
     parentId: 'btl_cmd_view',
     transform: {
-      x: -524,
+      x: -400,
       y: -16,
       width: 232,
       height: 244,
@@ -6192,163 +6193,6 @@ function createBattleObjects(): EditorUIObject[] {
         lineHeight: 1.2,
       }),
       createUIComponentData('navigationCursor', { offsetX: -4, offsetY: 0 }),
-      createUIComponentData('layoutElement', { participate: false }),
-    ],
-  });
-
-  // ── ターゲット選択ビュー（敵選択に使用、NavigationはenemyAreaを使う） ──
-  objects.push({
-    id: 'btl_target_view',
-    name: 'targetView',
-    parentId: 'btl_bg',
-    transform: {
-      x: 0,
-      y: 0,
-      width: 1280,
-      height: 720,
-      anchorX: 'left',
-      anchorY: 'top',
-      pivotX: 0,
-      pivotY: 0,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      visible: true,
-    },
-    components: [],
-  });
-  objects.push({
-    id: 'btl_target_win',
-    name: 'targetWindow',
-    parentId: 'btl_target_view',
-    transform: {
-      x: 16,
-      y: 460,
-      width: 300,
-      height: 244,
-      anchorX: 'left',
-      anchorY: 'top',
-      pivotX: 0,
-      pivotY: 0,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      visible: true,
-    },
-    components: [
-      createUIComponentData('shape', {
-        shapeType: 'rectangle',
-        fillColor: '#1a1a2e',
-        strokeColor: '#ff6644',
-        strokeWidth: 2,
-        cornerRadius: 8,
-      }),
-      createUIComponentData('navigation', { direction: 'vertical', wrap: true, initialIndex: 0 }),
-      createUIComponentData('layoutGroup', {
-        direction: 'vertical',
-        spacing: 0,
-        alignment: 'start',
-        paddingTop: 8,
-        paddingBottom: 8,
-        paddingLeft: 16,
-        paddingRight: 16,
-      }),
-      createUIComponentData('contentFit', { fitWidth: false, fitHeight: true }),
-    ],
-  });
-  objects.push({
-    id: 'btl_target_tmpl',
-    name: 'targetTemplate',
-    parentId: 'btl_target_win',
-    transform: {
-      x: 0,
-      y: 0,
-      width: 268,
-      height: BTL_LIST_H,
-      anchorX: 'left',
-      anchorY: 'top',
-      pivotX: 0,
-      pivotY: 0,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      visible: true,
-    },
-    components: [
-      createUIComponentData('templateController', {
-        args: [{ id: 'name', name: '名前', fieldType: 'string', defaultValue: '' }],
-        onApplyActions: [
-          {
-            type: 'uiSetProperty',
-            data: {
-              targetId: 'btl_target_name',
-              component: 'text',
-              property: 'content',
-              valueSource: { source: 'arg', argId: 'name' },
-            },
-          },
-        ],
-      }),
-      createUIComponentData('navigationItem', { itemId: '0' }),
-    ],
-  });
-  objects.push({
-    id: 'btl_target_name',
-    name: 'targetName',
-    parentId: 'btl_target_tmpl',
-    transform: {
-      x: 0,
-      y: 0,
-      width: 268,
-      height: BTL_LIST_H,
-      anchorX: 'left',
-      anchorY: 'top',
-      pivotX: 0,
-      pivotY: 0,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      visible: true,
-    },
-    components: [
-      createUIComponentData('text', {
-        content: '',
-        fontSize: 16,
-        color: '#ffffff',
-        align: 'left',
-        verticalAlign: 'middle',
-        lineHeight: 1.2,
-      }),
-    ],
-  });
-  objects.push({
-    id: 'btl_target_cursor',
-    name: 'targetCursor',
-    parentId: 'btl_target_win',
-    transform: {
-      x: 0,
-      y: 8,
-      width: 16,
-      height: BTL_LIST_H,
-      anchorX: 'left',
-      anchorY: 'top',
-      pivotX: 0,
-      pivotY: 0,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      visible: true,
-    },
-    components: [
-      createUIComponentData('text', {
-        content: '▶',
-        fontSize: 14,
-        color: '#ff6644',
-        align: 'center',
-        verticalAlign: 'middle',
-        lineHeight: 1.2,
-      }),
-      createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
   });
