@@ -59,9 +59,9 @@ export class InputManager {
   attach(target: HTMLElement): void {
     this.detach();
     this.target = target;
-    target.addEventListener('keydown', this.onKeyDown);
-    target.addEventListener('keyup', this.onKeyUp);
-    target.addEventListener('blur', this.onBlur);
+    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keyup', this.onKeyUp);
+    window.addEventListener('blur', this.onBlur);
 
     // 隠し input（IME 対応テキスト入力用）
     const input = document.createElement('input');
@@ -75,9 +75,9 @@ export class InputManager {
 
   detach(): void {
     if (this.target) {
-      this.target.removeEventListener('keydown', this.onKeyDown);
-      this.target.removeEventListener('keyup', this.onKeyUp);
-      this.target.removeEventListener('blur', this.onBlur);
+      window.removeEventListener('keydown', this.onKeyDown);
+      window.removeEventListener('keyup', this.onKeyUp);
+      window.removeEventListener('blur', this.onBlur);
       this.target = null;
     }
     if (this.hiddenInput) {
