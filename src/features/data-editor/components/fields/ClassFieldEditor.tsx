@@ -11,6 +11,8 @@ interface ClassFieldEditorProps {
   disabled?: boolean;
   error?: string;
   classId: string;
+  /** グリッド列数（デフォルト: 2） */
+  columns?: number;
 }
 
 /**
@@ -23,6 +25,7 @@ export function ClassFieldEditor({
   disabled,
   error,
   classId,
+  columns = 2,
 }: ClassFieldEditorProps) {
   const customClass = useStore((state) =>
     classId ? (state.classes.find((c) => c.id === classId) ?? null) : null
@@ -55,7 +58,10 @@ export function ClassFieldEditor({
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-2">
+      <div
+        className="grid gap-2"
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      >
         {customClass.fields.map((field) => {
           if (!visibility[field.id]) return null;
           return (
