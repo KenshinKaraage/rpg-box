@@ -33,13 +33,16 @@ export function clearActionRegistry(): void {
  * Deserialize an array of serialized actions ({ type, data }) into EventAction instances.
  */
 export function deserializeActions(
-  items: { type: string; data: Record<string, unknown> }[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  items: any[]
 ): EventAction[] {
   return items.map((item) => {
+    // Already a class instance
+    if (typeof item.fromJSON === 'function') return item;
     const ActionClass = actionRegistry.get(item.type);
     if (!ActionClass) throw new Error(`Unknown action type: ${item.type}`);
     const action = new ActionClass();
-    action.fromJSON(item.data);
+    action.fromJSON(item.data ?? item);
     return action;
   });
 }
