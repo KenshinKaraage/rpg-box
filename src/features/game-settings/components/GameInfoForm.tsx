@@ -43,6 +43,7 @@ const gameSettingsSchema = z.object({
   defaultBGM: z.string().optional(),
   icon: z.string().optional(),
   menuScriptId: z.string().optional(),
+  startScriptId: z.string().optional(),
 });
 
 type GameSettingsFormData = z.infer<typeof gameSettingsSchema>;
@@ -71,6 +72,7 @@ export function GameInfoForm({ initialValues, onSubmit }: GameInfoFormProps) {
 
   const currentStartMapId = watch('startMapId');
   const currentMenuScriptId = watch('menuScriptId');
+  const currentStartScriptId = watch('startScriptId');
 
   const handlePresetChange = (presetLabel: string) => {
     const preset = RESOLUTION_PRESETS.find((p) => p.label === presetLabel);
@@ -167,10 +169,7 @@ export function GameInfoForm({ initialValues, onSubmit }: GameInfoFormProps) {
       {/* 開始マップ */}
       <div className="space-y-2">
         <Label>開始マップ</Label>
-        <Select
-          value={currentStartMapId || ''}
-          onValueChange={(v) => setValue('startMapId', v)}
-        >
+        <Select value={currentStartMapId || ''} onValueChange={(v) => setValue('startMapId', v)}>
           <SelectTrigger>
             <SelectValue placeholder="マップを選択" />
           </SelectTrigger>
@@ -205,6 +204,31 @@ export function GameInfoForm({ initialValues, onSubmit }: GameInfoFormProps) {
               ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* 開始スクリプト */}
+      <div className="space-y-2">
+        <Label>開始スクリプト</Label>
+        <Select
+          value={currentStartScriptId || '__none__'}
+          onValueChange={(v) => setValue('startScriptId', v === '__none__' ? '' : v)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="なし" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">なし</SelectItem>
+            {scripts
+              .filter((s) => s.type !== 'component')
+              .map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                  {s.callId ? ` (${s.callId})` : ''}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">ゲーム開始時に一度だけ実行されるスクリプト</p>
       </div>
 
       {/* 送信ボタン */}
