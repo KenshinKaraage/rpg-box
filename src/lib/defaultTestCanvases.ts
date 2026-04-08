@@ -4968,6 +4968,40 @@ function createBattleObjects(): EditorUIObject[] {
         paddingLeft: 16,
         paddingRight: 16,
       }),
+      createUIComponentData('navigation', { direction: 'horizontal', wrap: true, initialIndex: 0 }),
+    ],
+  });
+
+  // 敵選択カーソル（▼矢印、enemyAreaの子としてナビゲーションカーソル）
+  objects.push({
+    id: 'btl_enemy_cursor',
+    name: 'enemyCursor',
+    parentId: 'btl_enemy_area',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 40,
+      height: 30,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▼',
+        fontSize: 24,
+        color: '#ff6644',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+      createUIComponentData('navigationCursor', { offsetX: 0, offsetY: -30 }),
+      createUIComponentData('layoutElement', { participate: false }),
     ],
   });
 
@@ -5137,6 +5171,7 @@ function createBattleObjects(): EditorUIObject[] {
         paddingLeft: 12,
         paddingRight: 12,
       }),
+      createUIComponentData('navigation', { direction: 'horizontal', wrap: true, initialIndex: 0 }),
     ],
   });
 
@@ -5493,6 +5528,39 @@ function createBattleObjects(): EditorUIObject[] {
         verticalAlign: 'middle',
         lineHeight: 1.2,
       }),
+    ],
+  });
+
+  // パーティ選択カーソル
+  objects.push({
+    id: 'btl_party_cursor',
+    name: 'partyCursor',
+    parentId: 'btl_party_win',
+    transform: {
+      x: 0,
+      y: 0,
+      width: 40,
+      height: 30,
+      anchorX: 'left',
+      anchorY: 'top',
+      pivotX: 0,
+      pivotY: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      visible: true,
+    },
+    components: [
+      createUIComponentData('text', {
+        content: '▼',
+        fontSize: 24,
+        color: '#44aaff',
+        align: 'center',
+        verticalAlign: 'middle',
+        lineHeight: 1.2,
+      }),
+      createUIComponentData('navigationCursor', { offsetX: 0, offsetY: -30 }),
+      createUIComponentData('layoutElement', { participate: false }),
     ],
   });
 
@@ -6225,37 +6293,6 @@ function createBattleObjects(): EditorUIObject[] {
       }),
       createUIComponentData('navigationCursor', { offsetX: -16, offsetY: 0 }),
       createUIComponentData('layoutElement', { participate: false }),
-    ],
-  });
-
-  // ── ターゲット選択カーソル矢印（敵/味方選択時にスクリプトで移動） ──
-  objects.push({
-    id: 'btl_select_arrow',
-    name: 'selectArrow',
-    parentId: 'btl_bg',
-    transform: {
-      x: 0,
-      y: 0,
-      width: 40,
-      height: 30,
-      anchorX: 'left',
-      anchorY: 'top',
-      pivotX: 0,
-      pivotY: 0,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      visible: true,
-    },
-    components: [
-      createUIComponentData('text', {
-        content: '\u25bc',
-        fontSize: 24,
-        color: '#ff6644',
-        align: 'center',
-        verticalAlign: 'middle',
-        lineHeight: 1.2,
-      }),
     ],
   });
 

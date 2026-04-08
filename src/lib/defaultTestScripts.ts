@@ -2785,14 +2785,12 @@ export const battleTargetEnemyScript: Script = {
   callId: 'battle_target_enemy',
   type: 'internal',
   parentId: 'battle',
-  content: `const targetView = UI["battle"].getObject("targetView");
-const targetWin = UI["battle"].getObject("targetWindow");
-const targetTmpl = UI["battle"].getObject("targetTemplate");
+  content: `const enemyArea = UI["battle"].getObject("enemyArea");
 
 function setNavItemIds(win) {
-  const children = win.getChildren();
+  const ch = win.getChildren();
   let i = 0;
-  for (const c of children) {
+  for (const c of ch) {
     if (!c.visible) continue;
     const ni = c.getComponentData("navigationItem");
     if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
@@ -2805,20 +2803,10 @@ for (let i = 0; i < enemies.length; i++) {
 }
 if (alive.length === 0) return null;
 
-const rows = alive.map(a => ({ name: a.name }));
-const tc = targetTmpl.getComponent("templateController");
-if (tc) await tc.applyList(rows);
-const lo = targetWin.getComponent("layoutGroup");
-if (lo) lo.align();
-const cf = targetWin.getComponent("contentFit");
-if (cf) cf.fit();
-setNavItemIds(targetWin);
-
-targetView.visible = true;
-const nav = targetWin.getComponent("navigation");
+setNavItemIds(enemyArea);
+const nav = enemyArea.getComponent("navigation");
 nav.activate();
 const selected = await nav.result();
-targetView.visible = false;
 
 if (selected === null) return null;
 const selIdx = parseInt(selected, 10);
@@ -2840,37 +2828,22 @@ export const battleTargetAllyScript: Script = {
   callId: 'battle_target_ally',
   type: 'internal',
   parentId: 'battle',
-  content: `const targetView = UI["battle"].getObject("targetView");
-const targetWin = UI["battle"].getObject("targetWindow");
-const targetTmpl = UI["battle"].getObject("targetTemplate");
+  content: `const partyWin = UI["battle"].getObject("partyWindow");
 
 function setNavItemIds(win) {
-  const children = win.getChildren();
+  const ch = win.getChildren();
   let i = 0;
-  for (const c of children) {
+  for (const c of ch) {
     if (!c.visible) continue;
     const ni = c.getComponentData("navigationItem");
     if (ni) { c.setProperty("navigationItem", "itemId", String(i)); i++; }
   }
 }
 
-const rows = party.map(m => {
-  const ch = Data.character[m.characterId];
-  return { name: (ch ? ch.name : "???") + " HP" + (m.currentHp ?? 0) };
-});
-const tc = targetTmpl.getComponent("templateController");
-if (tc) await tc.applyList(rows);
-const lo = targetWin.getComponent("layoutGroup");
-if (lo) lo.align();
-const cf = targetWin.getComponent("contentFit");
-if (cf) cf.fit();
-setNavItemIds(targetWin);
-
-targetView.visible = true;
-const nav = targetWin.getComponent("navigation");
+setNavItemIds(partyWin);
+const nav = partyWin.getComponent("navigation");
 nav.activate();
 const selected = await nav.result();
-targetView.visible = false;
 
 if (selected === null) return null;
 const selIdx = parseInt(selected, 10);
