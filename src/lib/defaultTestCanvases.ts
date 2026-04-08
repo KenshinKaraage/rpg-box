@@ -5000,7 +5000,12 @@ function createBattleObjects(): EditorUIObject[] {
         verticalAlign: 'middle',
         lineHeight: 1.2,
       }),
-      createUIComponentData('navigationCursor', { offsetX: 0, offsetY: -30 }),
+      createUIComponentData('navigationCursor', {
+        anchorX: 'center',
+        anchorY: 'top',
+        offsetX: 0,
+        offsetY: -30,
+      }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
   });
@@ -5559,7 +5564,12 @@ function createBattleObjects(): EditorUIObject[] {
         verticalAlign: 'middle',
         lineHeight: 1.2,
       }),
-      createUIComponentData('navigationCursor', { offsetX: 0, offsetY: -30 }),
+      createUIComponentData('navigationCursor', {
+        anchorX: 'center',
+        anchorY: 'top',
+        offsetX: 0,
+        offsetY: -30,
+      }),
       createUIComponentData('layoutElement', { participate: false }),
     ],
   });

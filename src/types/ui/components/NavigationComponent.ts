@@ -155,8 +155,17 @@ export class NavigationComponent extends UIComponent {
     });
     if (cursor) {
       const d = cursor.getComponentData("navigationCursor") || {};
-      cursor.y = focused.y + (d.offsetY || 0);
-      cursor.x = focused.x + (d.offsetX || 0);
+      const ax = d.anchorX || "left";
+      const ay = d.anchorY || "top";
+      // 基準点: アイテムのアンカー位置 - カーソルの中心
+      let bx = focused.x;
+      if (ax === "center") bx = focused.x + focused.width / 2 - cursor.width / 2;
+      else if (ax === "right") bx = focused.x + focused.width - cursor.width;
+      let by = focused.y;
+      if (ay === "center") by = focused.y + focused.height / 2 - cursor.height / 2;
+      else if (ay === "bottom") by = focused.y + focused.height - cursor.height;
+      cursor.x = bx + (d.offsetX || 0);
+      cursor.y = by + (d.offsetY || 0);
     }
   },
 
