@@ -42,6 +42,7 @@ export class LayoutGroupComponent extends UIComponent {
   paddingLeft = 0;
   paddingRight = 0;
   alignment: 'start' | 'center' | 'end' = 'start';
+  justify: 'start' | 'center' | 'end' = 'start';
   reverseOrder = false;
 
   getPropertyDefs(): PropertyDef[] {
@@ -62,7 +63,17 @@ export class LayoutGroupComponent extends UIComponent {
       { key: 'paddingRight', label: '右余白', type: 'number', min: 0 },
       {
         key: 'alignment',
-        label: '配置',
+        label: '直交配置',
+        type: 'select',
+        options: [
+          { value: 'start', label: '先頭' },
+          { value: 'center', label: '中央' },
+          { value: 'end', label: '末尾' },
+        ],
+      },
+      {
+        key: 'justify',
+        label: '主軸配置',
         type: 'select',
         options: [
           { value: 'start', label: '先頭' },
@@ -126,13 +137,32 @@ export class LayoutGroupComponent extends UIComponent {
 
     const innerWidth = parentWidth - padLeft - padRight;
     const innerHeight = parentHeight - padTop - padBottom;
+    const justify = (data.justify as 'start' | 'center' | 'end') ?? 'start';
     const ordered = reverse ? [...children].reverse() : children;
-    let cursor = direction === 'vertical' ? padTop : padLeft;
 
+    // 参加する子のみ抽出
+    const participating: { child: LayoutChild; le: LayoutElementData | null }[] = [];
     for (const child of ordered) {
       const le = getLayoutElement(child);
       if (le && le.participate === false) continue;
+      participating.push({ child, le });
+    }
 
+    // 主軸方向の合計サイズを計算（justify 用）
+    let totalMainSize = 0;
+    for (let i = 0; i < participating.length; i++) {
+      const { child, le } = participating[i]!;
+      const size = direction === 'vertical' ? child.transform.height : child.transform.width;
+      totalMainSize += size + (le?.space ?? 0);
+      if (i < participating.length - 1) totalMainSize += spacing;
+    }
+
+    // 主軸方向のオフセット（justify で中央/末尾寄せ）
+    const innerMain = direction === 'vertical' ? innerHeight : innerWidth;
+    const mainOffset = resolveAlignment(justify, totalMainSize, innerMain);
+    let cursor = (direction === 'vertical' ? padTop : padLeft) + mainOffset;
+
+    for (const { child, le } of participating) {
       const w = child.transform.width;
       const h = child.transform.height;
       const extraSpace = le?.space ?? 0;
@@ -165,6 +195,7 @@ export class LayoutGroupComponent extends UIComponent {
       paddingLeft: this.paddingLeft,
       paddingRight: this.paddingRight,
       alignment: this.alignment,
+      justify: this.justify,
       reverseOrder: this.reverseOrder,
     };
   }
@@ -177,6 +208,7 @@ export class LayoutGroupComponent extends UIComponent {
     this.paddingLeft = (data.paddingLeft as number) ?? 0;
     this.paddingRight = (data.paddingRight as number) ?? 0;
     this.alignment = (data.alignment as 'start' | 'center' | 'end') ?? 'start';
+    this.justify = (data.justify as 'start' | 'center' | 'end') ?? 'start';
     this.reverseOrder = (data.reverseOrder as boolean) ?? false;
   }
 
@@ -188,6 +220,7 @@ export class LayoutGroupComponent extends UIComponent {
     const padRight = this.paddingRight;
     const padBottom = this.paddingBottom;
     const alignment = JSON.stringify(this.alignment);
+    const justify = JSON.stringify(this.justify);
     const reverse = this.reverseOrder;
 
     return `({
@@ -206,15 +239,34 @@ export class LayoutGroupComponent extends UIComponent {
     const innerW = parentW - padLeft - padRight;
     const innerH = parentH - padTop - padBottom;
 
-    const children = reverse ? [...self.children].reverse() : self.children;
-    let cursor = direction === "vertical" ? padTop : padLeft;
+    const justify = ${justify};
 
-    for (const child of children) {
-      // 非表示の子はスキップ（テンプレート元など）
+    const allChildren = reverse ? [...self.children].reverse() : self.children;
+    const participating = [];
+    for (const child of allChildren) {
       if (!child.visible) continue;
       const le = child.getComponentData && child.getComponentData("layoutElement");
       if (le && le.participate === false) continue;
+      participating.push({ child, le });
+    }
 
+    // 主軸方向の合計サイズ（justify 用）
+    let totalMain = 0;
+    for (let i = 0; i < participating.length; i++) {
+      const { child, le } = participating[i];
+      const size = direction === "vertical" ? child.height : child.width;
+      totalMain += size + ((le && le.space) || 0);
+      if (i < participating.length - 1) totalMain += spacing;
+    }
+
+    const innerMain = direction === "vertical" ? innerH : innerW;
+    let mainOffset = 0;
+    if (justify === "center") mainOffset = (innerMain - totalMain) / 2;
+    else if (justify === "end") mainOffset = innerMain - totalMain;
+
+    let cursor = (direction === "vertical" ? padTop : padLeft) + mainOffset;
+
+    for (const { child, le } of participating) {
       const w = child.width;
       const h = child.height;
       const extra = (le && le.space) || 0;
@@ -246,6 +298,7 @@ export class LayoutGroupComponent extends UIComponent {
     c.paddingLeft = this.paddingLeft;
     c.paddingRight = this.paddingRight;
     c.alignment = this.alignment;
+    c.justify = this.justify;
     c.reverseOrder = this.reverseOrder;
     return c;
   }

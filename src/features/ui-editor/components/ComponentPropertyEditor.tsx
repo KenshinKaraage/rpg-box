@@ -3,6 +3,7 @@
 import '@/features/ui-editor/components/property-fields/register';
 import { getUIComponent } from '@/types/ui';
 import { getPropertyField, VertexField, InlineAnimationEditor } from './property-fields';
+import { LayoutAlignPresets } from './LayoutAlignPresets';
 import type { FieldRendererProps } from './property-fields';
 import type { NamedAnimation } from '@/types/ui/components/AnimationComponent';
 
@@ -41,8 +42,7 @@ export function ComponentPropertyEditor({
     (componentType === 'shape' && (data.shapeType as string) === 'polygon') ||
     componentType === 'line';
 
-  const showAnimationEditor =
-    componentType === 'animation' && (data.mode as string) === 'inline';
+  const showAnimationEditor = componentType === 'animation' && (data.mode as string) === 'inline';
 
   return (
     <div className="space-y-2 px-2 pb-2" data-testid={`property-editor-${componentType}`}>
@@ -66,6 +66,17 @@ export function ComponentPropertyEditor({
           animations={(data.animations as NamedAnimation[]) ?? []}
           onChange={(v) => handleChange('animations', v)}
         />
+      )}
+      {componentType === 'layoutGroup' && (
+        <div className="space-y-1">
+          <span className="text-xs text-muted-foreground">配置プリセット</span>
+          <LayoutAlignPresets
+            direction={(data.direction as 'horizontal' | 'vertical') ?? 'vertical'}
+            alignment={(data.alignment as 'start' | 'center' | 'end') ?? 'start'}
+            justify={(data.justify as 'start' | 'center' | 'end') ?? 'start'}
+            onUpdate={(updates) => onChange({ ...data, ...updates })}
+          />
+        </div>
       )}
     </div>
   );

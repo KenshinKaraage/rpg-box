@@ -4963,6 +4963,7 @@ function createBattleObjects(): EditorUIObject[] {
         direction: 'horizontal',
         spacing: 24,
         alignment: 'center',
+        justify: 'center',
         paddingTop: 40,
         paddingLeft: 16,
         paddingRight: 16,
