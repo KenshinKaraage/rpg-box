@@ -2507,10 +2507,11 @@ return { result };`,
   args: [
     {
       id: 'enemyGroupId',
-      name: '敵グループID',
-      fieldType: 'string',
+      name: '敵グループ',
+      fieldType: 'dataSelect',
       required: true,
       defaultValue: '',
+      referenceTypeId: 'enemy_group',
     },
   ],
   returns: [{ id: 'result', name: '結果', fieldType: 'string', isArray: false }],
