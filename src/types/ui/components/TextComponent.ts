@@ -23,6 +23,7 @@ export class TextComponent extends UIComponent {
   getPropertyDefs(): PropertyDef[] {
     return [
       { key: 'content', label: 'テキスト', type: 'textarea', placeholder: 'テキストを入力...' },
+      { key: 'fontId', label: 'フォント', type: 'font' },
       { key: 'fontSize', label: 'フォントサイズ', type: 'number', min: 1 },
       { key: 'color', label: '色', type: 'color' },
       {

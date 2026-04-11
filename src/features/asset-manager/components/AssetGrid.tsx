@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Upload } from 'lucide-react';
+import { Music, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AssetReference } from '@/types/asset';
 import { getAllSupportedExtensions } from '@/types/assets';
@@ -80,11 +80,13 @@ export function AssetGrid({ assets, selectedAssetId, onSelectAsset, onUpload }: 
             onClick={() => onSelectAsset(asset.id)}
           >
             {/* サムネイル */}
-            <div className="aspect-square overflow-hidden rounded bg-muted">
+            <div className="flex aspect-square items-center justify-center overflow-hidden rounded bg-muted">
               {asset.type === 'image' && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={asset.data} alt={asset.name} className="h-full w-full object-contain" />
               )}
+              {asset.type === 'audio' && <Music className="h-10 w-10 text-muted-foreground" />}
+              {asset.type === 'font' && <FontThumbnail data={asset.data} id={asset.id} />}
             </div>
             {/* ファイル名 */}
             <p className="mt-2 truncate text-center text-xs" title={asset.name}>
@@ -107,5 +109,21 @@ export function AssetGrid({ assets, selectedAssetId, onSelectAsset, onUpload }: 
         </label>
       </div>
     </div>
+  );
+}
+
+/** フォントサムネイル: @font-face で1文字プレビュー */
+function FontThumbnail({ data, id }: { data: string; id: string }) {
+  const family = `thumb-${id}`;
+  return (
+    <>
+      <style>{`@font-face { font-family: '${family}'; src: url('${data}'); }`}</style>
+      <span
+        className="text-5xl leading-none text-foreground"
+        style={{ fontFamily: `'${family}', sans-serif` }}
+      >
+        Aa
+      </span>
+    </>
   );
 }

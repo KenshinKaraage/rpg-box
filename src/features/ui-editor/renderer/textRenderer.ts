@@ -17,8 +17,43 @@ export interface TextData {
   lineHeight?: number;
 }
 
+// ── Font loading cache ──
+const loadedFonts = new Map<string, string>(); // fontId → CSS font-family name
+const loadingFonts = new Map<string, Promise<string>>(); // fontId → loading promise
+
+/**
+ * Load a font from an asset's Base64 data URL and return the CSS font-family name.
+ * Caches the result so each font is loaded only once.
+ */
+export function loadFontFromAsset(fontId: string, dataUrl: string): Promise<string> {
+  const cached = loadedFonts.get(fontId);
+  if (cached) return Promise.resolve(cached);
+
+  const existing = loadingFonts.get(fontId);
+  if (existing) return existing;
+
+  const familyName = `rpgbox-font-${fontId}`;
+  const promise = (async () => {
+    const face = new FontFace(familyName, `url(${dataUrl})`);
+    const loaded = await face.load();
+    document.fonts.add(loaded);
+    loadedFonts.set(fontId, familyName);
+    loadingFonts.delete(fontId);
+    return familyName;
+  })();
+
+  loadingFonts.set(fontId, promise);
+  return promise;
+}
+
+/** Get the CSS font-family for a fontId (only if already loaded) */
+export function getLoadedFontFamily(fontId: string | undefined): string | null {
+  if (!fontId) return null;
+  return loadedFonts.get(fontId) ?? null;
+}
+
 function textCacheKey(data: TextData, rect: WorldRect): string {
-  return `text:${data.content}:${data.fontSize}:${data.color}:${data.align}:${data.verticalAlign}:${data.lineHeight}:${rect.w}:${rect.h}:${rect.scaleX}:${rect.scaleY}`;
+  return `text:${data.content}:${data.fontSize}:${data.fontId}:${data.color}:${data.align}:${data.verticalAlign}:${data.lineHeight}:${rect.w}:${rect.h}:${rect.scaleX}:${rect.scaleY}`;
 }
 
 export function renderText(
@@ -29,6 +64,23 @@ export function renderText(
 ): void {
   const content = data.content ?? '';
   if (!content) return;
+
+  // Trigger font loading if fontId is set but not yet loaded
+  if (data.fontId && !loadedFonts.has(data.fontId) && !loadingFonts.has(data.fontId)) {
+    const assetData = ctx.getAssetData(data.fontId);
+    if (assetData) {
+      loadFontFromAsset(data.fontId, assetData).then(() => {
+        // Invalidate cached texture so it re-renders with the loaded font
+        const oldKey = textCacheKey(data, rect);
+        const oldTex = ctx.textureCache.get(oldKey);
+        if (oldTex) {
+          gl.deleteTexture(oldTex);
+          ctx.textureCache.delete(oldKey);
+        }
+        ctx.onTextureLoaded();
+      });
+    }
+  }
 
   const cacheKey = textCacheKey(data, rect);
   let texture = ctx.textureCache.get(cacheKey);
@@ -42,10 +94,7 @@ export function renderText(
 
   const corners = getWorldCorners(rect);
   const positions = cornersToTriangles(corners);
-  const texcoords = new Float32Array([
-    0, 0, 1, 0, 0, 1,
-    0, 1, 1, 0, 1, 1,
-  ]);
+  const texcoords = new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]);
 
   // Text textures use premultiplied alpha — switch blend mode
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -79,6 +128,9 @@ function createTextTexture(
   const align = data.align ?? 'left';
   const lineHeight = data.lineHeight ?? 1.2;
 
+  // Resolve font family from loaded font cache
+  const fontFamily = getLoadedFontFamily(data.fontId) ?? 'sans-serif';
+
   const canvas2d = document.createElement('canvas');
   canvas2d.width = w;
   canvas2d.height = h;
@@ -87,7 +139,7 @@ function createTextTexture(
 
   c2d.clearRect(0, 0, w, h);
   c2d.fillStyle = color;
-  c2d.font = `${fontSize}px sans-serif`;
+  c2d.font = `${fontSize}px ${fontFamily}`;
   c2d.textAlign = align;
   c2d.textBaseline = 'top';
 
@@ -96,9 +148,7 @@ function createTextTexture(
   const lineHeightPx = fontSize * lineHeight;
 
   // Total text block height: (N-1) gaps + 1 line of fontSize
-  const totalHeight = lines.length > 1
-    ? (lines.length - 1) * lineHeightPx + fontSize
-    : fontSize;
+  const totalHeight = lines.length > 1 ? (lines.length - 1) * lineHeightPx + fontSize : fontSize;
   const verticalAlign = data.verticalAlign ?? 'top';
   let startY = 0;
   if (verticalAlign === 'middle') {

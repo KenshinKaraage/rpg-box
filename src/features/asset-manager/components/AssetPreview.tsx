@@ -1,8 +1,30 @@
 'use client';
 
+import { useId } from 'react';
 import { Edit2, Folder, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AssetReference } from '@/types/asset';
+
+function FontPreview({ data, name }: { data: string; name: string }) {
+  const fontId = useId();
+  const family = `preview-${fontId}`;
+
+  return (
+    <div className="flex w-full flex-col items-center gap-4 px-2">
+      <style>{`@font-face { font-family: '${family}'; src: url('${data}'); }`}</style>
+      <p className="text-xs text-muted-foreground">{name}</p>
+      <p className="text-4xl" style={{ fontFamily: `'${family}', sans-serif` }}>
+        Aa あア 漢字
+      </p>
+      <p className="text-lg" style={{ fontFamily: `'${family}', sans-serif` }}>
+        The quick brown fox jumps over the lazy dog.
+      </p>
+      <p className="text-base" style={{ fontFamily: `'${family}', sans-serif` }}>
+        いろはにほへと ちりぬるを 0123456789
+      </p>
+    </div>
+  );
+}
 
 interface AssetPreviewProps {
   asset: AssetReference | null;
@@ -90,6 +112,7 @@ export function AssetPreview({ asset, folderName, onRename, onDelete }: AssetPre
             <audio src={asset.data} controls className="w-full max-w-xs" />
           </div>
         )}
+        {asset.type === 'font' && <FontPreview data={asset.data} name={asset.name} />}
       </div>
 
       {/* 情報領域 */}

@@ -138,4 +138,8 @@ export const DEFAULT_ASSET_GROUPS: DefaultAssetGroup[] = [
       { path: '/assets/images/enemy/whiteDragon.bmp', name: 'enemy_white_dragon' },
     ],
   },
+  {
+    folderName: 'フォント',
+    assets: [{ path: '/assets/fonts/PixelMplus10-Regular.ttf', name: 'font_pixel' }],
+  },
 ];

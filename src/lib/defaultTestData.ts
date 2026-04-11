@@ -30,6 +30,7 @@ import {
   shopCanvas,
   skillScreenCanvas,
   battleCanvas,
+  fontTestCanvas,
 } from './defaultTestCanvases';
 import {
   messageScript,
@@ -70,6 +71,7 @@ import {
   battleEnemyAIScript,
   battleExecuteScript,
   battleResultScript,
+  fontTestScript,
 } from './defaultTestScripts';
 import { sampleDataEntries, createTestVariables } from './defaultTestEntries';
 import { createTestMap, createNpcPrefabs } from './defaultTestMap';
@@ -86,6 +88,27 @@ function alignCanvas(canvas: EditorUICanvas): EditorUICanvas {
     if (pos) {
       obj.transform.x = pos.x;
       obj.transform.y = pos.y;
+    }
+  }
+  return clone;
+}
+
+/** キャンバス内コンポーネントのアセット名をIDに解決する */
+function resolveCanvasAssetIds(canvas: EditorUICanvas, resolve: AssetNameToId): EditorUICanvas {
+  const clone = structuredClone(canvas);
+  for (const obj of clone.objects) {
+    for (const comp of obj.components) {
+      const data = comp.data as Record<string, unknown> | undefined;
+      if (!data) continue;
+      if (typeof data.imageId === 'string' && data.imageId) {
+        data.imageId = resolve(data.imageId);
+      }
+      if (typeof data.fontId === 'string' && data.fontId) {
+        data.fontId = resolve(data.fontId);
+      }
+      if (typeof data.effectId === 'string' && data.effectId) {
+        data.effectId = resolve(data.effectId);
+      }
     }
   }
   return clone;
@@ -195,6 +218,9 @@ export async function loadDefaultTestData(): Promise<void> {
   if (!state.uiCanvases.find((c) => c.id === 'battle')) {
     state.addUICanvas(alignCanvas(battleCanvas));
   }
+  if (!state.uiCanvases.find((c) => c.id === 'font_test')) {
+    state.addUICanvas(alignCanvas(resolveCanvasAssetIds(fontTestCanvas, resolveAssetId)));
+  }
 
   // Prefab（NPC テンプレート）
   const npcPrefabs = createNpcPrefabs(resolveAssetId);
@@ -252,6 +278,7 @@ export async function loadDefaultTestData(): Promise<void> {
     inputTestScript,
     effectTestScript,
     animTestScript,
+    fontTestScript,
   ];
   for (const script of scriptsToAdd) {
     if (!state.scripts.find((s) => s.id === script.id)) {

@@ -48,6 +48,7 @@ export async function importDefaultAssets(
       }
 
       const isAudio = /\.(mp3|wav|ogg)$/i.test(entry.path);
+      const isFont = /\.(ttf|otf|woff2?)$/i.test(entry.path);
       const assetId = generateId('asset', allAssetIds);
       allAssetIds.push(assetId);
 
@@ -56,6 +57,15 @@ export async function importDefaultAssets(
           id: assetId,
           name: entry.name,
           type: 'audio',
+          folderId: folder.id,
+          data,
+          metadata: { fileSize: blob.size },
+        });
+      } else if (isFont) {
+        addAsset({
+          id: assetId,
+          name: entry.name,
+          type: 'font',
           folderId: folder.id,
           data,
           metadata: { fileSize: blob.size },

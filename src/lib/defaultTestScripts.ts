@@ -3396,3 +3396,21 @@ msgWin.visible = false;`,
   icon: 'swords',
   color: '#ef4444',
 };
+
+// ── Script: フォントテスト ──
+
+export const fontTestScript: Script = {
+  id: 'font_test',
+  name: 'フォントテスト',
+  callId: 'font_test',
+  type: 'event',
+  content: `UI["font_test"].show();
+await Input.waitKey("cancel");
+UI["font_test"].hide();`,
+  args: [],
+  returns: [],
+  fields: [],
+  isAsync: true,
+  icon: 'type',
+  color: '#8b5cf6',
+};

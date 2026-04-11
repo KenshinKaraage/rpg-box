@@ -38,6 +38,7 @@ import { DataListFieldType } from './DataListFieldType';
 import { ClassListFieldType } from './ClassListFieldType';
 import { DataTableFieldType } from './DataTableFieldType';
 import { EffectFieldType } from './EffectFieldType';
+import { FontFieldType } from './FontFieldType';
 
 export {
   NumberFieldType,
@@ -49,6 +50,7 @@ export {
   ClassFieldType,
   ImageFieldType,
   AudioFieldType,
+  FontFieldType,
   DataSelectFieldType,
   DataListFieldType,
   ClassListFieldType,
@@ -77,3 +79,4 @@ registerFieldType('dataList', DataListFieldType);
 registerFieldType('classList', ClassListFieldType);
 registerFieldType('dataTable', DataTableFieldType);
 registerFieldType('effect', EffectFieldType);
+registerFieldType('font', FontFieldType);

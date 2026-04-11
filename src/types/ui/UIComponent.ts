@@ -20,6 +20,7 @@ export type PropertyDef = {
   | { type: 'color' }
   | { type: 'colorAlpha' }
   | { type: 'assetImage' }
+  | { type: 'font' }
   | { type: 'text'; placeholder?: string }
   | { type: 'textarea'; placeholder?: string }
 );

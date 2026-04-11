@@ -470,6 +470,15 @@ export function createTestMap(resolveAssetId: AssetNameToId): GameMap {
             createScriptActions('battle', [{ enemyGroupId: 'field_slime' }]),
             resolveAssetId
           ),
+          // フォントテスト
+          createNpcObject(
+            'npc_font_test',
+            'フォント係',
+            13,
+            7,
+            createScriptActions('font_test', [{}]),
+            resolveAssetId
+          ),
         ],
       },
     ],

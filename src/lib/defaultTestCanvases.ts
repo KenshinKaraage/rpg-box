@@ -6239,3 +6239,149 @@ export const battleCanvas: EditorUICanvas = {
   objects: createBattleObjects(),
   functions: [],
 };
+
+// ── UICanvas: フォントテスト画面 ──
+
+function ft(x: number, y: number, w: number, h: number) {
+  return {
+    x,
+    y,
+    width: w,
+    height: h,
+    anchorX: 'left' as const,
+    anchorY: 'top' as const,
+    pivotX: 0,
+    pivotY: 0,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    visible: true,
+  };
+}
+
+function createFontTestObjects(): EditorUIObject[] {
+  const objects: EditorUIObject[] = [];
+
+  // 背景（半透明黒）
+  objects.push({
+    id: 'fonttest_bg',
+    name: 'background',
+    transform: ft(0, 0, 640, 480),
+    parentId: undefined,
+    components: [
+      createUIComponentData('shape', {
+        shapeType: 'rectangle',
+        fillColor: '#000000',
+        opacity: 0.8,
+      }),
+    ],
+  });
+
+  // タイトル（PixelMplusフォント使用）
+  objects.push({
+    id: 'fonttest_title',
+    name: 'title',
+    transform: ft(20, 20, 600, 40),
+    parentId: undefined,
+    components: [
+      createUIComponentData('text', {
+        content: 'PixelMplus10 フォントテスト',
+        fontSize: 24,
+        fontId: 'font_pixel',
+        color: '#ffffff',
+        align: 'center',
+        verticalAlign: 'middle',
+      }),
+    ],
+  });
+
+  // サンプルテキスト各種サイズ
+  const samples = [
+    { size: 10, text: '10px: あいうえおかきくけこ ABCDEFG 0123456789' },
+    { size: 14, text: '14px: 勇者は旅立った！ The hero set out on a journey!' },
+    { size: 16, text: '16px: スライムが あらわれた！' },
+    { size: 20, text: '20px: レベルが あがった！' },
+    { size: 24, text: '24px: ゲームオーバー' },
+  ];
+
+  samples.forEach((s, i) => {
+    objects.push({
+      id: `fonttest_sample_${i}`,
+      name: `sample_${s.size}px`,
+      transform: ft(20, 80 + i * 50, 600, 40),
+      parentId: undefined,
+      components: [
+        createUIComponentData('text', {
+          content: s.text,
+          fontSize: s.size,
+          fontId: 'font_pixel',
+          color: '#ffffff',
+          align: 'left',
+          verticalAlign: 'middle',
+        }),
+      ],
+    });
+  });
+
+  // sans-serif 比較テキスト
+  objects.push({
+    id: 'fonttest_comparison',
+    name: 'comparison_default',
+    transform: ft(20, 340, 600, 40),
+    parentId: undefined,
+    components: [
+      createUIComponentData('text', {
+        content: '比較(デフォルト): あいうえお ABCDE 12345',
+        fontSize: 16,
+        color: '#aaaaaa',
+        align: 'left',
+        verticalAlign: 'middle',
+      }),
+    ],
+  });
+
+  // PixelMplus 比較テキスト
+  objects.push({
+    id: 'fonttest_comparison_pixel',
+    name: 'comparison_pixel',
+    transform: ft(20, 380, 600, 40),
+    parentId: undefined,
+    components: [
+      createUIComponentData('text', {
+        content: '比較(PixelMplus): あいうえお ABCDE 12345',
+        fontSize: 16,
+        fontId: 'font_pixel',
+        color: '#ffffff',
+        align: 'left',
+        verticalAlign: 'middle',
+      }),
+    ],
+  });
+
+  // 閉じるヒント
+  objects.push({
+    id: 'fonttest_hint',
+    name: 'hint',
+    transform: ft(0, 440, 640, 30),
+    parentId: undefined,
+    components: [
+      createUIComponentData('text', {
+        content: '--- キャンセルボタンで閉じる ---',
+        fontSize: 14,
+        fontId: 'font_pixel',
+        color: '#888888',
+        align: 'center',
+        verticalAlign: 'middle',
+      }),
+    ],
+  });
+
+  return objects;
+}
+
+export const fontTestCanvas: EditorUICanvas = {
+  id: 'font_test',
+  name: 'フォントテスト',
+  objects: createFontTestObjects(),
+  functions: [],
+};
