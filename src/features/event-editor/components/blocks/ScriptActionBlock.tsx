@@ -16,6 +16,8 @@ import { useStore } from '@/stores';
 import { getArgField } from '../arg-fields';
 import '../arg-fields/register';
 import { ScriptPickerModal } from '../ScriptPickerModal';
+import { ObjectNameSelect } from '../shared/ObjectNameSelect';
+import { ObjectVariableSelect } from '../shared/ObjectVariableSelect';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { ScriptAction, ScriptResultTarget } from '@/engine/actions/ScriptAction';
 import type { ScriptArg } from '@/types/script';
@@ -33,6 +35,24 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
   const eventScripts = scripts.filter((s) => s.type === 'event');
   const selectedScript = scripts.find((s) => s.id === scriptAction.scriptId);
   const hasReturns = selectedScript && selectedScript.returns.length > 0;
+
+  // 返り値の型情報（最初の返り値で判定）
+  const returnType = selectedScript?.returns[0]?.fieldType ?? null;
+  const returnClassId = selectedScript?.returns[0]?.classId;
+
+  // 返り値の型に一致するゲーム変数のみ表示
+  const filteredVariables = useMemo(() => {
+    if (!returnType) return variables;
+    return variables.filter((v) => {
+      if (v.fieldType.type !== returnType) return false;
+      if (returnType === 'class' && returnClassId) {
+        const cid =
+          'classId' in v.fieldType ? (v.fieldType as { classId: string }).classId : undefined;
+        return cid === returnClassId;
+      }
+      return true;
+    });
+  }, [variables, returnType, returnClassId]);
 
   const handleScriptChange = (scriptId: string) => {
     const updated = cloneAction(scriptAction);
@@ -130,43 +150,64 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
                 </SelectContent>
               </Select>
               {scriptAction.resultTarget?.type === 'object' && (
-                <Input
-                  className="h-6 w-24 text-[10px]"
-                  placeholder="オブジェクト名"
+                <ObjectNameSelect
                   value={scriptAction.resultTarget.objectName ?? ''}
-                  onChange={(e) => handleResultTargetChange({
-                    ...scriptAction.resultTarget!,
-                    objectName: e.target.value,
-                  })}
+                  onValueChange={(v) =>
+                    handleResultTargetChange({
+                      ...scriptAction.resultTarget!,
+                      objectName: v,
+                    })
+                  }
+                  className="h-6 w-28 text-[10px]"
                 />
               )}
-              {scriptAction.resultTarget?.type === 'game' && (
-                <Select
-                  value={scriptAction.resultTarget.variableName || '__none__'}
-                  onValueChange={(v) => handleResultTargetChange({
-                    ...scriptAction.resultTarget!,
-                    variableName: v === '__none__' ? '' : v,
-                  })}
-                >
-                  <SelectTrigger className="h-6 flex-1 text-[10px]">
-                    <SelectValue placeholder="変数を選択..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">（選択なし）</SelectItem>
-                    {variables.map((v) => (
-                      <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              {scriptAction.resultTarget?.type === 'game' &&
+                (filteredVariables.length > 0 ? (
+                  <Select
+                    value={scriptAction.resultTarget.variableName || '__none__'}
+                    onValueChange={(v) =>
+                      handleResultTargetChange({
+                        ...scriptAction.resultTarget!,
+                        variableName: v === '__none__' ? '' : v,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-6 flex-1 text-[10px]">
+                      <SelectValue placeholder="変数を選択..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">（選択なし）</SelectItem>
+                      {filteredVariables.map((v) => (
+                        <SelectItem key={v.id} value={v.name}>
+                          <span className="mr-1 text-[9px] text-muted-foreground">
+                            {v.fieldType.type}
+                          </span>
+                          {v.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Select disabled>
+                    <SelectTrigger className="h-6 flex-1 text-[10px]">
+                      <SelectValue placeholder="一致する型の変数なし" />
+                    </SelectTrigger>
+                    <SelectContent />
+                  </Select>
+                ))}
               {scriptAction.resultTarget?.type === 'object' && (
-                <ResultObjectVariableSelect
+                <ObjectVariableSelect
                   objectName={scriptAction.resultTarget.objectName ?? ''}
                   value={scriptAction.resultTarget.variableName ?? ''}
-                  onValueChange={(v) => handleResultTargetChange({
-                    ...scriptAction.resultTarget!,
-                    variableName: v,
-                  })}
+                  onValueChange={(v) =>
+                    handleResultTargetChange({
+                      ...scriptAction.resultTarget!,
+                      variableName: v,
+                    })
+                  }
+                  filterType={returnType ?? undefined}
+                  filterClassId={returnClassId}
+                  className="h-6 flex-1 text-[10px]"
                 />
               )}
             </div>
@@ -178,7 +219,15 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
 }
 
 /** 引数1行: ラベル + fieldType に応じた入力UI */
-function ArgFieldRow({ arg, value, onChange }: { arg: ScriptArg; value: unknown; onChange: (v: unknown) => void }) {
+function ArgFieldRow({
+  arg,
+  value,
+  onChange,
+}: {
+  arg: ScriptArg;
+  value: unknown;
+  onChange: (v: unknown) => void;
+}) {
   if (arg.isArray) {
     return <ArrayArgField arg={arg} value={value} onChange={onChange} />;
   }
@@ -187,11 +236,19 @@ function ArgFieldRow({ arg, value, onChange }: { arg: ScriptArg; value: unknown;
 
   return (
     <div className="flex items-center gap-1">
-      <Label className="w-20 shrink-0 truncate text-[10px]" title={`${arg.name} (${arg.fieldType})`}>
+      <Label
+        className="w-20 shrink-0 truncate text-[10px]"
+        title={`${arg.name} (${arg.fieldType})`}
+      >
         {arg.name}
       </Label>
       {Renderer ? (
-        <Renderer value={value} onChange={onChange} placeholder={arg.fieldType} referenceTypeId={arg.referenceTypeId} />
+        <Renderer
+          value={value}
+          onChange={onChange}
+          placeholder={arg.fieldType}
+          referenceTypeId={arg.referenceTypeId}
+        />
       ) : (
         <Input
           className="h-6 flex-1 text-[10px]"
@@ -205,7 +262,15 @@ function ArgFieldRow({ arg, value, onChange }: { arg: ScriptArg; value: unknown;
 }
 
 /** 配列引数: リスト形式で追加/削除 */
-function ArrayArgField({ arg, value, onChange }: { arg: ScriptArg; value: unknown; onChange: (v: unknown) => void }) {
+function ArrayArgField({
+  arg,
+  value,
+  onChange,
+}: {
+  arg: ScriptArg;
+  value: unknown;
+  onChange: (v: unknown) => void;
+}) {
   const items = Array.isArray(value) ? value : [];
   const Renderer = getArgField(arg.fieldType);
 
@@ -238,7 +303,12 @@ function ArrayArgField({ arg, value, onChange }: { arg: ScriptArg; value: unknow
         <div key={i} className="flex items-center gap-1 pl-2">
           <span className="w-4 shrink-0 text-right text-[9px] text-muted-foreground">{i}</span>
           {Renderer ? (
-            <Renderer value={item} onChange={(v: unknown) => handleItemChange(i, v)} placeholder={arg.fieldType} referenceTypeId={arg.referenceTypeId} />
+            <Renderer
+              value={item}
+              onChange={(v: unknown) => handleItemChange(i, v)}
+              placeholder={arg.fieldType}
+              referenceTypeId={arg.referenceTypeId}
+            />
           ) : (
             <Input
               className="h-6 flex-1 text-[10px]"
@@ -247,7 +317,12 @@ function ArrayArgField({ arg, value, onChange }: { arg: ScriptArg; value: unknow
               onChange={(e) => handleItemChange(i, e.target.value)}
             />
           )}
-          <Button size="sm" variant="ghost" className="h-5 w-5 shrink-0 p-0" onClick={() => handleRemove(i)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-5 w-5 shrink-0 p-0"
+            onClick={() => handleRemove(i)}
+          >
             <X className="h-3 w-3" />
           </Button>
         </div>
@@ -256,66 +331,5 @@ function ArrayArgField({ arg, value, onChange }: { arg: ScriptArg; value: unknow
         <div className="pl-2 text-[9px] text-muted-foreground">（空の配列）</div>
       )}
     </div>
-  );
-}
-
-/** オブジェクト変数ドロップダウン（マップオブジェクトの VariablesComponent から取得） */
-function ResultObjectVariableSelect({
-  objectName,
-  value,
-  onValueChange,
-}: {
-  objectName: string;
-  value: string;
-  onValueChange: (name: string) => void;
-}) {
-  const maps = useStore((s) => s.maps);
-
-  const objVars = useMemo(() => {
-    if (!objectName) return [];
-    for (const map of maps) {
-      for (const layer of map.layers) {
-        if (layer.type !== 'object' || !layer.objects) continue;
-        const obj = layer.objects.find((o) => o.name === objectName);
-        if (!obj) continue;
-        const varsComp = obj.components.find((c) => c.type === 'variables');
-        if (!varsComp) continue;
-        const data = typeof (varsComp as unknown as { serialize?: () => unknown }).serialize === 'function'
-          ? (varsComp as unknown as { serialize: () => Record<string, unknown> }).serialize()
-          : (varsComp as unknown as { data: Record<string, unknown> }).data ?? {};
-        const variables = data.variables as Record<string, unknown> | undefined;
-        if (!variables) return [];
-        return Object.entries(variables).map(([name, v]) => {
-          const isNew = v && typeof v === 'object' && 'fieldType' in (v as Record<string, unknown>);
-          const fieldType = isNew ? (v as Record<string, unknown>).fieldType as string : typeof v;
-          return { name, fieldType };
-        });
-      }
-    }
-    return [];
-  }, [maps, objectName]);
-
-  return objVars.length > 0 ? (
-    <Select value={value || '__none__'} onValueChange={(v) => onValueChange(v === '__none__' ? '' : v)}>
-      <SelectTrigger className="h-6 flex-1 text-[10px]">
-        <SelectValue placeholder="変数を選択..." />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="__none__">（選択なし）</SelectItem>
-        {objVars.map((v) => (
-          <SelectItem key={v.name} value={v.name}>
-            <span className="mr-1 text-[9px] text-muted-foreground">{v.fieldType}</span>
-            {v.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  ) : (
-    <Input
-      className="h-6 flex-1 text-[10px]"
-      placeholder="変数名"
-      value={value}
-      onChange={(e) => onValueChange(e.target.value)}
-    />
   );
 }

@@ -23,6 +23,8 @@ import type { EventAction } from '@/engine/actions/EventAction';
 import type { EditableAction } from '@/types/ui/actions/UIAction';
 import type { Variable } from '@/types/variable';
 import { ActionBlockEditor } from '../ActionBlockEditor';
+import { ObjectNameSelect } from '../shared/ObjectNameSelect';
+import { ObjectVariableSelect } from '../shared/ObjectVariableSelect';
 
 const ALL_OPERATORS = [
   { value: '==', label: '==' },
@@ -187,26 +189,33 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
           </Select>
           {condAction.condition.left.type === 'objectVariable' ? (
             <>
-              <Input
-                className="h-7 w-20 text-xs"
-                placeholder="OBJ名"
+              <ObjectNameSelect
                 value={condAction.condition.left.objectName}
-                onChange={(e) => handleConditionChange({
-                  left: { ...condAction.condition.left, objectName: e.target.value } as ConditionOperand,
-                })}
+                onValueChange={(v) =>
+                  handleConditionChange({
+                    left: { ...condAction.condition.left, objectName: v } as ConditionOperand,
+                  })
+                }
+                className="h-7 w-28 text-xs"
               />
-              <Input
-                className="h-7 flex-1 text-xs"
-                placeholder="変数名"
+              <ObjectVariableSelect
+                objectName={condAction.condition.left.objectName}
                 value={condAction.condition.left.variableName}
-                onChange={(e) => handleConditionChange({
-                  left: { ...condAction.condition.left, variableName: e.target.value } as ConditionOperand,
-                })}
+                onValueChange={(v) =>
+                  handleConditionChange({
+                    left: { ...condAction.condition.left, variableName: v } as ConditionOperand,
+                  })
+                }
+                className="h-7 flex-1 text-xs"
               />
             </>
           ) : (
             <VariableSelect
-              value={condAction.condition.left.type === 'variable' ? condAction.condition.left.variableId : ''}
+              value={
+                condAction.condition.left.type === 'variable'
+                  ? condAction.condition.left.variableId
+                  : ''
+              }
               variables={leftVariables}
               onValueChange={handleLeftVariableChange}
               testId="left-variable-select"
@@ -258,7 +267,11 @@ export function ConditionalActionBlock({ action, onChange, onDelete }: ActionBlo
             />
           ) : (
             <Input
-              value={String(condAction.condition.right.type === 'literal' ? condAction.condition.right.value ?? '' : '')}
+              value={String(
+                condAction.condition.right.type === 'literal'
+                  ? (condAction.condition.right.value ?? '')
+                  : ''
+              )}
               onChange={(e) => handleRightLiteralChange(e.target.value)}
               placeholder="値"
               className="flex-1"

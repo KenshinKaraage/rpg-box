@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +13,8 @@ import {
 } from '@/components/ui/select';
 import { useStore } from '@/stores';
 import { ActionBlockEditor } from '../ActionBlockEditor';
+import { ObjectNameSelect } from '../shared/ObjectNameSelect';
+import { ObjectVariableSelect } from '../shared/ObjectVariableSelect';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { SwitchAction } from '@/engine/actions/SwitchAction';
 import type { ConditionOperand } from '@/engine/actions/ConditionalAction';
@@ -31,41 +32,16 @@ function cloneAction(action: SwitchAction): SwitchAction {
 export function SwitchActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const switchAction = action as SwitchAction;
   const variables = useStore((s) => s.variables);
-  const maps = useStore((s) => s.maps);
 
   const isObject = switchAction.operand.type === 'objectVariable';
   const objectName = isObject ? (switchAction.operand as { objectName: string }).objectName : '';
 
-  // オブジェクト変数リスト
-  const objVars = useMemo(() => {
-    if (!objectName) return [];
-    for (const map of maps) {
-      for (const layer of map.layers) {
-        if (layer.type !== 'object' || !layer.objects) continue;
-        const obj = layer.objects.find((o) => o.name === objectName);
-        if (!obj) continue;
-        const varsComp = obj.components.find((c) => c.type === 'variables');
-        if (!varsComp) continue;
-        const data = typeof (varsComp as unknown as { serialize?: () => unknown }).serialize === 'function'
-          ? (varsComp as unknown as { serialize: () => Record<string, unknown> }).serialize()
-          : (varsComp as unknown as { data: Record<string, unknown> }).data ?? {};
-        const vars = data.variables as Record<string, unknown> | undefined;
-        if (!vars) return [];
-        return Object.entries(vars).map(([name, v]) => {
-          const isNew = v && typeof v === 'object' && 'fieldType' in (v as Record<string, unknown>);
-          const fieldType = isNew ? (v as Record<string, unknown>).fieldType as string : typeof v;
-          return { name, fieldType };
-        });
-      }
-    }
-    return [];
-  }, [maps, objectName]);
-
   const handleScopeChange = (scope: string) => {
     const updated = cloneAction(switchAction);
-    updated.operand = scope === 'object'
-      ? { type: 'objectVariable', objectName: '', variableName: '' }
-      : { type: 'variable', variableId: '' };
+    updated.operand =
+      scope === 'object'
+        ? { type: 'objectVariable', objectName: '', variableName: '' }
+        : { type: 'variable', variableId: '' };
     onChange(updated);
   };
 
@@ -133,53 +109,42 @@ export function SwitchActionBlock({ action, onChange, onDelete }: ActionBlockPro
 
           {isObject ? (
             <>
-              <Input
-                className="h-7 w-20 text-xs"
-                placeholder="OBJ名"
+              <ObjectNameSelect
                 value={objectName}
-                onChange={(e) => handleOperandChange({
-                  type: 'objectVariable',
-                  objectName: e.target.value,
-                  variableName: switchAction.operand.type === 'objectVariable' ? switchAction.operand.variableName : '',
-                })}
+                onValueChange={(v) =>
+                  handleOperandChange({
+                    type: 'objectVariable',
+                    objectName: v,
+                    variableName:
+                      switchAction.operand.type === 'objectVariable'
+                        ? switchAction.operand.variableName
+                        : '',
+                  })
+                }
+                className="h-7 w-28 text-xs"
               />
-              {objVars.length > 0 ? (
-                <Select
-                  value={switchAction.operand.type === 'objectVariable' ? switchAction.operand.variableName : ''}
-                  onValueChange={(v) => handleOperandChange({
+              <ObjectVariableSelect
+                objectName={objectName}
+                value={
+                  switchAction.operand.type === 'objectVariable'
+                    ? switchAction.operand.variableName
+                    : ''
+                }
+                onValueChange={(v) =>
+                  handleOperandChange({
                     type: 'objectVariable',
                     objectName,
                     variableName: v,
-                  })}
-                >
-                  <SelectTrigger className="h-7 flex-1 text-xs">
-                    <SelectValue placeholder="変数..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {objVars.map((v) => (
-                      <SelectItem key={v.name} value={v.name}>
-                        <span className="mr-1 text-[9px] text-muted-foreground">{v.fieldType}</span>
-                        {v.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  className="h-7 flex-1 text-xs"
-                  placeholder="変数名"
-                  value={switchAction.operand.type === 'objectVariable' ? switchAction.operand.variableName : ''}
-                  onChange={(e) => handleOperandChange({
-                    type: 'objectVariable',
-                    objectName,
-                    variableName: e.target.value,
-                  })}
-                />
-              )}
+                  })
+                }
+                className="h-7 flex-1 text-xs"
+              />
             </>
           ) : (
             <Select
-              value={switchAction.operand.type === 'variable' ? switchAction.operand.variableId : ''}
+              value={
+                switchAction.operand.type === 'variable' ? switchAction.operand.variableId : ''
+              }
               onValueChange={(v) => handleOperandChange({ type: 'variable', variableId: v })}
             >
               <SelectTrigger className="h-7 flex-1 text-xs">
@@ -187,7 +152,9 @@ export function SwitchActionBlock({ action, onChange, onDelete }: ActionBlockPro
               </SelectTrigger>
               <SelectContent>
                 {variables.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                  <SelectItem key={v.id} value={v.id}>
+                    {v.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -205,25 +172,37 @@ export function SwitchActionBlock({ action, onChange, onDelete }: ActionBlockPro
                 onChange={(e) => handleCaseValueChange(i, e.target.value)}
               />
               <span className="flex-1" />
-              <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => handleDeleteCase(i)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-5 w-5 p-0"
+                onClick={() => handleDeleteCase(i)}
+              >
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>
             <div className="mt-1 pl-2 border-l-2 border-primary/30">
-              <ActionBlockEditor actions={c.actions as EditableAction[]} onChange={(a) => handleCaseActionsChange(i, a)} />
+              <ActionBlockEditor
+                actions={c.actions as EditableAction[]}
+                onChange={(a) => handleCaseActionsChange(i, a)}
+              />
             </div>
           </div>
         ))}
 
         <Button size="sm" variant="outline" className="w-full text-xs" onClick={handleAddCase}>
-          <Plus className="mr-1 h-3 w-3" />ケース追加
+          <Plus className="mr-1 h-3 w-3" />
+          ケース追加
         </Button>
 
         {/* デフォルト */}
         <div className="rounded border border-dashed p-2">
           <Label className="text-[10px] text-muted-foreground">それ以外</Label>
           <div className="mt-1 pl-2 border-l-2 border-muted-foreground/30">
-            <ActionBlockEditor actions={switchAction.defaultActions as EditableAction[]} onChange={handleDefaultActionsChange} />
+            <ActionBlockEditor
+              actions={switchAction.defaultActions as EditableAction[]}
+              onChange={handleDefaultActionsChange}
+            />
           </div>
         </div>
       </div>

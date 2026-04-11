@@ -13,6 +13,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStore } from '@/stores';
+import { ObjectNameSelect } from '../shared/ObjectNameSelect';
+import { ObjectVariableSelect as SharedObjectVariableSelect } from '../shared/ObjectVariableSelect';
+import { useObjectVariables } from '../../hooks/useMapObjects';
+import { getValueSourceTypes, createDefaultValueSource } from '@/engine/values';
+import '@/engine/values/register';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { VariableOpAction } from '@/engine/actions/VariableOpAction';
 import type { ValueSource } from '@/engine/values/types';
@@ -27,28 +32,8 @@ const OPERATIONS = [
   { value: 'divide', label: '除算' },
 ] as const;
 
-const VALUE_SOURCE_TYPES = [
-  { value: 'literal', label: '直値' },
-  { value: 'variable', label: '変数' },
-  { value: 'data', label: 'データ参照' },
-  { value: 'random', label: 'ランダム' },
-] as const;
-
 function cloneAction(action: VariableOpAction): VariableOpAction {
   return Object.assign(Object.create(Object.getPrototypeOf(action)), action);
-}
-
-function createDefaultValueSource(type: ValueSource['type']): ValueSource {
-  switch (type) {
-    case 'literal':
-      return { type: 'literal', value: 0 };
-    case 'variable':
-      return { type: 'variable', variableId: '' };
-    case 'data':
-      return { type: 'data', dataTypeId: '', entryId: '', fieldId: '' };
-    case 'random':
-      return { type: 'random', min: 0, max: 100 };
-  }
 }
 
 interface ResolvedType {
@@ -95,6 +80,8 @@ function resolveValueSourceType(
       }
       return { type: field.type, classId: field.classId };
     }
+    case 'objectVariable':
+      return null; // resolved at runtime; no static type info here
     case 'random':
       return { type: 'number' };
   }
@@ -130,10 +117,21 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
   const dataEntries = useStore((state) => state.dataEntries);
   const classes = useStore((state) => state.classes);
 
-  // Target variable type (with classId)
-  const targetVariable = variables.find((v) => v.id === varAction.variableId);
-  const targetType = targetVariable?.fieldType.type ?? null;
-  const targetClassId = targetVariable ? getClassId(targetVariable) : undefined;
+  // Object variable info (when target scope is 'object')
+  const targetObjectName = varAction.target?.scope === 'object' ? varAction.target.objectName : '';
+  const objectVars = useObjectVariables(targetObjectName);
+
+  // Target variable type (with classId) — from game variables OR object variables
+  const targetVariable =
+    varAction.target?.scope === 'object'
+      ? null
+      : variables.find((v) => v.id === varAction.variableId);
+  const targetObjVar =
+    varAction.target?.scope === 'object'
+      ? objectVars.find((v) => v.name === varAction.variableId)
+      : null;
+  const targetType = targetVariable?.fieldType.type ?? targetObjVar?.fieldType ?? null;
+  const targetClassId = targetVariable ? getClassId(targetVariable) : targetObjVar?.classId;
   const targetResolved: ResolvedType | null = targetType
     ? { type: targetType, classId: targetClassId }
     : null;
@@ -383,15 +381,14 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
             </SelectContent>
           </Select>
           {varAction.target?.scope === 'object' && (
-            <Input
-              className="h-7 flex-1 text-xs"
-              placeholder="オブジェクト名"
+            <ObjectNameSelect
               value={varAction.target.objectName}
-              onChange={(e) => {
+              onValueChange={(v) => {
                 const updated = cloneAction(varAction);
-                updated.target = { scope: 'object', objectName: e.target.value };
+                updated.target = { scope: 'object', objectName: v };
                 onChange(updated);
               }}
+              className="h-7 flex-1 text-xs"
             />
           )}
         </div>
@@ -400,7 +397,7 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
         <div className="flex items-center gap-2">
           <Label className="w-16 text-xs text-muted-foreground">変数</Label>
           {varAction.target?.scope === 'object' ? (
-            <ObjectVariableSelect
+            <SharedObjectVariableSelect
               objectName={varAction.target.objectName}
               value={varAction.variableId}
               onValueChange={handleVariableIdChange}
@@ -475,7 +472,7 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {VALUE_SOURCE_TYPES.map((vst) => (
+              {getValueSourceTypes().map((vst) => (
                 <SelectItem key={vst.value} value={vst.value}>
                   {vst.label}
                 </SelectItem>
@@ -506,6 +503,39 @@ export function VariableOpActionBlock({ action, onChange, onDelete }: ActionBloc
               testId="value-variable-select"
               classes={classes}
               emptyPlaceholder="一致する型の変数がありません"
+            />
+          </div>
+        )}
+
+        {varAction.value.type === 'objectVariable' && (
+          <div className="flex items-center gap-2 pl-18">
+            <ObjectNameSelect
+              value={varAction.value.objectName}
+              onValueChange={(v) => {
+                const updated = cloneAction(varAction);
+                updated.value = { type: 'objectVariable', objectName: v, variableName: '' };
+                onChange(updated);
+              }}
+              className="h-7 w-28 text-xs"
+            />
+            <SharedObjectVariableSelect
+              objectName={varAction.value.objectName}
+              value={varAction.value.variableName}
+              onValueChange={(v) => {
+                const updated = cloneAction(varAction);
+                updated.value = {
+                  ...(varAction.value as {
+                    type: 'objectVariable';
+                    objectName: string;
+                    variableName: string;
+                  }),
+                  variableName: v,
+                };
+                onChange(updated);
+              }}
+              filterType={targetType ?? undefined}
+              filterClassId={targetClassId}
+              className="h-7 flex-1 text-xs"
             />
           </div>
         )}
@@ -679,67 +709,5 @@ function VariableSelect({
       </SelectTrigger>
       <SelectContent />
     </Select>
-  );
-}
-
-/** オブジェクト変数のドロップダウン: マップオブジェクトの VariablesComponent から変数一覧を取得 */
-function ObjectVariableSelect({
-  objectName,
-  value,
-  onValueChange,
-}: {
-  objectName: string;
-  value: string;
-  onValueChange: (name: string) => void;
-}) {
-  const maps = useStore((s) => s.maps);
-
-  // 全マップから objectName に一致するオブジェクトを検索
-  const objVars = useMemo(() => {
-    if (!objectName) return [];
-    for (const map of maps) {
-      for (const layer of map.layers) {
-        if (layer.type !== 'object' || !layer.objects) continue;
-        const obj = layer.objects.find((o) => o.name === objectName);
-        if (!obj) continue;
-        const varsComp = obj.components.find((c) => c.type === 'variables');
-        if (!varsComp) continue;
-        // serialize 形式か Component インスタンスかを判定
-        const data = typeof (varsComp as unknown as { serialize?: () => unknown }).serialize === 'function'
-          ? (varsComp as unknown as { serialize: () => Record<string, unknown> }).serialize()
-          : (varsComp as unknown as { data: Record<string, unknown> }).data ?? {};
-        const variables = data.variables as Record<string, unknown> | undefined;
-        if (!variables) return [];
-        return Object.entries(variables).map(([name, v]) => {
-          const isNew = v && typeof v === 'object' && 'fieldType' in (v as Record<string, unknown>);
-          const fieldType = isNew ? (v as Record<string, unknown>).fieldType as string : typeof v;
-          return { name, fieldType };
-        });
-      }
-    }
-    return [];
-  }, [maps, objectName]);
-
-  return objVars.length > 0 ? (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="flex-1">
-        <SelectValue placeholder="変数を選択..." />
-      </SelectTrigger>
-      <SelectContent>
-        {objVars.map((v) => (
-          <SelectItem key={v.name} value={v.name}>
-            <span className="mr-2 text-xs text-muted-foreground">{v.fieldType}</span>
-            {v.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  ) : (
-    <Input
-      className="h-7 flex-1 text-xs"
-      placeholder="変数名"
-      value={value}
-      onChange={(e) => onValueChange(e.target.value)}
-    />
   );
 }
