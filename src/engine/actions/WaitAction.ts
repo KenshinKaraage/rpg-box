@@ -12,7 +12,7 @@ export class WaitAction extends EventAction {
     await context.waitFrames(this.frames);
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return { frames: this.frames };
   }
 

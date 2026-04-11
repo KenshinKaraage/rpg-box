@@ -66,7 +66,7 @@ export class ConditionalAction extends EventAction {
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return {
       condition: this.condition,
       thenActions: this.thenActions.map((a) => ({ type: a.type, data: a.toJSON() })),

@@ -14,7 +14,7 @@ export class LogAction extends EventAction {
     console.log('[Game]', this.message);
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return { message: this.message };
   }
 

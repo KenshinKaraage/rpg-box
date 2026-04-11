@@ -35,7 +35,7 @@ export class AudioAction extends EventAction {
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return {
       operation: this.operation,
       audioId: this.audioId,

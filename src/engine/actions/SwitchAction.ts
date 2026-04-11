@@ -50,7 +50,7 @@ export class SwitchAction extends EventAction {
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return {
       operand: this.operand,
       cases: this.cases.map((c) => ({
@@ -63,7 +63,10 @@ export class SwitchAction extends EventAction {
 
   fromJSON(data: Record<string, unknown>): void {
     this.operand = data.operand as ConditionOperand;
-    const cases = data.cases as { value: unknown; actions: { type: string; data: Record<string, unknown> }[] }[];
+    const cases = data.cases as {
+      value: unknown;
+      actions: { type: string; data: Record<string, unknown> }[];
+    }[];
     this.cases = (cases ?? []).map((c) => ({
       value: c.value,
       actions: deserializeActions(c.actions),

@@ -34,7 +34,7 @@ export class MapAction extends EventAction {
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return {
       operation: this.operation,
       targetMapId: this.targetMapId,

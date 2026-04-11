@@ -33,9 +33,9 @@ export class ObjectAction extends EventAction {
     options?: EventExecuteOptions
   ): Promise<void> {
     // オブジェクト解決: "self" はトリガー元、それ以外は名前検索
-    const obj = (this.targetName === 'self'
-      ? options?.selfObject
-      : context.object.find(this.targetName)) as ObjectProxy | null;
+    const obj = (
+      this.targetName === 'self' ? options?.selfObject : context.object.find(this.targetName)
+    ) as ObjectProxy | null;
     if (!obj) return;
 
     switch (this.operation) {
@@ -88,7 +88,7 @@ export class ObjectAction extends EventAction {
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return {
       operation: this.operation,
       targetName: this.targetName,

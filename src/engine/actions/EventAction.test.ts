@@ -21,7 +21,7 @@ class TestAction extends EventAction {
     this.value += 1;
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return { value: this.value };
   }
 

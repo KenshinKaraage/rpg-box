@@ -22,6 +22,12 @@ export interface DataValueSource {
   subFieldId?: string;
 }
 
+export interface ObjectVariableValueSource {
+  type: 'objectVariable';
+  objectName: string;
+  variableName: string;
+}
+
 export interface RandomValueSource {
   type: 'random';
   min: number;
@@ -31,6 +37,7 @@ export interface RandomValueSource {
 export type ValueSource =
   | LiteralValueSource
   | VariableValueSource
+  | ObjectVariableValueSource
   | DataValueSource
   | RandomValueSource;
 
@@ -40,5 +47,7 @@ export type ValueSource =
 
 export interface ValueSourceHandler<T extends ValueSource = ValueSource> {
   type: string;
+  label: string;
+  defaultValue: () => T;
   resolve(source: T, context: GameContext): unknown;
 }

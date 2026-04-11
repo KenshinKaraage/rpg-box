@@ -81,7 +81,7 @@ export class CameraAction extends EventAction {
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return {
       operation: this.operation,
       scale: this.scale,

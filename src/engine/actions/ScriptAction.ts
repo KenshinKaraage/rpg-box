@@ -25,7 +25,12 @@ export class ScriptAction extends EventAction {
   ): Promise<void> {
     const script = context.scriptRunner.findById(this.scriptId);
     if (!script) return;
-    const result = context.scriptRunner.executeById(this.scriptId, context, this.args, options?.selfObject);
+    const result = context.scriptRunner.executeById(
+      this.scriptId,
+      context,
+      this.args,
+      options?.selfObject
+    );
     const value = script.isAsync ? await result : result;
 
     // 返り値を変数に代入
@@ -33,12 +38,16 @@ export class ScriptAction extends EventAction {
       if (this.resultTarget.type === 'game') {
         context.variable.set(this.resultTarget.variableName, value);
       } else if (this.resultTarget.type === 'object' && this.resultTarget.objectName) {
-        context.setObjectVariable(this.resultTarget.objectName, this.resultTarget.variableName, value);
+        context.setObjectVariable(
+          this.resultTarget.objectName,
+          this.resultTarget.variableName,
+          value
+        );
       }
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return {
       scriptId: this.scriptId,
       args: this.args,

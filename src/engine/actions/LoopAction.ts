@@ -24,7 +24,7 @@ export class LoopAction extends EventAction {
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return {
       count: this.count,
       actions: this.actions.map((a) => ({ type: a.type, data: a.toJSON() })),

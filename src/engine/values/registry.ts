@@ -22,6 +22,21 @@ export function resolveValue(source: ValueSource, context: GameContext): unknown
   return handler.resolve(source, context);
 }
 
+/** 登録済みの ValueSource タイプ一覧（label 付き） */
+export function getValueSourceTypes(): { value: string; label: string }[] {
+  return Array.from(handlerRegistry.values()).map((h) => ({
+    value: h.type,
+    label: h.label,
+  }));
+}
+
+/** 登録済みハンドラからデフォルト値を生成 */
+export function createDefaultValueSource(type: string): ValueSource {
+  const handler = handlerRegistry.get(type);
+  if (!handler) throw new Error(`Unknown ValueSource type: ${type}`);
+  return handler.defaultValue();
+}
+
 /** テスト用 */
 export function clearValueSourceRegistry(): void {
   handlerRegistry.clear();

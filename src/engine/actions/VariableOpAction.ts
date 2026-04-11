@@ -5,9 +5,7 @@ import { resolveValue } from '../values';
 import { EventAction } from './EventAction';
 
 /** 変数ターゲット: ゲーム変数 or オブジェクト変数 */
-export type VariableTarget =
-  | { scope: 'game' }
-  | { scope: 'object'; objectName: string };
+export type VariableTarget = { scope: 'game' } | { scope: 'object'; objectName: string };
 
 export class VariableOpAction extends EventAction {
   readonly type = 'variableOp';
@@ -82,7 +80,7 @@ export class VariableOpAction extends EventAction {
     }
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     const json: Record<string, unknown> = {
       variableId: this.variableId,
       operation: this.operation,

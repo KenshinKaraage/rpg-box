@@ -13,7 +13,7 @@ export class CallTemplateAction extends EventAction {
     // No-op: template resolution not yet implemented
   }
 
-  toJSON(): Record<string, unknown> {
+  protected serializeData(): Record<string, unknown> {
     return { templateId: this.templateId, args: this.args };
   }
 

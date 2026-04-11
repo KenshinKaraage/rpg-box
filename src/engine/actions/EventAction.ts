@@ -27,8 +27,13 @@ export abstract class EventAction {
     options?: EventExecuteOptions
   ): Promise<void>;
 
-  /** Serialize to JSON for saving */
-  abstract toJSON(): Record<string, unknown>;
+  /** Serialize action-specific data (subclass override) */
+  protected abstract serializeData(): Record<string, unknown>;
+
+  /** Serialize to JSON for saving — always includes `type` */
+  toJSON(): Record<string, unknown> {
+    return { type: this.type, ...this.serializeData() };
+  }
 
   /** Restore properties from JSON */
   abstract fromJSON(data: Record<string, unknown>): void;
