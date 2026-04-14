@@ -9,6 +9,8 @@ import type { EditableAction } from '@/types/ui/actions/UIAction';
 export class StepTriggerComponent extends Component {
   readonly type = 'stepTrigger';
   readonly label = 'Step Trigger';
+  readonly icon = 'footprints';
+  readonly color = '#f97316';
 
   eventId = '';
   actions: EditableAction[] = [];

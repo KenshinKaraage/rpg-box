@@ -9,6 +9,8 @@ import type { EditableAction } from '@/types/ui/actions/UIAction';
 export class AutoTriggerComponent extends Component {
   readonly type = 'autoTrigger';
   readonly label = 'Auto Trigger';
+  readonly icon = 'zap';
+  readonly color = '#f97316';
 
   eventId = '';
   interval = 0;

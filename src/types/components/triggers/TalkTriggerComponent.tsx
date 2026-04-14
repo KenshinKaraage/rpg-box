@@ -9,6 +9,8 @@ import type { EditableAction } from '@/types/ui/actions/UIAction';
 export class TalkTriggerComponent extends Component {
   readonly type = 'talkTrigger';
   readonly label = 'Talk Trigger';
+  readonly icon = 'message-square';
+  readonly color = '#f97316';
 
   eventId = '';
   direction: 'front' | 'any' = 'front';

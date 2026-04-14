@@ -65,6 +65,12 @@ export abstract class Component {
    */
   abstract readonly label: string;
 
+  /** アイコン名（lucide アイコン） */
+  readonly icon?: string;
+
+  /** 表示カラー（リスト/パネルヘッダー用） */
+  readonly color?: string;
+
   /**
    * コンポーネントをシリアライズ（保存用の形式に変換）
    * @returns シリアライズされたデータ

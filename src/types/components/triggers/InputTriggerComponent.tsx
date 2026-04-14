@@ -9,6 +9,8 @@ import type { EditableAction } from '@/types/ui/actions/UIAction';
 export class InputTriggerComponent extends Component {
   readonly type = 'inputTrigger';
   readonly label = 'Input Trigger';
+  readonly icon = 'keyboard';
+  readonly color = '#f97316';
 
   eventId = '';
   key = '';

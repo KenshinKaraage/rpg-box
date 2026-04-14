@@ -8,6 +8,8 @@ import { ColliderPropertyPanel } from '@/features/map-editor/components/panels/C
 export class ColliderComponent extends Component {
   readonly type = 'collider';
   readonly label = 'Collider';
+  readonly icon = 'shield';
+  readonly color = '#ef4444';
 
   width = 1;
   height = 1;

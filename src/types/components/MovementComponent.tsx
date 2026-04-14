@@ -21,6 +21,8 @@ export function normalizeRouteStep(step: unknown): RouteStep {
 export class MovementComponent extends Component {
   readonly type = 'movement';
   readonly label = 'Movement';
+  readonly icon = 'footprints';
+  readonly color = '#22c55e';
 
   pattern: 'fixed' | 'random' | 'route' = 'fixed';
   speed = 1;

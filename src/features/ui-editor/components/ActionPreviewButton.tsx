@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useId } from 'react';
 import { Play, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { executeActionPreview } from '../utils/actionPreview';
+import { hasSnapshot, revertSnapshot } from '../utils/snapshotManager';
 import type { EditableAction } from '@/types/ui/actions/UIAction';
 import type { FunctionArgDef } from '@/features/event-editor/registry/actionBlockRegistry';
 import { getArgField } from '@/features/event-editor/components/arg-fields';
@@ -16,6 +17,8 @@ interface ActionPreviewButtonProps {
   canvasId: string;
   /** ファンクション引数定義（テスト値入力用） */
   functionArgs?: FunctionArgDef[];
+  /** スナップショットID（省略時は自動生成） */
+  snapshotId?: string;
 }
 
 /**
@@ -23,8 +26,15 @@ interface ActionPreviewButtonProps {
  *
  * 引数がある場合は入力フォームを表示し、入力した値でテスト実行する。
  */
-export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionPreviewButtonProps) {
-  const [revertFn, setRevertFn] = useState<(() => void) | null>(null);
+export function ActionPreviewButton({
+  actions,
+  canvasId,
+  functionArgs,
+  snapshotId: externalId,
+}: ActionPreviewButtonProps) {
+  const autoId = useId();
+  const snapshotId = externalId ?? `action:${autoId}`;
+  const [hasSnap, setHasSnap] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [testArgs, setTestArgs] = useState<Record<string, unknown>>({});
 
@@ -34,7 +44,6 @@ export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionP
     if (actions.length === 0) return;
     setExecuting(true);
 
-    // 値は arg-fields レンダラーが正しい型で保持しているのでそのまま渡す
     const resolvedArgs: Record<string, unknown> = {};
     if (functionArgs) {
       for (const arg of functionArgs) {
@@ -42,19 +51,20 @@ export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionP
       }
     }
 
-    const revert = await executeActionPreview(actions, canvasId, resolvedArgs);
+    const revert = await executeActionPreview(snapshotId, actions, canvasId, resolvedArgs);
     setExecuting(false);
     if (revert) {
-      setRevertFn(() => revert);
+      setHasSnap(true);
     }
-  }, [actions, canvasId, functionArgs, testArgs]);
+  }, [actions, canvasId, functionArgs, testArgs, snapshotId]);
 
   const handleRevert = useCallback(() => {
-    if (revertFn) {
-      revertFn();
-      setRevertFn(null);
-    }
-  }, [revertFn]);
+    revertSnapshot(snapshotId);
+    setHasSnap(false);
+  }, [snapshotId]);
+
+  // 外部でrevertされた場合に同期
+  const isActive = hasSnap && hasSnapshot(snapshotId);
 
   return (
     <div className="space-y-1">
@@ -72,9 +82,7 @@ export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionP
                 {Renderer ? (
                   <Renderer
                     value={testArgs[arg.id]}
-                    onChange={(v) =>
-                      setTestArgs((prev) => ({ ...prev, [arg.id]: v }))
-                    }
+                    onChange={(v) => setTestArgs((prev) => ({ ...prev, [arg.id]: v }))}
                     placeholder={arg.fieldType}
                   />
                 ) : (
@@ -82,9 +90,7 @@ export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionP
                     className="h-6 flex-1 text-[10px]"
                     placeholder={arg.fieldType}
                     value={String(testArgs[arg.id] ?? '')}
-                    onChange={(e) =>
-                      setTestArgs((prev) => ({ ...prev, [arg.id]: e.target.value }))
-                    }
+                    onChange={(e) => setTestArgs((prev) => ({ ...prev, [arg.id]: e.target.value }))}
                   />
                 )}
               </div>
@@ -94,7 +100,7 @@ export function ActionPreviewButton({ actions, canvasId, functionArgs }: ActionP
       )}
 
       {/* 実行 / 戻すボタン */}
-      {revertFn ? (
+      {isActive ? (
         <Button
           size="sm"
           variant="outline"

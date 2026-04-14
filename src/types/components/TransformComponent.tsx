@@ -8,6 +8,8 @@ import { TransformPropertyPanel } from '@/features/map-editor/components/panels/
 export class TransformComponent extends Component {
   readonly type = 'transform';
   readonly label = 'Transform';
+  readonly icon = 'move';
+  readonly color = '#6366f1';
 
   x = 0;
   y = 0;

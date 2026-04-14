@@ -14,6 +14,8 @@ export interface CanvasElement {
 export class ObjectCanvasComponent extends Component {
   readonly type = 'objectCanvas';
   readonly label = 'ObjectCanvas';
+  readonly icon = 'layout';
+  readonly color = '#14b8a6';
 
   offsetX = 0;
   offsetY = 0;

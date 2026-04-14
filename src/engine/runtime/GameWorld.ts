@@ -157,18 +157,20 @@ export class GameWorld {
       return false;
 
     const movingCollider = movingObj.components['collider'];
-    const collideLayers: string[] | null = movingCollider
-      ? ((movingCollider.collideLayers as string[]) ?? null)
-      : null;
+
+    // Collider なし → 衝突判定スキップ（すり抜け）
+    if (!movingCollider) return true;
+
+    const collideLayers: string[] | null =
+      (movingCollider.collideLayers as string[] | undefined) ?? null;
 
     // タイルレイヤーとの衝突判定
-    // collideLayers が null（Collider なし）→ 全タイルレイヤーと衝突
+    // collideLayers が null → 全タイルレイヤーと衝突
     if (!this.isTilePassable(toX, toY, collideLayers)) return false;
 
     // オブジェクトとの衝突判定
     for (const obj of this.objects) {
       if (obj.id === movingObj.id) continue;
-      // collideLayers が null → 全オブジェクトと衝突
       if (collideLayers !== null && !collideLayers.includes(obj.layerId)) continue;
 
       const collider = obj.components['collider'];

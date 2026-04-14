@@ -8,6 +8,8 @@ import { ControllerPropertyPanel } from '@/features/map-editor/components/panels
 export class ControllerComponent extends Component {
   readonly type = 'controller';
   readonly label = 'Controller';
+  readonly icon = 'gamepad-2';
+  readonly color = '#3b82f6';
 
   moveSpeed = 1;
   dashEnabled = true;

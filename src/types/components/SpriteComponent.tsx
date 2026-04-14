@@ -10,6 +10,8 @@ export type SpriteMode = 'single' | 'directional';
 export class SpriteComponent extends Component {
   readonly type = 'sprite';
   readonly label = 'Sprite';
+  readonly icon = 'image';
+  readonly color = '#f59e0b';
 
   imageId?: string;
   animationId?: string;

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { useStore } from '@/stores';
 import { getAllComponents, getComponent } from '@/types/components';
-
+import { getScriptIcon } from '@/features/script-editor/components/IconPicker';
 
 interface MapPropertyPanelProps {
   selectedObjectId: string | null;
@@ -85,8 +85,9 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
 
     // Collider 追加時: 全レイヤーIDをデフォルトでセット
     if (type === 'collider' && map) {
-      (instance as unknown as { collideLayers: string[] }).collideLayers =
-        map.layers.map((l) => l.id);
+      (instance as unknown as { collideLayers: string[] }).collideLayers = map.layers.map(
+        (l) => l.id
+      );
     }
 
     const newComponents = [...obj.components, instance];
@@ -102,16 +103,16 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
 
   // Available components that aren't already on the object
   const existingTypes = new Set(obj.components.map((c) => c.type));
-  const availableComponents = getAllComponents().filter(
-    ([type]) => !existingTypes.has(type)
-  );
+  const availableComponents = getAllComponents().filter(([type]) => !existingTypes.has(type));
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header: object name + delete button */}
       <div className="border-b px-4 py-3">
         <div className="flex items-center justify-between">
-          <Label htmlFor="obj-name" className="text-xs text-muted-foreground">名前</Label>
+          <Label htmlFor="obj-name" className="text-xs text-muted-foreground">
+            名前
+          </Label>
           <Button
             variant="ghost"
             size="icon"
@@ -134,9 +135,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
           className="mt-1 h-8 text-sm"
         />
         {obj.prefabId && (
-          <div className="mt-1 text-xs text-muted-foreground">
-            プレハブ: {obj.prefabId}
-          </div>
+          <div className="mt-1 text-xs text-muted-foreground">プレハブ: {obj.prefabId}</div>
         )}
       </div>
 
@@ -147,8 +146,18 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
             <div
               className="flex cursor-pointer items-center justify-between px-4 py-2 hover:bg-accent"
               onClick={() => toggleCollapsed(comp.type)}
+              style={comp.color ? { backgroundColor: comp.color + '12' } : undefined}
             >
-              <span className="text-sm font-medium">{comp.label}</span>
+              <span
+                className="flex items-center gap-1.5 text-sm font-medium"
+                style={comp.color ? { color: comp.color } : undefined}
+              >
+                {(() => {
+                  const I = getScriptIcon(comp.icon);
+                  return <I className="h-3.5 w-3.5 shrink-0" />;
+                })()}
+                {comp.label}
+              </span>
               <div className="flex items-center gap-1">
                 {comp.type !== 'transform' && (
                   <Button
@@ -197,9 +206,16 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
               <SelectContent>
                 {availableComponents.map(([type, CompClass]) => {
                   const temp = new CompClass();
+                  const TIcon = getScriptIcon(temp.icon);
                   return (
                     <SelectItem key={type} value={type}>
-                      {temp.label}
+                      <span className="flex items-center gap-1.5">
+                        <TIcon
+                          className="h-3.5 w-3.5"
+                          style={temp.color ? { color: temp.color } : undefined}
+                        />
+                        {temp.label}
+                      </span>
                     </SelectItem>
                   );
                 })}

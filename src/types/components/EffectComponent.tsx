@@ -8,6 +8,8 @@ import { EffectPropertyPanel } from '@/features/map-editor/components/panels/Eff
 export class EffectComponent extends Component {
   readonly type = 'effect';
   readonly label = 'Effect';
+  readonly icon = 'sparkles';
+  readonly color = '#ec4899';
 
   effectId?: string;
   onComplete: 'delete' | 'hide' | 'none' = 'none';

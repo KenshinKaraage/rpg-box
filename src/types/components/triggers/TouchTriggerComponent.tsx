@@ -9,6 +9,8 @@ import type { EditableAction } from '@/types/ui/actions/UIAction';
 export class TouchTriggerComponent extends Component {
   readonly type = 'touchTrigger';
   readonly label = 'Touch Trigger';
+  readonly icon = 'hand';
+  readonly color = '#f97316';
 
   eventId = '';
   actions: EditableAction[] = [];

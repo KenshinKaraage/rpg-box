@@ -83,6 +83,16 @@ import {
   Dice6,
   Feather,
   Leaf,
+  Database,
+  Gamepad2,
+  Layout,
+  Hand,
+  Keyboard,
+  Type,
+  Box,
+  Layers,
+  Cpu,
+  Cog,
   type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -183,6 +193,19 @@ const ICON_PRESETS: { name: string; icon: LucideIcon; category: string }[] = [
   // 自然
   { name: 'feather', icon: Feather, category: '自然' },
   { name: 'leaf', icon: Leaf, category: '自然' },
+  // システム（追加）
+  { name: 'database', icon: Database, category: 'システム' },
+  { name: 'cpu', icon: Cpu, category: 'システム' },
+  { name: 'cog', icon: Cog, category: 'システム' },
+  { name: 'box', icon: Box, category: 'システム' },
+  { name: 'layers', icon: Layers, category: 'システム' },
+  // 操作（追加）
+  { name: 'gamepad-2', icon: Gamepad2, category: '移動' },
+  { name: 'hand', icon: Hand, category: '移動' },
+  { name: 'keyboard', icon: Keyboard, category: '移動' },
+  // 表示（追加）
+  { name: 'layout', icon: Layout, category: '表示' },
+  { name: 'type', icon: Type, category: '表示' },
 ];
 
 /** アイコン名 → コンポーネント */

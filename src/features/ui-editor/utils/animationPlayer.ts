@@ -2,7 +2,7 @@
  * 命令的アニメーション再生ユーティリティ
  *
  * React コンポーネント外からでも使える RAF ベースのアニメーション再生。
- * actionPreview / AnimationPreviewPlayer の両方で共用する。
+ * スナップショット管理は SnapshotManager に委譲。
  */
 import { useStore } from '@/stores';
 import { evaluateTimeline } from '../renderer/animationResolver';
@@ -66,55 +66,22 @@ export function applyAnimatedValues(
 }
 
 // ──────────────────────────────────────────────
-// Object snapshot
-// ──────────────────────────────────────────────
-
-export interface ObjectSnapshot {
-  transform: EditorUIObject['transform'];
-  components: EditorUIObject['components'];
-}
-
-export function snapshotObject(obj: EditorUIObject): ObjectSnapshot {
-  return {
-    transform: structuredClone(obj.transform),
-    components: structuredClone(obj.components),
-  };
-}
-
-export function restoreSnapshot(
-  canvasId: string,
-  objectId: string,
-  snapshot: ObjectSnapshot
-): void {
-  const store = useStore.getState();
-  store.updateUIObject(canvasId, objectId, {
-    transform: snapshot.transform,
-  });
-  for (const comp of snapshot.components) {
-    store.updateUIComponent(canvasId, objectId, comp.type, comp.data);
-  }
-}
-
-// ──────────────────────────────────────────────
 // Imperative animation playback
 // ──────────────────────────────────────────────
 
 export interface AnimationPlaybackHandle {
   /** Stop animation, keep current state */
   stop: () => void;
-  /** Stop animation and revert to pre-play snapshot */
-  reset: () => void;
   /** Whether animation is currently playing */
   isPlaying: () => boolean;
-  /** Resolves when animation finishes naturally (not on stop/reset) */
+  /** Resolves when animation finishes naturally (not on stop) */
   finished: Promise<void>;
 }
 
 /**
- * Start playing an animation on an object.
+ * Start playing an animation on an object via RAF loop.
  *
- * Returns a handle to stop/reset. The object's current state is snapshotted
- * before playback begins so it can be fully reverted via `handle.reset()`.
+ * Snapshot/revert は呼び出し側（SnapshotManager）が管理する。
  */
 export function startAnimationPlayback(
   canvasId: string,
@@ -129,7 +96,6 @@ export function startAnimationPlayback(
   if (!obj) return null;
   if (animation.timeline.tracks.length === 0) return null;
 
-  const snap = snapshotObject(obj);
   let rafId: number | null = null;
   let playing = true;
   const startTime = performance.now();
@@ -137,11 +103,13 @@ export function startAnimationPlayback(
   const totalDuration = computeTimelineDuration(
     animation.timeline.tracks,
     animation.timeline.loopCount,
-    animation.timeline.loopType,
+    animation.timeline.loopType
   );
 
   let resolveFinished: () => void;
-  const finished = new Promise<void>((resolve) => { resolveFinished = resolve; });
+  const finished = new Promise<void>((resolve) => {
+    resolveFinished = resolve;
+  });
 
   const tick = (now: number) => {
     if (!playing) return;
@@ -179,14 +147,8 @@ export function startAnimationPlayback(
     resolveFinished();
   };
 
-  const reset = () => {
-    stop();
-    restoreSnapshot(canvasId, objectId, snap);
-  };
-
   return {
     stop,
-    reset,
     isPlaying: () => playing,
     finished,
   };

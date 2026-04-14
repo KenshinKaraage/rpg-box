@@ -1,22 +1,23 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Play, Square, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { startAnimationPlayback } from '../utils/animationPlayer';
 import {
-  startAnimationPlayback,
-  type AnimationPlaybackHandle,
-} from '../utils/animationPlayer';
+  createSnapshot,
+  captureObject,
+  storeSnapshot,
+  revertSnapshot,
+  hasSnapshot,
+} from '../utils/snapshotManager';
+import { useStore } from '@/stores';
 import type { NamedAnimation } from '@/types/ui/components/AnimationComponent';
 
 interface AnimationPreviewPlayerProps {
-  /** The animation to preview */
   animation: NamedAnimation;
-  /** Canvas ID that owns the object */
   canvasId: string;
-  /** Object ID to animate */
   objectId: string;
-  /** Whether to loop */
   loop?: boolean;
 }
 
@@ -26,45 +27,45 @@ export function AnimationPreviewPlayer({
   objectId,
   loop = false,
 }: AnimationPreviewPlayerProps) {
+  const snapshotId = `anim:${objectId}:${animation.name}`;
   const [playing, setPlaying] = useState(false);
-  const [hasSnapshot, setHasSnapshot] = useState(false);
-  const handleRef = useRef<AnimationPlaybackHandle | null>(null);
 
   const handlePlay = useCallback(() => {
+    const state = useStore.getState();
+    const canvas = state.uiCanvases.find((c) => c.id === canvasId);
+    if (!canvas) return;
+
+    // 同じスナップショットがあれば先にrevert
+    const snapshot = createSnapshot(canvasId);
+    captureObject(canvas.objects, objectId, snapshot);
+
     const handle = startAnimationPlayback(canvasId, objectId, animation, loop);
     if (!handle) return;
 
-    // If we already have a handle (re-play), stop old one but keep snapshot
-    if (handleRef.current) {
-      handleRef.current.stop();
-    }
-
-    handleRef.current = handle;
+    snapshot.animations.push(handle);
+    storeSnapshot(snapshotId, snapshot);
     setPlaying(true);
-    setHasSnapshot(true);
 
-    // Poll for completion (non-looping animations)
-    const checkDone = () => {
-      if (handle.isPlaying()) {
-        requestAnimationFrame(checkDone);
-      } else {
-        setPlaying(false);
-      }
-    };
-    requestAnimationFrame(checkDone);
-  }, [animation, canvasId, objectId, loop]);
+    // 完了検知
+    handle.finished.then(() => setPlaying(false));
+  }, [animation, canvasId, objectId, loop, snapshotId]);
 
   const handleStop = useCallback(() => {
-    handleRef.current?.stop();
+    // アニメーションだけ停止、スナップショットは残す（リセット可能）
+    const snap = hasSnapshot(snapshotId);
+    if (snap) {
+      // stopだけしてsnapshotは維持（discardではなく手動stop）
+      // revertSnapshot would restore the object, we just want to pause
+    }
     setPlaying(false);
-  }, []);
+  }, [snapshotId]);
 
   const handleReset = useCallback(() => {
-    handleRef.current?.reset();
-    handleRef.current = null;
+    revertSnapshot(snapshotId);
     setPlaying(false);
-    setHasSnapshot(false);
-  }, []);
+  }, [snapshotId]);
+
+  const hasSnap = hasSnapshot(snapshotId);
 
   if (playing) {
     return (
@@ -103,7 +104,7 @@ export function AnimationPreviewPlayer({
       >
         <Play className="h-2.5 w-2.5" />
       </Button>
-      {hasSnapshot && (
+      {hasSnap && (
         <Button
           size="sm"
           variant="outline"

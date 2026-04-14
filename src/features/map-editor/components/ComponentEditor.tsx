@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getAllComponents } from '@/types/components';
+import { getScriptIcon } from '@/features/script-editor/components/IconPicker';
 import type { Prefab } from '@/types/map';
 
 interface ComponentEditorProps {
@@ -56,11 +57,15 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
     });
   };
 
-  const handleUpdateComponent = () => {
-    // Force re-render by creating new array with same references
-    // (component was mutated by its property panel)
+  const handleUpdateComponent = (index: number, updates: Record<string, unknown>) => {
+    const comp = components[index];
+    if (!comp) return;
+    const cloned = comp.clone();
+    cloned.deserialize({ ...cloned.serialize(), ...updates });
+    const newComponents = [...components];
+    newComponents[index] = cloned;
     onUpdatePrefab(prefab.id, {
-      prefab: { components: [...components] },
+      prefab: { components: newComponents },
     });
   };
 
@@ -70,10 +75,10 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
     });
   };
 
-  // コンポーネント追加候補
+  // コンポーネント追加候補（icon/color 含む）
   const allComponentTypes = getAllComponents().map(([type, C]) => {
     const instance = new C();
-    return { type, label: instance.label };
+    return { type, label: instance.label, icon: instance.icon, color: instance.color };
   });
 
   return (
@@ -92,11 +97,18 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {allComponentTypes.map((ct) => (
-              <DropdownMenuItem key={ct.type} onClick={() => handleAddComponent(ct.type)}>
-                {ct.label}
-              </DropdownMenuItem>
-            ))}
+            {allComponentTypes.map((ct) => {
+              const Icon = getScriptIcon(ct.icon);
+              return (
+                <DropdownMenuItem key={ct.type} onClick={() => handleAddComponent(ct.type)}>
+                  <Icon
+                    className="mr-2 h-4 w-4"
+                    style={ct.color ? { color: ct.color } : undefined}
+                  />
+                  {ct.label}
+                </DropdownMenuItem>
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -110,19 +122,25 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
         )}
         {components.map((comp, index) => {
           const isCollapsed = collapsed.has(index);
+          const Icon = getScriptIcon(comp.icon);
           return (
             <div key={`${comp.type}-${index}`} className="border-b">
               {/* コンポーネントヘッダー */}
-              <div className="flex items-center gap-1 px-3 py-2">
+              <div
+                className="flex items-center gap-1 px-3 py-2"
+                style={comp.color ? { backgroundColor: comp.color + '12' } : undefined}
+              >
                 <button
                   className="flex flex-1 items-center gap-1 text-left text-xs font-medium"
                   onClick={() => toggleCollapsed(index)}
+                  style={comp.color ? { color: comp.color } : undefined}
                 >
                   {isCollapsed ? (
-                    <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+                    <ChevronDown className="h-3 w-3 shrink-0" />
                   ) : (
-                    <ChevronUp className="h-3 w-3 shrink-0 text-muted-foreground" />
+                    <ChevronUp className="h-3 w-3 shrink-0" />
                   )}
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
                   {comp.label}
                 </button>
                 <Button
@@ -140,7 +158,7 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
               {!isCollapsed && (
                 <div className="px-3 pb-3">
                   {comp.renderPropertyPanel({
-                    onChange: () => handleUpdateComponent(),
+                    onChange: (updates) => handleUpdateComponent(index, updates),
                   })}
                 </div>
               )}

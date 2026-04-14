@@ -18,6 +18,8 @@ export interface ObjectVariable {
 export class VariablesComponent extends Component {
   readonly type = 'variables';
   readonly label = 'Variables';
+  readonly icon = 'database';
+  readonly color = '#8b5cf6';
 
   variables: Record<string, ObjectVariable> = {};
 
@@ -35,16 +37,20 @@ export class VariablesComponent extends Component {
     }
     // 新形式（ObjectVariable）か旧形式（直接値）かを判定
     const entries = Object.entries(raw);
-    const isNewFormat = entries.length > 0 && entries.every(([, v]) =>
-      v !== null && typeof v === 'object' && 'fieldType' in (v as Record<string, unknown>)
-    );
+    const isNewFormat =
+      entries.length > 0 &&
+      entries.every(
+        ([, v]) =>
+          v !== null && typeof v === 'object' && 'fieldType' in (v as Record<string, unknown>)
+      );
     if (isNewFormat) {
       this.variables = structuredClone(raw) as Record<string, ObjectVariable>;
     } else {
       // 旧形式: 値の型から fieldType を推定
       this.variables = {};
       for (const [key, val] of entries) {
-        const ft = typeof val === 'number' ? 'number' : typeof val === 'boolean' ? 'boolean' : 'string';
+        const ft =
+          typeof val === 'number' ? 'number' : typeof val === 'boolean' ? 'boolean' : 'string';
         this.variables[key] = { fieldType: ft, value: val };
       }
     }

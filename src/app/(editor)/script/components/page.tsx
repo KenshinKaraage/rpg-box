@@ -1,14 +1,22 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
-import { ScriptList, ScriptEditor, ComponentFieldEditor } from '@/features/script-editor';
-import type { DataTypeInfo } from '@/features/script-editor';
+import {
+  ScriptList,
+  ScriptEditor,
+  ScriptSettingsPanel,
+  ComponentFieldEditor,
+} from '@/features/script-editor';
+import type { ScriptEditorHandle, DataTypeInfo } from '@/features/script-editor';
 import { useStore } from '@/stores';
+import { cn } from '@/lib/utils';
 import { generateId } from '@/lib/utils';
 import { createScript } from '@/types/script';
 import type { Script } from '@/types/script';
+
+type RightTab = 'settings' | 'fields';
 
 export default function ComponentScriptPage() {
   const scripts = useStore((state) => state.scripts);
@@ -20,6 +28,8 @@ export default function ComponentScriptPage() {
   const selectScript = useStore((state) => state.selectScript);
   const seedDefaultComponentScripts = useStore((state) => state.seedDefaultComponentScripts);
   const dataTypes = useStore((state) => state.dataTypes);
+  const [rightTab, setRightTab] = useState<RightTab>('settings');
+  const editorRef = useRef<ScriptEditorHandle>(null);
 
   useEffect(() => {
     seedDefaultComponentScripts();
@@ -27,7 +37,14 @@ export default function ComponentScriptPage() {
 
   // All component scripts (flat, including internal children)
   const componentScripts = useMemo(
-    () => scripts.filter((s) => s.type === 'component' || (s.type === 'internal' && s.parentId && scripts.find((p) => p.id === s.parentId)?.type === 'component')),
+    () =>
+      scripts.filter(
+        (s) =>
+          s.type === 'component' ||
+          (s.type === 'internal' &&
+            s.parentId &&
+            scripts.find((p) => p.id === s.parentId)?.type === 'component')
+      ),
     [scripts]
   );
 
@@ -75,6 +92,10 @@ export default function ComponentScriptPage() {
     updateScript(id, { content });
   };
 
+  const handleSettingsUpdate = (id: string, updates: Partial<Script>) => {
+    updateScript(id, updates);
+  };
+
   return (
     <ThreeColumnLayout
       left={
@@ -91,6 +112,7 @@ export default function ComponentScriptPage() {
       }
       center={
         <ScriptEditor
+          ref={editorRef}
           script={selectedScript}
           scripts={scripts}
           dataTypes={dataTypeInfos}
@@ -98,12 +120,44 @@ export default function ComponentScriptPage() {
         />
       }
       right={
-        <ComponentFieldEditor
-          content={selectedScript?.content ?? null}
-          onContentChange={(newContent) => {
-            if (selectedScript) handleContentChange(selectedScript.id, newContent);
-          }}
-        />
+        <div className="flex h-full flex-col">
+          <div className="flex border-b">
+            <button
+              className={cn(
+                'flex-1 px-4 py-2 text-sm font-medium',
+                rightTab === 'settings'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={() => setRightTab('settings')}
+            >
+              設定
+            </button>
+            <button
+              className={cn(
+                'flex-1 px-4 py-2 text-sm font-medium',
+                rightTab === 'fields'
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={() => setRightTab('fields')}
+            >
+              フィールド
+            </button>
+          </div>
+          <div className="min-h-0 flex-1">
+            {rightTab === 'settings' ? (
+              <ScriptSettingsPanel script={selectedScript} onUpdate={handleSettingsUpdate} />
+            ) : (
+              <ComponentFieldEditor
+                content={selectedScript?.content ?? null}
+                onContentChange={(newContent) => {
+                  if (selectedScript) handleContentChange(selectedScript.id, newContent);
+                }}
+              />
+            )}
+          </div>
+        </div>
       }
     />
   );

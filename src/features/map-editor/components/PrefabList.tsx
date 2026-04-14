@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { Plus, Trash2, Copy, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,46 +14,41 @@ import type { Prefab } from '@/types/map';
 import type { SpriteComponent } from '@/types/components/SpriteComponent';
 import { EMPTY_OBJECT_PREFAB_ID } from '@/stores/mapEditorSlice';
 import { TILE_SIZE } from '../utils/constants';
-
-/** スプライトの1フレーム目を Canvas で切り出して表示 */
-function SpriteThumbnail({ src, fw, fh, size }: { src: string; fw: number; fh: number; size: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
-    const img = new Image();
-    img.onload = () => {
-      const srcW = fw || img.width;
-      const srcH = fh || img.height;
-      ctx.clearRect(0, 0, size, size);
-      ctx.drawImage(img, 0, 0, srcW, srcH, 0, 0, size, size);
-    };
-    img.src = src;
-  }, [src, fw, fh, size]);
-
-  return <canvas ref={canvasRef} width={size} height={size} className="shrink-0" style={{ width: size, height: size, imageRendering: 'pixelated' }} />;
-}
+import { SpriteThumbnail } from './SpriteThumbnail';
 
 /** プレハブのスプライトサムネイル */
-function PrefabThumbnail({ prefab, assets, size }: {
+function PrefabThumbnail({
+  prefab,
+  assets,
+  size,
+}: {
   prefab: Prefab;
   assets: { id: string; data: unknown }[];
   size: number;
 }) {
-  const sprite = prefab.prefab.components.find((c) => c.type === 'sprite') as SpriteComponent | undefined;
+  const sprite = prefab.prefab.components.find((c) => c.type === 'sprite') as
+    | SpriteComponent
+    | undefined;
   if (!sprite?.imageId) {
-    return <Square className="shrink-0 text-muted-foreground" style={{ width: size, height: size }} />;
+    return (
+      <Square className="shrink-0 text-muted-foreground" style={{ width: size, height: size }} />
+    );
   }
   const asset = assets.find((a) => a.id === sprite.imageId);
   const src = asset?.data as string | undefined;
   if (!src) {
-    return <Square className="shrink-0 text-muted-foreground" style={{ width: size, height: size }} />;
+    return (
+      <Square className="shrink-0 text-muted-foreground" style={{ width: size, height: size }} />
+    );
   }
-  return <SpriteThumbnail src={src} fw={sprite.frameWidth || 0} fh={sprite.frameHeight || 0} size={size} />;
+  return (
+    <SpriteThumbnail
+      src={src}
+      fw={sprite.frameWidth || 0}
+      fh={sprite.frameHeight || 0}
+      size={size}
+    />
+  );
 }
 
 interface PrefabListProps {
@@ -151,7 +145,9 @@ export function PrefabList({
                     e.dataTransfer.setData('application/rpg-prefab-id', prefab.id);
                     e.dataTransfer.effectAllowed = 'copy';
                     // スプライトの1フレーム目をズームに合わせて切り出し
-                    const sprite = prefab.prefab.components.find((c) => c.type === 'sprite') as SpriteComponent | undefined;
+                    const sprite = prefab.prefab.components.find((c) => c.type === 'sprite') as
+                      | SpriteComponent
+                      | undefined;
                     if (sprite?.imageId) {
                       const asset = assets.find((a) => a.id === sprite.imageId);
                       if (asset?.data) {
