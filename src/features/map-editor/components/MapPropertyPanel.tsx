@@ -14,6 +14,16 @@ import {
 import { useStore } from '@/stores';
 import { getAllComponents, getComponent } from '@/types/components';
 import { getScriptIcon } from '@/features/script-editor/components/IconPicker';
+import type { Component } from '@/types/components/Component';
+import type { Script } from '@/types/script';
+
+function resolveIconColor(comp: Component, scripts: Script[]): { icon?: string; color?: string } {
+  const script = scripts.find((s) => s.id === comp.type && s.type === 'component');
+  return {
+    icon: script?.icon ?? comp.icon,
+    color: script?.color ?? comp.color,
+  };
+}
 
 interface MapPropertyPanelProps {
   selectedObjectId: string | null;
@@ -23,6 +33,7 @@ interface MapPropertyPanelProps {
 
 export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapPropertyPanelProps) {
   const maps = useStore((s) => s.maps);
+  const scripts = useStore((s) => s.scripts);
   const updateObject = useStore((s) => s.updateObject);
   const deleteObjectFromStore = useStore((s) => s.deleteObject);
   const selectObject = useStore((s) => s.selectObject);
@@ -141,55 +152,56 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
 
       {/* Component list */}
       <div className="min-h-0 flex-1 overflow-auto">
-        {obj.components.map((comp, index) => (
-          <div key={`${obj.id}-${comp.type}`} className="border-b">
-            <div
-              className="flex cursor-pointer items-center justify-between px-4 py-2 hover:bg-accent"
-              onClick={() => toggleCollapsed(comp.type)}
-              style={comp.color ? { backgroundColor: comp.color + '12' } : undefined}
-            >
-              <span
-                className="flex items-center gap-1.5 text-sm font-medium"
-                style={comp.color ? { color: comp.color } : undefined}
+        {obj.components.map((comp, index) => {
+          const { icon: compIcon, color: compColor } = resolveIconColor(comp, scripts);
+          const CompIcon = getScriptIcon(compIcon);
+          return (
+            <div key={`${obj.id}-${comp.type}`} className="border-b">
+              <div
+                className="flex cursor-pointer items-center justify-between px-4 py-2 hover:bg-accent"
+                onClick={() => toggleCollapsed(comp.type)}
+                style={compColor ? { backgroundColor: compColor + '12' } : undefined}
               >
-                {(() => {
-                  const I = getScriptIcon(comp.icon);
-                  return <I className="h-3.5 w-3.5 shrink-0" />;
-                })()}
-                {comp.label}
-              </span>
-              <div className="flex items-center gap-1">
-                {comp.type !== 'transform' && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteComponent(index);
-                    }}
-                    aria-label={`${comp.label}を削除`}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-                {collapsed.has(comp.type) ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronUp className="h-4 w-4" />
-                )}
+                <span
+                  className="flex items-center gap-1.5 text-sm font-medium"
+                  style={compColor ? { color: compColor } : undefined}
+                >
+                  <CompIcon className="h-3.5 w-3.5 shrink-0" />
+                  {comp.label}
+                </span>
+                <div className="flex items-center gap-1">
+                  {comp.type !== 'transform' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteComponent(index);
+                      }}
+                      aria-label={`${comp.label}を削除`}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {collapsed.has(comp.type) ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronUp className="h-4 w-4" />
+                  )}
+                </div>
               </div>
+              {!collapsed.has(comp.type) && (
+                <div className="px-4 pb-3">
+                  {comp.renderPropertyPanel({
+                    onChange: (updates) => handleComponentChange(index, updates),
+                    objectId: obj.id,
+                  })}
+                </div>
+              )}
             </div>
-            {!collapsed.has(comp.type) && (
-              <div className="px-4 pb-3">
-                {comp.renderPropertyPanel({
-                  onChange: (updates) => handleComponentChange(index, updates),
-                  objectId: obj.id,
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
 
         {/* Add component */}
         {availableComponents.length > 0 && (
@@ -206,13 +218,14 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
               <SelectContent>
                 {availableComponents.map(([type, CompClass]) => {
                   const temp = new CompClass();
-                  const TIcon = getScriptIcon(temp.icon);
+                  const { icon: tIcon, color: tColor } = resolveIconColor(temp, scripts);
+                  const TIcon = getScriptIcon(tIcon);
                   return (
                     <SelectItem key={type} value={type}>
                       <span className="flex items-center gap-1.5">
                         <TIcon
                           className="h-3.5 w-3.5"
-                          style={temp.color ? { color: temp.color } : undefined}
+                          style={tColor ? { color: tColor } : undefined}
                         />
                         {temp.label}
                       </span>

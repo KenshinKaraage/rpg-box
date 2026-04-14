@@ -11,8 +11,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getAllComponents } from '@/types/components';
+import { useStore } from '@/stores';
 import { getScriptIcon } from '@/features/script-editor/components/IconPicker';
 import type { Prefab } from '@/types/map';
+import type { Component } from '@/types/components/Component';
+import type { Script } from '@/types/script';
+
+/** スクリプトのicon/colorがあればそちらを優先、なければComponentのデフォルト */
+function resolveIconColor(comp: Component, scripts: Script[]): { icon?: string; color?: string } {
+  const script = scripts.find((s) => s.id === comp.type && s.type === 'component');
+  return {
+    icon: script?.icon ?? comp.icon,
+    color: script?.color ?? comp.color,
+  };
+}
 
 interface ComponentEditorProps {
   prefab: Prefab | null;
@@ -27,6 +39,7 @@ interface ComponentEditorProps {
  */
 export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps) {
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const scripts = useStore((s) => s.scripts);
 
   if (!prefab) {
     return (
@@ -75,10 +88,11 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
     });
   };
 
-  // コンポーネント追加候補（icon/color 含む）
+  // コンポーネント追加候補（スクリプトのicon/colorを優先）
   const allComponentTypes = getAllComponents().map(([type, C]) => {
     const instance = new C();
-    return { type, label: instance.label, icon: instance.icon, color: instance.color };
+    const { icon, color } = resolveIconColor(instance, scripts);
+    return { type, label: instance.label, icon, color };
   });
 
   return (
@@ -122,18 +136,19 @@ export function ComponentEditor({ prefab, onUpdatePrefab }: ComponentEditorProps
         )}
         {components.map((comp, index) => {
           const isCollapsed = collapsed.has(index);
-          const Icon = getScriptIcon(comp.icon);
+          const { icon, color } = resolveIconColor(comp, scripts);
+          const Icon = getScriptIcon(icon);
           return (
             <div key={`${comp.type}-${index}`} className="border-b">
               {/* コンポーネントヘッダー */}
               <div
                 className="flex items-center gap-1 px-3 py-2"
-                style={comp.color ? { backgroundColor: comp.color + '12' } : undefined}
+                style={color ? { backgroundColor: color + '12' } : undefined}
               >
                 <button
                   className="flex flex-1 items-center gap-1 text-left text-xs font-medium"
                   onClick={() => toggleCollapsed(index)}
-                  style={comp.color ? { color: comp.color } : undefined}
+                  style={color ? { color } : undefined}
                 >
                   {isCollapsed ? (
                     <ChevronDown className="h-3 w-3 shrink-0" />

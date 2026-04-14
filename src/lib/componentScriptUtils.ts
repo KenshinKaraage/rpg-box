@@ -138,5 +138,7 @@ export function componentClassToScript(Cls: ComponentConstructor): Script {
     returns: [],
     isAsync: false,
     description: '',
+    icon: instance.icon,
+    color: instance.color,
   };
 }
