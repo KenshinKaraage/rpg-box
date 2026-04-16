@@ -11,7 +11,7 @@ export class SpriteComponent extends Component {
   readonly type = 'sprite';
   readonly label = 'Sprite';
   readonly icon = 'image';
-  readonly color = '#f59e0b';
+  readonly color = '#eab308';
 
   imageId?: string;
   animationId?: string;

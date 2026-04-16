@@ -6,7 +6,7 @@ import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import {
   ScriptList,
   ScriptEditor,
-  ScriptSettingsPanel,
+  ComponentScriptSettingsPanel,
   ComponentFieldEditor,
 } from '@/features/script-editor';
 import type { ScriptEditorHandle, DataTypeInfo } from '@/features/script-editor';
@@ -147,7 +147,10 @@ export default function ComponentScriptPage() {
           </div>
           <div className="min-h-0 flex-1">
             {rightTab === 'settings' ? (
-              <ScriptSettingsPanel script={selectedScript} onUpdate={handleSettingsUpdate} />
+              <ComponentScriptSettingsPanel
+                script={selectedScript}
+                onUpdate={handleSettingsUpdate}
+              />
             ) : (
               <ComponentFieldEditor
                 content={selectedScript?.content ?? null}
