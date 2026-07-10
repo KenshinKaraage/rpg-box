@@ -7852,6 +7852,25 @@ Lite ではエンジン全体が固定・Full では自由に改造可能とす�
 
 ---
 
+#### [T252] ブランディングアイコン・favicon更新
+
+- **ステータス:** [x] 完了
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [x] `assets/images/icons/icon_rpgbox.png`（マスターアイコン）追加
+- [x] `public/favicon.png` をマスターアイコンから再生成
+- [x] 旧 `docs/images/data-editor.png` を削除（未使用）
+
+**関連ファイル:**
+
+- `assets/images/icons/icon_rpgbox.png`
+- `public/favicon.png`
+
+---
+
 ## 進捗トラッキング
 
 ### フェーズ別サマリー
