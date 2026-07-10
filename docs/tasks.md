@@ -7906,6 +7906,28 @@ Lite ではエンジン全体が固定・Full では自由に改造可能とす�
 
 ---
 
+#### [T255] スキル/アイテム effects・status サンプルデータの試行的更新
+
+- **ステータス:** [~] 進行中
+
+**備考:**
+
+`defaultTestEntries.ts` の `status` エントリを簡素化（`effect_type` 等の詳細フィールドを削除）し、
+item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/`buff` 形式に変更。
+ただし `buff` エントリ同士で構造が不一致（`target`+`value` vs `status_effect`オブジェクト）、
+`class_effect`（`defaultClasses.ts`）の `effect_type` 選択肢（`damage`/`heal`/`heal_mp`/`add_status`/`remove_status`）
+とも整合していない。バトルスクリプト側は `status` データを現状参照していない（未使用）。
+今後 effects/status のデータ構造を正式に設計し、`defaultDataTypes.ts` の `status` 型定義・
+`class_effect` のスキーマと整合させる必要がある。
+
+**関連ファイル:**
+
+- `src/lib/defaultTestEntries.ts`
+- `src/lib/defaultDataTypes.ts`（今後スキーマ整合が必要）
+- `src/lib/defaultClasses.ts`（class_effect との整合が必要）
+
+---
+
 ## 進捗トラッキング
 
 ### フェーズ別サマリー
