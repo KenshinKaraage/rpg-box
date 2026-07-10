@@ -30,7 +30,7 @@ interface Category {
 const CATEGORIES: Category[] = [
   { label: '基本', types: ['number', 'string', 'textarea', 'boolean', 'select', 'color'] },
   { label: '参照', types: ['dataSelect', 'dataList', 'dataTable', 'class', 'classList'] },
-  { label: 'メディア', types: ['image', 'audio'] },
+  { label: 'メディア', types: ['image', 'audio', 'font', 'effect'] },
 ];
 
 // =============================================================================
