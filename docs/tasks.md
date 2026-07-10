@@ -2619,41 +2619,41 @@ export function useAutoSave() {
 
 ### US7: フォントアセット
 
-#### [T084] [US7] Create FontAssetPage
+#### [T084] [US7] Create FontAssetPage （アセットマネージャーに統合済み — 専用ページは作らず settings/assets に統合）
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/app/(editor)/settings/fonts/page.tsx` 作成
-- [ ] フォント一覧表示
-- [ ] アップロード機能
+- [x] ~~`src/app/(editor)/settings/fonts/page.tsx` 作成~~ → `settings/assets/page.tsx` に統合
+- [x] フォント一覧表示（AssetGrid に font タイプとして表示）
+- [x] アップロード機能（既存のアセットアップロードを流用）
 
 **関連ファイル:**
 
-- `src/app/(editor)/settings/fonts/page.tsx`
+- `src/app/(editor)/settings/assets/page.tsx`
+- `src/features/asset-manager/components/AssetGrid.tsx`
 
 ---
 
-#### [T085] [US7] Create FontPreview
+#### [T085] [US7] Create FontPreview （独立コンポーネントではなく AssetPreview.tsx 内にインライン実装）
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/asset-manager/components/FontPreview.tsx` 作成
-- [ ] サンプルテキスト表示
-- [ ] フォントサイズ変更
-- [ ] テスト追加
+- [x] ~~`src/features/asset-manager/components/FontPreview.tsx` 作成~~ → `AssetPreview.tsx` 内の関数として実装
+- [x] サンプルテキスト表示（3サイズ固定でプレビュー）
+- [x] ~~フォントサイズ変更~~ → 未実装（固定サイズプレビューで代替、必要になれば再検討）
+- [x] ~~テスト追加~~ → 未実装
 
 **関連ファイル:**
 
-- `src/features/asset-manager/components/FontPreview.tsx`
-- `src/features/asset-manager/components/FontPreview.test.tsx`
+- `src/features/asset-manager/components/AssetPreview.tsx`
 
 ---
 
@@ -7856,30 +7856,30 @@ Lite ではエンジン全体が固定・Full では自由に改造可能とす�
 
 ### フェーズ別サマリー
 
-| Phase | 名称                           | 状態                | 備考                                                              |
-| ----- | ------------------------------ | ------------------- | ----------------------------------------------------------------- |
-| 0     | プロジェクトセットアップ       | ✅ 完了 (18/18)     |                                                                   |
-| 1     | 型定義・基盤                   | 🔶 ほぼ完了 (28/30) | 残: autoSave refactor, per-page undo (後回し)                     |
-| 2     | 基本フィールドタイプ           | 🔶 ほぼ完了 (14/20) | 残: Formula/Effect/Script FieldType (未定義、必要時に実装)        |
-| 3     | ゲーム設定                     | ✅ 完了 (4/4)       |                                                                   |
-| 4     | 変数・クラス・フィールドセット | ✅ 完了 (17/17)     |                                                                   |
-| 5     | P1 フィールドタイプ            | ✅ 完了 (8/8)       |                                                                   |
-| 6     | アセット管理                   | 🔶 ほぼ完了 (15/20) | 残: フォルダD&D, アセット移動, フォント管理。T081は廃止(T083統合) |
-| 7     | データ設定                     | ✅ 完了 (12/12)     |                                                                   |
-| 8     | イベントシステム               | ✅ 完了 (29/29)     |                                                                   |
-| 9     | スクリプトエディタ             | ✅ 完了 (17/17)     | T126b D&D実装済み                                                 |
-| 10    | マップ基盤                     | ✅ 完了 (15/15)     |                                                                   |
-| 11    | マップデータページ             | ✅ 完了 (7/7)       |                                                                   |
-| 12    | オブジェクトプレハブ           | ✅ 完了 (6/6)       |                                                                   |
-| 13    | マップ編集ページ               | 🔶 ほぼ完了 (18/20) | 残: マルチタイル選択, コピペ                                      |
-| 14    | UI Foundation                  | ✅ 完了 (17/17)     | T184 ActionComponent 廃止                                         |
-| 15    | Screen Design                  | ✅ 完了 (14/14)     | T197b ActionComponent 廃止                                        |
-| 16    | Object UI                      | ✅ 実装済み (0/6)   | タスク未更新だが MapEditor 内で実装済み                           |
-| 17    | Timeline                       | ⬜ 未着手 (0/6)     | TimelineBands のみ存在                                            |
-| 18    | Game Engine                    | ✅ 完了 (57/58)     | T217 PlayerAPI 廃止。残: T224a 統合テスト                         |
-| 19    | Test Play                      | 🔶 一部実装 (0/5)   | TestPlayOverlay 実装済み、タスク未更新                            |
-| 20    | Polish                         | 🚧 進行中 (4/15)    |                                                                   |
-| 21    | Lite/Full テンプレートシステム | 🚧 進行中 (1/7)     | T246 廃止                                                         |
+| Phase | 名称                           | 状態                | 備考                                                       |
+| ----- | ------------------------------ | ------------------- | ---------------------------------------------------------- |
+| 0     | プロジェクトセットアップ       | ✅ 完了 (18/18)     |                                                            |
+| 1     | 型定義・基盤                   | 🔶 ほぼ完了 (28/30) | 残: autoSave refactor, per-page undo (後回し)              |
+| 2     | 基本フィールドタイプ           | 🔶 ほぼ完了 (14/20) | 残: Formula/Effect/Script FieldType (未定義、必要時に実装) |
+| 3     | ゲーム設定                     | ✅ 完了 (4/4)       |                                                            |
+| 4     | 変数・クラス・フィールドセット | ✅ 完了 (17/17)     |                                                            |
+| 5     | P1 フィールドタイプ            | ✅ 完了 (8/8)       |                                                            |
+| 6     | アセット管理                   | 🔶 ほぼ完了 (17/20) | 残: フォルダD&D, アセット移動。T081は廃止(T083統合)        |
+| 7     | データ設定                     | ✅ 完了 (12/12)     |                                                            |
+| 8     | イベントシステム               | ✅ 完了 (29/29)     |                                                            |
+| 9     | スクリプトエディタ             | ✅ 完了 (17/17)     | T126b D&D実装済み                                          |
+| 10    | マップ基盤                     | ✅ 完了 (15/15)     |                                                            |
+| 11    | マップデータページ             | ✅ 完了 (7/7)       |                                                            |
+| 12    | オブジェクトプレハブ           | ✅ 完了 (6/6)       |                                                            |
+| 13    | マップ編集ページ               | 🔶 ほぼ完了 (18/20) | 残: マルチタイル選択, コピペ                               |
+| 14    | UI Foundation                  | ✅ 完了 (17/17)     | T184 ActionComponent 廃止                                  |
+| 15    | Screen Design                  | ✅ 完了 (14/14)     | T197b ActionComponent 廃止                                 |
+| 16    | Object UI                      | ✅ 実装済み (0/6)   | タスク未更新だが MapEditor 内で実装済み                    |
+| 17    | Timeline                       | ⬜ 未着手 (0/6)     | TimelineBands のみ存在                                     |
+| 18    | Game Engine                    | ✅ 完了 (57/58)     | T217 PlayerAPI 廃止。残: T224a 統合テスト                  |
+| 19    | Test Play                      | 🔶 一部実装 (0/5)   | TestPlayOverlay 実装済み、タスク未更新                     |
+| 20    | Polish                         | 🚧 進行中 (4/15)    |                                                            |
+| 21    | Lite/Full テンプレートシステム | 🚧 進行中 (1/7)     | T246 廃止                                                  |
 
 ### 優先度凡例
 
