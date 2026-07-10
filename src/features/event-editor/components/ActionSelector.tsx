@@ -16,6 +16,8 @@ interface ActionSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (type: string) => void;
+  /** 表示するカテゴリを制限（省略時は全カテゴリ） */
+  categories?: string[];
 }
 
 // =============================================================================
@@ -34,24 +36,29 @@ const CATEGORY_ORDER: { key: string; label: string }[] = [
 // ActionSelector コンポーネント
 // =============================================================================
 
-export function ActionSelector({ open, onOpenChange, onSelect }: ActionSelectorProps) {
+export function ActionSelector({ open, onOpenChange, onSelect, categories }: ActionSelectorProps) {
   const [query, setQuery] = useState('');
 
   const blocksByCategory = useMemo(() => getActionBlocksByCategory(), []);
 
   const filteredCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return CATEGORY_ORDER.map((cat) => {
-      const blocks = blocksByCategory[cat.key] ?? [];
-      return {
-        ...cat,
-        blocks: blocks.filter((block) => {
-          if (!q) return true;
-          return block.label.toLowerCase().includes(q) || block.type.toLowerCase().includes(q);
-        }),
-      };
-    }).filter((cat) => cat.blocks.length > 0);
-  }, [query, blocksByCategory]);
+    const cats = categories
+      ? CATEGORY_ORDER.filter((c) => categories.includes(c.key))
+      : CATEGORY_ORDER;
+    return cats
+      .map((cat) => {
+        const blocks = blocksByCategory[cat.key] ?? [];
+        return {
+          ...cat,
+          blocks: blocks.filter((block) => {
+            if (!q) return true;
+            return block.label.toLowerCase().includes(q) || block.type.toLowerCase().includes(q);
+          }),
+        };
+      })
+      .filter((cat) => cat.blocks.length > 0);
+  }, [query, blocksByCategory, categories]);
 
   const handleSelect = (type: string) => {
     onSelect(type);

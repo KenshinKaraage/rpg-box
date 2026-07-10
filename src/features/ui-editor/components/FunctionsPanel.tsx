@@ -93,9 +93,7 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
   const handleUpdateArg = useCallback(
     (fnId: string, currentArgs: TemplateArg[], argId: string, updates: Partial<TemplateArg>) => {
       if (!selectedCanvasId) return;
-      const newArgs = currentArgs.map((a) =>
-        a.id === argId ? { ...a, ...updates } : a
-      );
+      const newArgs = currentArgs.map((a) => (a.id === argId ? { ...a, ...updates } : a));
       updateUIFunction(selectedCanvasId, fnId, { args: newArgs });
     },
     [selectedCanvasId, updateUIFunction]
@@ -140,9 +138,7 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
 
       {/* Function list */}
       {functions.length === 0 ? (
-        <div className="text-center text-xs text-muted-foreground">
-          ファンクションなし
-        </div>
+        <div className="text-center text-xs text-muted-foreground">ファンクションなし</div>
       ) : (
         <ul className="space-y-1">
           {functions.map((fn) => {
@@ -165,9 +161,7 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                     )}
                   </button>
                   <span className="flex-1 truncate text-xs">{fn.name}</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {fn.args.length}args
-                  </span>
+                  <span className="text-[10px] text-muted-foreground">{fn.args.length}args</span>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -182,7 +176,10 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
 
                 {/* Expanded detail */}
                 {isExpanded && (
-                  <div className="ml-4 mt-1 space-y-2 border-l pl-2" data-testid={`function-detail-${fn.id}`}>
+                  <div
+                    className="ml-4 mt-1 space-y-2 border-l pl-2"
+                    data-testid={`function-detail-${fn.id}`}
+                  >
                     {/* Name edit */}
                     <div>
                       <Label className="text-[10px]">名前</Label>
@@ -214,7 +211,11 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                       ) : (
                         <ul className="mt-1 space-y-1">
                           {fn.args.map((arg) => (
-                            <li key={arg.id} className="flex items-center gap-1" data-testid={`arg-item-${arg.id}`}>
+                            <li
+                              key={arg.id}
+                              className="flex items-center gap-1"
+                              data-testid={`arg-item-${arg.id}`}
+                            >
                               <Input
                                 className="h-5 flex-1 px-1 text-[10px]"
                                 value={arg.name}
@@ -228,7 +229,10 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                                   handleUpdateArg(fn.id, fn.args, arg.id, { fieldType: v })
                                 }
                               >
-                                <SelectTrigger className="h-5 w-20 px-1 text-[10px]" data-testid={`arg-type-${arg.id}`}>
+                                <SelectTrigger
+                                  className="h-5 w-20 px-1 text-[10px]"
+                                  data-testid={`arg-type-${arg.id}`}
+                                >
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -279,6 +283,7 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                             name: arg.name,
                             fieldType: arg.fieldType ?? 'string',
                           }))}
+                          categories={['ui', 'logic']}
                         />
                       </div>
                     </div>

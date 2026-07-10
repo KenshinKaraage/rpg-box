@@ -19,13 +19,20 @@ interface ActionBlockEditorProps {
   onChange: (actions: EditableAction[]) => void;
   /** UIFunction の引数定義（UIFunction 内のブロックでのみ渡される） */
   functionArgs?: FunctionArgDef[];
+  /** 表示するアクションカテゴリを制限（省略時は全カテゴリ） */
+  categories?: string[];
 }
 
 // =============================================================================
 // ActionBlockEditor コンポーネント
 // =============================================================================
 
-export function ActionBlockEditor({ actions, onChange, functionArgs }: ActionBlockEditorProps) {
+export function ActionBlockEditor({
+  actions,
+  onChange,
+  functionArgs,
+  categories,
+}: ActionBlockEditorProps) {
   const [selectorOpen, setSelectorOpen] = useState(false);
 
   const handleAddAction = (type: string) => {
@@ -95,6 +102,7 @@ export function ActionBlockEditor({ actions, onChange, functionArgs }: ActionBlo
         open={selectorOpen}
         onOpenChange={setSelectorOpen}
         onSelect={handleAddAction}
+        categories={categories}
       />
     </div>
   );
