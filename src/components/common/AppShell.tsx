@@ -8,6 +8,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isRestoring = useStore((s) => s.isRestoring);
   const isImportingAssets = useStore((s) => s.isImportingAssets);
 
+  console.log('[DEBUG] AppShell render', { isRestoring, isImportingAssets });
+
   return (
     <>
       <AutoSaveProvider />

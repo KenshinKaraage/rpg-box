@@ -116,10 +116,17 @@ function resolveCanvasAssetIds(canvas: EditorUICanvas, resolve: AssetNameToId): 
 
 export async function loadDefaultTestData(): Promise<void> {
   const state = useStore.getState();
+  console.log('[DEBUG] loadDefaultTestData: setIsImportingAssets(true) 呼び出し前', {
+    before: useStore.getState().isImportingAssets,
+  });
   state.setIsImportingAssets(true);
+  console.log('[DEBUG] loadDefaultTestData: setIsImportingAssets(true) 呼び出し後', {
+    after: useStore.getState().isImportingAssets,
+  });
   try {
     await loadDefaultTestDataInner(state);
   } finally {
+    console.log('[DEBUG] loadDefaultTestData: setIsImportingAssets(false) 呼び出し');
     useStore.getState().setIsImportingAssets(false);
   }
 }
