@@ -851,7 +851,7 @@ export function useAutoSave() {
 
 #### [T026b] Create ShortcutHelpModal
 
-- **ステータス:** [x] 完了 (T026c 以降へ持ち越し/Polish)
+- **ステータス:** [ ] 未着手 (T026c 以降へ持ち越し/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -873,7 +873,7 @@ export function useAutoSave() {
 
 #### [T026c] Implement per-page undo history
 
-- **ステータス:** [ ] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -896,7 +896,7 @@ export function useAutoSave() {
 
 #### [T026d] Create ValidationManager
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -918,7 +918,7 @@ export function useAutoSave() {
 
 #### [T026e] [P] Create InlineError component
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -939,7 +939,7 @@ export function useAutoSave() {
 
 #### [T026f] Create useValidation hook
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -960,7 +960,7 @@ export function useAutoSave() {
 
 #### [T026g] Create SearchModal (Ctrl+F)
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -982,7 +982,7 @@ export function useAutoSave() {
 
 #### [T026h] Create ReferenceSearchModal (Ctrl+P)
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -1006,7 +1006,7 @@ export function useAutoSave() {
 
 #### [T026i] Create ClipboardManager
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -1027,7 +1027,7 @@ export function useAutoSave() {
 
 #### [T026j] Implement copy/paste with type validation
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -1051,7 +1051,7 @@ export function useAutoSave() {
 
 #### [T027] [P] Create PropertyPanel
 
-- **ステータス:** [x] 完了 (必要になった段階で実装/Polish)
+- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
 - **ブランチ:** -
 - **PR:** -
 
@@ -1310,23 +1310,22 @@ export function useAutoSave() {
 
 #### [T036b] [P] Implement EffectFieldType
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/types/fields/EffectFieldType.ts` 作成
-- [ ] FieldType を継承
-- [ ] エフェクトIDを参照
-- [ ] プレビュー表示
-- [ ] レジストリに登録
-- [ ] テスト追加
+- [x] `src/types/fields/EffectFieldType.tsx` 作成
+- [x] FieldType を継承
+- [x] エフェクトIDを参照（`imageId` + frameWidth/frameHeight/frameCount/intervalMs）
+- [x] プレビュー表示（アニメーションプレビュー付き）
+- [x] レジストリに登録（`registerFieldType('effect', EffectFieldType)`）
+- [ ] テスト追加（未実装）
 
 **関連ファイル:**
 
-- `src/types/fields/EffectFieldType.ts`
-- `src/types/fields/EffectFieldType.test.ts`
+- `src/types/fields/EffectFieldType.tsx`
 
 ---
 
@@ -1500,16 +1499,16 @@ export function useAutoSave() {
 
 #### [T042b] [P] Create EffectFieldEditor
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/data-editor/components/fields/EffectFieldEditor.tsx` 作成
-- [ ] エフェクト選択 UI
-- [ ] プレビュー表示
-- [ ] テスト追加
+- [x] `src/features/data-editor/components/fields/EffectFieldEditor.tsx` 作成
+- [x] エフェクト選択 UI
+- [x] プレビュー表示
+- [ ] テスト追加（未実装）
 
 **関連ファイル:**
 
@@ -1583,18 +1582,18 @@ export function useAutoSave() {
 
 #### [T042f] SelectField visibilityMap — 選択肢ごとの表示フィールド管理
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [x] 完了
 - **ブランチ:** -
 - **PR:** -
 
 **完了条件:**
 
-- [ ] SelectFieldType に `visibilityMap?: Record<string, string[]>` プロパティ追加
-- [ ] SelectFieldConfig に選択肢ごとの表示フィールド設定 UI 追加
-- [ ] visibilityMap から各フィールドの displayCondition を自動生成する変換ロジック
-- [ ] FormBuilder で displayCondition に基づくフィールド表示/非表示（既存を活用）
-- [ ] デフォルトデータ（アイテム等）に visibilityMap を設定
-- [ ] テスト追加
+- [x] SelectFieldType に `visibilityMap?: Record<string, string[]>` プロパティ追加
+- [x] SelectFieldConfig に選択肢ごとの表示フィールド設定 UI 追加
+- [x] visibilityMap から各フィールドの displayCondition を自動生成する変換ロジック（`conditionEvaluator.ts`）
+- [x] FormBuilder で displayCondition に基づくフィールド表示/非表示（既存を活用）
+- [x] デフォルトデータ（アイテム等）に visibilityMap を設定
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -2924,11 +2923,11 @@ export function useAutoSave() {
 - [x] skill（スキル）データタイプ
 - [x] item（アイテム）データタイプ
 - [x] enemy（敵）データタイプ
-- [ ] enemyGroup（敵グループ）データタイプ
-- [ ] status（ステータス異常）データタイプ
-- [ ] element（属性）データタイプ
-- [ ] 初期化時に登録
-- [ ] テスト追加
+- [x] enemyGroup（敵グループ）データタイプ
+- [x] status（ステータス異常）データタイプ
+- [x] element（属性）データタイプ
+- [x] 初期化時に登録
+- [x] テスト追加
 
 **関連ファイル:**
 
@@ -3720,9 +3719,9 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [ ] スクリプトリストでD&Dによる並び替え
-- [ ] 並び順をストアに保存
-- [ ] 内部スクリプトも親内で並び替え可能
+- [x] スクリプトリストでD&Dによる並び替え（`@/components/common/DraggableTree` を使用）
+- [x] 並び順をストアに保存（`scriptSlice.moveScript`）
+- [x] 内部スクリプトも親内で並び替え可能（`moveScript` が `parentId` 単位で siblings を計算）
 
 **関連ファイル:**
 
@@ -4411,7 +4410,7 @@ export function useAutoSave() {
 
 - [x] `src/features/map-editor/components/ChipsetEditor.tsx` 作成
 - [x] チップセット一覧（追加/削除/名前変更）
-- [ ] チップセット画像選択（AssetPicker）—次フェーズ
+- [x] チップセット画像選択（`ImageFieldEditor` 経由で `AssetPickerModal` を使用）
 - [x] タイルサイズ設定（tileWidth / tileHeight）
 - [x] フィールドスキーマ編集（FieldRow を使って通行設定・足音などを追加/削除/設定）
 - [x] チップグリッド表示（番号 + 通行インジケータ ○/×）
@@ -4619,16 +4618,16 @@ export function useAutoSave() {
 
 #### [T161] [US13] Create ChipPalette
 
-- **ステータス:** [x] 完了
+- **ステータス:** [~] 進行中
 - **ブランチ:** feature/T242-chipset-editor-ui
 - **PR:** -
 
 **完了条件:**
 
 - [x] `src/features/map-editor/components/ChipPalette.tsx` 作成
-- [x] チップセット画像からタイル選択
-- [x] 選択範囲表示
-- [x] 複数タイル選択（スタンプ用）
+- [x] チップセット画像からタイル選択（単一クリックのみ）
+- [ ] 選択範囲表示（未実装、単一選択のハイライトのみ）
+- [ ] 複数タイル選択（スタンプ用）（未実装、T171b と重複）
 - [x] テスト追加
 
 **関連ファイル:**
@@ -4853,7 +4852,7 @@ export function useAutoSave() {
 
 #### [T171a] [US13] Implement map editor shortcuts
 
-- **ステータス:** [x] 完了
+- **ステータス:** [~] 進行中
 - **ブランチ:** feature/T242-chipset-editor-ui
 - **PR:** -
 
@@ -4863,10 +4862,10 @@ export function useAutoSave() {
 - [x] B: ペンツール
 - [x] E: 消しゴム
 - [x] G: 塗りつぶし
-- [x] 1-9: レイヤー切り替え
-- [x] Ctrl+C/V: コピー/ペースト
-- [x] Delete: 選択削除
-- [x] テスト追加
+- [ ] 1-9: レイヤー切り替え（未実装）
+- [ ] Ctrl+C/V: コピー/ペースト（未実装、T171c と重複）
+- [ ] Delete: 選択削除（未実装）
+- [x] テスト追加（B/E/Ctrl+Z のみカバー）
 
 **関連ファイル:**
 
@@ -5702,130 +5701,107 @@ export function useAutoSave() {
 
 ### オブジェクトパネル
 
-#### [T198] [US15] Create ObjectPanel component
+#### [T198] [US15] Create ObjectPanel component （T164 [US13] Create ObjectList と重複 — 廃止）
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [-] 廃止（T164 に統合済み、内容はマップオブジェクト管理でありオブジェクトUIとは無関係）
 - **ブランチ:** -
 - **PR:** -
 
-**完了条件:**
+**備考:**
 
-- [ ] `src/features/object-editor/components/ObjectPanel.tsx` 作成
-- [ ] オブジェクト一覧表示
-- [ ] 検索/フィルター
-- [ ] カテゴリ分類
-- [ ] テスト追加
+完了条件が指す内容（マップオブジェクトの一覧パネル）は Phase 13 の T164「Create ObjectList」が
+`MapObjectList.tsx` として先に実装済み。本来 Phase 16 が指すべき「オブジェクトUI」（後述の
+ObjectCanvas — マップオブジェクトの上に重ねて表示するHPバー等のUI）とはタスク定義時点で
+別物になっていた。実体のあるオブジェクトUI関連タスクは T256 以降を参照。
 
 **関連ファイル:**
 
-- `src/features/object-editor/components/ObjectPanel.tsx`
-- `src/features/object-editor/components/ObjectPanel.test.tsx`
+- `src/features/map-editor/components/MapObjectList.tsx`（T164 参照）
 
 ---
 
-#### [T199] [US15] Create ObjectPropertyPanel component
+#### [T199] [US15] Create ObjectPropertyPanel component （T165 [US13] Create MapPropertyPanel と重複 — 廃止）
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [-] 廃止（T165 に統合済み、内容はマップオブジェクト管理でありオブジェクトUIとは無関係）
 - **ブランチ:** -
 - **PR:** -
 
-**完了条件:**
+**備考:**
 
-- [ ] `src/features/object-editor/components/ObjectPropertyPanel.tsx` 作成
-- [ ] 基本プロパティ編集
-- [ ] コンポーネント一覧
-- [ ] コンポーネント追加UI
-- [ ] テスト追加
+T198 と同様、完了条件はマップオブジェクトのプロパティパネルを指しており、Phase 13 の
+T165「Create MapPropertyPanel」が `MapPropertyPanel.tsx` として先に実装済み。
 
 **関連ファイル:**
 
-- `src/features/object-editor/components/ObjectPropertyPanel.tsx`
-- `src/features/object-editor/components/ObjectPropertyPanel.test.tsx`
+- `src/features/map-editor/components/MapPropertyPanel.tsx`（T165 参照）
 
 ---
 
-#### [T200] [US15] Create ComponentEditor component
+#### [T200] [US15] Create ComponentEditor component （T157 [US12] Create ComponentEditor と完全に同一 — 廃止）
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [-] 廃止（T157 に統合済み、内容はマップオブジェクト管理でありオブジェクトUIとは無関係）
 - **ブランチ:** -
 - **PR:** -
 
-**完了条件:**
+**備考:**
 
-- [ ] `src/features/object-editor/components/ComponentEditor.tsx` 作成
-- [ ] コンポーネントタイプ別PropertyPanel表示
-- [ ] 展開/折りたたみ
-- [ ] 削除ボタン
-- [ ] テスト追加
+Phase 12 の T157「Create ComponentEditor」と完全に同じファイルパス・完了条件。計画時点での
+重複タスクと判断。
 
 **関連ファイル:**
 
-- `src/features/object-editor/components/ComponentEditor.tsx`
-- `src/features/object-editor/components/ComponentEditor.test.tsx`
+- `src/features/map-editor/components/ComponentEditor.tsx`（T157 参照）
 
 ---
 
-### プレハブシステム
+### プレハブシステム（旧定義 — マップオブジェクト管理と重複のため廃止）
 
-#### [T201] [US15] Implement Prefab creation
+#### [T201] [US15] Implement Prefab creation （T153 [US12] Create prefabSlice と重複 — 廃止）
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [-] 廃止（T153 に統合済み、内容はプレハブ管理でありオブジェクトUIとは無関係）
 - **ブランチ:** -
 - **PR:** -
 
-**完了条件:**
+**備考:**
 
-- [ ] `src/features/prefab/utils/prefabUtils.ts` 作成
-- [ ] オブジェクトからプレハブ作成
-- [ ] コンポーネントのシリアライズ
-- [ ] ストアに保存
-- [ ] テスト追加
+Phase 12 の T153「Create prefabSlice」がプレハブ作成・保存のCRUDを先に実装済み。
 
 **関連ファイル:**
 
-- `src/features/prefab/utils/prefabUtils.ts`
-- `src/features/prefab/utils/prefabUtils.test.ts`
+- `src/stores/prefabSlice.ts`（T153 参照）
 
 ---
 
-#### [T202] [US15] Implement Prefab instantiation
+#### [T202] [US15] Implement Prefab instantiation （T168 [US13] Create useObjectPlacement hook と重複 — 廃止）
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [-] 廃止（T168 に統合済み、内容はプレハブ配置でありオブジェクトUIとは無関係）
 - **ブランチ:** -
 - **PR:** -
 
-**完了条件:**
+**備考:**
 
-- [ ] プレハブからオブジェクト生成
-- [ ] ID再生成
-- [ ] 位置指定
-- [ ] テスト追加
+Phase 13 の T168「Create useObjectPlacement hook」がプレハブのマップ配置を先に実装済み。
 
 **関連ファイル:**
 
-- `src/features/prefab/utils/prefabUtils.ts`
-- `src/features/prefab/utils/prefabUtils.test.ts`
+- `src/features/map-editor/hooks/useObjectPlacement.ts`（T168 参照）
 
 ---
 
-#### [T203] [US15] Create PrefabBrowser component
+#### [T203] [US15] Create PrefabBrowser component （T155/T156 [US12] PrefabList/PrefabPreview と重複 — 廃止）
 
-- **ステータス:** [ ] 未着手
+- **ステータス:** [-] 廃止（T155/T156 に統合済み、内容はプレハブ管理でありオブジェクトUIとは無関係）
 - **ブランチ:** -
 - **PR:** -
 
-**完了条件:**
+**備考:**
 
-- [ ] `src/features/prefab/components/PrefabBrowser.tsx` 作成
-- [ ] プレハブ一覧表示
-- [ ] プレビュー表示
-- [ ] ドラッグ&ドロップでマップに配置
-- [ ] テスト追加
+Phase 12 の T155「Create PrefabList」+ T156「Create PrefabPreview」が先に実装済み。
 
 **関連ファイル:**
 
-- `src/features/prefab/components/PrefabBrowser.tsx`
-- `src/features/prefab/components/PrefabBrowser.test.tsx`
+- `src/features/map-editor/components/PrefabList.tsx`（T155 参照）
+- `src/features/map-editor/components/PrefabPreview.tsx`（T156 参照）
 
 ---
 
@@ -7928,34 +7904,99 @@ item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/
 
 ---
 
+#### [T256] [US15] オブジェクトUI設計ページ実装（`/ui/objects`）
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `src/app/(editor)/ui/objects/page.tsx` の "Coming Soon" スタブを置き換え
+- [ ] UI一覧パネル（ObjectCanvas定義の一覧・追加/削除）
+- [ ] エレメントパネル・プロパティパネル（Screen Designと同じ `UIObject`/`UIComponent` ツリー編集を流用、design.md 4.8 の `UICanvas { objects: UIObject[] }` に準拠）
+- [ ] テンプレートパネル
+- [ ] プレビュー（対象マップオブジェクトに重ねて表示）
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/app/(editor)/ui/objects/page.tsx`
+- `requirements.md`（5.1 オブジェクトUI設計 参照）
+- `docs/design.md`（4.8 UIキャンバス・ファンクション 参照）
+
+---
+
+#### [T257] [US15] ObjectCanvasComponent を UICanvas モデルに統合しランタイム描画
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] `ObjectCanvasComponent.elements`（現状 `CanvasElement[]`）を Screen Design と同じ `UICanvas { objects: UIObject[], functions: UIFunction[] }` 構造に置き換え
+- [ ] マップオブジェクトの描画位置に対して offsetX/offsetY を反映してUIを重ね描画
+- [ ] GameEngine/UIRenderer 側でオブジェクトUIをフレームごとに追従描画
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/types/components/ObjectCanvasComponent.tsx`
+- `src/features/map-editor/components/panels/ObjectCanvasPropertyPanel.tsx`
+- `src/engine/runtime/GameEngine.ts`
+
+---
+
+#### [T258] [US15] オブジェクトUIファンクション（`player.canvas.xxx()`）
+
+- **ステータス:** [ ] 未着手
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [ ] Screen Designの `ui.call(canvasId, funcName, args)` と同様の呼び出し方式をオブジェクトUIにも用意
+- [ ] `player.canvas.damage()` のようにオブジェクトインスタンス経由でスクリプトから呼び出し可能にする（requirements.md 1997行目参照）
+- [ ] UIFunction編集UI（T197a `FunctionsPanel` と同様の仕組みを流用）
+- [ ] テスト追加
+
+**関連ファイル:**
+
+- `src/features/ui-editor/components/FunctionsPanel.tsx`（参考実装）
+- `src/types/components/ObjectCanvasComponent.tsx`
+- `docs/design.md`（4.8 UI/Script 分離方針 参照）
+
+---
+
 ## 進捗トラッキング
 
 ### フェーズ別サマリー
 
-| Phase | 名称                           | 状態                | 備考                                                       |
-| ----- | ------------------------------ | ------------------- | ---------------------------------------------------------- |
-| 0     | プロジェクトセットアップ       | ✅ 完了 (18/18)     |                                                            |
-| 1     | 型定義・基盤                   | 🔶 ほぼ完了 (28/30) | 残: autoSave refactor, per-page undo (後回し)              |
-| 2     | 基本フィールドタイプ           | 🔶 ほぼ完了 (14/20) | 残: Formula/Effect/Script FieldType (未定義、必要時に実装) |
-| 3     | ゲーム設定                     | ✅ 完了 (4/4)       |                                                            |
-| 4     | 変数・クラス・フィールドセット | ✅ 完了 (17/17)     |                                                            |
-| 5     | P1 フィールドタイプ            | ✅ 完了 (8/8)       |                                                            |
-| 6     | アセット管理                   | 🔶 ほぼ完了 (17/20) | 残: フォルダD&D, アセット移動。T081は廃止(T083統合)        |
-| 7     | データ設定                     | ✅ 完了 (12/12)     |                                                            |
-| 8     | イベントシステム               | ✅ 完了 (29/29)     |                                                            |
-| 9     | スクリプトエディタ             | ✅ 完了 (17/17)     | T126b D&D実装済み                                          |
-| 10    | マップ基盤                     | ✅ 完了 (15/15)     |                                                            |
-| 11    | マップデータページ             | ✅ 完了 (7/7)       |                                                            |
-| 12    | オブジェクトプレハブ           | ✅ 完了 (6/6)       |                                                            |
-| 13    | マップ編集ページ               | 🔶 ほぼ完了 (18/20) | 残: マルチタイル選択, コピペ                               |
-| 14    | UI Foundation                  | ✅ 完了 (17/17)     | T184 ActionComponent 廃止                                  |
-| 15    | Screen Design                  | ✅ 完了 (14/14)     | T197b ActionComponent 廃止                                 |
-| 16    | Object UI                      | ✅ 実装済み (0/6)   | タスク未更新だが MapEditor 内で実装済み                    |
-| 17    | Timeline                       | ⬜ 未着手 (0/6)     | TimelineBands のみ存在                                     |
-| 18    | Game Engine                    | ✅ 完了 (57/58)     | T217 PlayerAPI 廃止。残: T224a 統合テスト                  |
-| 19    | Test Play                      | 🔶 一部実装 (0/5)   | TestPlayOverlay 実装済み、タスク未更新                     |
-| 20    | Polish                         | 🚧 進行中 (4/15)    |                                                            |
-| 21    | Lite/Full テンプレートシステム | 🚧 進行中 (1/7)     | T246 廃止                                                  |
+| Phase | 名称                           | 状態                  | 備考                                                                                                                                                                                                                  |
+| ----- | ------------------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | プロジェクトセットアップ       | ✅ 完了 (18/18)       |                                                                                                                                                                                                                       |
+| 1     | 型定義・基盤                   | 🔶 一部未着手 (19/30) | 残: autoSave refactor, per-page undo, ShortcutHelpModal, ValidationManager, InlineError, useValidation, SearchModal, ReferenceSearchModal, ClipboardManager, useClipboard, 汎用PropertyPanel（全てPolish/必要時実装） |
+| 2     | 基本フィールドタイプ           | 🔶 ほぼ完了 (16/20)   | 残: Formula/Script FieldType (未定義、必要時に実装)。EffectFieldTypeは実装済みだったがタスク未更新                                                                                                                    |
+| 3     | ゲーム設定                     | ✅ 完了 (4/4)         |                                                                                                                                                                                                                       |
+| 4     | 変数・クラス・フィールドセット | ✅ 完了 (17/17)       |                                                                                                                                                                                                                       |
+| 5     | P1 フィールドタイプ            | ✅ 完了 (8/8)         |                                                                                                                                                                                                                       |
+| 6     | アセット管理                   | 🔶 ほぼ完了 (17/20)   | 残: フォルダD&D, アセット移動。T081は廃止(T083統合)                                                                                                                                                                   |
+| 7     | データ設定                     | ✅ 完了 (12/12)       |                                                                                                                                                                                                                       |
+| 8     | イベントシステム               | ✅ 完了 (29/29)       |                                                                                                                                                                                                                       |
+| 9     | スクリプトエディタ             | ✅ 完了 (17/17)       | T126b D&D実装済み                                                                                                                                                                                                     |
+| 10    | マップ基盤                     | ✅ 完了 (15/15)       |                                                                                                                                                                                                                       |
+| 11    | マップデータページ             | ✅ 完了 (7/7)         |                                                                                                                                                                                                                       |
+| 12    | オブジェクトプレハブ           | ✅ 完了 (6/6)         |                                                                                                                                                                                                                       |
+| 13    | マップ編集ページ               | 🔶 一部未着手 (16/20) | 残: マルチタイル選択(T161/T171b), コピペ(T171c), レイヤー切替/Delete(T171a)                                                                                                                                           |
+| 14    | UI Foundation                  | ✅ 完了 (17/17)       | T184 ActionComponent 廃止                                                                                                                                                                                             |
+| 15    | Screen Design                  | ✅ 完了 (14/14)       | T197b ActionComponent 廃止                                                                                                                                                                                            |
+| 16    | Object UI                      | ⬜ 未着手 (0/3)       | T198〜T203は廃止（Phase12/13と重複、オブジェクトUIとは無関係）。実体はT256〜T258（`/ui/objects`は"Coming Soon"スタブのまま）                                                                                          |
+| 17    | Timeline                       | ⬜ 未着手 (0/6)       | TimelineBands のみ存在                                                                                                                                                                                                |
+| 18    | Game Engine                    | ✅ 完了 (57/58)       | T217 PlayerAPI 廃止。残: T224a 統合テスト                                                                                                                                                                             |
+| 19    | Test Play                      | 🔶 一部実装 (0/5)     | TestPlayOverlay 実装済み、タスク未更新                                                                                                                                                                                |
+| 20    | Polish                         | 🚧 進行中 (4/15)      |                                                                                                                                                                                                                       |
+| 21    | Lite/Full テンプレートシステム | 🚧 進行中 (1/7)       | T246 廃止                                                                                                                                                                                                             |
 
 ### 優先度凡例
 
