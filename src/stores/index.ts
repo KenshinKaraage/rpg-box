@@ -59,7 +59,7 @@ export const useStore = create<StoreState>()(
     ...createMapSlice(set, get),
     ...createPrefabSlice(set, get),
     ...createMapEditorSlice(set, get),
-    ...createEventSlice(set),
+    ...createEventSlice(set as (fn: (state: EventSlice) => void) => void),
     ...createUIEditorSlice(set, get),
 
     loadProjectData: (data: ProjectData) =>

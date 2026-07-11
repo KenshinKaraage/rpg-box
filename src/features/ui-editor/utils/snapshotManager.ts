@@ -43,7 +43,7 @@ export function revertSnapshot(id: string): void {
 
 /** 全スナップショットを復元して削除 */
 export function revertAll(): void {
-  for (const [id] of snapshots) {
+  for (const [id] of Array.from(snapshots)) {
     revertSnapshot(id);
   }
 }
@@ -94,7 +94,7 @@ function applyRevert(snapshot: PreviewSnapshot): void {
 
   // オブジェクトを元に戻す
   const store = useStore.getState();
-  for (const [objectId, original] of objects.entries()) {
+  for (const [objectId, original] of Array.from(objects.entries())) {
     store.updateUIObject(canvasId, objectId, {
       name: original.name,
       transform: original.transform,

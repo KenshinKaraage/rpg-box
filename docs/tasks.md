@@ -7969,6 +7969,25 @@ item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/
 
 ---
 
+#### [T259] 本番ビルドのTypeScriptエラー修正
+
+- **ステータス:** [x] 完了
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [x] `snapshotManager.ts`: Map の直接 `for...of` イテレーションを `Array.from()` に修正（`--downlevelIteration` 未設定によるビルドエラー）
+- [x] `stores/index.ts`: `createEventSlice(set)` の型不整合を修正（`EventAction` の `protected` メソッドが Immer の `Draft<T>` マップ型で失われる既知の制限のため `set` をキャスト）
+- [x] `npm run build` が成功することを確認
+
+**関連ファイル:**
+
+- `src/features/ui-editor/utils/snapshotManager.ts`
+- `src/stores/index.ts`
+
+---
+
 ## 進捗トラッキング
 
 ### フェーズ別サマリー
