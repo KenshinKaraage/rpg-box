@@ -6696,13 +6696,18 @@ Phase 12 の T155「Create PrefabList」+ T156「Create PrefabPreview」が先�
 - [x] アセット名→IDリゾルバで SpriteComponent.imageId に正しいアセットID設定
 - [x] VariableAPI に Proxy 追加（`Variable["name"]` で直接アクセス）
 - [x] `createVariableAPI` で `structuredClone` 適用（Immer frozen 対策）
+- [x] `importDefaultAssets` を並列化（85アセットの逐次fetchで約7秒かかっていたのを短縮）
+- [x] `loadDefaultTestData` 実行中のローディングオーバーレイ表示（`uiSlice.isImportingAssets` + `AppShell`）
 
 **関連ファイル:**
 
 - `src/lib/defaultTestData.ts`
 - `src/lib/defaultAssets.ts`
+- `src/lib/importDefaultAssets.ts`
 - `src/engine/runtime/GameContext.ts`
 - `src/features/script-editor/utils/apiDefinitions.ts`
+- `src/stores/uiSlice.ts`
+- `src/components/common/AppShell.tsx`
 - `public/assets/images/character_walk/*.png`
 
 ---

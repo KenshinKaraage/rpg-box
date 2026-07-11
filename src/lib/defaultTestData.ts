@@ -116,7 +116,17 @@ function resolveCanvasAssetIds(canvas: EditorUICanvas, resolve: AssetNameToId): 
 
 export async function loadDefaultTestData(): Promise<void> {
   const state = useStore.getState();
+  state.setIsImportingAssets(true);
+  try {
+    await loadDefaultTestDataInner(state);
+  } finally {
+    useStore.getState().setIsImportingAssets(false);
+  }
+}
 
+async function loadDefaultTestDataInner(
+  state: ReturnType<typeof useStore.getState>
+): Promise<void> {
   // デフォルトアセット（マップチップ + 歩行キャラ）をインポート
   await importDefaultAssets(state.assets, state.addAsset, state.addFolder, state.assetFolders);
 
