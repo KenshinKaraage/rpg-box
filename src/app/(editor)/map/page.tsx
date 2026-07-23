@@ -47,8 +47,6 @@ export default function MapEditPage() {
   const reorderLayers = useStore((s) => s.reorderLayers);
   const selectObject = useStore((s) => s.selectObject);
   const deleteObject = useStore((s) => s.deleteObject);
-  const addObject = useStore((s) => s.addObject);
-  const setTile = useStore((s) => s.setTile);
 
   // Prefab state
   const prefabs = useStore((s) => s.prefabs);
@@ -75,14 +73,20 @@ export default function MapEditPage() {
   const placementPrefabId = useStore((s) => s.selectedPrefabId);
   const selectPrefabForPlacement = useStore((s) => s.selectPrefabForPlacement);
 
-  // Undo/redo
-  const pushUndo = useStore((s) => s.pushUndo);
-  const popUndo = useStore((s) => s.popUndo);
-  const pushRedo = useStore((s) => s.pushRedo);
-  const popRedo = useStore((s) => s.popRedo);
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const undo = useStore((s) => s.undo);
+  const redo = useStore((s) => s.redo);
+  const undoStacks = useStore((s) => s.undoStacks);
+  const redoStacks = useStore((s) => s.redoStacks);
+  const setCurrentPage = useStore((s) => s.setCurrentPage);
 
   const selectedMap = maps.find((m) => m.id === selectedMapId) ?? null;
   const selectedLayer = selectedMap?.layers.find((l) => l.id === selectedLayerId) ?? null;
+
+  useEffect(() => {
+    setCurrentPage('map');
+  }, [setCurrentPage]);
 
   // レイヤー切り替え時: 選択チップが新レイヤーのチップセットに含まれなければリセット
   useEffect(() => {
@@ -157,40 +161,7 @@ export default function MapEditPage() {
     selectPrefab(newId);
   };
 
-  // --- Undo/redo handlers ---
-  const handleUndo = () => {
-    const action = popUndo();
-    if (!action) return;
-    if (action.type === 'setTile') {
-      setTile(action.mapId, action.layerId, action.x, action.y, action.prev);
-      pushRedo(action);
-    } else if (action.type === 'setTileRange') {
-      action.tiles.forEach((t) => setTile(action.mapId, action.layerId, t.x, t.y, t.prev));
-      pushRedo(action);
-    } else if (action.type === 'addObject') {
-      deleteObject(action.mapId, action.layerId, action.object.id);
-      pushRedo(action);
-    } else if (action.type === 'deleteObject') {
-      addObject(action.mapId, action.layerId, action.object);
-      pushRedo(action);
-    }
-  };
-
-  const handleRedo = () => {
-    const action = popRedo();
-    if (!action) return;
-    if (action.type === 'setTile') {
-      setTile(action.mapId, action.layerId, action.x, action.y, action.next);
-    } else if (action.type === 'setTileRange') {
-      action.tiles.forEach((t) => setTile(action.mapId, action.layerId, t.x, t.y, t.next));
-    } else if (action.type === 'addObject') {
-      addObject(action.mapId, action.layerId, action.object);
-    } else if (action.type === 'deleteObject') {
-      deleteObject(action.mapId, action.layerId, action.object.id);
-    }
-  };
-
-  useMapShortcuts({ onSetTool: setTool, onUndo: handleUndo, onRedo: handleRedo });
+  useMapShortcuts({ onSetTool: setTool, onUndo: undo, onRedo: redo });
 
   // 選択中チップセットの画像データとサイズを取得
   const selectedChipsetId = selectedChipId?.split(':')[0] ?? null;
@@ -338,13 +309,8 @@ export default function MapEditPage() {
                   if (!selectedMapId || !selectedLayerId) return;
                   const obj = selectedLayer?.objects?.find((o) => o.id === id);
                   if (obj) {
+                    pushUndoState('map', { maps });
                     deleteObject(selectedMapId, selectedLayerId, id);
-                    pushUndo({
-                      type: 'deleteObject',
-                      mapId: selectedMapId,
-                      layerId: selectedLayerId,
-                      object: obj,
-                    });
                   }
                 }}
               />
@@ -362,6 +328,10 @@ export default function MapEditPage() {
             zoom={viewport.zoom}
             onZoomIn={() => setViewport(applyZoom(viewport, 1, 0, 0))}
             onZoomOut={() => setViewport(applyZoom(viewport, -1, 0, 0))}
+            canUndo={(undoStacks['map']?.length ?? 0) > 0}
+            canRedo={(redoStacks['map']?.length ?? 0) > 0}
+            onUndo={undo}
+            onRedo={redo}
           />
           <div className="flex-1 overflow-hidden bg-neutral-800">
             {selectedMapId ? (

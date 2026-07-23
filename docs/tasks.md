@@ -873,22 +873,33 @@ export function useAutoSave() {
 
 #### [T026c] Implement per-page undo history
 
-- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
+- **ステータス:** [~] 進行中（インメモリ実装は完了、IndexedDB永続化は未着手）
 - **ブランチ:** -
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/undoSlice.ts` 作成
-- [ ] ページごとの履歴スタック管理
-- [ ] ページ切り替え時の履歴保持
-- [ ] 最大履歴サイズ設定
-- [ ] テスト追加
+- [x] `src/stores/editorSlice.ts` 作成（design.md#EditorSlice 準拠。ファイル名は当初案の `undoSlice.ts` ではなく design.md の型名に合わせて `editorSlice.ts`）
+- [x] ページごとの履歴スタック管理（`undoStacks`/`redoStacks: Record<string, unknown[]>`、`pushUndoState`/`undo`/`redo` は `Object.assign` によるページ単位の丸ごとスナップショット復元）
+- [x] 最大履歴サイズ設定（100件、requirements.md準拠）
+- [x] テスト追加（`editorSlice.test.ts`）
+- [x] マップエディタを旧・差分方式（`mapEditorSlice.ts` の `undoStack`/`redoStack`/`MapEditAction`）からこの汎用スライスに移行（タイル塗り・オブジェクト追加/削除/移動）
+- [ ] ページ切り替え時の履歴永続化（IndexedDB `undoHistory` ストア・`saveUndoHistory`/`loadUndoHistory` は実装済みで未接続。「保存後も履歴維持」要件に対応する後続タスク）
+- [ ] マップエディタ以外のページへの展開（現状 `map` ページのみ配線。他エディタは今後 `pushUndoState('data', {...})` 等を呼ぶだけで追従可能な設計）
+
+**背景:**
+
+- マップエディタに元々あった `mapEditorSlice.ts` の差分（diff）ベースUndoが、`Component` クラスインスタンスを `structuredClone` しようとして `DataCloneError` で壊れていた。design.md/requirements.md を確認したところ、そもそも仕様は診断分のペー​ジ単位の丸ごとスナップショット方式（`EditorSlice`）であり、既存実装は仕様に準拠していなかったため作り直した。
+- Zustand が immer ミドルウェアを使用しているため、`set()` ごとに状態木は構造的に新しくなる（過去の参照は変化しない）。これによりインメモリ履歴では手動クローンが一切不要になった。
 
 **関連ファイル:**
 
-- `src/stores/undoSlice.ts`
-- `src/stores/undoSlice.test.ts`
+- `src/stores/editorSlice.ts`
+- `src/stores/editorSlice.test.ts`
+- `src/stores/mapEditorSlice.ts`
+- `src/features/map-editor/hooks/useTilePainting.ts`
+- `src/features/map-editor/hooks/useObjectPlacement.ts`
+- `src/app/(editor)/map/page.tsx`
 
 ---
 

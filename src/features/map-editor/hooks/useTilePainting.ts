@@ -34,7 +34,7 @@ export function useTilePainting(mapId: string, layerId: string) {
   const viewport = useStore((s) => s.viewport);
   const maps = useStore((s) => s.maps);
   const setTile = useStore((s) => s.setTile);
-  const pushUndo = useStore((s) => s.pushUndo);
+  const pushUndoState = useStore((s) => s.pushUndoState);
 
   // 矩形選択の開始タイル座標（mousedown 時に記録）
   const rectStartRef = useRef<{ tx: number; ty: number } | null>(null);
@@ -55,8 +55,8 @@ export function useTilePainting(mapId: string, layerId: string) {
         const tiles = layer.tiles ?? [];
         const changes = floodFill(tiles, tx, ty, selectedChipId, map.width, map.height);
         if (changes.length === 0) return;
+        pushUndoState('map', { maps });
         changes.forEach((c) => setTile(mapId, layerId, c.x, c.y, c.next));
-        pushUndo({ type: 'setTileRange', mapId, layerId, tiles: changes });
         return;
       }
 
@@ -69,13 +69,13 @@ export function useTilePainting(mapId: string, layerId: string) {
       }
 
       const targets = getTilesToPaint(currentTool, { tx, ty }, null, selectedChipId);
+      if (targets.length === 0) return;
+      pushUndoState('map', { maps });
       targets.forEach(({ x, y, chipId }) => {
-        const prev = layer.tiles?.[y]?.[x] ?? '';
         setTile(mapId, layerId, x, y, chipId);
-        pushUndo({ type: 'setTile', mapId, layerId, x, y, prev, next: chipId });
       });
     },
-    [currentTool, selectedChipId, viewport, maps, mapId, layerId, setTile, pushUndo]
+    [currentTool, selectedChipId, viewport, maps, mapId, layerId, setTile, pushUndoState]
   );
 
   // 矩形選択: mouseup 時に矩形範囲の全タイルを一括適用
@@ -97,18 +97,18 @@ export function useTilePainting(mapId: string, layerId: string) {
       const minY = Math.max(0, Math.min(start.ty, endTy));
       const maxY = Math.min(map.height - 1, Math.max(start.ty, endTy));
 
-      const changes: Array<{ x: number; y: number; prev: string; next: string }> = [];
+      const changes: Array<{ x: number; y: number }> = [];
       for (let y = minY; y <= maxY; y++) {
         for (let x = minX; x <= maxX; x++) {
-          changes.push({ x, y, prev: layer.tiles?.[y]?.[x] ?? '', next: selectedChipId });
+          changes.push({ x, y });
         }
       }
       if (changes.length === 0) return;
 
-      changes.forEach(({ x, y, next }) => setTile(mapId, layerId, x, y, next));
-      pushUndo({ type: 'setTileRange', mapId, layerId, tiles: changes });
+      pushUndoState('map', { maps });
+      changes.forEach(({ x, y }) => setTile(mapId, layerId, x, y, selectedChipId));
     },
-    [currentTool, selectedChipId, viewport, maps, mapId, layerId, setTile, pushUndo]
+    [currentTool, selectedChipId, viewport, maps, mapId, layerId, setTile, pushUndoState]
   );
 
   return { paint, commitRect };
