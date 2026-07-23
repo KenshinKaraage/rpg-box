@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import {
@@ -12,6 +12,7 @@ import {
 import type { ScriptEditorHandle, DataTypeInfo } from '@/features/script-editor';
 import { generateReturnTemplate } from '@/features/script-editor/utils/returnTemplate';
 import { useStore } from '@/stores';
+import { useKeyboardShortcut, CommonShortcuts } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { generateId } from '@/lib/utils';
 import { createScript } from '@/types/script';
@@ -31,6 +32,33 @@ export default function EventScriptPage() {
   const dataTypes = useStore((state) => state.dataTypes);
   const [rightTab, setRightTab] = useState<RightTab>('settings');
   const editorRef = useRef<ScriptEditorHandle>(null);
+
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  // イベント/コンポーネントスクリプトは同じ scripts 配列を編集するため
+  // 'script' ページキーを共有し、履歴を一続きにする。
+  const pushUndoState = useStore((state) => state.pushUndoState);
+  const undo = useStore((state) => state.undo);
+  const redo = useStore((state) => state.redo);
+  const setCurrentPage = useStore((state) => state.setCurrentPage);
+
+  useEffect(() => {
+    setCurrentPage('script');
+  }, [setCurrentPage]);
+
+  useKeyboardShortcut({
+    shortcuts: [
+      { keys: CommonShortcuts.undo, handler: () => undo() },
+      { keys: CommonShortcuts.redo, handler: () => redo() },
+      { keys: CommonShortcuts.redoAlt, handler: () => redo() },
+    ],
+  });
+
+  function withUndo<Args extends unknown[]>(fn: (...args: Args) => void): (...args: Args) => void {
+    return (...args: Args) => {
+      pushUndoState('script', { scripts });
+      fn(...args);
+    };
+  }
 
   // DataType info for IntelliSense
   const dataTypeInfos: DataTypeInfo[] = useMemo(
@@ -56,6 +84,7 @@ export default function EventScriptPage() {
   );
 
   const handleAdd = () => {
+    pushUndoState('script', { scripts });
     const id = generateId(
       'script',
       scripts.map((s) => s.id)
@@ -66,6 +95,7 @@ export default function EventScriptPage() {
   };
 
   const handleAddInternal = (parentId: string) => {
+    pushUndoState('script', { scripts });
     const id = generateId(
       'script',
       scripts.map((s) => s.id)
@@ -158,9 +188,9 @@ export default function EventScriptPage() {
           selectedId={selectedScriptId}
           onSelect={selectScript}
           onAdd={handleAdd}
-          onDelete={deleteScript}
+          onDelete={withUndo(deleteScript)}
           onAddInternal={handleAddInternal}
-          onMove={moveScript}
+          onMove={withUndo(moveScript)}
           title="イベントスクリプト"
         />
       }

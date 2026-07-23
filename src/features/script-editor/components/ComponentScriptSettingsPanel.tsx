@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import type { Script } from '@/types/script';
 import { IconPicker } from './IconPicker';
 import { ColorPresetPicker } from './ColorPresetPicker';
@@ -24,6 +26,9 @@ export function ComponentScriptSettingsPanel({
   script,
   onUpdate,
 }: ComponentScriptSettingsPanelProps) {
+  const scripts = useStore((s) => s.scripts);
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const { endEditSession } = useUndoEditSession('script', script?.id ?? null);
   const [localName, setLocalName] = useState('');
   const [localDesc, setLocalDesc] = useState('');
 
@@ -47,18 +52,29 @@ export function ComponentScriptSettingsPanel({
 
   const handleNameBlur = () => {
     if (localName !== script.name) {
+      pushUndoState('script', { scripts });
+      endEditSession();
       onUpdate(script.id, { name: localName });
     }
   };
 
   const handleDescBlur = () => {
     if (localDesc !== (script.description ?? '')) {
+      pushUndoState('script', { scripts });
+      endEditSession();
       onUpdate(script.id, { description: localDesc });
     }
   };
 
+  /** 単発の設定変更（アイコン/カラー）用。1回のUndoを積んでセッションを断ち切る */
+  const handleDiscreteUpdate = (updates: Partial<Script>) => {
+    pushUndoState('script', { scripts });
+    endEditSession();
+    onUpdate(script.id, updates);
+  };
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" onBlur={endEditSession}>
       <div className="flex-1 overflow-auto p-4">
         <div className="space-y-4">
           {/* Name */}
@@ -76,13 +92,13 @@ export function ComponentScriptSettingsPanel({
           <div className="flex gap-4">
             <div className="space-y-2">
               <Label>アイコン</Label>
-              <IconPicker value={script.icon} onChange={(icon) => onUpdate(script.id, { icon })} />
+              <IconPicker value={script.icon} onChange={(icon) => handleDiscreteUpdate({ icon })} />
             </div>
             <div className="space-y-2">
               <Label>カラー</Label>
               <ColorPresetPicker
                 value={script.color}
-                onChange={(color) => onUpdate(script.id, { color })}
+                onChange={(color) => handleDiscreteUpdate({ color })}
               />
             </div>
           </div>

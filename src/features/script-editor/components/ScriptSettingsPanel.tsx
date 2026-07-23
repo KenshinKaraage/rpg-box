@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import type { Script, ScriptArg, ScriptReturn } from '@/types/script';
 import { IconPicker } from './IconPicker';
 import { ColorPresetPicker } from './ColorPresetPicker';
@@ -45,6 +46,9 @@ interface ScriptSettingsPanelProps {
 export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelProps) {
   const classes = useStore((s) => s.classes);
   const dataTypes = useStore((s) => s.dataTypes);
+  const scripts = useStore((s) => s.scripts);
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession('script', script?.id ?? null);
   const [localName, setLocalName] = useState('');
   const [localCallId, setLocalCallId] = useState('');
   const [localDesc, setLocalDesc] = useState('');
@@ -71,6 +75,8 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
 
   const handleNameBlur = () => {
     if (localName !== script.name) {
+      pushUndoState('script', { scripts });
+      endEditSession();
       onUpdate(script.id, { name: localName });
     }
   };
@@ -78,17 +84,23 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
   const handleCallIdBlur = () => {
     const trimmed = localCallId.trim() || undefined;
     if (trimmed !== (script.callId ?? undefined)) {
+      pushUndoState('script', { scripts });
+      endEditSession();
       onUpdate(script.id, { callId: trimmed });
     }
   };
 
   const handleDescBlur = () => {
     if (localDesc !== (script.description ?? '')) {
+      pushUndoState('script', { scripts });
+      endEditSession();
       onUpdate(script.id, { description: localDesc });
     }
   };
 
   const handleAddArg = () => {
+    pushUndoState('script', { scripts });
+    endEditSession();
     const index = script.args.length + 1;
     const newArg: ScriptArg = {
       id: `param${index}`,
@@ -100,15 +112,20 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
   };
 
   const handleUpdateArg = (argId: string, updates: Partial<ScriptArg>) => {
+    beginEditIfNeeded({ scripts });
     const newArgs = script.args.map((arg) => (arg.id === argId ? { ...arg, ...updates } : arg));
     onUpdate(script.id, { args: newArgs });
   };
 
   const handleDeleteArg = (argId: string) => {
+    pushUndoState('script', { scripts });
+    endEditSession();
     onUpdate(script.id, { args: script.args.filter((a) => a.id !== argId) });
   };
 
   const handleAddReturn = () => {
+    pushUndoState('script', { scripts });
+    endEditSession();
     const index = script.returns.length + 1;
     const newRet: ScriptReturn = {
       id: `result${index}`,
@@ -120,16 +137,26 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
   };
 
   const handleUpdateReturn = (retId: string, updates: Partial<ScriptReturn>) => {
+    beginEditIfNeeded({ scripts });
     const newReturns = script.returns.map((r) => (r.id === retId ? { ...r, ...updates } : r));
     onUpdate(script.id, { returns: newReturns });
   };
 
   const handleDeleteReturn = (retId: string) => {
+    pushUndoState('script', { scripts });
+    endEditSession();
     onUpdate(script.id, { returns: script.returns.filter((r) => r.id !== retId) });
   };
 
+  /** 単発の設定変更（種類/アイコン/カラー/待機フラグ等）用。1回のUndoを積んでセッションを断ち切る */
+  const handleDiscreteUpdate = (updates: Partial<Script>) => {
+    pushUndoState('script', { scripts });
+    endEditSession();
+    onUpdate(script.id, updates);
+  };
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" onBlur={endEditSession}>
       <div className="flex-1 overflow-auto p-4">
         <div className="space-y-4">
           {/* Name */}
@@ -148,7 +175,7 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
             <Label>スクリプト種類</Label>
             <Select
               value={script.type}
-              onValueChange={(v) => onUpdate(script.id, { type: v as Script['type'] })}
+              onValueChange={(v) => handleDiscreteUpdate({ type: v as Script['type'] })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -159,7 +186,11 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              {script.type === 'event' ? 'イベントエディタで選択可能' : script.type === 'internal' ? 'Script.xxx() でのみ呼び出し可能' : 'オブジェクトにアタッチ'}
+              {script.type === 'event'
+                ? 'イベントエディタで選択可能'
+                : script.type === 'internal'
+                  ? 'Script.xxx() でのみ呼び出し可能'
+                  : 'オブジェクトにアタッチ'}
             </p>
           </div>
 
@@ -167,16 +198,13 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
           <div className="flex gap-4">
             <div className="space-y-2">
               <Label>アイコン</Label>
-              <IconPicker
-                value={script.icon}
-                onChange={(icon) => onUpdate(script.id, { icon })}
-              />
+              <IconPicker value={script.icon} onChange={(icon) => handleDiscreteUpdate({ icon })} />
             </div>
             <div className="space-y-2">
               <Label>カラー</Label>
               <ColorPresetPicker
                 value={script.color}
-                onChange={(color) => onUpdate(script.id, { color })}
+                onChange={(color) => handleDiscreteUpdate({ color })}
               />
             </div>
           </div>
@@ -217,7 +245,7 @@ export function ScriptSettingsPanel({ script, onUpdate }: ScriptSettingsPanelPro
               <Checkbox
                 id="script-is-async"
                 checked={script.isAsync}
-                onCheckedChange={(checked) => onUpdate(script.id, { isAsync: checked === true })}
+                onCheckedChange={(checked) => handleDiscreteUpdate({ isAsync: checked === true })}
               />
               <Label htmlFor="script-is-async" className="text-sm">
                 完了まで待機する
