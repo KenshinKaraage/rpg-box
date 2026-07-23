@@ -888,7 +888,8 @@ export function useAutoSave() {
 - [x] 連続入力（テキスト/数値フィールドの1文字ごとの`onChange`）が1キー入力ごとに別々のUndoを積んでいた不具合を修正。`MapPropertyPanel.tsx`にフォーカス単位の編集セッション（`editingRef`）を導入し、同一セッション中は最初の変更時のみUndoを積むように変更（フォーカスが外れる/選択オブジェクトが変わるとセッションはリセット）
 - [x] 数値入力欄で全消去すると即座にフォールバック値（0/1等）にスナップされる不具合を修正。`src/features/data-editor/components/fields/NumberFieldEditor.tsx`（ローカル文字列stateを持ち空欄を許容する既存コンポーネント）を`className`/`placeholder`対応に拡張し、マップエディタの全コンポーネントプロパティパネル（Transform/Collider/Sprite/Movement/Trigger/ObjectCanvas/Controller/Variables）の生の`<Input type="number">`をこれに置き換えて統一
 - [ ] ページ切り替え時の履歴永続化（IndexedDB `undoHistory` ストア・`saveUndoHistory`/`loadUndoHistory` は実装済みで未接続。「保存後も履歴維持」要件に対応する後続タスク）
-- [ ] マップエディタ以外のページへの展開（現状 `map` ページのみ配線。他エディタは今後 `pushUndoState('data', {...})` 等を呼ぶだけで追従可能な設計）
+- [x] `データ設定`ページ（`/data`）へ展開: データ型/エントリのCRUD、フィールドスキーマ編集、フォーム入力すべてをUndo対象に。共通の `useUndoEditSession`（連続入力バッチ化）・`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`（Ctrl+Z等、独自実装ではなく既存の汎用ショートカット基盤を使用）フックを新設し、他ページからも再利用可能にした
+- [ ] 残りのページへの展開: `/data/classes`, `/data/variables`, `/event/templates`, `/script/events`, `/script/components`, `/ui/screens`（1ページずつ順番に対応中）
 - [ ] チップセットのプロパティ編集（`updateChipProperty` 等、`/map/data` ページ側）は対象外のまま。同ページに `EditorSlice` を配線する際に合わせて対応
 
 **背景:**
@@ -915,6 +916,12 @@ export function useAutoSave() {
 - `src/features/map-editor/components/panels/ObjectCanvasPropertyPanel.tsx`
 - `src/features/map-editor/components/panels/ControllerPropertyPanel.tsx`
 - `src/features/map-editor/components/panels/VariablesPropertyPanel.tsx`
+- `src/hooks/useUndoEditSession.ts`
+- `src/app/(editor)/data/page.tsx`
+- `src/features/data-editor/components/FormBuilder.tsx`
+- `src/features/data-editor/components/FormBuilder.test.tsx`
+- `src/features/data-editor/components/DataTypeInfoView.tsx`
+- `src/features/data-editor/components/DataTypeEditor.tsx`
 
 ---
 

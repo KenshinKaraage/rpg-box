@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import type { DataType } from '@/types/data';
 
 const dataTypeSchema = z.object({
@@ -40,6 +42,11 @@ export function DataTypeInfoView({
     defaultValues,
   });
 
+  const dataTypes = useStore((s) => s.dataTypes);
+  const dataEntries = useStore((s) => s.dataEntries);
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession('data', dataType?.id ?? null);
+
   if (!dataType) {
     return (
       <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
@@ -50,7 +57,7 @@ export function DataTypeInfoView({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" onBlur={endEditSession}>
       {/* ヘッダー */}
       <div className="border-b px-5 py-4">
         <h3 className="text-sm font-bold">データ型設定</h3>
@@ -66,6 +73,7 @@ export function DataTypeInfoView({
             onBlur={(e) => {
               const newId = e.target.value.trim();
               if (newId && newId !== dataType.id) {
+                pushUndoState('data', { dataTypes, dataEntries });
                 onUpdateDataType(dataType.id, { id: newId } as Partial<DataType>);
               }
             }}
@@ -80,6 +88,7 @@ export function DataTypeInfoView({
             {...register('name')}
             onChange={(e) => {
               register('name').onChange(e);
+              beginEditIfNeeded({ dataTypes, dataEntries });
               onUpdateDataType(dataType.id, { name: e.target.value });
             }}
             placeholder="データ型名を入力"
@@ -94,6 +103,7 @@ export function DataTypeInfoView({
             {...register('description')}
             onChange={(e) => {
               register('description').onChange(e);
+              beginEditIfNeeded({ dataTypes, dataEntries });
               onUpdateDataType(dataType.id, { description: e.target.value });
             }}
             placeholder="データ型の説明"
@@ -101,7 +111,6 @@ export function DataTypeInfoView({
           />
         </div>
       </div>
-
 
       {/* フィールド一覧（読み取り専用サマリー） */}
       <div className="flex-1 overflow-auto p-5">

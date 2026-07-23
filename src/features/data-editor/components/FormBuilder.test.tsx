@@ -3,6 +3,7 @@
  */
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FormBuilder } from './FormBuilder';
+import { useStore } from '@/stores';
 import { NumberFieldType, StringFieldType } from '@/types/fields';
 import type { DataType, DataEntry } from '@/types/data';
 
@@ -130,6 +131,44 @@ describe('FormBuilder', () => {
     expect(defaultProps.onUpdateEntry).toHaveBeenCalledWith('character', 'alice', {
       hp: 200,
       name: 'アリス',
+    });
+  });
+
+  describe('Undo連続入力のバッチ化', () => {
+    beforeEach(() => {
+      useStore.setState({ currentPage: 'data', undoStacks: {}, redoStacks: {} });
+    });
+
+    it('同じフィールドへの連続した onChange は Undo を1件だけ積む', () => {
+      render(<FormBuilder {...defaultProps} />);
+      const numberInput = screen.getByRole('spinbutton');
+
+      fireEvent.change(numberInput, { target: { value: '2' } });
+      fireEvent.change(numberInput, { target: { value: '20' } });
+      fireEvent.change(numberInput, { target: { value: '200' } });
+
+      expect(useStore.getState().undoStacks['data']).toHaveLength(1);
+    });
+
+    it('フォーカスが外れてから再度編集すると別のUndoが積まれる', () => {
+      render(<FormBuilder {...defaultProps} />);
+      const numberInput = screen.getByRole('spinbutton');
+
+      fireEvent.change(numberInput, { target: { value: '2' } });
+      fireEvent.blur(numberInput);
+      fireEvent.change(numberInput, { target: { value: '9' } });
+
+      expect(useStore.getState().undoStacks['data']).toHaveLength(2);
+    });
+
+    it('エントリIDの変更（blur確定）は単発でUndoを積む', () => {
+      render(<FormBuilder {...defaultProps} />);
+      const idInput = screen.getByLabelText('ID');
+
+      fireEvent.change(idInput, { target: { value: 'carol' } });
+      fireEvent.blur(idInput);
+
+      expect(useStore.getState().undoStacks['data']).toHaveLength(1);
     });
   });
 });

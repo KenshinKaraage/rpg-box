@@ -3,6 +3,8 @@
 import { useCallback, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import type { DataType, DataEntry } from '@/types/data';
 import { NAME_FIELD_ID, validateDataId } from '@/types/data';
 import { computeFieldVisibility } from '../utils/conditionEvaluator';
@@ -32,6 +34,11 @@ export function FormBuilder({
   const [localId, setLocalId] = useState(entry.id);
   const [idError, setIdError] = useState<string | null>(null);
 
+  const dataTypes = useStore((s) => s.dataTypes);
+  const dataEntries = useStore((s) => s.dataEntries);
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession('data', entry.id);
+
   // Sync local ID when entry changes
   const [prevEntryId, setPrevEntryId] = useState(entry.id);
   if (entry.id !== prevEntryId) {
@@ -56,29 +63,30 @@ export function FormBuilder({
       return;
     }
     setIdError(null);
+    pushUndoState('data', { dataTypes, dataEntries });
+    endEditSession();
     onUpdateEntryId(dataType.id, entry.id, localId);
   };
 
   const handleFieldChange = useCallback(
     (fieldId: string, value: unknown) => {
+      beginEditIfNeeded({ dataTypes, dataEntries });
       onUpdateEntry(dataType.id, entry.id, {
         ...entry.values,
         [fieldId]: value,
       });
     },
-    [dataType.id, entry.id, entry.values, onUpdateEntry]
+    [dataType.id, entry.id, entry.values, onUpdateEntry, beginEditIfNeeded, dataTypes, dataEntries]
   );
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" onBlur={endEditSession}>
       {/* ヘッダー */}
       <div className="border-b px-5 py-4">
         <h3 className="text-sm font-bold">
           {(() => {
             const nameVal = entry.values[NAME_FIELD_ID];
-            return nameVal && typeof nameVal === 'string' && nameVal.trim()
-              ? nameVal
-              : entry.id;
+            return nameVal && typeof nameVal === 'string' && nameVal.trim() ? nameVal : entry.id;
           })()}
         </h3>
       </div>
