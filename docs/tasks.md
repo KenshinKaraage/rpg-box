@@ -873,7 +873,7 @@ export function useAutoSave() {
 
 #### [T026c] Implement per-page undo history
 
-- **ステータス:** [~] 進行中（インメモリ実装は完了、IndexedDB永続化は未着手）
+- **ステータス:** [~] 進行中（全主要エディタページへの展開が完了。IndexedDB永続化は未着手）
 - **ブランチ:** -
 - **PR:** -
 
@@ -889,7 +889,12 @@ export function useAutoSave() {
 - [x] 数値入力欄で全消去すると即座にフォールバック値（0/1等）にスナップされる不具合を修正。`src/features/data-editor/components/fields/NumberFieldEditor.tsx`（ローカル文字列stateを持ち空欄を許容する既存コンポーネント）を`className`/`placeholder`対応に拡張し、マップエディタの全コンポーネントプロパティパネル（Transform/Collider/Sprite/Movement/Trigger/ObjectCanvas/Controller/Variables）の生の`<Input type="number">`をこれに置き換えて統一
 - [ ] ページ切り替え時の履歴永続化（IndexedDB `undoHistory` ストア・`saveUndoHistory`/`loadUndoHistory` は実装済みで未接続。「保存後も履歴維持」要件に対応する後続タスク）
 - [x] `データ設定`ページ（`/data`）へ展開: データ型/エントリのCRUD、フィールドスキーマ編集、フォーム入力すべてをUndo対象に。共通の `useUndoEditSession`（連続入力バッチ化）・`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`（Ctrl+Z等、独自実装ではなく既存の汎用ショートカット基盤を使用）フックを新設し、他ページからも再利用可能にした
-- [ ] 残りのページへの展開: `/data/classes`, `/data/variables`, `/event/templates`, `/script/events`, `/script/components`, `/ui/screens`（1ページずつ順番に対応中）
+- [x] `クラス編集`ページ（`/data/classes`）へ展開: クラス追加/複製/削除、フィールド追加/削除、ID/名前/説明/フィールド設定編集をUndo対象に（`ClassEditor.tsx`は`DataTypeEditor.tsx`と同じフィールド編集パターン）
+- [x] `変数編集`ページ（`/data/variables`）へ展開: 変数追加/複製/削除、ID/名前/型/説明/初期値/フィールド設定編集をUndo対象に
+- [x] `イベントテンプレート`ページ（`/event/templates`）へ展開: テンプレート追加/複製/削除/ID変更、名前・説明編集、アクションブロック・引数の追加削除・フィールド編集をUndo対象に。アクションブロックはマップエディタ/UIエディタとも共有されるため、各ブロックに個別実装せず「配列長の変化」で追加削除（単発）とフィールド編集（連続・バッチ化）を汎用的に判別する方式を採用。`WaitActionBlock.tsx`の数値入力フォールバック不具合も修正（Audio/Camera/Map/Objectの同種不具合は未修正で残存）
+- [x] `スクリプトエディタ`（`/script/events`, `/script/components`）へ展開: 同じ`scripts`ストアを編集するため`'script'`ページキーを共有。スクリプト追加/削除/並び替え、引数/返り値/コンポーネントフィールドの編集をUndo対象に。Monacoエディタ本文はストアへのcommit時点（onChange）のみ編集セッション単位でバッチ化し、Monaco自体のテキストUndo（Ctrl+Z）には関与しない設計
+- [x] `UI画面設計`ページ（`/ui/screens`）へ展開: キャンバス/UIオブジェクト/テンプレート/ファンクションのCRUD、プロパティパネル編集をUndo対象に。要素のドラッグ移動/リサイズ/回転はマップエディタのオブジェクト移動と同じくmouseup時に1回だけ積む方式。未対応: Vertex/AnimationTrack系のネストしたproperty-fieldsエディタ、ActionBlockEditor内部の細粒度編集（follow-up）
+- [x] 全ページ横断で新設した共通フック: `useUndoEditSession`（連続入力のセッション単位バッチ化）、既存の`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`を独自実装せず再利用（CLAUDE.md「ショートカットキーは一元管理」に準拠）
 - [ ] チップセットのプロパティ編集（`updateChipProperty` 等、`/map/data` ページ側）は対象外のまま。同ページに `EditorSlice` を配線する際に合わせて対応
 
 **背景:**
@@ -922,6 +927,11 @@ export function useAutoSave() {
 - `src/features/data-editor/components/FormBuilder.test.tsx`
 - `src/features/data-editor/components/DataTypeInfoView.tsx`
 - `src/features/data-editor/components/DataTypeEditor.tsx`
+- `src/app/(editor)/data/classes/page.tsx`, `src/features/data-editor/components/ClassEditor.tsx`（+test）
+- `src/app/(editor)/data/variables/page.tsx`, `src/features/data-editor/components/VariableEditor.tsx`（+test）
+- `src/app/(editor)/event/templates/page.tsx`, `src/features/event-editor/components/EventTemplateEditor.tsx`, `blocks/WaitActionBlock.tsx`（+test）
+- `src/app/(editor)/script/events/page.tsx`, `src/app/(editor)/script/components/page.tsx`, `src/features/script-editor/components/ScriptEditor.tsx`, `ScriptSettingsPanel.tsx`（+test）, `ComponentScriptSettingsPanel.tsx`, `ComponentFieldEditor.tsx`
+- `src/app/(editor)/ui/screens/page.tsx`, `src/features/ui-editor/components/CanvasPropertyPanel.tsx`, `ElementsPanel.tsx`, `FunctionsPanel.tsx`（+test）, `TemplatesPanel.tsx`, `TransformHandles.tsx`（+test）, `UIPropertyPanel.tsx`（+test）, `hooks/useTemplateInstantiate.ts`, `hooks/useTemplateSave.ts`
 
 ---
 
