@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import { generateId } from '@/lib/utils';
 import { getFieldTypeOptions } from '@/types/fields';
 import { ActionBlockEditor } from '@/features/event-editor/components/ActionBlockEditor';
@@ -30,11 +31,16 @@ const ARG_FIELD_TYPES = ['number', 'string', 'boolean', 'color', 'select', 'imag
 
 export function FunctionsPanel({ functions }: FunctionsPanelProps) {
   const selectedCanvasId = useStore((s) => s.selectedCanvasId);
+  const uiCanvases = useStore((s) => s.uiCanvases);
   const addUIFunction = useStore((s) => s.addUIFunction);
   const updateUIFunction = useStore((s) => s.updateUIFunction);
   const deleteUIFunction = useStore((s) => s.deleteUIFunction);
+  const pushUndoState = useStore((s) => s.pushUndoState);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // 展開中のファンクションが切り替わったら連続入力のバッチもリセットする
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession('ui-screens', expandedId);
 
   const fieldTypeOptions = useMemo(() => getFieldTypeOptions(ARG_FIELD_TYPES), []);
 
@@ -44,6 +50,8 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
       'fn',
       functions.map((f) => f.id)
     );
+    pushUndoState('ui-screens', { uiCanvases });
+    endEditSession();
     addUIFunction(selectedCanvasId, {
       id,
       name: '新しいファンクション',
@@ -51,23 +59,26 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
       actions: [],
     });
     setExpandedId(id);
-  }, [selectedCanvasId, functions, addUIFunction]);
+  }, [selectedCanvasId, functions, addUIFunction, pushUndoState, uiCanvases, endEditSession]);
 
   const handleDelete = useCallback(
     (fnId: string) => {
       if (!selectedCanvasId) return;
+      pushUndoState('ui-screens', { uiCanvases });
+      endEditSession();
       deleteUIFunction(selectedCanvasId, fnId);
       if (expandedId === fnId) setExpandedId(null);
     },
-    [selectedCanvasId, deleteUIFunction, expandedId]
+    [selectedCanvasId, deleteUIFunction, expandedId, pushUndoState, uiCanvases, endEditSession]
   );
 
   const handleUpdateName = useCallback(
     (fnId: string, name: string) => {
       if (!selectedCanvasId) return;
+      beginEditIfNeeded({ uiCanvases });
       updateUIFunction(selectedCanvasId, fnId, { name });
     },
-    [selectedCanvasId, updateUIFunction]
+    [selectedCanvasId, updateUIFunction, beginEditIfNeeded, uiCanvases]
   );
 
   const handleAddArg = useCallback(
@@ -83,40 +94,46 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
         fieldType: 'string',
         defaultValue: '',
       };
+      pushUndoState('ui-screens', { uiCanvases });
+      endEditSession();
       updateUIFunction(selectedCanvasId, fnId, {
         args: [...currentArgs, newArg],
       });
     },
-    [selectedCanvasId, updateUIFunction]
+    [selectedCanvasId, updateUIFunction, pushUndoState, uiCanvases, endEditSession]
   );
 
   const handleUpdateArg = useCallback(
     (fnId: string, currentArgs: TemplateArg[], argId: string, updates: Partial<TemplateArg>) => {
       if (!selectedCanvasId) return;
+      beginEditIfNeeded({ uiCanvases });
       const newArgs = currentArgs.map((a) => (a.id === argId ? { ...a, ...updates } : a));
       updateUIFunction(selectedCanvasId, fnId, { args: newArgs });
     },
-    [selectedCanvasId, updateUIFunction]
+    [selectedCanvasId, updateUIFunction, beginEditIfNeeded, uiCanvases]
   );
 
   const handleDeleteArg = useCallback(
     (fnId: string, currentArgs: TemplateArg[], argId: string) => {
       if (!selectedCanvasId) return;
+      pushUndoState('ui-screens', { uiCanvases });
+      endEditSession();
       updateUIFunction(selectedCanvasId, fnId, {
         args: currentArgs.filter((a) => a.id !== argId),
       });
     },
-    [selectedCanvasId, updateUIFunction]
+    [selectedCanvasId, updateUIFunction, pushUndoState, uiCanvases, endEditSession]
   );
 
   const handleUpdateActions = useCallback(
     (fnId: string, editableActions: EditableAction[]) => {
       if (!selectedCanvasId) return;
+      beginEditIfNeeded({ uiCanvases });
       updateUIFunction(selectedCanvasId, fnId, {
         actions: serializeActions(editableActions),
       });
     },
-    [selectedCanvasId, updateUIFunction]
+    [selectedCanvasId, updateUIFunction, beginEditIfNeeded, uiCanvases]
   );
 
   return (
@@ -179,6 +196,7 @@ export function FunctionsPanel({ functions }: FunctionsPanelProps) {
                   <div
                     className="ml-4 mt-1 space-y-2 border-l pl-2"
                     data-testid={`function-detail-${fn.id}`}
+                    onBlur={endEditSession}
                   >
                     {/* Name edit */}
                     <div>

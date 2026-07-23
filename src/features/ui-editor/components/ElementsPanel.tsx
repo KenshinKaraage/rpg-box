@@ -12,8 +12,17 @@ export function ElementsPanel() {
   const deleteUIObject = useStore((s) => s.deleteUIObject);
   const updateUIObject = useStore((s) => s.updateUIObject);
   const reparentUIObject = useStore((s) => s.reparentUIObject);
+  const pushUndoState = useStore((s) => s.pushUndoState);
 
   const selectedCanvas = uiCanvases.find((c) => c.id === selectedCanvasId) ?? null;
+
+  // 追加/削除/名前変更/親付け替えは単発操作なので、都度 Undo を1件積む
+  function withUndo<Args extends unknown[]>(fn: (...args: Args) => void): (...args: Args) => void {
+    return (...args: Args) => {
+      pushUndoState('ui-screens', { uiCanvases });
+      fn(...args);
+    };
+  }
 
   return (
     <UIObjectTree
@@ -21,10 +30,10 @@ export function ElementsPanel() {
       selectedObjectIds={selectedObjectIds}
       canvasId={selectedCanvasId}
       onSelectObjects={selectUIObjects}
-      onAddObject={addUIObject}
-      onDeleteObject={deleteUIObject}
-      onUpdateObject={updateUIObject}
-      onReparentObject={reparentUIObject}
+      onAddObject={withUndo(addUIObject)}
+      onDeleteObject={withUndo(deleteUIObject)}
+      onUpdateObject={withUndo(updateUIObject)}
+      onReparentObject={withUndo(reparentUIObject)}
     />
   );
 }

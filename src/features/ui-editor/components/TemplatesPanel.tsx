@@ -14,6 +14,8 @@ interface TemplatesPanelProps {
 export function TemplatesPanel({ templates }: TemplatesPanelProps) {
   const deleteUITemplate = useStore((s) => s.deleteUITemplate);
   const selectUIObjects = useStore((s) => s.selectUIObjects);
+  const uiTemplates = useStore((s) => s.uiTemplates);
+  const pushUndoState = useStore((s) => s.pushUndoState);
   const { canSave, saveAsTemplate } = useTemplateSave();
   const { canInstantiate, instantiateTemplate } = useTemplateInstantiate();
 
@@ -23,6 +25,11 @@ export function TemplatesPanel({ templates }: TemplatesPanelProps) {
       // ルートオブジェクト（parentId なし）を選択
       selectUIObjects([newIds[0]!]);
     }
+  };
+
+  const handleDelete = (id: string) => {
+    pushUndoState('ui-screens', { uiTemplates });
+    deleteUITemplate(id);
   };
 
   return (
@@ -44,9 +51,7 @@ export function TemplatesPanel({ templates }: TemplatesPanelProps) {
 
       {/* Template list */}
       {templates.length === 0 ? (
-        <div className="text-center text-xs text-muted-foreground">
-          テンプレートなし
-        </div>
+        <div className="text-center text-xs text-muted-foreground">テンプレートなし</div>
       ) : (
         <ul className="space-y-1">
           {templates.map((tmpl) => (
@@ -57,9 +62,7 @@ export function TemplatesPanel({ templates }: TemplatesPanelProps) {
             >
               <span className="truncate text-xs">{tmpl.name}</span>
               <div className="flex items-center gap-1">
-                <span className="text-[10px] text-muted-foreground">
-                  {tmpl.objects.length}obj
-                </span>
+                <span className="text-[10px] text-muted-foreground">{tmpl.objects.length}obj</span>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -75,7 +78,7 @@ export function TemplatesPanel({ templates }: TemplatesPanelProps) {
                   size="sm"
                   variant="ghost"
                   className="h-5 w-5 p-0"
-                  onClick={() => deleteUITemplate(tmpl.id)}
+                  onClick={() => handleDelete(tmpl.id)}
                   aria-label={`${tmpl.name}を削除`}
                   data-testid={`delete-template-${tmpl.id}`}
                 >

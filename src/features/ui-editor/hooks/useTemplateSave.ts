@@ -10,10 +10,7 @@ import type { EditorUIObject, EditorUITemplate } from '@/stores/uiEditorSlice';
  * 指定オブジェクトとその全子孫をディープコピーして返す。
  * ルートの parentId は undefined に差し替える。
  */
-export function collectObjectTree(
-  rootId: string,
-  allObjects: EditorUIObject[]
-): EditorUIObject[] {
+export function collectObjectTree(rootId: string, allObjects: EditorUIObject[]): EditorUIObject[] {
   const result: EditorUIObject[] = [];
   const queue = [rootId];
 
@@ -62,6 +59,7 @@ export function useTemplateSave() {
   const selectedObjectIds = useStore((s) => s.selectedObjectIds);
   const uiTemplates = useStore((s) => s.uiTemplates);
   const addUITemplate = useStore((s) => s.addUITemplate);
+  const pushUndoState = useStore((s) => s.pushUndoState);
 
   const selectedCanvas = uiCanvases.find((c) => c.id === selectedCanvasId) ?? null;
 
@@ -87,10 +85,11 @@ export function useTemplateSave() {
         objects,
       };
 
+      pushUndoState('ui-screens', { uiTemplates });
       addUITemplate(template);
       return id;
     },
-    [canSave, selectedCanvas, selectedObjectIds, uiTemplates, addUITemplate]
+    [canSave, selectedCanvas, selectedObjectIds, uiTemplates, addUITemplate, pushUndoState]
   );
 
   return { canSave, saveAsTemplate };

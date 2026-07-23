@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import { getUIComponent, getAllUIComponents } from '@/types/ui';
 import { TransformEditor } from './TransformEditor';
 import { ComponentListItem } from './ComponentListItem';
@@ -45,6 +46,7 @@ export function UIPropertyPanel() {
   const addUIComponent = useStore((s) => s.addUIComponent);
   const removeUIComponent = useStore((s) => s.removeUIComponent);
   const updateUIComponent = useStore((s) => s.updateUIComponent);
+  const pushUndoState = useStore((s) => s.pushUndoState);
 
   const selectedCanvas = uiCanvases.find((c) => c.id === selectedCanvasId) ?? null;
 
@@ -54,14 +56,21 @@ export function UIPropertyPanel() {
       ? (selectedCanvas.objects.find((o) => o.id === selectedObjectIds[0]) ?? null)
       : null;
 
+  // 選択中のオブジェクトが切り替わったら連続入力のバッチをリセットする
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession(
+    'ui-screens',
+    selectedObject?.id ?? null
+  );
+
   const handleTransformUpdate = useCallback(
     (updates: Partial<RectTransform>) => {
       if (!selectedCanvasId || !selectedObject) return;
+      beginEditIfNeeded({ uiCanvases });
       updateUIObject(selectedCanvasId, selectedObject.id, {
         transform: { ...selectedObject.transform, ...updates },
       });
     },
-    [selectedCanvasId, selectedObject, updateUIObject]
+    [selectedCanvasId, selectedObject, updateUIObject, beginEditIfNeeded, uiCanvases]
   );
 
   /** 座標変更マップを適用する共通ヘルパー */
@@ -113,27 +122,47 @@ export function UIPropertyPanel() {
       if (!Ctor) return;
       const instance = new Ctor();
       const data = instance.serialize();
+      pushUndoState('ui-screens', { uiCanvases });
+      endEditSession();
       addUIComponent(selectedCanvasId, selectedObject.id, { type, data });
       callStaticHook(type, 'onAttach', data as Record<string, unknown>);
     },
-    [selectedCanvasId, selectedObject, addUIComponent, callStaticHook]
+    [
+      selectedCanvasId,
+      selectedObject,
+      addUIComponent,
+      callStaticHook,
+      pushUndoState,
+      uiCanvases,
+      endEditSession,
+    ]
   );
 
   const handleRemoveComponent = useCallback(
     (type: string) => {
       if (!selectedCanvasId || !selectedObject) return;
+      pushUndoState('ui-screens', { uiCanvases });
+      endEditSession();
       removeUIComponent(selectedCanvasId, selectedObject.id, type);
     },
-    [selectedCanvasId, selectedObject, removeUIComponent]
+    [selectedCanvasId, selectedObject, removeUIComponent, pushUndoState, uiCanvases, endEditSession]
   );
 
   const handleUpdateComponentData = useCallback(
     (type: string, data: unknown) => {
       if (!selectedCanvasId || !selectedObject) return;
+      beginEditIfNeeded({ uiCanvases });
       updateUIComponent(selectedCanvasId, selectedObject.id, type, data);
       callStaticHook(type, 'onPropertyChange', (data ?? {}) as Record<string, unknown>);
     },
-    [selectedCanvasId, selectedObject, updateUIComponent, callStaticHook]
+    [
+      selectedCanvasId,
+      selectedObject,
+      updateUIComponent,
+      callStaticHook,
+      beginEditIfNeeded,
+      uiCanvases,
+    ]
   );
 
   const handleComponentAction = useCallback(
@@ -174,7 +203,7 @@ export function UIPropertyPanel() {
   }
 
   return (
-    <div className="space-y-4 p-3" data-testid="property-panel">
+    <div className="space-y-4 p-3" data-testid="property-panel" onBlur={endEditSession}>
       {/* Object name */}
       <div>
         <Label className="text-xs font-medium">名前</Label>
@@ -183,6 +212,7 @@ export function UIPropertyPanel() {
           value={selectedObject.name}
           onChange={(e) => {
             if (!selectedCanvasId) return;
+            beginEditIfNeeded({ uiCanvases });
             updateUIObject(selectedCanvasId, selectedObject.id, { name: e.target.value });
           }}
         />
