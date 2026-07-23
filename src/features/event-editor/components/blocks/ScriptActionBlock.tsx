@@ -178,7 +178,7 @@ export function ScriptActionBlock({ action, onChange, onDelete }: ActionBlockPro
                     <SelectContent>
                       <SelectItem value="__none__">（選択なし）</SelectItem>
                       {filteredVariables.map((v) => (
-                        <SelectItem key={v.id} value={v.name}>
+                        <SelectItem key={v.id} value={v.id}>
                           <span className="mr-1 text-[9px] text-muted-foreground">
                             {v.fieldType.type}
                           </span>

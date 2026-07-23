@@ -7993,6 +7993,38 @@ item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/
 
 ---
 
+#### [T260] スクリプトAPI `Variable[...]` を id ベースアクセスに対応
+
+- **ステータス:** [x] 完了
+- **ブランチ:** `fix/T260-variable-id-lookup`
+- **PR:** -
+
+**完了条件:**
+
+- [x] `GameContext.ts` の `createVariableAPI`: ストアのキーを `v.id` に変更し、`name` は id への解決マップ経由でアクセスできるようにする（id 優先・name は現在名限定の後方互換アクセス。`getAll()` はデバッグ表示用に従来通り name キーのスナップショットを返す）
+- [x] Proxy の get/set トラップの動作確認（`Variable[id]` / `Variable[name]` 両方でアクセス可能）
+- [x] `ScriptActionBlock.tsx` の変数選択が `v.name` を値にしていた（他4ブロックは `v.id`）不整合を修正
+- [x] スクリプトエディタの補完（IntelliSense）を調査 → `Variable[...]` 用の補完自体が存在しないため対象なし
+- [x] `apiDefinitions.ts` のヘルプ文言を id ベース優先の表記に更新
+- [x] 関連テスト（`GameContext.test.ts`）に id ベースアクセス・リネーム耐性のテストを追加
+- [x] 変数リネーム時に id 参照が壊れないことをテストで確認（name 参照は現在名限定なのは意図通り）
+- [x] サンプルデータ（`defaultTestEntries.ts`）: 変数 id から冗長な `var_` プレフィックスを削除し、表示用 `name` を日本語化（例: `id: 'gold', name: 'ゴールド'`）。`defaultTestScripts.ts` の `Variable["gold"]` 等はそのまま新 id と一致するため変更不要
+
+**背景:**
+
+- `id` と `name` の両方を持つ `Variable` 型に対し、ランタイムはこれまで `name` をキーにストアを構築していた。変数名を変更すると、既存スクリプト内の `Variable["旧名前"]` 参照が壊れる問題があったため、恒久的な識別子である `id` を正とし、name は現在名限定の互換アクセスとして残した。
+- 当初 id は `var_gold` のようなプレフィックス付きだったが、`Variable["var_gold"]` はラッパーとプレフィックスで意味が二重になり視認性が悪いとの指摘を受け、サンプルデータの id からプレフィックスを削除し、表示名を日本語化する形に変更した。
+
+**関連ファイル:**
+
+- `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameContext.test.ts`
+- `src/features/event-editor/components/blocks/ScriptActionBlock.tsx`
+- `src/features/script-editor/utils/apiDefinitions.ts`
+- `src/lib/defaultTestEntries.ts`
+
+---
+
 ## 進捗トラッキング
 
 ### フェーズ別サマリー

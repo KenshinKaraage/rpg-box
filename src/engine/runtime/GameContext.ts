@@ -31,10 +31,11 @@ export interface RuntimeCallbacks {
 // =============================================================================
 
 export interface VariableAPI {
-  get(name: string): unknown;
-  set(name: string, value: unknown): void;
+  get(idOrName: string): unknown;
+  set(idOrName: string, value: unknown): void;
+  /** name キーのスナップショットを返す（デバッグ表示・state-update 用） */
   getAll(): Record<string, unknown>;
-  /** Proxy: Variable["name"] で直接アクセス可能 */
+  /** Proxy: Variable[id]（リネームに強い、推奨）/ Variable[name]（現在名限定）どちらでも直接アクセス可能 */
   [key: string]: unknown;
 }
 
@@ -282,41 +283,56 @@ function createVariableAPI(
   projectData: EngineProjectData,
   overrides?: ContextOverrides
 ): VariableAPI {
+  // ストアは id をキーとする（id は不変。name は変数リネームで変わりうるため、
+  // name で参照しているスクリプトがリネーム後に壊れないよう id を正とする）
   const store: Record<string, unknown> = {};
+  const idToName = new Map<string, string>();
+  const nameToId = new Map<string, string>();
 
-  // Initialize from defaults (structuredClone to unfreeze Immer proxies)
   for (const v of projectData.variables) {
-    store[v.name] = v.defaultValue !== undefined ? structuredClone(v.defaultValue) : undefined;
+    store[v.id] = v.defaultValue !== undefined ? structuredClone(v.defaultValue) : undefined;
+    idToName.set(v.id, v.name);
+    nameToId.set(v.name, v.id);
   }
+
+  // id ならそのまま、name なら現在の id に解決する（未知のキーはそのまま渡す）
+  const resolveKey = (key: string): string => {
+    if (idToName.has(key)) return key;
+    return nameToId.get(key) ?? key;
+  };
 
   // Apply overrides
   if (overrides?.variables) {
-    for (const [name, value] of Object.entries(overrides.variables)) {
-      store[name] = value;
+    for (const [key, value] of Object.entries(overrides.variables)) {
+      store[resolveKey(key)] = value;
     }
   }
 
   const api: VariableAPI = {
-    get(name: string): unknown {
-      return store[name];
+    get(idOrName: string): unknown {
+      return store[resolveKey(idOrName)];
     },
-    set(name: string, value: unknown): void {
-      store[name] = value;
+    set(idOrName: string, value: unknown): void {
+      store[resolveKey(idOrName)] = value;
     },
     getAll(): Record<string, unknown> {
-      return { ...store };
+      const result: Record<string, unknown> = {};
+      for (const [id, value] of Object.entries(store)) {
+        result[idToName.get(id) ?? id] = value;
+      }
+      return result;
     },
   };
 
-  // Proxy: Variable["gold"] で直接アクセス可能にする
+  // Proxy: Variable[id] / Variable[name] どちらでも直接アクセス可能にする
   // get/set/getAll メソッドも引き続き使用可能
   return new Proxy(api, {
     get(target, prop: string) {
       if (prop in target) return (target as Record<string, unknown>)[prop];
-      return store[prop];
+      return store[resolveKey(prop)];
     },
     set(_target, prop: string, value: unknown) {
-      store[prop] = value;
+      store[resolveKey(prop)] = value;
       return true;
     },
   });

@@ -59,6 +59,27 @@ describe('GameContext', () => {
       });
       expect(ctx.variable.get('hp')).toBe(999);
     });
+
+    it('accesses variables by id (stable across renames)', () => {
+      const ctx = new GameContext(createProjectData(), new ScriptRunner([]));
+      expect(ctx.variable.get('var-hp')).toBe(100);
+      expect(ctx.variable['var-hp']).toBe(100);
+    });
+
+    it('id and name access read/write the same underlying value', () => {
+      const ctx = new GameContext(createProjectData(), new ScriptRunner([]));
+      ctx.variable.set('var-hp', 42);
+      expect(ctx.variable.get('hp')).toBe(42);
+      ctx.variable.set('player_name', 'Renamed');
+      expect(ctx.variable.get('var-name')).toBe('Renamed');
+    });
+
+    it('overrides accept id keys as well as name keys', () => {
+      const ctx = new GameContext(createProjectData(), new ScriptRunner([]), {
+        variables: { 'var-hp': 777 },
+      });
+      expect(ctx.variable.get('hp')).toBe(777);
+    });
   });
 
   describe('Data API', () => {
