@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { useStore } from '@/stores';
 import { EventEditorModal } from '@/features/event-editor/components/EventEditorModal';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 import type { TalkTriggerComponent } from '@/types/components/triggers/TalkTriggerComponent';
 import type { AutoTriggerComponent } from '@/types/components/triggers/AutoTriggerComponent';
 import type { InputTriggerComponent } from '@/types/components/triggers/InputTriggerComponent';
@@ -54,9 +55,7 @@ export function TriggerPropertyPanel({ component, onChange, objectId }: Props) {
           onClick={() => setModalOpen(true)}
         >
           <Pencil className="mr-1.5 h-3 w-3" />
-          {hasLocalActions
-            ? `${component.actions.length} アクション`
-            : 'イベントを編集...'}
+          {hasLocalActions ? `${component.actions.length} アクション` : 'イベントを編集...'}
         </Button>
       </div>
 
@@ -80,9 +79,7 @@ export function TriggerPropertyPanel({ component, onChange, objectId }: Props) {
           </SelectContent>
         </Select>
         {component.eventId && hasLocalActions && (
-          <div className="text-[10px] text-muted-foreground">
-            ローカルアクションが優先されます
-          </div>
+          <div className="text-[10px] text-muted-foreground">ローカルアクションが優先されます</div>
         )}
       </div>
 
@@ -121,12 +118,12 @@ export function TriggerPropertyPanel({ component, onChange, objectId }: Props) {
         <>
           <div className="space-y-1">
             <Label className="text-xs">間隔 (ms)</Label>
-            <Input
-              type="number"
+            <NumberFieldEditor
               className="h-7 text-xs"
               min={0}
+              step={1}
               value={(component as AutoTriggerComponent).interval}
-              onChange={(e) => onChange({ interval: parseFloat(e.target.value) || 0 })}
+              onChange={(v) => onChange({ interval: Math.round(v) })}
             />
           </div>
           <div className="flex items-center gap-1.5">

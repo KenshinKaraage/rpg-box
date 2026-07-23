@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 
 import type { VariablesComponent, ObjectVariable } from '@/types/components/VariablesComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
@@ -26,11 +27,16 @@ const ALLOWED_TYPES = [
 
 function getDefaultValue(fieldType: string): unknown {
   switch (fieldType) {
-    case 'number': return 0;
-    case 'string': return '';
-    case 'boolean': return false;
-    case 'class': return {};
-    default: return '';
+    case 'number':
+      return 0;
+    case 'string':
+      return '';
+    case 'boolean':
+      return false;
+    case 'class':
+      return {};
+    default:
+      return '';
   }
 }
 
@@ -57,15 +63,9 @@ export function VariablesPropertyPanel({ component, onChange }: Props) {
     onChange({ variables: updated });
   };
 
-  const handleValueChange = (key: string, rawValue: string) => {
+  const handleValueChange = (key: string, value: unknown) => {
     const v = component.variables[key];
     if (!v) return;
-    let value: unknown;
-    if (v.fieldType === 'number') {
-      value = parseFloat(rawValue) || 0;
-    } else {
-      value = rawValue;
-    }
     onChange({ variables: { ...component.variables, [key]: { ...v, value } } });
   };
 
@@ -83,7 +83,9 @@ export function VariablesPropertyPanel({ component, onChange }: Props) {
         <div className="space-y-1">
           {entries.map(([key, v]) => (
             <div key={key} className="flex items-center gap-1">
-              <Label className="w-20 shrink-0 truncate text-[10px]" title={key}>{key}</Label>
+              <Label className="w-20 shrink-0 truncate text-[10px]" title={key}>
+                {key}
+              </Label>
               {v.fieldType === 'boolean' ? (
                 <Checkbox
                   checked={v.value === true}
@@ -93,10 +95,16 @@ export function VariablesPropertyPanel({ component, onChange }: Props) {
                 <span className="flex-1 truncate text-[10px] text-muted-foreground">
                   {v.classId || 'クラス未選択'}
                 </span>
+              ) : v.fieldType === 'number' ? (
+                <NumberFieldEditor
+                  className="h-6 flex-1 text-[10px]"
+                  value={typeof v.value === 'number' ? v.value : 0}
+                  onChange={(val) => handleValueChange(key, val)}
+                />
               ) : (
                 <Input
                   className="h-6 flex-1 text-[10px]"
-                  type={v.fieldType === 'number' ? 'number' : 'text'}
+                  type="text"
                   value={String(v.value ?? '')}
                   onChange={(e) => handleValueChange(key, e.target.value)}
                 />
@@ -132,7 +140,9 @@ export function VariablesPropertyPanel({ component, onChange }: Props) {
           </SelectTrigger>
           <SelectContent>
             {ALLOWED_TYPES.map((t) => (
-              <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+              <SelectItem key={t.value} value={t.value}>
+                {t.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

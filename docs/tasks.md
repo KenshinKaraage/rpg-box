@@ -885,6 +885,8 @@ export function useAutoSave() {
 - [x] テスト追加（`editorSlice.test.ts`）
 - [x] マップエディタを旧・差分方式（`mapEditorSlice.ts` の `undoStack`/`redoStack`/`MapEditAction`）からこの汎用スライスに移行（タイル塗り・オブジェクト追加/削除/移動）
 - [x] マップエディタのカバー範囲を拡大: マップ追加/複製/削除、レイヤー追加/削除/並び替え/表示切替/チップセット割当、マップ設定（フィールド/値）編集、オブジェクトプロパティパネル（名前/コンポーネント追加・削除・値変更/削除）— いずれも `state.maps` 配下の変更なので同じ `{ maps }` スナップショットで統一的にカバー
+- [x] 連続入力（テキスト/数値フィールドの1文字ごとの`onChange`）が1キー入力ごとに別々のUndoを積んでいた不具合を修正。`MapPropertyPanel.tsx`にフォーカス単位の編集セッション（`editingRef`）を導入し、同一セッション中は最初の変更時のみUndoを積むように変更（フォーカスが外れる/選択オブジェクトが変わるとセッションはリセット）
+- [x] 数値入力欄で全消去すると即座にフォールバック値（0/1等）にスナップされる不具合を修正。`src/features/data-editor/components/fields/NumberFieldEditor.tsx`（ローカル文字列stateを持ち空欄を許容する既存コンポーネント）を`className`/`placeholder`対応に拡張し、マップエディタの全コンポーネントプロパティパネル（Transform/Collider/Sprite/Movement/Trigger/ObjectCanvas/Controller/Variables）の生の`<Input type="number">`をこれに置き換えて統一
 - [ ] ページ切り替え時の履歴永続化（IndexedDB `undoHistory` ストア・`saveUndoHistory`/`loadUndoHistory` は実装済みで未接続。「保存後も履歴維持」要件に対応する後続タスク）
 - [ ] マップエディタ以外のページへの展開（現状 `map` ページのみ配線。他エディタは今後 `pushUndoState('data', {...})` 等を呼ぶだけで追従可能な設計）
 - [ ] チップセットのプロパティ編集（`updateChipProperty` 等、`/map/data` ページ側）は対象外のまま。同ページに `EditorSlice` を配線する際に合わせて対応
@@ -903,6 +905,16 @@ export function useAutoSave() {
 - `src/features/map-editor/hooks/useObjectPlacement.ts`
 - `src/app/(editor)/map/page.tsx`
 - `src/features/map-editor/components/MapPropertyPanel.tsx`
+- `src/features/map-editor/components/MapPropertyPanel.test.tsx`
+- `src/features/data-editor/components/fields/NumberFieldEditor.tsx`
+- `src/features/map-editor/components/panels/TransformPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/ColliderPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/SpritePropertyPanel.tsx`
+- `src/features/map-editor/components/panels/MovementPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/TriggerPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/ObjectCanvasPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/ControllerPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/VariablesPropertyPanel.tsx`
 
 ---
 

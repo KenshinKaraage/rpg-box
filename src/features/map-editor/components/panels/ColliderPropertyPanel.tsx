@@ -1,9 +1,9 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 import { useStore } from '@/stores';
 import type { ColliderComponent } from '@/types/components/ColliderComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
@@ -40,22 +40,22 @@ export function ColliderPropertyPanel({ component, onChange }: Props) {
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">幅（グリッド）</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             min={1}
+            step={1}
             value={component.width}
-            onChange={(e) => onChange({ width: parseInt(e.target.value, 10) || 1 })}
+            onChange={(v) => onChange({ width: Math.round(v) })}
           />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">高さ（グリッド）</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             min={1}
+            step={1}
             value={component.height}
-            onChange={(e) => onChange({ height: parseInt(e.target.value, 10) || 1 })}
+            onChange={(v) => onChange({ height: Math.round(v) })}
           />
         </div>
       </div>
@@ -65,10 +65,20 @@ export function ColliderPropertyPanel({ component, onChange }: Props) {
         <div className="flex items-center justify-between">
           <Label className="text-xs">ぶつかるレイヤー</Label>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px]" onClick={selectAll}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-1.5 text-[10px]"
+              onClick={selectAll}
+            >
               全ON
             </Button>
-            <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px]" onClick={deselectAll}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-5 px-1.5 text-[10px]"
+              onClick={deselectAll}
+            >
               全OFF
             </Button>
           </div>

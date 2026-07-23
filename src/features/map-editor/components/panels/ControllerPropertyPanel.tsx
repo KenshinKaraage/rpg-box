@@ -1,8 +1,8 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 import type { ControllerComponent } from '@/types/components/ControllerComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
 
@@ -15,13 +15,12 @@ export function ControllerPropertyPanel({ component, onChange }: Props) {
     <div className="space-y-2">
       <div className="space-y-1">
         <Label className="text-xs">移動速度</Label>
-        <Input
-          type="number"
+        <NumberFieldEditor
           className="h-7 text-xs"
           min={0}
           step={0.5}
           value={component.moveSpeed}
-          onChange={(e) => onChange({ moveSpeed: parseFloat(e.target.value) || 1 })}
+          onChange={(v) => onChange({ moveSpeed: v })}
         />
       </div>
       <div className="flex items-center gap-1.5">
