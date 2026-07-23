@@ -51,9 +51,10 @@ const navigationItems = [
     label: 'UI',
     items: [
       { href: '/ui/screens', label: '画面設計' },
-      { href: '/ui/objects', label: 'オブジェクトUI設計' },
-      { href: '/ui/timeline', label: 'タイムライン' },
-      { href: '/ui/shaders', label: 'シェーダー' },
+      // 実装がまだ先のため一旦非表示（準備でき次第コメントアウトを外す）
+      // { href: '/ui/objects', label: 'オブジェクトUI設計' },
+      // { href: '/ui/timeline', label: 'タイムライン' },
+      // { href: '/ui/shaders', label: 'シェーダー' },
     ],
   },
 ];
