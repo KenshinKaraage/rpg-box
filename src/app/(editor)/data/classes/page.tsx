@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { TwoColumnLayout } from '@/components/common/TwoColumnLayout';
 import { ClassList, ClassEditor } from '@/features/data-editor';
 import { useStore } from '@/stores';
+import { useKeyboardShortcut, CommonShortcuts } from '@/hooks';
 import { createCustomClass, wouldCreateCycle } from '@/types/customClass';
 import { createFieldTypeInstance } from '@/types/fields';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
@@ -26,6 +27,32 @@ export default function ClassesPage() {
   const deleteClassField = useStore((state) => state.deleteClassField);
   const reorderClassFields = useStore((state) => state.reorderClassFields);
 
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  const pushUndoState = useStore((state) => state.pushUndoState);
+  const undo = useStore((state) => state.undo);
+  const redo = useStore((state) => state.redo);
+  const setCurrentPage = useStore((state) => state.setCurrentPage);
+
+  useEffect(() => {
+    setCurrentPage('classes');
+  }, [setCurrentPage]);
+
+  useKeyboardShortcut({
+    shortcuts: [
+      { keys: CommonShortcuts.undo, handler: () => undo() },
+      { keys: CommonShortcuts.redo, handler: () => redo() },
+      { keys: CommonShortcuts.redoAlt, handler: () => redo() },
+    ],
+  });
+
+  // クラス一覧/フィールドの変更をUndo対象にするラッパー（単発操作用）
+  function withUndo<Args extends unknown[]>(fn: (...args: Args) => void): (...args: Args) => void {
+    return (...args: Args) => {
+      pushUndoState('classes', { classes });
+      fn(...args);
+    };
+  }
+
   // 選択中のクラスを取得（リアクティブなセレクタ）
   const selectedClass = useStore((state) =>
     state.selectedClassId
@@ -40,6 +67,7 @@ export default function ClassesPage() {
       classes.map((c) => c.id)
     );
     const newClass = createCustomClass(id, '新しいクラス');
+    pushUndoState('classes', { classes });
     addClass(newClass);
     selectClass(id);
   };
@@ -69,12 +97,14 @@ export default function ClassesPage() {
       name: `${original.name} のコピー`,
       fields: clonedFields,
     };
+    pushUndoState('classes', { classes });
     addClass(duplicated);
     selectClass(newId);
   };
 
   // クラスを削除
   const handleDelete = (id: string) => {
+    pushUndoState('classes', { classes });
     deleteClass(id);
   };
 
@@ -107,10 +137,10 @@ export default function ClassesPage() {
           key={selectedClassId ?? 'none'}
           customClass={selectedClass}
           onUpdateClass={updateClass}
-          onAddField={addFieldToClass}
+          onAddField={withUndo(addFieldToClass)}
           onReplaceField={replaceClassField}
-          onDeleteField={deleteClassField}
-          onReorderFields={reorderClassFields}
+          onDeleteField={withUndo(deleteClassField)}
+          onReorderFields={withUndo(reorderClassFields)}
           configContext={configContext}
         />
       }

@@ -25,8 +25,6 @@ describe('mapEditorSlice', () => {
     expect(get().selectedChipId).toBeNull();
     expect(get().viewport).toEqual({ x: 0, y: 0, zoom: 1 });
     expect(get().showGrid).toBe(true);
-    expect(get().undoStack).toHaveLength(0);
-    expect(get().redoStack).toHaveLength(0);
   });
 
   it('setTool でツールを変更できる', () => {
@@ -55,69 +53,15 @@ describe('mapEditorSlice', () => {
     expect(get().showGrid).toBe(true);
   });
 
-  it('pushUndo → undo → redo が動作する', () => {
+  it('setObjectFrameColor で色を変更できる', () => {
     const { get } = makeSlice();
-    const action = {
-      type: 'setTile' as const,
-      mapId: 'm1',
-      layerId: 'l1',
-      x: 0,
-      y: 0,
-      prev: '',
-      next: 'cs1:0',
-    };
-    get().pushUndo(action);
-    expect(get().undoStack).toHaveLength(1);
-    expect(get().redoStack).toHaveLength(0);
-
-    const popped = get().popUndo();
-    expect(popped).toEqual(action);
-    expect(get().undoStack).toHaveLength(0);
-
-    get().pushRedo(action);
-    expect(get().redoStack).toHaveLength(1);
-
-    const repopped = get().popRedo();
-    expect(repopped).toEqual(action);
-    expect(get().redoStack).toHaveLength(0);
+    get().setObjectFrameColor('#ff0000');
+    expect(get().objectFrameColor).toBe('#ff0000');
   });
 
-  it('pushUndo は undoStack が 100 件を超えたら古いものを捨てる', () => {
+  it('selectPrefabForPlacement で配置用プレハブを選択できる', () => {
     const { get } = makeSlice();
-    for (let i = 0; i < 101; i++) {
-      get().pushUndo({
-        type: 'setTile',
-        mapId: 'm1',
-        layerId: 'l1',
-        x: i,
-        y: 0,
-        prev: '',
-        next: 'cs1:0',
-      });
-    }
-    expect(get().undoStack).toHaveLength(100);
-  });
-
-  it('pushUndo は redoStack をクリアする', () => {
-    const { get } = makeSlice();
-    get().pushRedo({
-      type: 'setTile',
-      mapId: 'm1',
-      layerId: 'l1',
-      x: 0,
-      y: 0,
-      prev: '',
-      next: 'cs1:0',
-    });
-    get().pushUndo({
-      type: 'setTile',
-      mapId: 'm1',
-      layerId: 'l1',
-      x: 1,
-      y: 0,
-      prev: '',
-      next: 'cs1:1',
-    });
-    expect(get().redoStack).toHaveLength(0);
+    get().selectPrefabForPlacement('prefab-1');
+    expect(get().selectedPrefabId).toBe('prefab-1');
   });
 });

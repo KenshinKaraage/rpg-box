@@ -15,14 +15,26 @@ import {
 } from '@/components/ui/select';
 import { getFieldType, getFieldTypeOptions } from '@/types/fields';
 import { parseComponentFields, replaceExportDefault } from '@/lib/componentScriptUtils';
+import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import type { ComponentField } from '@/types/script';
 
 interface ComponentFieldEditorProps {
+  /** Undoセッションを識別するための対象スクリプトID（未選択時はnull） */
+  scriptId?: string | null;
   content: string | null;
   onContentChange: (newContent: string) => void;
 }
 
-export function ComponentFieldEditor({ content, onContentChange }: ComponentFieldEditorProps) {
+export function ComponentFieldEditor({
+  scriptId = null,
+  content,
+  onContentChange,
+}: ComponentFieldEditorProps) {
+  const scripts = useStore((s) => s.scripts);
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession('script', scriptId);
+
   const fields = useMemo(
     () => (content !== null ? parseComponentFields(content) : null),
     [content]
@@ -39,6 +51,8 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
   }
 
   const handleAdd = () => {
+    pushUndoState('script', { scripts });
+    endEditSession();
     let n = fields.length + 1;
     while (fields.some((f) => f.name === `field${n}`)) n++;
     const newField: ComponentField = {
@@ -51,11 +65,14 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
   };
 
   const handleUpdate = (index: number, updates: Partial<ComponentField>) => {
+    beginEditIfNeeded({ scripts });
     const newFields = fields.map((f, i) => (i === index ? { ...f, ...updates } : f));
     onContentChange(replaceExportDefault(content, newFields));
   };
 
   const handleDelete = (index: number) => {
+    pushUndoState('script', { scripts });
+    endEditSession();
     onContentChange(
       replaceExportDefault(
         content,
@@ -65,7 +82,7 @@ export function ComponentFieldEditor({ content, onContentChange }: ComponentFiel
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" onBlur={endEditSession}>
       <div className="flex items-center justify-between border-b px-4 py-2">
         <span className="text-sm font-medium">フィールド</span>
         <Button size="sm" variant="outline" onClick={handleAdd} aria-label="追加">

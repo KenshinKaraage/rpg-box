@@ -5,13 +5,20 @@ import type { EditorUIObject, UIEditorViewport } from '@/stores/uiEditorSlice';
 
 // Mock store
 const mockUpdateUIObject = jest.fn();
+const mockPushUndoState = jest.fn();
+const mockState = {
+  updateUIObject: mockUpdateUIObject,
+  snapToGrid: false,
+  uiGridSize: 16,
+  pushUndoState: mockPushUndoState,
+  uiCanvases: [] as unknown[],
+};
+function mockUseStore(selector: (s: typeof mockState) => unknown) {
+  return selector(mockState);
+}
+mockUseStore.getState = () => mockState;
 jest.mock('@/stores', () => ({
-  useStore: (selector: (s: Record<string, unknown>) => unknown) =>
-    selector({
-      updateUIObject: mockUpdateUIObject,
-      snapToGrid: false,
-      uiGridSize: 16,
-    }),
+  useStore: mockUseStore,
 }));
 
 function makeObject(
@@ -121,10 +128,7 @@ describe('TransformHandles', () => {
   });
 
   it('renders nothing when multiple objects selected', () => {
-    const objects = [
-      makeObject('a', 0, 0, 100, 100),
-      makeObject('b', 50, 50, 100, 100),
-    ];
+    const objects = [makeObject('a', 0, 0, 100, 100), makeObject('b', 50, 50, 100, 100)];
     const { container } = render(
       <TransformHandles
         objects={objects}

@@ -1,6 +1,5 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, X } from 'lucide-react';
 import type { MovementComponent, RouteStep } from '@/types/components/MovementComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
@@ -59,13 +59,12 @@ export function MovementPropertyPanel({ component, onChange }: Props) {
       {/* 速度 */}
       <div className="space-y-1">
         <Label className="text-xs">速度</Label>
-        <Input
-          type="number"
+        <NumberFieldEditor
           className="h-7 text-xs"
           min={0}
           step={0.5}
           value={component.speed}
-          onChange={(e) => onChange({ speed: parseFloat(e.target.value) || 1 })}
+          onChange={(v) => onChange({ speed: v })}
         />
       </div>
 

@@ -3,6 +3,7 @@
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { VariableEditor } from './VariableEditor';
+import { useStore } from '@/stores';
 import type { Variable } from '@/types/variable';
 import { NumberFieldType } from '@/types/fields';
 
@@ -79,6 +80,44 @@ describe('VariableEditor', () => {
         isArray: true,
         initialValue: [],
       });
+    });
+  });
+
+  describe('Undo連続入力のバッチ化', () => {
+    beforeEach(() => {
+      useStore.setState({ currentPage: 'variables', undoStacks: {}, redoStacks: {} });
+    });
+
+    it('同じフィールドへの連続した onChange は Undo を1件だけ積む', () => {
+      render(<VariableEditor {...defaultProps} />);
+      const nameInput = screen.getByLabelText('変数名');
+
+      fireEvent.change(nameInput, { target: { value: 'A' } });
+      fireEvent.change(nameInput, { target: { value: 'AB' } });
+      fireEvent.change(nameInput, { target: { value: 'ABC' } });
+
+      expect(useStore.getState().undoStacks['variables']).toHaveLength(1);
+    });
+
+    it('フォーカスが外れてから再度編集すると別のUndoが積まれる', () => {
+      render(<VariableEditor {...defaultProps} />);
+      const nameInput = screen.getByLabelText('変数名');
+
+      fireEvent.change(nameInput, { target: { value: 'A' } });
+      fireEvent.blur(nameInput);
+      fireEvent.change(nameInput, { target: { value: 'B' } });
+
+      expect(useStore.getState().undoStacks['variables']).toHaveLength(2);
+    });
+
+    it('変数IDの変更（blur確定）は単発でUndoを積む', () => {
+      render(<VariableEditor {...defaultProps} />);
+      const idInput = screen.getByDisplayValue('var_001');
+
+      fireEvent.change(idInput, { target: { value: 'var_002' } });
+      fireEvent.blur(idInput);
+
+      expect(useStore.getState().undoStacks['variables']).toHaveLength(1);
     });
   });
 });

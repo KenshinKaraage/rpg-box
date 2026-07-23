@@ -8,6 +8,8 @@ import {
   Grid3X3,
   ZoomIn,
   ZoomOut,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { MapEditTool } from '@/stores/mapEditorSlice';
@@ -20,6 +22,10 @@ interface MapToolbarProps {
   zoom: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 const TOOLS: Array<{ tool: MapEditTool; label: string; icon: React.ReactNode; shortcut: string }> =
@@ -44,6 +50,10 @@ export function MapToolbar({
   zoom,
   onZoomIn,
   onZoomOut,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
 }: MapToolbarProps) {
   return (
     <div className="flex h-header items-center gap-1 border-b bg-background px-2">
@@ -58,6 +68,25 @@ export function MapToolbar({
           {icon}
         </Button>
       ))}
+      <div className="mx-2 h-5 w-px bg-border" />
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="元に戻す (Ctrl+Z)"
+        disabled={!canUndo}
+        onClick={onUndo}
+      >
+        <Undo2 className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="やり直す (Ctrl+Shift+Z)"
+        disabled={!canRedo}
+        onClick={onRedo}
+      >
+        <Redo2 className="h-4 w-4" />
+      </Button>
       <div className="mx-2 h-5 w-px bg-border" />
       <Button variant="ghost" size="icon" aria-label="グリッド表示切替" onClick={onToggleGrid}>
         <Grid3X3 className={`h-4 w-4 ${showGrid ? 'text-primary' : 'text-muted-foreground'}`} />

@@ -1,6 +1,5 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -11,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 import { FramePatternEditor } from './FramePatternEditor';
 import { SpriteAnimPreview } from '../SpriteAnimPreview';
 import type { SpriteComponent, SpriteMode } from '@/types/components/SpriteComponent';
@@ -56,23 +56,23 @@ export function SpritePropertyPanel({ component, onChange }: Props) {
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">フレーム幅</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             min={0}
+            step={1}
             value={component.frameWidth}
-            onChange={(e) => onChange({ frameWidth: parseInt(e.target.value) || 0 })}
+            onChange={(v) => onChange({ frameWidth: Math.round(v) })}
             placeholder="0=自動"
           />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">フレーム高さ</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             min={0}
+            step={1}
             value={component.frameHeight}
-            onChange={(e) => onChange({ frameHeight: parseInt(e.target.value) || 0 })}
+            onChange={(v) => onChange({ frameHeight: Math.round(v) })}
             placeholder="0=自動"
           />
         </div>
@@ -82,22 +82,22 @@ export function SpritePropertyPanel({ component, onChange }: Props) {
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">フレーム数</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             min={1}
+            step={1}
             value={component.animFrameCount}
-            onChange={(e) => onChange({ animFrameCount: parseInt(e.target.value) || 1 })}
+            onChange={(v) => onChange({ animFrameCount: Math.round(v) })}
           />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">間隔 (ms)</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             min={1}
+            step={1}
             value={component.animIntervalMs}
-            onChange={(e) => onChange({ animIntervalMs: parseInt(e.target.value) || 200 })}
+            onChange={(v) => onChange({ animIntervalMs: Math.round(v) })}
           />
         </div>
       </div>
@@ -112,9 +112,7 @@ export function SpritePropertyPanel({ component, onChange }: Props) {
       )}
 
       {isDirectional && (
-        <div className="text-xs text-muted-foreground">
-          4方向: 行0=下, 行1=左, 行2=右, 行3=上
-        </div>
+        <div className="text-xs text-muted-foreground">4方向: 行0=下, 行1=左, 行2=右, 行3=上</div>
       )}
 
       {/* アニメーションプレビュー */}
@@ -155,14 +153,13 @@ export function SpritePropertyPanel({ component, onChange }: Props) {
       </div>
       <div className="space-y-1">
         <Label className="text-xs">不透明度（0〜1）</Label>
-        <Input
-          type="number"
+        <NumberFieldEditor
           className="h-7 text-xs"
           min={0}
           max={1}
           step={0.1}
           value={component.opacity}
-          onChange={(e) => onChange({ opacity: parseFloat(e.target.value) ?? 1 })}
+          onChange={(v) => onChange({ opacity: v })}
         />
       </div>
     </div>

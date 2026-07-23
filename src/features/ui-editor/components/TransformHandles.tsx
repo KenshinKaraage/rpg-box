@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { worldToScreen, screenToWorld } from '../hooks/useUISelection';
 import { resolveAllTransforms } from '../renderer/transformResolver';
 import { useStore } from '@/stores';
-import type { UIEditorViewport, EditorUIObject } from '@/stores/uiEditorSlice';
+import type { UIEditorViewport, EditorUIObject, EditorUICanvas } from '@/stores/uiEditorSlice';
 
 // ──────────────────────────────────────────────
 // Types
@@ -59,6 +59,8 @@ export function TransformHandles({
   const updateUIObject = useStore((s) => s.updateUIObject);
   const snapToGrid = useStore((s) => s.snapToGrid);
   const gridSize = useStore((s) => s.uiGridSize);
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const uiCanvases = useStore((s) => s.uiCanvases);
 
   const dragRef = useRef<{
     type: 'move' | 'resize' | 'rotate';
@@ -73,6 +75,8 @@ export function TransformHandles({
     handle?: HandleDirection;
     centerX: number;
     centerY: number;
+    /** ドラッグ開始時点の uiCanvases スナップショット（Undo用） */
+    undoSnapshot: EditorUICanvas[];
   } | null>(null);
 
   // Use resolveAllTransforms for correct anchor/rotation/scale handling
@@ -125,6 +129,7 @@ export function TransformHandles({
       startObjRotation: selectedObject.transform.rotation,
       centerX: absX,
       centerY: absY,
+      undoSnapshot: uiCanvases,
     };
 
     const onMouseMove = (ev: MouseEvent) => {
@@ -144,9 +149,20 @@ export function TransformHandles({
     };
 
     const onMouseUp = () => {
+      const drag = dragRef.current;
       dragRef.current = null;
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      if (!drag) return;
+
+      const current = useStore
+        .getState()
+        .uiCanvases.find((c) => c.id === canvasId)
+        ?.objects.find((o) => o.id === drag.objectId);
+      if (!current) return;
+      if (current.transform.x !== drag.startObjX || current.transform.y !== drag.startObjY) {
+        pushUndoState('ui-screens', { uiCanvases: drag.undoSnapshot });
+      }
     };
 
     window.addEventListener('mousemove', onMouseMove);
@@ -177,6 +193,7 @@ export function TransformHandles({
       handle,
       centerX: absX,
       centerY: absY,
+      undoSnapshot: uiCanvases,
     };
 
     const onMouseMove = (ev: MouseEvent) => {
@@ -217,9 +234,25 @@ export function TransformHandles({
     };
 
     const onMouseUp = () => {
+      const drag = dragRef.current;
       dragRef.current = null;
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      if (!drag) return;
+
+      const current = useStore
+        .getState()
+        .uiCanvases.find((c) => c.id === canvasId)
+        ?.objects.find((o) => o.id === drag.objectId);
+      if (!current) return;
+      const changed =
+        current.transform.x !== drag.startObjX ||
+        current.transform.y !== drag.startObjY ||
+        current.transform.width !== drag.startObjW ||
+        current.transform.height !== drag.startObjH;
+      if (changed) {
+        pushUndoState('ui-screens', { uiCanvases: drag.undoSnapshot });
+      }
     };
 
     window.addEventListener('mousemove', onMouseMove);
@@ -250,6 +283,7 @@ export function TransformHandles({
       startObjRotation: selectedObject.transform.rotation,
       centerX: cx,
       centerY: cy,
+      undoSnapshot: uiCanvases,
     };
 
     const startWorld = screenToWorld(e.clientX - rect.left, e.clientY - rect.top, viewport);
@@ -274,9 +308,20 @@ export function TransformHandles({
     };
 
     const onMouseUp = () => {
+      const drag = dragRef.current;
       dragRef.current = null;
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      if (!drag) return;
+
+      const current = useStore
+        .getState()
+        .uiCanvases.find((c) => c.id === canvasId)
+        ?.objects.find((o) => o.id === drag.objectId);
+      if (!current) return;
+      if (current.transform.rotation !== drag.startObjRotation) {
+        pushUndoState('ui-screens', { uiCanvases: drag.undoSnapshot });
+      }
     };
 
     window.addEventListener('mousemove', onMouseMove);

@@ -23,6 +23,7 @@ import { getDefaultInitialValue } from '@/types/variable';
 import { createFieldTypeInstance, getFieldTypeOptions } from '@/types/fields';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 // 変数で使用可能なフィールドタイプ
 const VARIABLE_ALLOWED_TYPES = ['number', 'string', 'boolean', 'class'];
 
@@ -50,6 +51,12 @@ interface VariableEditorProps {
 export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
   const [configOpen, setConfigOpen] = useState(false);
   const classes = useStore((state) => state.classes);
+  const variables = useStore((state) => state.variables);
+  const pushUndoState = useStore((state) => state.pushUndoState);
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession(
+    'variables',
+    variable?.id ?? null
+  );
   const configContext: FieldConfigContext = useMemo(
     () => ({
       classes: classes.map((c) => ({ id: c.id, name: c.name })),
@@ -93,6 +100,8 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
   const onFieldChange = (field: keyof VariableFormData, value: unknown) => {
     if (!variable) return;
 
+    beginEditIfNeeded({ variables });
+
     // 型が変更された場合、新しいFieldTypeインスタンスを作成し初期値をリセット
     if (field === 'fieldTypeName') {
       const newFieldType = createFieldTypeInstance(value as string);
@@ -128,7 +137,7 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
   }
 
   return (
-    <form className="space-y-6 p-4" onSubmit={handleSubmit(() => {})}>
+    <form className="space-y-6 p-4" onSubmit={handleSubmit(() => {})} onBlur={endEditSession}>
       {/* 変数ID */}
       <div className="space-y-2">
         <Label htmlFor="variableId">変数ID</Label>
@@ -138,6 +147,7 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
           onBlur={(e) => {
             const newId = e.target.value.trim();
             if (newId && newId !== variable.id) {
+              pushUndoState('variables', { variables });
               onUpdate(variable.id, { id: newId } as Partial<Variable>);
             }
           }}
@@ -234,7 +244,9 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
               {(Array.isArray(watchInitialValue) ? watchInitialValue : []).map(
                 (item: unknown, index: number) => (
                   <div key={index} className="flex items-start gap-1 rounded border p-2">
-                    <span className="mt-1 w-5 shrink-0 text-center text-xs text-muted-foreground">{index}</span>
+                    <span className="mt-1 w-5 shrink-0 text-center text-xs text-muted-foreground">
+                      {index}
+                    </span>
                     <div className="min-w-0 flex-1">
                       {variable.fieldType.renderEditor({
                         value: item,
@@ -296,6 +308,7 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
                 const newFieldType = createFieldTypeInstance(variable.fieldType.type);
                 if (!newFieldType) return;
                 Object.assign(newFieldType, variable.fieldType, updates);
+                beginEditIfNeeded({ variables });
                 onUpdate(variable.id, { fieldType: newFieldType });
               },
               context: configContext,

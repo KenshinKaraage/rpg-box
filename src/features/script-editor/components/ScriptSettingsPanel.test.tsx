@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 
+import { useStore } from '@/stores';
 import type { Script } from '@/types/script';
 import { createScript } from '@/types/script';
 
@@ -76,5 +77,64 @@ describe('ScriptSettingsPanel', () => {
     expect(screen.getByText('引数')).toBeInTheDocument();
     expect(screen.getByText('返り値')).toBeInTheDocument();
     expect(screen.getByLabelText('呼び出しID')).toBeInTheDocument();
+  });
+
+  describe('Undo連続入力のバッチ化', () => {
+    beforeEach(() => {
+      useStore.setState({ currentPage: 'script', undoStacks: {}, redoStacks: {} });
+    });
+
+    it('引数フィールドへの連続した onChange は Undo を1件だけ積む', () => {
+      render(<ScriptSettingsPanel {...defaultProps} />);
+      const idInput = screen.getByDisplayValue('arg1');
+
+      fireEvent.change(idInput, { target: { value: 'arg1x' } });
+      fireEvent.change(idInput, { target: { value: 'arg1xy' } });
+      fireEvent.change(idInput, { target: { value: 'arg1xyz' } });
+
+      expect(useStore.getState().undoStacks['script']).toHaveLength(1);
+    });
+
+    it('フォーカスが外れてから再度編集すると別のUndoが積まれる', () => {
+      render(<ScriptSettingsPanel {...defaultProps} />);
+      const idInput = screen.getByDisplayValue('arg1');
+
+      fireEvent.change(idInput, { target: { value: 'arg1x' } });
+      fireEvent.blur(idInput);
+      fireEvent.change(idInput, { target: { value: 'arg1y' } });
+
+      expect(useStore.getState().undoStacks['script']).toHaveLength(2);
+    });
+
+    it('名前の変更（blur確定）は単発でUndoを積む', () => {
+      render(<ScriptSettingsPanel {...defaultProps} />);
+      const input = screen.getByLabelText('名前');
+
+      fireEvent.change(input, { target: { value: '新しい名前' } });
+      fireEvent.blur(input);
+
+      expect(useStore.getState().undoStacks['script']).toHaveLength(1);
+    });
+
+    it('待機フラグのトグル（単発操作）はUndoを1件積む', () => {
+      render(<ScriptSettingsPanel {...defaultProps} />);
+      const checkbox = screen.getByLabelText('完了まで待機する');
+
+      fireEvent.click(checkbox);
+
+      expect(useStore.getState().undoStacks['script']).toHaveLength(1);
+    });
+
+    it('名前を編集した直後に別フィールド（待機フラグ）を単発操作すると別のUndoが積まれる', () => {
+      render(<ScriptSettingsPanel {...defaultProps} />);
+      const input = screen.getByLabelText('名前');
+      const checkbox = screen.getByLabelText('完了まで待機する');
+
+      fireEvent.change(input, { target: { value: '新しい名前' } });
+      fireEvent.blur(input);
+      fireEvent.click(checkbox);
+
+      expect(useStore.getState().undoStacks['script']).toHaveLength(2);
+    });
   });
 });

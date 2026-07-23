@@ -8,6 +8,8 @@ import type { FieldType } from '@/types/fields/FieldType';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { createFieldTypeInstance } from '@/types/fields';
 import { generateId } from '@/lib/utils';
+import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import { FieldRow } from './FieldRow';
 import { FieldTypeSelector } from './FieldTypeSelector';
 
@@ -32,6 +34,10 @@ export function DataTypeEditor({
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
   const [fieldSelectorOpen, setFieldSelectorOpen] = useState(false);
 
+  const dataTypes = useStore((s) => s.dataTypes);
+  const dataEntries = useStore((s) => s.dataEntries);
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession('data', dataType.id);
+
   // configContext に allFields を追加（各フィールドの renderConfig で利用）
   const enrichedContext = useMemo<FieldConfigContext | undefined>(() => {
     const allFields = dataType.fields.map((f) => ({ id: f.id, name: f.name }));
@@ -55,6 +61,7 @@ export function DataTypeEditor({
     const newField = createFieldTypeInstance(field.type);
     if (!newField) return;
     Object.assign(newField, field, { id: newId });
+    beginEditIfNeeded({ dataTypes, dataEntries });
     onReplaceField(dataType.id, fieldId, newField);
   };
 
@@ -64,6 +71,7 @@ export function DataTypeEditor({
     const newField = createFieldTypeInstance(field.type);
     if (!newField) return;
     Object.assign(newField, field, { name });
+    beginEditIfNeeded({ dataTypes, dataEntries });
     onReplaceField(dataType.id, fieldId, newField);
   };
 
@@ -74,6 +82,7 @@ export function DataTypeEditor({
     if (!newField) return;
     newField.id = field.id;
     newField.name = field.name;
+    beginEditIfNeeded({ dataTypes, dataEntries });
     onReplaceField(dataType.id, fieldId, newField);
   };
 
@@ -83,6 +92,7 @@ export function DataTypeEditor({
     const newField = createFieldTypeInstance(field.type);
     if (!newField) return;
     Object.assign(newField, field, updates);
+    beginEditIfNeeded({ dataTypes, dataEntries });
     onReplaceField(dataType.id, fieldId, newField);
 
     // visibilityMap が変更された場合、他フィールドの displayCondition を同期
@@ -127,7 +137,7 @@ export function DataTypeEditor({
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" onBlur={endEditSession}>
       {/* ヘッダー */}
       <div className="border-b px-5 py-4">
         <h3 className="text-sm font-bold">フィールド編集</h3>

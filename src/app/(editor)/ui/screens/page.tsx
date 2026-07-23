@@ -8,9 +8,11 @@ import '@/engine/actions/register';
 import '@/features/event-editor/registry/register';
 import '@/features/ui-editor/registry/uiActionBlockRegister';
 
+import { useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { useStore } from '@/stores';
+import { useKeyboardShortcut, CommonShortcuts } from '@/hooks';
 import { generateId } from '@/lib/utils';
 import { CanvasListPanel } from '@/features/ui-editor/components/CanvasListPanel';
 import { ElementsPanel } from '@/features/ui-editor/components/ElementsPanel';
@@ -42,6 +44,32 @@ export default function UIScreenDesignPage() {
   // Template state
   const uiTemplates = useStore((s) => s.uiTemplates);
 
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const undo = useStore((s) => s.undo);
+  const redo = useStore((s) => s.redo);
+  const setCurrentPage = useStore((s) => s.setCurrentPage);
+
+  useEffect(() => {
+    setCurrentPage('ui-screens');
+  }, [setCurrentPage]);
+
+  useKeyboardShortcut({
+    shortcuts: [
+      { keys: CommonShortcuts.undo, handler: () => undo() },
+      { keys: CommonShortcuts.redo, handler: () => redo() },
+      { keys: CommonShortcuts.redoAlt, handler: () => redo() },
+    ],
+  });
+
+  // Canvas の追加/削除を Undo 対象にするラッパー
+  function withUndo<Args extends unknown[]>(fn: (...args: Args) => void): (...args: Args) => void {
+    return (...args: Args) => {
+      pushUndoState('ui-screens', { uiCanvases });
+      fn(...args);
+    };
+  }
+
   // Function state (from selected canvas)
   const selectedCanvas = uiCanvases.find((c) => c.id === selectedCanvasId) ?? null;
 
@@ -56,6 +84,7 @@ export default function UIScreenDesignPage() {
       objects: [],
       functions: [],
     };
+    pushUndoState('ui-screens', { uiCanvases });
     addUICanvas(newCanvas);
     selectUICanvas(id);
   };
@@ -82,7 +111,7 @@ export default function UIScreenDesignPage() {
               selectedId={selectedCanvasId}
               onSelect={selectUICanvas}
               onAdd={handleAddCanvas}
-              onDelete={deleteUICanvas}
+              onDelete={withUndo(deleteUICanvas)}
             />
           </TabsContent>
           <TabsContent value="elements" className="mt-0 min-h-0 flex-1 overflow-auto">

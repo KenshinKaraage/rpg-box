@@ -6,6 +6,7 @@ import type { Monaco } from '@monaco-editor/react';
 import type { editor, IRange, IDisposable } from 'monaco-editor';
 
 import { createFieldTypeInstance } from '@/types/fields';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import type { Script } from '@/types/script';
 
 import {
@@ -37,6 +38,11 @@ export const ScriptEditor = forwardRef<ScriptEditorHandle, ScriptEditorProps>(fu
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const completionDisposableRef = useRef<IDisposable | null>(null);
+
+  // Monaco 本文のストア反映は打鍵ごとに発生するため、Undoは編集セッション単位でまとめる。
+  // フォーカスが外れる（onDidBlurEditorText）か選択スクリプトが変わったらセッションをリセットする。
+  // Monaco自体のテキストUndo（Ctrl+Z）には関与しない — ストアへのcommit時点のみ対象。
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession('script', script?.id ?? null);
 
   // scripts が変わったら動的な Script 型宣言を更新
   useEffect(() => {
@@ -283,13 +289,17 @@ export const ScriptEditor = forwardRef<ScriptEditorHandle, ScriptEditorProps>(fu
           language="javascript"
           theme="vs-dark"
           value={script.content}
-          onChange={(value) => onContentChange(script.id, value ?? '')}
+          onChange={(value) => {
+            beginEditIfNeeded({ scripts });
+            onContentChange(script.id, value ?? '');
+          }}
           onMount={(ed, monaco) => {
             editorRef.current = ed;
             monacoRef.current = monaco;
             updateScriptDeclarations(monaco, scripts);
             updateDataDeclarations(monaco, dataTypes);
             updateArgDeclarations(monaco, script);
+            ed.onDidBlurEditorText(() => endEditSession());
           }}
           beforeMount={(monaco) => {
             registerApiDefinitions(monaco);

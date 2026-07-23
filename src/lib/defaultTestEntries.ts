@@ -729,24 +729,24 @@ export function createTestVariables(): Variable[] {
   Object.assign(classType, { classId: 'class_status' });
   return [
     {
-      id: 'var_gold',
-      name: 'gold',
+      id: 'gold',
+      name: 'ゴールド',
       fieldType: numberType,
       isArray: false,
       initialValue: 1000,
       description: '所持金',
     },
     {
-      id: 'var_leader_stats',
-      name: 'leader_stats',
+      id: 'leader_stats',
+      name: 'リーダーステータス',
       fieldType: Object.assign(createFieldTypeInstance('class')!, { classId: 'class_status' }),
       isArray: false,
       initialValue: { hp: 500, mp: 80, atk: 45, def: 30, matk: 15, mdef: 20, spd: 25, luk: 10 },
       description: 'パーティリーダーの現在ステータス（クラス型変数テスト）',
     },
     {
-      id: 'var_inventory',
-      name: 'inventory',
+      id: 'inventory',
+      name: '所持品',
       fieldType: Object.assign(createFieldTypeInstance('class')!, {
         classId: 'class_inventory_item',
       }),
@@ -766,8 +766,8 @@ export function createTestVariables(): Variable[] {
       description: '所持アイテム（{itemId, count} 形式）',
     },
     {
-      id: 'var_party_init',
-      name: 'party_init',
+      id: 'party_init',
+      name: '初期パーティ',
       fieldType: Object.assign(createFieldTypeInstance('class')!, { classId: 'class_party_init' }),
       isArray: true,
       initialValue: [
@@ -779,8 +779,8 @@ export function createTestVariables(): Variable[] {
       description: '初期パーティ定義（ゲーム開始時に init_party で party に展開）',
     },
     {
-      id: 'var_party',
-      name: 'party',
+      id: 'party',
+      name: 'パーティ',
       fieldType: Object.assign(createFieldTypeInstance('class')!, {
         classId: 'class_party_member',
       }),

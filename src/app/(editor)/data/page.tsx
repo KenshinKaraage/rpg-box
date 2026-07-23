@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useKeyboardShortcut, CommonShortcuts } from '@/hooks';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import {
@@ -57,6 +58,32 @@ export default function DataPage() {
   const deleteDataEntry = useStore((state) => state.deleteDataEntry);
   const selectDataEntry = useStore((state) => state.selectDataEntry);
 
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  const pushUndoState = useStore((state) => state.pushUndoState);
+  const undo = useStore((state) => state.undo);
+  const redo = useStore((state) => state.redo);
+  const setCurrentPage = useStore((state) => state.setCurrentPage);
+
+  useEffect(() => {
+    setCurrentPage('data');
+  }, [setCurrentPage]);
+
+  useKeyboardShortcut({
+    shortcuts: [
+      { keys: CommonShortcuts.undo, handler: () => undo() },
+      { keys: CommonShortcuts.redo, handler: () => redo() },
+      { keys: CommonShortcuts.redoAlt, handler: () => redo() },
+    ],
+  });
+
+  // レイヤー/マッププロパティ相当: dataTypes/dataEntries の変更をUndo対象にするラッパー
+  function withUndo<Args extends unknown[]>(fn: (...args: Args) => void): (...args: Args) => void {
+    return (...args: Args) => {
+      pushUndoState('data', { dataTypes, dataEntries });
+      fn(...args);
+    };
+  }
+
   // 選択中のデータ型
   const selectedDataType = useStore((state) =>
     state.selectedDataTypeId
@@ -111,6 +138,7 @@ export default function DataPage() {
       dataTypes.map((t) => t.id)
     );
     const newType = createDataType(id, '新しいデータ型');
+    pushUndoState('data', { dataTypes, dataEntries });
     addDataType(newType);
     selectDataType(id);
   };
@@ -139,6 +167,7 @@ export default function DataPage() {
       name: `${original.name} のコピー`,
       fields: clonedFields,
     };
+    pushUndoState('data', { dataTypes, dataEntries });
     addDataType(duplicated);
     selectDataType(newId);
   };
@@ -147,7 +176,10 @@ export default function DataPage() {
   const handleDeleteDataType = useCallback(
     (id: string) => {
       const refs = findDataTypeReferences(dataTypes, id);
-      const doDelete = () => deleteDataType(id);
+      const doDelete = () => {
+        pushUndoState('data', { dataTypes, dataEntries });
+        deleteDataType(id);
+      };
 
       if (refs.length > 0) {
         const refMessages = refs.map((r) => r.description).join('\n');
@@ -172,7 +204,7 @@ export default function DataPage() {
         });
       }
     },
-    [dataTypes, deleteDataType]
+    [dataTypes, dataEntries, deleteDataType, pushUndoState]
   );
 
   // エントリを追加
@@ -181,6 +213,7 @@ export default function DataPage() {
     const existingEntryIds = entries.map((e) => e.id);
     const id = generateId('entry', existingEntryIds);
     const entry = createDataEntry(id, selectedDataType.id, selectedDataType.fields);
+    pushUndoState('data', { dataTypes, dataEntries });
     addDataEntry(entry);
     selectDataEntry(id);
     setIsFieldEditing(false);
@@ -201,6 +234,7 @@ export default function DataPage() {
       id: newId,
       values: { ...original.values },
     };
+    pushUndoState('data', { dataTypes, dataEntries });
     addDataEntry(duplicated);
     selectDataEntry(newId);
   };
@@ -211,7 +245,10 @@ export default function DataPage() {
       if (!selectedDataType) return;
       const typeId = selectedDataType.id;
       const refs = findDataEntryReferences(dataTypes, dataEntries, typeId, entryId);
-      const doDelete = () => deleteDataEntry(typeId, entryId);
+      const doDelete = () => {
+        pushUndoState('data', { dataTypes, dataEntries });
+        deleteDataEntry(typeId, entryId);
+      };
 
       if (refs.length > 0) {
         const refMessages = refs.map((r) => r.description).join('\n');
@@ -236,13 +273,15 @@ export default function DataPage() {
         });
       }
     },
-    [selectedDataType, dataTypes, dataEntries, deleteDataEntry]
+    [selectedDataType, dataTypes, dataEntries, deleteDataEntry, pushUndoState]
   );
 
   // デフォルトデータタイプをインポート
   const handleImportDefaults = () => {
     setIsImporting(true);
     try {
+      // classes も一緒に追加されるため、まとめてスナップショットに含める
+      pushUndoState('data', { dataTypes, dataEntries, classes });
       const result = importDefaultDataTypes(dataTypes, classes, addDataType, addClass);
       console.info(
         `インポート完了: データ型 ${result.importedTypes}件（${result.skippedTypes}件スキップ）、クラス ${result.importedClasses}件（${result.skippedClasses}件スキップ）`
@@ -292,9 +331,9 @@ export default function DataPage() {
       <DataTypeEditor
         key={`fields-${selectedDataTypeId}`}
         dataType={selectedDataType}
-        onAddField={addFieldToDataType}
+        onAddField={withUndo(addFieldToDataType)}
         onReplaceField={replaceDataTypeField}
-        onDeleteField={deleteDataTypeField}
+        onDeleteField={withUndo(deleteDataTypeField)}
         configContext={configContext}
       />
     );

@@ -7,7 +7,7 @@ import { screenToTile } from '../utils/coordTransform';
 import { TILE_SIZE } from '../utils/constants';
 import { generateId } from '@/lib/utils';
 import { TransformComponent } from '@/types/components/TransformComponent';
-import type { MapObject } from '@/types/map';
+import type { GameMap, MapObject } from '@/types/map';
 
 /**
  * オブジェクト配置・選択・移動・削除を処理するフック。
@@ -24,13 +24,14 @@ export function useObjectPlacement(mapId: string, layerId: string) {
   const deleteObject = useStore((s) => s.deleteObject);
   const selectObject = useStore((s) => s.selectObject);
   const selectedObjectId = useStore((s) => s.selectedObjectId);
-  const pushUndo = useStore((s) => s.pushUndo);
+  const pushUndoState = useStore((s) => s.pushUndoState);
 
-  // ドラッグ中の状態
+  // ドラッグ中の状態（Undo用にドラッグ開始時点の maps 参照を保持）
   const dragRef = useRef<{
     objectId: string;
     startGridX: number;
     startGridY: number;
+    startMaps: GameMap[];
   } | null>(null);
 
   const getLayer = useCallback(() => {
@@ -72,7 +73,7 @@ export function useObjectPlacement(mapId: string, layerId: string) {
           const obj = getObjectAtTile(tx, ty);
           if (obj) {
             selectObject(obj.id);
-            dragRef.current = { objectId: obj.id, startGridX: tx, startGridY: ty };
+            dragRef.current = { objectId: obj.id, startGridX: tx, startGridY: ty, startMaps: maps };
           } else {
             selectObject(null);
             dragRef.current = null;
@@ -82,8 +83,8 @@ export function useObjectPlacement(mapId: string, layerId: string) {
         case 'eraser': {
           const obj = getObjectAtTile(tx, ty);
           if (obj) {
+            pushUndoState('map', { maps });
             deleteObject(mapId, layerId, obj.id);
-            pushUndo({ type: 'deleteObject', mapId, layerId, object: obj });
             if (selectedObjectId === obj.id) selectObject(null);
           }
           break;
@@ -107,8 +108,8 @@ export function useObjectPlacement(mapId: string, layerId: string) {
             prefabId: isEmpty ? undefined : prefabId,
             components: [transform],
           };
+          pushUndoState('map', { maps });
           addObject(mapId, layerId, newObj);
-          pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
           selectObject(newObj.id);
           break;
         }
@@ -124,8 +125,10 @@ export function useObjectPlacement(mapId: string, layerId: string) {
       getLayer,
       getObjectAtTile,
       addObject,
-      pushUndo,
+      deleteObject,
+      pushUndoState,
       selectObject,
+      selectedObjectId,
     ]
   );
 
@@ -162,13 +165,26 @@ export function useObjectPlacement(mapId: string, layerId: string) {
 
       updateObject(mapId, layerId, obj.id, { components: newComponents });
     },
-    [viewport, maps, mapId, layerId, getLayer, updateObject]
+    [viewport, maps, mapId, layerId, getLayer, getObjectAtTile, updateObject]
   );
 
-  /** mouseup: ドラッグ終了 */
+  /** mouseup: ドラッグ終了。位置が変わっていればドラッグ開始時点を Undo に記録 */
   const handleMouseUp = useCallback(() => {
+    const drag = dragRef.current;
     dragRef.current = null;
-  }, []);
+    if (!drag) return;
+
+    const layer = getLayer();
+    const obj = layer?.objects?.find((o) => o.id === drag.objectId);
+    if (!obj) return;
+    const transform = obj.components.find((c) => c.type === 'transform') as
+      | TransformComponent
+      | undefined;
+    if (!transform) return;
+    if (transform.x === drag.startGridX && transform.y === drag.startGridY) return; // 移動していなければ記録しない
+
+    pushUndoState('map', { maps: drag.startMaps });
+  }, [getLayer, pushUndoState]);
 
   /** 選択中のオブジェクトを削除 */
   const deleteSelectedObject = useCallback(() => {
@@ -177,10 +193,10 @@ export function useObjectPlacement(mapId: string, layerId: string) {
     const obj = layer?.objects?.find((o) => o.id === selectedObjectId);
     if (!obj) return;
 
+    pushUndoState('map', { maps });
     deleteObject(mapId, layerId, selectedObjectId);
-    pushUndo({ type: 'deleteObject', mapId, layerId, object: obj });
     selectObject(null);
-  }, [selectedObjectId, mapId, layerId, getLayer, deleteObject, pushUndo, selectObject]);
+  }, [selectedObjectId, mapId, layerId, maps, getLayer, deleteObject, pushUndoState, selectObject]);
 
   /** D&D ドロップ: プレハブをタイルに配置 */
   const handleDropPrefab = useCallback(
@@ -207,11 +223,22 @@ export function useObjectPlacement(mapId: string, layerId: string) {
         prefabId: prefabId,
         components: [transform, ...prefabComponents],
       };
+      pushUndoState('map', { maps });
       addObject(mapId, layerId, newObj);
-      pushUndo({ type: 'addObject', mapId, layerId, object: newObj });
       selectObject(newObj.id);
     },
-    [viewport, maps, mapId, layerId, prefabs, getLayer, getObjectAtTile, addObject, pushUndo, selectObject]
+    [
+      viewport,
+      maps,
+      mapId,
+      layerId,
+      prefabs,
+      getLayer,
+      getObjectAtTile,
+      addObject,
+      pushUndoState,
+      selectObject,
+    ]
   );
 
   return {

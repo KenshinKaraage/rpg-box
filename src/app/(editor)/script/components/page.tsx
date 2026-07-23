@@ -11,6 +11,7 @@ import {
 } from '@/features/script-editor';
 import type { ScriptEditorHandle, DataTypeInfo } from '@/features/script-editor';
 import { useStore } from '@/stores';
+import { useKeyboardShortcut, CommonShortcuts } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { generateId } from '@/lib/utils';
 import { createScript } from '@/types/script';
@@ -34,6 +35,33 @@ export default function ComponentScriptPage() {
   useEffect(() => {
     seedDefaultComponentScripts();
   }, [seedDefaultComponentScripts]);
+
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  // イベント/コンポーネントスクリプトは同じ scripts 配列を編集するため
+  // 'script' ページキーを共有し、履歴を一続きにする。
+  const pushUndoState = useStore((state) => state.pushUndoState);
+  const undo = useStore((state) => state.undo);
+  const redo = useStore((state) => state.redo);
+  const setCurrentPage = useStore((state) => state.setCurrentPage);
+
+  useEffect(() => {
+    setCurrentPage('script');
+  }, [setCurrentPage]);
+
+  useKeyboardShortcut({
+    shortcuts: [
+      { keys: CommonShortcuts.undo, handler: () => undo() },
+      { keys: CommonShortcuts.redo, handler: () => redo() },
+      { keys: CommonShortcuts.redoAlt, handler: () => redo() },
+    ],
+  });
+
+  function withUndo<Args extends unknown[]>(fn: (...args: Args) => void): (...args: Args) => void {
+    return (...args: Args) => {
+      pushUndoState('script', { scripts });
+      fn(...args);
+    };
+  }
 
   // All component scripts (flat, including internal children)
   const componentScripts = useMemo(
@@ -66,6 +94,7 @@ export default function ComponentScriptPage() {
   );
 
   const handleAdd = () => {
+    pushUndoState('script', { scripts });
     const id = generateId(
       'script',
       scripts.map((s) => s.id)
@@ -76,6 +105,7 @@ export default function ComponentScriptPage() {
   };
 
   const handleAddInternal = (parentId: string) => {
+    pushUndoState('script', { scripts });
     const id = generateId(
       'script',
       scripts.map((s) => s.id)
@@ -104,9 +134,9 @@ export default function ComponentScriptPage() {
           selectedId={selectedScriptId}
           onSelect={selectScript}
           onAdd={handleAdd}
-          onDelete={deleteScript}
+          onDelete={withUndo(deleteScript)}
           onAddInternal={handleAddInternal}
-          onMove={moveScript}
+          onMove={withUndo(moveScript)}
           title="コンポーネントスクリプト"
         />
       }
@@ -153,6 +183,7 @@ export default function ComponentScriptPage() {
               />
             ) : (
               <ComponentFieldEditor
+                scriptId={selectedScript?.id ?? null}
                 content={selectedScript?.content ?? null}
                 onContentChange={(newContent) => {
                   if (selectedScript) handleContentChange(selectedScript.id, newContent);

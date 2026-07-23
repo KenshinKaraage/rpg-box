@@ -127,17 +127,18 @@ declare const scriptAPI: {
 };
 
 /** 変数API - ゲーム変数の読み書き
- * Variable["name"] または Variable.name で直接アクセス可能。
- * Variable.get("name") / Variable.set("name", value) も使用可。
+ * Variable["変数ID"] で直接アクセス可能（推奨・変数名の変更に影響されない）。
+ * Variable["変数名"] でもアクセス可能だが、変数名を変更すると参照が壊れるため注意。
+ * Variable.get("変数ID") / Variable.set("変数ID", value) も使用可。
  */
 declare const Variable: {
   /** 変数の値を取得 */
-  get(name: string): unknown;
+  get(idOrName: string): unknown;
   /** 変数の値を設定 */
-  set(name: string, value: unknown): void;
+  set(idOrName: string, value: unknown): void;
   /** 全変数を取得 */
   getAll(): Record<string, unknown>;
-  /** 直接アクセス: Variable["name"] */
+  /** 直接アクセス: Variable["変数ID"] */
   [key: string]: unknown;
 };
 

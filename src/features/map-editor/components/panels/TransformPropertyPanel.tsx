@@ -1,7 +1,7 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 import type { TransformComponent } from '@/types/components/TransformComponent';
 import type { ComponentPanelProps } from '@/types/components/Component';
 
@@ -15,51 +15,46 @@ export function TransformPropertyPanel({ component, onChange }: Props) {
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">X</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             value={component.x}
-            onChange={(e) => onChange({ x: parseFloat(e.target.value) || 0 })}
+            onChange={(v) => onChange({ x: v })}
           />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">Y</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             value={component.y}
-            onChange={(e) => onChange({ y: parseFloat(e.target.value) || 0 })}
+            onChange={(v) => onChange({ y: v })}
           />
         </div>
       </div>
       <div className="space-y-1">
         <Label className="text-xs">回転（度）</Label>
-        <Input
-          type="number"
+        <NumberFieldEditor
           className="h-7 text-xs"
           value={component.rotation}
-          onChange={(e) => onChange({ rotation: parseFloat(e.target.value) || 0 })}
+          onChange={(v) => onChange({ rotation: v })}
         />
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">スケール X</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             step={0.1}
             value={component.scaleX}
-            onChange={(e) => onChange({ scaleX: parseFloat(e.target.value) || 1 })}
+            onChange={(v) => onChange({ scaleX: v })}
           />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">スケール Y</Label>
-          <Input
-            type="number"
+          <NumberFieldEditor
             className="h-7 text-xs"
             step={0.1}
             value={component.scaleY}
-            onChange={(e) => onChange({ scaleY: parseFloat(e.target.value) || 1 })}
+            onChange={(v) => onChange({ scaleY: v })}
           />
         </div>
       </div>

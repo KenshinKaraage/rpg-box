@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { EventTemplateList, EventTemplateEditor, ActionBlockEditor } from '@/features/event-editor';
 import { useStore } from '@/stores';
+import { useKeyboardShortcut, CommonShortcuts } from '@/hooks';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import { createEventTemplate } from '@/types/event';
 import { generateId } from '@/lib/utils';
 import type { EventAction } from '@/engine/actions/EventAction';
@@ -30,6 +32,27 @@ export default function EventTemplatePage() {
   const deleteTemplate = useStore((state) => state.deleteTemplate);
   const selectTemplate = useStore((state) => state.selectTemplate);
   const updateTemplateActions = useStore((state) => state.updateTemplateActions);
+
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  const pushUndoState = useStore((state) => state.pushUndoState);
+  const undo = useStore((state) => state.undo);
+  const redo = useStore((state) => state.redo);
+  const setCurrentPage = useStore((state) => state.setCurrentPage);
+
+  useEffect(() => {
+    setCurrentPage('event');
+  }, [setCurrentPage]);
+
+  useKeyboardShortcut({
+    shortcuts: [
+      { keys: CommonShortcuts.undo, handler: () => undo() },
+      { keys: CommonShortcuts.redo, handler: () => redo() },
+      { keys: CommonShortcuts.redoAlt, handler: () => redo() },
+    ],
+  });
+
+  // アクション配列の連続編集（ブロック内フィールドの入力）をUndo1件にまとめるためのセッション
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession('event', selectedTemplateId);
 
   // 選択中のテンプレート
   const selectedTemplate = useStore((state) =>
@@ -66,6 +89,7 @@ export default function EventTemplatePage() {
       eventTemplates.map((t) => t.id)
     );
     const newTemplate = createEventTemplate(id, '新しいテンプレート');
+    pushUndoState('event', { eventTemplates });
     addTemplate(newTemplate);
     selectTemplate(id);
   };
@@ -86,6 +110,7 @@ export default function EventTemplatePage() {
       args: [...original.args],
       actions: [...original.actions],
     };
+    pushUndoState('event', { eventTemplates });
     addTemplate(duplicated);
     selectTemplate(newId);
   };
@@ -98,21 +123,36 @@ export default function EventTemplatePage() {
         message: 'このテンプレートを削除しますか？',
         variant: 'danger',
         onConfirm: () => {
+          pushUndoState('event', { eventTemplates });
           deleteTemplate(id);
           setDeleteConfirm(null);
         },
       });
     },
-    [deleteTemplate]
+    [deleteTemplate, pushUndoState, eventTemplates]
   );
 
   // アクション配列を更新
+  // 追加・削除（配列長が変わる）は単発のUndoとして積み、
+  // ブロック内フィールドの編集（配列長が変わらない）はセッションとしてバッチ化する
   const handleActionsChange = useCallback(
     (newActions: EditableAction[]) => {
       if (!selectedTemplateId) return;
+      if (newActions.length !== actions.length) {
+        pushUndoState('event', { eventTemplates });
+      } else {
+        beginEditIfNeeded({ eventTemplates });
+      }
       updateTemplateActions(selectedTemplateId, newActions as EventAction[]);
     },
-    [selectedTemplateId, updateTemplateActions]
+    [
+      selectedTemplateId,
+      updateTemplateActions,
+      actions,
+      pushUndoState,
+      eventTemplates,
+      beginEditIfNeeded,
+    ]
   );
 
   // --- レンダリング ---
@@ -132,7 +172,7 @@ export default function EventTemplatePage() {
         }
         center={
           selectedTemplate ? (
-            <div className="flex h-full flex-col">
+            <div className="flex h-full flex-col" onBlur={endEditSession}>
               <div className="flex items-center justify-between border-b p-3">
                 <h2 className="text-sm font-semibold">アクション</h2>
               </div>

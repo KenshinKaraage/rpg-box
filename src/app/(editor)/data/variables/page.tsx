@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useKeyboardShortcut, CommonShortcuts } from '@/hooks';
 import { TwoColumnLayout } from '@/components/common/TwoColumnLayout';
 import { VariableList, VariableEditor } from '@/features/data-editor';
 import { useStore } from '@/stores';
@@ -18,6 +20,24 @@ export default function VariablesPage() {
   const deleteVariable = useStore((state) => state.deleteVariable);
   const selectVariable = useStore((state) => state.selectVariable);
 
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  const pushUndoState = useStore((state) => state.pushUndoState);
+  const undo = useStore((state) => state.undo);
+  const redo = useStore((state) => state.redo);
+  const setCurrentPage = useStore((state) => state.setCurrentPage);
+
+  useEffect(() => {
+    setCurrentPage('variables');
+  }, [setCurrentPage]);
+
+  useKeyboardShortcut({
+    shortcuts: [
+      { keys: CommonShortcuts.undo, handler: () => undo() },
+      { keys: CommonShortcuts.redo, handler: () => redo() },
+      { keys: CommonShortcuts.redoAlt, handler: () => redo() },
+    ],
+  });
+
   // 選択中の変数を取得（リアクティブなセレクタ）
   const selectedVariable = useStore((state) =>
     state.selectedVariableId
@@ -32,6 +52,7 @@ export default function VariablesPage() {
       variables.map((v) => v.id)
     );
     const newVariable = createVariable(id, '新しい変数');
+    pushUndoState('variables', { variables });
     addVariable(newVariable);
     selectVariable(id);
   };
@@ -50,12 +71,14 @@ export default function VariablesPage() {
       id: newId,
       name: `${original.name} のコピー`,
     };
+    pushUndoState('variables', { variables });
     addVariable(duplicated);
     selectVariable(newId);
   };
 
   // 変数を削除
   const handleDelete = (id: string) => {
+    pushUndoState('variables', { variables });
     deleteVariable(id);
   };
 

@@ -6,14 +6,17 @@ import type { EditorUIFunction } from '@/stores/uiEditorSlice';
 const mockAddUIFunction = jest.fn();
 const mockUpdateUIFunction = jest.fn();
 const mockDeleteUIFunction = jest.fn();
+const mockPushUndoState = jest.fn();
 
 jest.mock('@/stores', () => ({
   useStore: (selector: (s: Record<string, unknown>) => unknown) =>
     selector({
       selectedCanvasId: 'canvas_1',
+      uiCanvases: [],
       addUIFunction: mockAddUIFunction,
       updateUIFunction: mockUpdateUIFunction,
       deleteUIFunction: mockDeleteUIFunction,
+      pushUndoState: mockPushUndoState,
     }),
 }));
 
@@ -36,6 +39,7 @@ beforeEach(() => {
   mockAddUIFunction.mockClear();
   mockUpdateUIFunction.mockClear();
   mockDeleteUIFunction.mockClear();
+  mockPushUndoState.mockClear();
 });
 
 describe('FunctionsPanel', () => {
@@ -57,12 +61,15 @@ describe('FunctionsPanel', () => {
   it('calls addUIFunction when add button clicked', () => {
     render(<FunctionsPanel functions={[]} />);
     fireEvent.click(screen.getByTestId('add-function-btn'));
-    expect(mockAddUIFunction).toHaveBeenCalledWith('canvas_1', expect.objectContaining({
-      id: 'generated_id',
-      name: '新しいファンクション',
-      args: [],
-      actions: [],
-    }));
+    expect(mockAddUIFunction).toHaveBeenCalledWith(
+      'canvas_1',
+      expect.objectContaining({
+        id: 'generated_id',
+        name: '新しいファンクション',
+        args: [],
+        actions: [],
+      })
+    );
   });
 
   it('calls deleteUIFunction when delete clicked', () => {
@@ -116,5 +123,43 @@ describe('FunctionsPanel', () => {
     });
     render(<FunctionsPanel functions={[fn]} />);
     expect(screen.getByText('2args')).toBeInTheDocument();
+  });
+
+  describe('Undo', () => {
+    it('pushes undo state before adding a function', () => {
+      render(<FunctionsPanel functions={[]} />);
+      fireEvent.click(screen.getByTestId('add-function-btn'));
+      expect(mockPushUndoState).toHaveBeenCalledWith('ui-screens', { uiCanvases: [] });
+    });
+
+    it('pushes undo state before deleting a function', () => {
+      render(<FunctionsPanel functions={[makeFunction()]} />);
+      fireEvent.click(screen.getByTestId('delete-function-fn_1'));
+      expect(mockPushUndoState).toHaveBeenCalledWith('ui-screens', { uiCanvases: [] });
+    });
+
+    it('batches consecutive name input changes into a single pushUndoState call', () => {
+      render(<FunctionsPanel functions={[makeFunction()]} />);
+      fireEvent.click(screen.getByTestId('toggle-function-fn_1'));
+
+      const nameInput = screen.getByTestId('function-name-input-fn_1');
+      fireEvent.change(nameInput, { target: { value: 'あ' } });
+      fireEvent.change(nameInput, { target: { value: 'あい' } });
+      fireEvent.change(nameInput, { target: { value: 'あいう' } });
+
+      expect(mockPushUndoState).toHaveBeenCalledTimes(1);
+    });
+
+    it('pushes a new undo state after the field blurs and editing resumes', () => {
+      render(<FunctionsPanel functions={[makeFunction()]} />);
+      fireEvent.click(screen.getByTestId('toggle-function-fn_1'));
+
+      const nameInput = screen.getByTestId('function-name-input-fn_1');
+      fireEvent.change(nameInput, { target: { value: 'あ' } });
+      fireEvent.blur(nameInput);
+      fireEvent.change(nameInput, { target: { value: 'あい' } });
+
+      expect(mockPushUndoState).toHaveBeenCalledTimes(2);
+    });
   });
 });

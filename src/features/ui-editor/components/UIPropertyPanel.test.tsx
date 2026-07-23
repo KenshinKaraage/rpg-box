@@ -5,7 +5,11 @@ import { createDefaultRectTransform } from '@/types/ui/UIComponent';
 import type { EditorUIObject, EditorUICanvas } from '@/stores/uiEditorSlice';
 import '@/types/ui/register';
 
-function makeObject(id: string, name: string, components: { type: string; data: unknown }[] = []): EditorUIObject {
+function makeObject(
+  id: string,
+  name: string,
+  components: { type: string; data: unknown }[] = []
+): EditorUIObject {
   return {
     id,
     name,
@@ -14,11 +18,13 @@ function makeObject(id: string, name: string, components: { type: string; data: 
   };
 }
 
-function setupStore(options: {
-  objects?: EditorUIObject[];
-  selectedObjectIds?: string[];
-  selectedCanvasId?: string | null;
-} = {}) {
+function setupStore(
+  options: {
+    objects?: EditorUIObject[];
+    selectedObjectIds?: string[];
+    selectedCanvasId?: string | null;
+  } = {}
+) {
   const canvas: EditorUICanvas = {
     id: 'canvas1',
     name: 'Test Canvas',
@@ -122,5 +128,61 @@ describe('UIPropertyPanel', () => {
     const canvas = useStore.getState().uiCanvases.find((c) => c.id === 'canvas1');
     const obj = canvas?.objects.find((o) => o.id === 'a');
     expect(obj?.components).toHaveLength(0);
+  });
+
+  describe('Undo連続入力のバッチ化', () => {
+    beforeEach(() => {
+      useStore.setState({ currentPage: 'ui-screens', undoStacks: {}, redoStacks: {} });
+    });
+
+    it('同じフィールドへの連続した onChange は Undo を1件だけ積む', () => {
+      const objects = [makeObject('a', 'OriginalName')];
+      setupStore({ objects, selectedObjectIds: ['a'] });
+      render(<UIPropertyPanel />);
+
+      const nameInput = screen.getByDisplayValue('OriginalName');
+      fireEvent.change(nameInput, { target: { value: 'N' } });
+      fireEvent.change(nameInput, { target: { value: 'Ne' } });
+      fireEvent.change(nameInput, { target: { value: 'New' } });
+
+      expect(useStore.getState().undoStacks['ui-screens']).toHaveLength(1);
+    });
+
+    it('フォーカスが外れてから再度編集すると別のUndoが積まれる', () => {
+      const objects = [makeObject('a', 'OriginalName')];
+      setupStore({ objects, selectedObjectIds: ['a'] });
+      render(<UIPropertyPanel />);
+
+      const nameInput = screen.getByDisplayValue('OriginalName');
+      fireEvent.change(nameInput, { target: { value: 'N' } });
+      fireEvent.blur(nameInput);
+      fireEvent.change(nameInput, { target: { value: 'M' } });
+
+      expect(useStore.getState().undoStacks['ui-screens']).toHaveLength(2);
+    });
+
+    it('Transformの連続入力もUndoを1件だけ積む', () => {
+      const objects = [makeObject('a', 'Obj')];
+      setupStore({ objects, selectedObjectIds: ['a'] });
+      render(<UIPropertyPanel />);
+
+      const inputs = screen.getAllByRole('spinbutton');
+      const xInput = inputs[0]!;
+      fireEvent.change(xInput, { target: { value: '11' } });
+      fireEvent.change(xInput, { target: { value: '12' } });
+
+      expect(useStore.getState().undoStacks['ui-screens']).toHaveLength(1);
+    });
+
+    it('コンポーネント削除（単発操作）はUndoを1件積む', () => {
+      const objects = [makeObject('a', 'Obj', [{ type: 'shape', data: {} }])];
+      setupStore({ objects, selectedObjectIds: ['a'] });
+      render(<UIPropertyPanel />);
+
+      const deleteBtn = screen.getByRole('button', { name: /削除/ });
+      fireEvent.click(deleteBtn);
+
+      expect(useStore.getState().undoStacks['ui-screens']).toHaveLength(1);
+    });
   });
 });

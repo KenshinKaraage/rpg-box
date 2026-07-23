@@ -873,22 +873,65 @@ export function useAutoSave() {
 
 #### [T026c] Implement per-page undo history
 
-- **ステータス:** [ ] 未着手 (必要になった段階で実装/Polish)
+- **ステータス:** [~] 進行中（全主要エディタページへの展開が完了。IndexedDB永続化は未着手）
 - **ブランチ:** -
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/stores/undoSlice.ts` 作成
-- [ ] ページごとの履歴スタック管理
-- [ ] ページ切り替え時の履歴保持
-- [ ] 最大履歴サイズ設定
-- [ ] テスト追加
+- [x] `src/stores/editorSlice.ts` 作成（design.md#EditorSlice 準拠。ファイル名は当初案の `undoSlice.ts` ではなく design.md の型名に合わせて `editorSlice.ts`）
+- [x] ページごとの履歴スタック管理（`undoStacks`/`redoStacks: Record<string, unknown[]>`、`pushUndoState`/`undo`/`redo` は `Object.assign` によるページ単位の丸ごとスナップショット復元）
+- [x] 最大履歴サイズ設定（100件、requirements.md準拠）
+- [x] テスト追加（`editorSlice.test.ts`）
+- [x] マップエディタを旧・差分方式（`mapEditorSlice.ts` の `undoStack`/`redoStack`/`MapEditAction`）からこの汎用スライスに移行（タイル塗り・オブジェクト追加/削除/移動）
+- [x] マップエディタのカバー範囲を拡大: マップ追加/複製/削除、レイヤー追加/削除/並び替え/表示切替/チップセット割当、マップ設定（フィールド/値）編集、オブジェクトプロパティパネル（名前/コンポーネント追加・削除・値変更/削除）— いずれも `state.maps` 配下の変更なので同じ `{ maps }` スナップショットで統一的にカバー
+- [x] 連続入力（テキスト/数値フィールドの1文字ごとの`onChange`）が1キー入力ごとに別々のUndoを積んでいた不具合を修正。`MapPropertyPanel.tsx`にフォーカス単位の編集セッション（`editingRef`）を導入し、同一セッション中は最初の変更時のみUndoを積むように変更（フォーカスが外れる/選択オブジェクトが変わるとセッションはリセット）
+- [x] 数値入力欄で全消去すると即座にフォールバック値（0/1等）にスナップされる不具合を修正。`src/features/data-editor/components/fields/NumberFieldEditor.tsx`（ローカル文字列stateを持ち空欄を許容する既存コンポーネント）を`className`/`placeholder`対応に拡張し、マップエディタの全コンポーネントプロパティパネル（Transform/Collider/Sprite/Movement/Trigger/ObjectCanvas/Controller/Variables）の生の`<Input type="number">`をこれに置き換えて統一
+- [ ] ページ切り替え時の履歴永続化（IndexedDB `undoHistory` ストア・`saveUndoHistory`/`loadUndoHistory` は実装済みで未接続。「保存後も履歴維持」要件に対応する後続タスク）
+- [x] `データ設定`ページ（`/data`）へ展開: データ型/エントリのCRUD、フィールドスキーマ編集、フォーム入力すべてをUndo対象に。共通の `useUndoEditSession`（連続入力バッチ化）・`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`（Ctrl+Z等、独自実装ではなく既存の汎用ショートカット基盤を使用）フックを新設し、他ページからも再利用可能にした
+- [x] `クラス編集`ページ（`/data/classes`）へ展開: クラス追加/複製/削除、フィールド追加/削除、ID/名前/説明/フィールド設定編集をUndo対象に（`ClassEditor.tsx`は`DataTypeEditor.tsx`と同じフィールド編集パターン）
+- [x] `変数編集`ページ（`/data/variables`）へ展開: 変数追加/複製/削除、ID/名前/型/説明/初期値/フィールド設定編集をUndo対象に
+- [x] `イベントテンプレート`ページ（`/event/templates`）へ展開: テンプレート追加/複製/削除/ID変更、名前・説明編集、アクションブロック・引数の追加削除・フィールド編集をUndo対象に。アクションブロックはマップエディタ/UIエディタとも共有されるため、各ブロックに個別実装せず「配列長の変化」で追加削除（単発）とフィールド編集（連続・バッチ化）を汎用的に判別する方式を採用。`WaitActionBlock.tsx`の数値入力フォールバック不具合も修正（Audio/Camera/Map/Objectの同種不具合は未修正で残存）
+- [x] `スクリプトエディタ`（`/script/events`, `/script/components`）へ展開: 同じ`scripts`ストアを編集するため`'script'`ページキーを共有。スクリプト追加/削除/並び替え、引数/返り値/コンポーネントフィールドの編集をUndo対象に。Monacoエディタ本文はストアへのcommit時点（onChange）のみ編集セッション単位でバッチ化し、Monaco自体のテキストUndo（Ctrl+Z）には関与しない設計
+- [x] `UI画面設計`ページ（`/ui/screens`）へ展開: キャンバス/UIオブジェクト/テンプレート/ファンクションのCRUD、プロパティパネル編集をUndo対象に。要素のドラッグ移動/リサイズ/回転はマップエディタのオブジェクト移動と同じくmouseup時に1回だけ積む方式。未対応: Vertex/AnimationTrack系のネストしたproperty-fieldsエディタ、ActionBlockEditor内部の細粒度編集（follow-up）
+- [x] 全ページ横断で新設した共通フック: `useUndoEditSession`（連続入力のセッション単位バッチ化）、既存の`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`を独自実装せず再利用（CLAUDE.md「ショートカットキーは一元管理」に準拠）
+- [ ] チップセットのプロパティ編集（`updateChipProperty` 等、`/map/data` ページ側）は対象外のまま。同ページに `EditorSlice` を配線する際に合わせて対応
+
+**背景:**
+
+- マップエディタに元々あった `mapEditorSlice.ts` の差分（diff）ベースUndoが、`Component` クラスインスタンスを `structuredClone` しようとして `DataCloneError` で壊れていた。design.md/requirements.md を確認したところ、そもそも仕様は診断分のペー​ジ単位の丸ごとスナップショット方式（`EditorSlice`）であり、既存実装は仕様に準拠していなかったため作り直した。
+- Zustand が immer ミドルウェアを使用しているため、`set()` ごとに状態木は構造的に新しくなる（過去の参照は変化しない）。これによりインメモリ履歴では手動クローンが一切不要になった。
 
 **関連ファイル:**
 
-- `src/stores/undoSlice.ts`
-- `src/stores/undoSlice.test.ts`
+- `src/stores/editorSlice.ts`
+- `src/stores/editorSlice.test.ts`
+- `src/stores/mapEditorSlice.ts`
+- `src/features/map-editor/hooks/useTilePainting.ts`
+- `src/features/map-editor/hooks/useObjectPlacement.ts`
+- `src/app/(editor)/map/page.tsx`
+- `src/features/map-editor/components/MapPropertyPanel.tsx`
+- `src/features/map-editor/components/MapPropertyPanel.test.tsx`
+- `src/features/data-editor/components/fields/NumberFieldEditor.tsx`
+- `src/features/map-editor/components/panels/TransformPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/ColliderPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/SpritePropertyPanel.tsx`
+- `src/features/map-editor/components/panels/MovementPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/TriggerPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/ObjectCanvasPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/ControllerPropertyPanel.tsx`
+- `src/features/map-editor/components/panels/VariablesPropertyPanel.tsx`
+- `src/hooks/useUndoEditSession.ts`
+- `src/app/(editor)/data/page.tsx`
+- `src/features/data-editor/components/FormBuilder.tsx`
+- `src/features/data-editor/components/FormBuilder.test.tsx`
+- `src/features/data-editor/components/DataTypeInfoView.tsx`
+- `src/features/data-editor/components/DataTypeEditor.tsx`
+- `src/app/(editor)/data/classes/page.tsx`, `src/features/data-editor/components/ClassEditor.tsx`（+test）
+- `src/app/(editor)/data/variables/page.tsx`, `src/features/data-editor/components/VariableEditor.tsx`（+test）
+- `src/app/(editor)/event/templates/page.tsx`, `src/features/event-editor/components/EventTemplateEditor.tsx`, `blocks/WaitActionBlock.tsx`（+test）
+- `src/app/(editor)/script/events/page.tsx`, `src/app/(editor)/script/components/page.tsx`, `src/features/script-editor/components/ScriptEditor.tsx`, `ScriptSettingsPanel.tsx`（+test）, `ComponentScriptSettingsPanel.tsx`, `ComponentFieldEditor.tsx`
+- `src/app/(editor)/ui/screens/page.tsx`, `src/features/ui-editor/components/CanvasPropertyPanel.tsx`, `ElementsPanel.tsx`, `FunctionsPanel.tsx`（+test）, `TemplatesPanel.tsx`, `TransformHandles.tsx`（+test）, `UIPropertyPanel.tsx`（+test）, `hooks/useTemplateInstantiate.ts`, `hooks/useTemplateSave.ts`
 
 ---
 
@@ -7990,6 +8033,55 @@ item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/
 
 - `src/features/ui-editor/utils/snapshotManager.ts`
 - `src/stores/index.ts`
+
+---
+
+#### [T260] スクリプトAPI `Variable[...]` を id ベースアクセスに対応
+
+- **ステータス:** [x] 完了
+- **ブランチ:** `fix/T260-variable-id-lookup`
+- **PR:** -
+
+**完了条件:**
+
+- [x] `GameContext.ts` の `createVariableAPI`: ストアのキーを `v.id` に変更し、`name` は id への解決マップ経由でアクセスできるようにする（id 優先・name は現在名限定の後方互換アクセス。`getAll()` はデバッグ表示用に従来通り name キーのスナップショットを返す）
+- [x] Proxy の get/set トラップの動作確認（`Variable[id]` / `Variable[name]` 両方でアクセス可能）
+- [x] `ScriptActionBlock.tsx` の変数選択が `v.name` を値にしていた（他4ブロックは `v.id`）不整合を修正
+- [x] スクリプトエディタの補完（IntelliSense）を調査 → `Variable[...]` 用の補完自体が存在しないため対象なし
+- [x] `apiDefinitions.ts` のヘルプ文言を id ベース優先の表記に更新
+- [x] 関連テスト（`GameContext.test.ts`）に id ベースアクセス・リネーム耐性のテストを追加
+- [x] 変数リネーム時に id 参照が壊れないことをテストで確認（name 参照は現在名限定なのは意図通り）
+- [x] サンプルデータ（`defaultTestEntries.ts`）: 変数 id から冗長な `var_` プレフィックスを削除し、表示用 `name` を日本語化（例: `id: 'gold', name: 'ゴールド'`）。`defaultTestScripts.ts` の `Variable["gold"]` 等はそのまま新 id と一致するため変更不要
+
+**背景:**
+
+- `id` と `name` の両方を持つ `Variable` 型に対し、ランタイムはこれまで `name` をキーにストアを構築していた。変数名を変更すると、既存スクリプト内の `Variable["旧名前"]` 参照が壊れる問題があったため、恒久的な識別子である `id` を正とし、name は現在名限定の互換アクセスとして残した。
+- 当初 id は `var_gold` のようなプレフィックス付きだったが、`Variable["var_gold"]` はラッパーとプレフィックスで意味が二重になり視認性が悪いとの指摘を受け、サンプルデータの id からプレフィックスを削除し、表示名を日本語化する形に変更した。
+
+**関連ファイル:**
+
+- `src/engine/runtime/GameContext.ts`
+- `src/engine/runtime/GameContext.test.ts`
+- `src/features/event-editor/components/blocks/ScriptActionBlock.tsx`
+- `src/features/script-editor/utils/apiDefinitions.ts`
+- `src/lib/defaultTestEntries.ts`
+
+---
+
+#### [T261] UIメニューから未実装項目を一時的に非表示
+
+- **ステータス:** [x] 完了
+- **ブランチ:** -
+- **PR:** -
+
+**完了条件:**
+
+- [x] ヘッダーの「UI」メニューから「オブジェクトUI設計」「タイムライン」「シェーダー」をコメントアウトして非表示化（実装は T256〜T258・Phase 17 待ち）
+- [x] ページ自体（`/ui/objects` 等）は Coming Soon スタブのまま残す
+
+**関連ファイル:**
+
+- `src/components/common/Header.tsx`
 
 ---
 

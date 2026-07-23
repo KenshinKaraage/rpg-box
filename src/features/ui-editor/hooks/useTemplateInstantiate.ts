@@ -40,6 +40,7 @@ export function useTemplateInstantiate() {
   const selectedCanvasId = useStore((s) => s.selectedCanvasId);
   const uiCanvases = useStore((s) => s.uiCanvases);
   const addUIObject = useStore((s) => s.addUIObject);
+  const pushUndoState = useStore((s) => s.pushUndoState);
 
   const selectedCanvas = uiCanvases.find((c) => c.id === selectedCanvasId) ?? null;
 
@@ -52,13 +53,16 @@ export function useTemplateInstantiate() {
       const existingIds = selectedCanvas.objects.map((o) => o.id);
       const newObjects = instantiateObjects(template.objects, existingIds);
 
+      if (newObjects.length > 0) {
+        pushUndoState('ui-screens', { uiCanvases });
+      }
       for (const obj of newObjects) {
         addUIObject(selectedCanvasId, obj);
       }
 
       return newObjects.map((o) => o.id);
     },
-    [selectedCanvasId, selectedCanvas, addUIObject]
+    [selectedCanvasId, selectedCanvas, addUIObject, pushUndoState, uiCanvases]
   );
 
   return { canInstantiate, instantiateTemplate };

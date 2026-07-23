@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,23 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
   const updateObject = useStore((s) => s.updateObject);
   const deleteObjectFromStore = useStore((s) => s.deleteObject);
   const selectObject = useStore((s) => s.selectObject);
+  const pushUndoState = useStore((s) => s.pushUndoState);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  // 連続入力（1文字ごとのonChange）をUndo1件にまとめるためのフラグ。
+  // フォーカスが外れる（onBlur）か選択オブジェクトが変わったらリセットし、
+  // 次の変更で改めてUndoを積む。
+  const editingRef = useRef(false);
+  const beginEditIfNeeded = () => {
+    if (!editingRef.current) {
+      pushUndoState('map', { maps });
+      editingRef.current = true;
+    }
+  };
+
+  useEffect(() => {
+    editingRef.current = false;
+  }, [selectedObjectId]);
 
   if (!selectedObjectId || !layerId) {
     return <div className="p-4 text-sm text-muted-foreground">オブジェクトを選択してください</div>;
@@ -59,6 +75,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
   };
 
   const handleNameChange = (name: string) => {
+    beginEditIfNeeded();
     updateObject(mapId, layerId, obj.id, { name });
   };
 
@@ -85,9 +102,12 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
     cloned.deserialize({ ...cloned.serialize(), ...updates });
     const newComponents = [...obj.components];
     newComponents[index] = cloned;
+    beginEditIfNeeded();
     updateObject(mapId, layerId, obj.id, { components: newComponents });
   };
 
+  // コンポーネントの追加/削除は連続入力ではなく単発の操作なので、
+  // 進行中の編集セッションとは無関係に必ずUndoを1件積み、セッションもリセットする。
   const handleAddComponent = (type: string) => {
     const CompClass = getComponent(type);
     if (!CompClass) return;
@@ -102,6 +122,8 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
     }
 
     const newComponents = [...obj.components, instance];
+    pushUndoState('map', { maps });
+    editingRef.current = false;
     updateObject(mapId, layerId, obj.id, { components: newComponents });
   };
 
@@ -109,6 +131,8 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
     const comp = obj.components[index];
     if (!comp || comp.type === 'transform') return; // Transform is required
     const newComponents = obj.components.filter((_, i) => i !== index);
+    pushUndoState('map', { maps });
+    editingRef.current = false;
     updateObject(mapId, layerId, obj.id, { components: newComponents });
   };
 
@@ -117,7 +141,12 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
   const availableComponents = getAllComponents().filter(([type]) => !existingTypes.has(type));
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div
+      className="flex h-full flex-col overflow-hidden"
+      onBlur={() => {
+        editingRef.current = false;
+      }}
+    >
       {/* Header: object name + delete button */}
       <div className="border-b px-4 py-3">
         <div className="flex items-center justify-between">
@@ -130,6 +159,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
             className="h-6 w-6 text-destructive"
             onClick={() => {
               if (layerId) {
+                pushUndoState('map', { maps });
                 deleteObjectFromStore(mapId, layerId, obj.id);
                 selectObject(null);
               }

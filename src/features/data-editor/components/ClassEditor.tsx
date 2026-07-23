@@ -14,6 +14,8 @@ import type { FieldType } from '@/types/fields/FieldType';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
 import { createFieldTypeInstance } from '@/types/fields';
 import { generateId } from '@/lib/utils';
+import { useStore } from '@/stores';
+import { useUndoEditSession } from '@/hooks/useUndoEditSession';
 import { FieldRow } from './FieldRow';
 
 const classSchema = z.object({
@@ -45,6 +47,14 @@ export function ClassEditor({
   configContext,
 }: ClassEditorProps) {
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
+
+  // Undo/redo（editorSlice: design.md#EditorSlice 準拠のページ単位履歴）
+  const classes = useStore((s) => s.classes);
+  const pushUndoState = useStore((s) => s.pushUndoState);
+  const { beginEditIfNeeded, endEditSession } = useUndoEditSession(
+    'classes',
+    customClass?.id ?? null
+  );
 
   const enrichedContext = useMemo<FieldConfigContext | undefined>(() => {
     if (!customClass) return configContext;
@@ -95,6 +105,7 @@ export function ClassEditor({
     const newField = createFieldTypeInstance(field.type);
     if (!newField) return;
     Object.assign(newField, field, { id: newId });
+    beginEditIfNeeded({ classes });
     onReplaceField(customClass.id, fieldId, newField);
   };
 
@@ -104,6 +115,7 @@ export function ClassEditor({
     const newField = createFieldTypeInstance(field.type);
     if (!newField) return;
     Object.assign(newField, field, { name });
+    beginEditIfNeeded({ classes });
     onReplaceField(customClass.id, fieldId, newField);
   };
 
@@ -114,6 +126,7 @@ export function ClassEditor({
     if (!newField) return;
     newField.id = field.id;
     newField.name = field.name;
+    beginEditIfNeeded({ classes });
     onReplaceField(customClass.id, fieldId, newField);
   };
 
@@ -123,6 +136,7 @@ export function ClassEditor({
     const newField = createFieldTypeInstance(field.type);
     if (!newField) return;
     Object.assign(newField, field, updates);
+    beginEditIfNeeded({ classes });
     onReplaceField(customClass.id, fieldId, newField);
 
     // visibilityMap 変更時に兄弟フィールドの displayCondition を同期
@@ -165,7 +179,7 @@ export function ClassEditor({
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" onBlur={endEditSession}>
       {/* クラス基本情報 */}
       <div className="space-y-4 border-b p-4">
         <div className="space-y-2">
@@ -176,6 +190,7 @@ export function ClassEditor({
             onBlur={(e) => {
               const newId = e.target.value.trim();
               if (newId && newId !== customClass.id) {
+                pushUndoState('classes', { classes });
                 onUpdateClass(customClass.id, { id: newId } as Partial<CustomClass>);
               }
             }}
@@ -190,6 +205,7 @@ export function ClassEditor({
             {...register('name')}
             onChange={(e) => {
               register('name').onChange(e);
+              beginEditIfNeeded({ classes });
               onUpdateClass(customClass.id, { name: e.target.value });
             }}
             placeholder="クラス名を入力"
@@ -204,6 +220,7 @@ export function ClassEditor({
             {...register('description')}
             onChange={(e) => {
               register('description').onChange(e);
+              beginEditIfNeeded({ classes });
               onUpdateClass(customClass.id, { description: e.target.value });
             }}
             placeholder="クラスの説明"

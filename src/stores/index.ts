@@ -24,6 +24,7 @@ import { createPrefabSlice, PrefabSlice } from './prefabSlice';
 import { createMapEditorSlice, MapEditorSlice } from './mapEditorSlice';
 import { createEventSlice, EventSlice } from './eventSlice';
 import { createUIEditorSlice, UIEditorSlice } from './uiEditorSlice';
+import { createEditorSlice, EditorSlice } from './editorSlice';
 
 // プロジェクトデータの一括読み込み
 interface ProjectDataSlice {
@@ -44,6 +45,7 @@ type StoreState = UISlice &
   MapEditorSlice &
   EventSlice &
   UIEditorSlice &
+  EditorSlice &
   ProjectDataSlice;
 
 // ストア作成
@@ -61,6 +63,7 @@ export const useStore = create<StoreState>()(
     ...createMapEditorSlice(set, get),
     ...createEventSlice(set as (fn: (state: EventSlice) => void) => void),
     ...createUIEditorSlice(set, get),
+    ...createEditorSlice(set),
 
     loadProjectData: (data: ProjectData) =>
       set((state) => {

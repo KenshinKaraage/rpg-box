@@ -10,6 +10,10 @@ describe('MapToolbar', () => {
     zoom: 1,
     onZoomIn: jest.fn(),
     onZoomOut: jest.fn(),
+    canUndo: true,
+    canRedo: true,
+    onUndo: jest.fn(),
+    onRedo: jest.fn(),
   };
 
   it('ツールボタンを表示する', () => {
@@ -29,5 +33,19 @@ describe('MapToolbar', () => {
     render(<MapToolbar {...props} />);
     fireEvent.click(screen.getByRole('button', { name: /グリッド/ }));
     expect(props.onToggleGrid).toHaveBeenCalled();
+  });
+
+  it('元に戻す/やり直すボタンで onUndo/onRedo が呼ばれる', () => {
+    render(<MapToolbar {...props} />);
+    fireEvent.click(screen.getByRole('button', { name: /元に戻す/ }));
+    expect(props.onUndo).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /やり直す/ }));
+    expect(props.onRedo).toHaveBeenCalled();
+  });
+
+  it('canUndo/canRedo が false のときボタンが無効化される', () => {
+    render(<MapToolbar {...props} canUndo={false} canRedo={false} />);
+    expect(screen.getByRole('button', { name: /元に戻す/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /やり直す/ })).toBeDisabled();
   });
 });

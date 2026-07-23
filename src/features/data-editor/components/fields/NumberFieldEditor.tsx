@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 interface NumberFieldEditorProps {
   value: number;
@@ -11,6 +12,9 @@ interface NumberFieldEditorProps {
   min?: number;
   max?: number;
   step?: number;
+  /** 呼び出し側で高さ・文字サイズ等を上書きしたい場合（例: コンパクトなプロパティパネル） */
+  className?: string;
+  placeholder?: string;
 }
 
 export function NumberFieldEditor({
@@ -21,6 +25,8 @@ export function NumberFieldEditor({
   min,
   max,
   step,
+  className,
+  placeholder,
 }: NumberFieldEditorProps) {
   const [localValue, setLocalValue] = useState(Number.isNaN(value) ? '' : String(value));
 
@@ -33,7 +39,8 @@ export function NumberFieldEditor({
         min={min}
         max={max}
         step={step}
-        className={error ? 'border-red-500' : ''}
+        placeholder={placeholder}
+        className={cn(error && 'border-red-500', className)}
         onChange={(e) => {
           const raw = e.target.value;
           if (raw !== '' && raw !== '-' && isNaN(Number(raw))) return;
