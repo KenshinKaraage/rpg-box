@@ -1,18 +1,17 @@
 'use client';
 
 import { Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 import type { ActionBlockProps } from '../../registry/actionBlockRegistry';
 import type { WaitAction } from '@/engine/actions/WaitAction';
 
 export function WaitActionBlock({ action, onChange, onDelete }: ActionBlockProps) {
   const waitAction = action as WaitAction;
 
-  const handleFramesChange = (value: string) => {
-    const frames = parseInt(value, 10);
-    if (isNaN(frames) || frames < 0) return;
+  const handleFramesChange = (frames: number) => {
+    if (!Number.isFinite(frames) || frames < 0) return;
     const updated = Object.assign(Object.create(Object.getPrototypeOf(waitAction)), waitAction);
     updated.frames = frames;
     onChange(updated);
@@ -34,13 +33,11 @@ export function WaitActionBlock({ action, onChange, onDelete }: ActionBlockProps
       </div>
       <div className="mt-2 flex items-center gap-2">
         <Label className="text-xs text-muted-foreground">フレーム数</Label>
-        <Input
-          type="number"
+        <NumberFieldEditor
           value={waitAction.frames}
-          onChange={(e) => handleFramesChange(e.target.value)}
+          onChange={handleFramesChange}
           min={0}
           className="w-24"
-          data-testid="wait-frames-input"
         />
       </div>
     </div>
