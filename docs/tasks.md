@@ -884,8 +884,10 @@ export function useAutoSave() {
 - [x] 最大履歴サイズ設定（100件、requirements.md準拠）
 - [x] テスト追加（`editorSlice.test.ts`）
 - [x] マップエディタを旧・差分方式（`mapEditorSlice.ts` の `undoStack`/`redoStack`/`MapEditAction`）からこの汎用スライスに移行（タイル塗り・オブジェクト追加/削除/移動）
+- [x] マップエディタのカバー範囲を拡大: マップ追加/複製/削除、レイヤー追加/削除/並び替え/表示切替/チップセット割当、マップ設定（フィールド/値）編集、オブジェクトプロパティパネル（名前/コンポーネント追加・削除・値変更/削除）— いずれも `state.maps` 配下の変更なので同じ `{ maps }` スナップショットで統一的にカバー
 - [ ] ページ切り替え時の履歴永続化（IndexedDB `undoHistory` ストア・`saveUndoHistory`/`loadUndoHistory` は実装済みで未接続。「保存後も履歴維持」要件に対応する後続タスク）
 - [ ] マップエディタ以外のページへの展開（現状 `map` ページのみ配線。他エディタは今後 `pushUndoState('data', {...})` 等を呼ぶだけで追従可能な設計）
+- [ ] チップセットのプロパティ編集（`updateChipProperty` 等、`/map/data` ページ側）は対象外のまま。同ページに `EditorSlice` を配線する際に合わせて対応
 
 **背景:**
 
@@ -900,6 +902,7 @@ export function useAutoSave() {
 - `src/features/map-editor/hooks/useTilePainting.ts`
 - `src/features/map-editor/hooks/useObjectPlacement.ts`
 - `src/app/(editor)/map/page.tsx`
+- `src/features/map-editor/components/MapPropertyPanel.tsx`
 
 ---
 

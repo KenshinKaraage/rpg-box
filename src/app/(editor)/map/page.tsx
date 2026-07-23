@@ -84,6 +84,15 @@ export default function MapEditPage() {
   const selectedMap = maps.find((m) => m.id === selectedMapId) ?? null;
   const selectedLayer = selectedMap?.layers.find((l) => l.id === selectedLayerId) ?? null;
 
+  // レイヤー/マッププロパティの変更を Undo 対象にするラッパー
+  // （変更前の maps 参照を積んでから元の store アクションを呼ぶだけ）
+  function withUndo<Args extends unknown[]>(fn: (...args: Args) => void): (...args: Args) => void {
+    return (...args: Args) => {
+      pushUndoState('map', { maps });
+      fn(...args);
+    };
+  }
+
   useEffect(() => {
     setCurrentPage('map');
   }, [setCurrentPage]);
@@ -104,6 +113,7 @@ export default function MapEditPage() {
   // --- Map handlers ---
   const handleAddMap = () => {
     const newMap = createDefaultMap(maps.map((m) => m.id));
+    pushUndoState('map', { maps });
     addMap(newMap);
     selectMap(newMap.id);
   };
@@ -129,6 +139,7 @@ export default function MapEditPage() {
       fields: original.fields.map((f) => Object.assign(Object.create(Object.getPrototypeOf(f)), f)),
       values: { ...original.values },
     };
+    pushUndoState('map', { maps });
     addMap(duplicated);
     selectMap(newId);
   };
@@ -213,7 +224,7 @@ export default function MapEditPage() {
               selectedId={selectedMapId}
               onSelect={selectMap}
               onAdd={handleAddMap}
-              onDelete={deleteMap}
+              onDelete={withUndo(deleteMap)}
               onDuplicate={handleDuplicateMap}
             />
           </TabsContent>
@@ -225,7 +236,7 @@ export default function MapEditPage() {
                 selectedLayerId={selectedLayerId}
                 onSelectLayer={selectLayer}
                 onToggleVisibility={(id) =>
-                  updateLayer(selectedMapId!, id, {
+                  withUndo(updateLayer)(selectedMapId!, id, {
                     visible: !(selectedMap.layers.find((l) => l.id === id)?.visible ?? true),
                   })
                 }
@@ -239,7 +250,7 @@ export default function MapEditPage() {
                   if (selectedMapId && selectedLayerId && selectedMap) {
                     const layer = selectedMap.layers.find((l) => l.id === selectedLayerId);
                     if (layer && !layer.chipsetIds.includes(id)) {
-                      updateLayer(selectedMapId, selectedLayerId, {
+                      withUndo(updateLayer)(selectedMapId, selectedLayerId, {
                         chipsetIds: [...layer.chipsetIds, id],
                       });
                     }
@@ -280,7 +291,7 @@ export default function MapEditPage() {
                 selectedLayerId={selectedLayerId}
                 onSelectLayer={selectLayer}
                 onToggleVisibility={(id) =>
-                  updateLayer(selectedMapId!, id, {
+                  withUndo(updateLayer)(selectedMapId!, id, {
                     visible: !(selectedMap.layers.find((l) => l.id === id)?.visible ?? true),
                   })
                 }
@@ -356,12 +367,12 @@ export default function MapEditPage() {
             <MapSettingsEditor
               map={selectedMap}
               chipsets={chipsets}
-              onUpdateMap={updateMap}
-              onUpdateMapValues={updateMapValues}
-              onAddLayer={addLayer}
-              onUpdateLayer={updateLayer}
-              onDeleteLayer={deleteLayer}
-              onReorderLayers={reorderLayers}
+              onUpdateMap={withUndo(updateMap)}
+              onUpdateMapValues={withUndo(updateMapValues)}
+              onAddLayer={withUndo(addLayer)}
+              onUpdateLayer={withUndo(updateLayer)}
+              onDeleteLayer={withUndo(deleteLayer)}
+              onReorderLayers={withUndo(reorderLayers)}
             />
           )}
         </div>

@@ -37,6 +37,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
   const updateObject = useStore((s) => s.updateObject);
   const deleteObjectFromStore = useStore((s) => s.deleteObject);
   const selectObject = useStore((s) => s.selectObject);
+  const pushUndoState = useStore((s) => s.pushUndoState);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   if (!selectedObjectId || !layerId) {
@@ -59,6 +60,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
   };
 
   const handleNameChange = (name: string) => {
+    pushUndoState('map', { maps });
     updateObject(mapId, layerId, obj.id, { name });
   };
 
@@ -85,6 +87,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
     cloned.deserialize({ ...cloned.serialize(), ...updates });
     const newComponents = [...obj.components];
     newComponents[index] = cloned;
+    pushUndoState('map', { maps });
     updateObject(mapId, layerId, obj.id, { components: newComponents });
   };
 
@@ -102,6 +105,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
     }
 
     const newComponents = [...obj.components, instance];
+    pushUndoState('map', { maps });
     updateObject(mapId, layerId, obj.id, { components: newComponents });
   };
 
@@ -109,6 +113,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
     const comp = obj.components[index];
     if (!comp || comp.type === 'transform') return; // Transform is required
     const newComponents = obj.components.filter((_, i) => i !== index);
+    pushUndoState('map', { maps });
     updateObject(mapId, layerId, obj.id, { components: newComponents });
   };
 
@@ -130,6 +135,7 @@ export function MapPropertyPanel({ selectedObjectId, mapId, layerId }: MapProper
             className="h-6 w-6 text-destructive"
             onClick={() => {
               if (layerId) {
+                pushUndoState('map', { maps });
                 deleteObjectFromStore(mapId, layerId, obj.id);
                 selectObject(null);
               }
