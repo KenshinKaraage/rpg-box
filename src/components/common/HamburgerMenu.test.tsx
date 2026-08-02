@@ -27,7 +27,7 @@ describe('HamburgerMenu', () => {
     });
   });
 
-  it('shows all menu groups when opened', async () => {
+  it('shows implemented menu groups when opened', async () => {
     const user = userEvent.setup();
     render(<HamburgerMenu />);
 
@@ -37,21 +37,32 @@ describe('HamburgerMenu', () => {
       expect(screen.getByText('プロジェクト')).toBeInTheDocument();
       expect(screen.getByText('エクスポート / インポート')).toBeInTheDocument();
       expect(screen.getByText('設定')).toBeInTheDocument();
-      expect(screen.getByText('ヘルプ')).toBeInTheDocument();
-      expect(screen.getByText('アカウント')).toBeInTheDocument();
     });
   });
 
-  it('shows keyboard shortcuts', async () => {
+  it('hides unimplemented groups and items', async () => {
     const user = userEvent.setup();
     render(<HamburgerMenu />);
 
     await user.click(screen.getByTestId('hamburger-trigger'));
 
     await waitFor(() => {
-      expect(screen.getByText('Ctrl+S')).toBeInTheDocument();
-      expect(screen.getByText('?')).toBeInTheDocument();
+      expect(screen.getByText('プロジェクト')).toBeInTheDocument();
     });
+
+    // ヘルプ・アカウントグループごと非表示
+    expect(screen.queryByText('ヘルプ')).not.toBeInTheDocument();
+    expect(screen.queryByText('アカウント')).not.toBeInTheDocument();
+    // 複数プロジェクト管理（T248）関連の未接続項目
+    expect(screen.queryByText('新規作成')).not.toBeInTheDocument();
+    expect(screen.queryByText('開く')).not.toBeInTheDocument();
+    expect(screen.queryByText('保存')).not.toBeInTheDocument();
+    expect(screen.queryByText('名前を付けて保存')).not.toBeInTheDocument();
+    // Webゲーム出力（T230未実装）
+    expect(screen.queryByText('Webゲーム出力')).not.toBeInTheDocument();
+    // エディタ設定・ショートカット一覧（T026b未実装）
+    expect(screen.queryByText('エディタ設定')).not.toBeInTheDocument();
+    expect(screen.queryByText('ショートカット一覧')).not.toBeInTheDocument();
   });
 
   it('closes menu when Escape is pressed', async () => {
@@ -74,41 +85,17 @@ describe('HamburgerMenu', () => {
 
   it('calls project handlers when menu items are clicked', async () => {
     const user = userEvent.setup();
-    const onSave = jest.fn();
-    render(<HamburgerMenu project={{ onSave }} />);
+    const onClearTempData = jest.fn();
+    render(<HamburgerMenu project={{ onClearTempData }} />);
 
     await user.click(screen.getByTestId('hamburger-trigger'));
 
     await waitFor(() => {
-      expect(screen.getByText('保存')).toBeInTheDocument();
+      expect(screen.getByText('一時データをクリア')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByText('保存'));
+    await user.click(screen.getByText('一時データをクリア'));
 
-    expect(onSave).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows login when not logged in', async () => {
-    const user = userEvent.setup();
-    render(<HamburgerMenu account={{ isLoggedIn: false }} />);
-
-    await user.click(screen.getByTestId('hamburger-trigger'));
-
-    await waitFor(() => {
-      expect(screen.getByText('ログイン')).toBeInTheDocument();
-      expect(screen.queryByText('ログアウト')).not.toBeInTheDocument();
-    });
-  });
-
-  it('shows logout when logged in', async () => {
-    const user = userEvent.setup();
-    render(<HamburgerMenu account={{ isLoggedIn: true }} />);
-
-    await user.click(screen.getByTestId('hamburger-trigger'));
-
-    await waitFor(() => {
-      expect(screen.getByText('ログアウト')).toBeInTheDocument();
-      expect(screen.queryByText('ログイン')).not.toBeInTheDocument();
-    });
+    expect(onClearTempData).toHaveBeenCalledTimes(1);
   });
 });
