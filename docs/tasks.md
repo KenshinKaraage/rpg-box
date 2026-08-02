@@ -7702,11 +7702,17 @@ Phase 12 の T155「Create PrefabList」+ T156「Create PrefabPreview」が先�
 - [x] チップ表示数を画像サイズ÷タイルサイズで動的に計算（固定64→動的）
 - [x] スプライト表示確認用テストページ追加（`/test/sprite`）
 
+**追加改善（マップデータページでの操作性）:**
+
+- [x] チップ一覧タブのレイアウトを変更: 選択中チップの`ChipPropertyEditor`を上部に固定表示（`shrink-0`）、チップグリッドのみ独立スクロール（`min-h-0 flex-1 overflow-auto`）にすることで、チップ数が多いチップセットでもプロパティ編集のたびに下までスクロールする必要をなくした
+- [x] グリッド上での右クリックで、選択状態を変えずにそのチップの`passable`（通行可能）フィールドだけをその場でトグルできるように追加（左クリック＝選択は従来通り）
+
 **関連ファイル:**
 
 - `src/features/data-editor/components/fields/ImageFieldEditor.tsx`
 - `src/types/fields/ImageFieldType.tsx`
 - `src/features/map-editor/components/ChipsetEditor.tsx`
+- `src/features/map-editor/components/ChipsetEditor.test.tsx`
 - `src/lib/importDefaultAssets.ts`
 - `src/lib/importDefaultAssets.test.ts`
 - `src/app/test/sprite/page.tsx`

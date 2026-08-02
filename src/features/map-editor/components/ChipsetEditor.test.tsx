@@ -112,6 +112,22 @@ describe('ChipsetEditor', () => {
     expect(screen.getByTestId('chip-property-editor')).toBeInTheDocument();
   });
 
+  it('右クリックで onUpdateChipProperty が呼ばれ passable がトグルされる（選択状態は変わらない）', () => {
+    render(<ChipsetEditor {...defaultProps} />);
+    const canvas = screen.getByTestId('chip-grid') as HTMLCanvasElement;
+    Object.defineProperty(canvas, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, right: 256, bottom: 256, width: 256, height: 256 }),
+      configurable: true,
+    });
+    // chip 0 は passable: true → 右クリックで false にトグルされる
+    fireEvent.contextMenu(canvas, { clientX: 16, clientY: 16 });
+    expect(defaultProps.onUpdateChipProperty).toHaveBeenCalledWith('cs_001', 0, {
+      passable: false,
+    });
+    // 選択状態は変わらないので ChipPropertyEditor は表示されないまま
+    expect(screen.queryByTestId('chip-property-editor')).not.toBeInTheDocument();
+  });
+
   it('画像セクションが表示される', () => {
     render(<ChipsetEditor {...defaultProps} />);
     expect(screen.getByText('画像')).toBeInTheDocument();

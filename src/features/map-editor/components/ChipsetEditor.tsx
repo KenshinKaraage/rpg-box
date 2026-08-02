@@ -134,6 +134,22 @@ export function ChipsetEditor({
     });
   }, [chipset, chipCount]);
 
+  // グリッド上での右クリック: 選択せずにそのチップの通行可否だけをトグルする
+  const handleTogglePassable = useCallback(
+    (chipIndex: number) => {
+      if (!chipset) return;
+      const passableField = chipset.fields.find((f) => f.id === 'passable');
+      if (!passableField) return;
+      const chip = chipset.chips.find((c) => c.index === chipIndex);
+      const currentValue = chip?.values['passable'] ?? passableField.getDefaultValue();
+      onUpdateChipProperty(chipset.id, chipIndex, {
+        ...(chip?.values ?? {}),
+        passable: !currentValue,
+      });
+    },
+    [chipset, onUpdateChipProperty]
+  );
+
   if (chipsets.length === 0) {
     return (
       <div className="flex h-full flex-col">
@@ -335,38 +351,46 @@ export function ChipsetEditor({
               </TabsTrigger>
             </TabsList>
 
-            {/* チップ一覧タブ */}
-            <TabsContent value="chips" className="min-h-0 flex-1 overflow-auto p-3">
-              <div className="space-y-2">
-                <Label className="text-xs">
-                  チップ一覧{chipImageMeta ? `（${chipCount} チップ）` : ''}
-                </Label>
-                <ChipGridCanvas
-                  imageDataUrl={chipImageMeta ? (chipImageMeta.imgAsset.data as string) : null}
-                  imageSize={
-                    chipImageMeta
-                      ? {
-                          w: chipImageMeta.metadata.width,
-                          h: chipImageMeta.metadata.height,
-                        }
-                      : null
-                  }
-                  tileWidth={chipset.tileWidth}
-                  tileHeight={chipset.tileHeight}
-                  chipCount={chipCount}
-                  chipCols={chipCols}
-                  selectedChipIndex={selectedChipIndex}
-                  passableMap={passableMap}
-                  onSelect={setSelectedChipIndex}
-                />
+            {/* チップ一覧タブ: プロパティは常時表示、グリッドのみ独立スクロール */}
+            <TabsContent value="chips" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              {selectedChipIndex !== null && (
+                <div className="shrink-0 border-b p-3">
+                  <ChipPropertyEditor
+                    chipset={chipset}
+                    chipIndex={selectedChipIndex}
+                    onUpdateChipProperty={onUpdateChipProperty}
+                  />
+                </div>
+              )}
+              <div className="min-h-0 flex-1 overflow-auto p-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">
+                    チップ一覧{chipImageMeta ? `（${chipCount} チップ）` : ''}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    右クリックで通行可否をその場で切り替え
+                  </p>
+                  <ChipGridCanvas
+                    imageDataUrl={chipImageMeta ? (chipImageMeta.imgAsset.data as string) : null}
+                    imageSize={
+                      chipImageMeta
+                        ? {
+                            w: chipImageMeta.metadata.width,
+                            h: chipImageMeta.metadata.height,
+                          }
+                        : null
+                    }
+                    tileWidth={chipset.tileWidth}
+                    tileHeight={chipset.tileHeight}
+                    chipCount={chipCount}
+                    chipCols={chipCols}
+                    selectedChipIndex={selectedChipIndex}
+                    passableMap={passableMap}
+                    onSelect={setSelectedChipIndex}
+                    onTogglePassable={handleTogglePassable}
+                  />
+                </div>
               </div>
-
-              {/* 選択チップのプロパティ */}
-              <ChipPropertyEditor
-                chipset={chipset}
-                chipIndex={selectedChipIndex}
-                onUpdateChipProperty={onUpdateChipProperty}
-              />
             </TabsContent>
 
             {/* フィールド定義タブ */}
@@ -433,6 +457,7 @@ interface ChipGridCanvasProps {
   selectedChipIndex: number | null;
   passableMap: ReadonlyArray<boolean | null>;
   onSelect: (index: number) => void;
+  onTogglePassable: (index: number) => void;
 }
 
 function ChipGridCanvas({
@@ -445,6 +470,7 @@ function ChipGridCanvas({
   selectedChipIndex,
   passableMap,
   onSelect,
+  onTogglePassable,
 }: ChipGridCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -567,9 +593,10 @@ function ChipGridCanvas({
     };
   }, []);
 
-  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  /** クライアント座標からチップインデックスを求める（範囲外は null） */
+  const chipIndexFromEvent = (e: React.MouseEvent<HTMLCanvasElement>): number | null => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return null;
 
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -581,9 +608,19 @@ function ChipGridCanvas({
     const row = Math.floor(y / DISPLAY_SIZE);
     const chipIndex = row * chipCols + col;
 
-    if (chipIndex >= 0 && chipIndex < chipCount) {
-      onSelect(chipIndex);
-    }
+    return chipIndex >= 0 && chipIndex < chipCount ? chipIndex : null;
+  };
+
+  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const chipIndex = chipIndexFromEvent(e);
+    if (chipIndex !== null) onSelect(chipIndex);
+  };
+
+  // 右クリック: 選択はそのままに、そのチップの通行可否だけをその場でトグル
+  const handleContextMenu = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const chipIndex = chipIndexFromEvent(e);
+    if (chipIndex !== null) onTogglePassable(chipIndex);
   };
 
   return (
@@ -592,6 +629,7 @@ function ChipGridCanvas({
       width={canvasW}
       height={canvasH}
       onClick={handleClick}
+      onContextMenu={handleContextMenu}
       draggable={false}
       onDragStart={(e) => e.preventDefault()}
       style={{ cursor: 'pointer', display: 'block', width: `${canvasW}px`, height: `${canvasH}px` }}
