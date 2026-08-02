@@ -7702,26 +7702,11 @@ Phase 12 の T155「Create PrefabList」+ T156「Create PrefabPreview」が先�
 - [x] チップ表示数を画像サイズ÷タイルサイズで動的に計算（固定64→動的）
 - [x] スプライト表示確認用テストページ追加（`/test/sprite`）
 
-**追加改善（マップデータページでの操作性）:**
-
-右カラム（`w-inspector`、300px）が縦にも狭く、チップグリッド＋プロパティフォームが窮屈だったため、design.md/requirements.mdの3カラム構成から意図的に外れ、「右カラムでの直接編集」と「モーダルでの編集」の両方を使えるようにした（どちらか一方に統一はしない）。
-
-- [x] 右カラム（チップ一覧タブ）: 名前・画像・タイルサイズ〜チップグリッドまでを1つのスクロール領域にまとめ、選択中チップの`ChipPropertyEditor`はその**下に固定表示**（`shrink-0`、スクロールしても位置が変わらない）。グリッド単体の独立スクロールはやめ、右カラム全体が1つのスクロールになるよう変更
-- [x] グリッド上のクリック挙動: 未選択のチップをクリック＝選択、**既に選択中のチップを再度クリック**＝選択を維持したまま`passable`（通行可能）をその場でトグル。右クリックでのトグルは廃止（左クリックのみに統一）
-- [x] 「編集」ボタン（チップ一覧ラベルの隣）: クリックすると`Modal`（`size="xl"`, 800px, `max-h-[70vh]`）が開き、左にチップグリッド・右に選択中チップの`ChipPropertyEditor`を並べたレイアウトで編集できる。右カラムが窮屈なときの代替手段で、右カラムでの直接編集と排他ではない（同じ`selectedChipIndex`/`onUpdateChipProperty`を共有するので、どちらで編集しても即座にもう片方にも反映される）
-- [x] モーダルはチップ未選択でも開ける（モーダル内のグリッドからチップを選べるため、「編集」ボタンは常時有効）
-
-**注記:**
-
-- モーダルは`chipset !== null`であれば`open`可能（`selectedChipIndex`の有無では制御しない）
-- チップセット切り替え・新規追加時（`handleSelectChipset`/`handleAddChipset`）はモーダルを閉じ、選択もクリアする（開いたまま別チップセットの中身が表示され続けるのを防止）
-
 **関連ファイル:**
 
 - `src/features/data-editor/components/fields/ImageFieldEditor.tsx`
 - `src/types/fields/ImageFieldType.tsx`
 - `src/features/map-editor/components/ChipsetEditor.tsx`
-- `src/features/map-editor/components/ChipsetEditor.test.tsx`
 - `src/lib/importDefaultAssets.ts`
 - `src/lib/importDefaultAssets.test.ts`
 - `src/app/test/sprite/page.tsx`
@@ -8156,6 +8141,37 @@ item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/
 **関連ファイル:**
 
 - `README.md`
+
+---
+
+#### [T265] ChipsetEditor チッププロパティ編集のUX改善
+
+- **ステータス:** [x] 完了
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
+- **PR:** -
+
+**背景:**
+
+マップデータページの右カラム（`w-inspector`、300px）にチップグリッド＋プロパティフォームを埋め込むと縦にも狭く窮屈だった。design.md/requirements.mdの3カラム構成から意図的に外れ、「右カラムでの直接編集」と「モーダルでの編集」の両方を使えるようにした（どちらか一方に統一はしない）。
+
+**完了条件:**
+
+- [x] 右カラム（チップ一覧タブ）: 名前・画像・タイルサイズ〜チップグリッドまでを1つのスクロール領域にまとめ、選択中チップの`ChipPropertyEditor`はその**下に固定表示**（`shrink-0`、スクロールしても位置が変わらない）。グリッド単体の独立スクロールはやめ、右カラム全体が1つのスクロールになるよう変更
+- [x] グリッド上のクリック挙動を変更: 未選択のチップをクリック＝選択、**既に選択中のチップを再度クリック**＝選択を維持したまま`passable`（通行可能）をその場でトグル。右クリックでのトグルは廃止（左クリックのみに統一）
+- [x] 「編集」ボタン（チップ一覧ラベルの隣）を追加: クリックすると`Modal`（`size="xl"`, 800px, `max-h-[70vh]`）が開き、左にチップグリッド・右に選択中チップの`ChipPropertyEditor`を並べたレイアウトで編集できる。右カラムが窮屈なときの代替手段で、右カラムでの直接編集と排他ではない（同じ`selectedChipIndex`/`onUpdateChipProperty`を共有するので、どちらで編集しても即座にもう片方にも反映される）
+- [x] モーダルはチップ未選択でも開ける（モーダル内のグリッドからチップを選べるため、「編集」ボタンは常時有効）
+- [x] テスト更新（`ChipsetEditor.test.tsx`）
+
+**注記:**
+
+- モーダルは`chipset !== null`であれば`open`可能（`selectedChipIndex`の有無では制御しない）
+- チップセット切り替え・新規追加時（`handleSelectChipset`/`handleAddChipset`）はモーダルを閉じ、選択もクリアする（開いたまま別チップセットの中身が表示され続けるのを防止）
+- 該当コミット（`81e7d4e`, `e01395c`, `4792bd3`）はいずれもコミットメッセージ上は`[T242]`のタグが付いているが、これは実装時の判断ミスによるもの。T242は別スコープで既に完了済みのため、tasks.md上はこのT265として管理する
+
+**関連ファイル:**
+
+- `src/features/map-editor/components/ChipsetEditor.tsx`
+- `src/features/map-editor/components/ChipsetEditor.test.tsx`
 
 ---
 
