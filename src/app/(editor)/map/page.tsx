@@ -62,10 +62,12 @@ export default function MapEditPage() {
   // Editor UI state
   const currentTool = useStore((s) => s.currentTool);
   const selectedChipId = useStore((s) => s.selectedChipId);
+  const selectedChipRange = useStore((s) => s.selectedChipRange);
   const viewport = useStore((s) => s.viewport);
   const showGrid = useStore((s) => s.showGrid);
   const setTool = useStore((s) => s.setTool);
   const selectChip = useStore((s) => s.selectChip);
+  const selectChipRange = useStore((s) => s.selectChipRange);
   const setViewport = useStore((s) => s.setViewport);
   const toggleGrid = useStore((s) => s.toggleGrid);
 
@@ -280,6 +282,8 @@ export default function MapEditPage() {
                 imageSize={chipsetImageSize}
                 selectedChipId={selectedChipId}
                 onSelectChip={selectChip}
+                selectedRange={selectedChipRange}
+                onSelectRange={selectChipRange}
               />
             </div>
           </TabsContent>

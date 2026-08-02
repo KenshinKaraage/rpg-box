@@ -55,6 +55,19 @@ export interface Chipset {
   chips: ChipProperty[];
 }
 
+/** チップパレットで範囲選択した複数タイル（スタンプ用） */
+export interface ChipRangeSelection {
+  chipsetId: string;
+  /** 範囲の左上セルの列・行（オートタイルは行=0固定） */
+  startCol: number;
+  startRow: number;
+  /** 範囲の幅・高さ（チップ数） */
+  width: number;
+  height: number;
+  /** 範囲内の各セルのチップID（"chipsetId:index"形式）を行優先で並べたもの。長さ = width * height */
+  cells: string[];
+}
+
 export interface ChipProperty {
   index: number;
   values: Record<string, unknown>;

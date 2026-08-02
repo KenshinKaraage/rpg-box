@@ -39,6 +39,52 @@ describe('mapEditorSlice', () => {
     expect(get().selectedChipId).toBe('cs1:0');
   });
 
+  it('selectChipRange で範囲選択できる', () => {
+    const { get } = makeSlice();
+    const range = {
+      chipsetId: 'cs1',
+      startCol: 0,
+      startRow: 0,
+      width: 2,
+      height: 2,
+      cells: ['cs1:0', 'cs1:1', 'cs1:2', 'cs1:3'],
+    };
+    get().selectChipRange(range);
+    expect(get().selectedChipRange).toEqual(range);
+  });
+
+  it('selectChipRange は selectedChipId を変更しない（表示中チップセットの情報を保つため）', () => {
+    const { get } = makeSlice();
+    const range = {
+      chipsetId: 'cs1',
+      startCol: 0,
+      startRow: 0,
+      width: 2,
+      height: 2,
+      cells: ['cs1:0', 'cs1:1', 'cs1:2', 'cs1:3'],
+    };
+
+    get().selectChip('cs1:5');
+    get().selectChipRange(range);
+    expect(get().selectedChipId).toBe('cs1:5');
+  });
+
+  it('selectChip は selectedChipRange をクリアする', () => {
+    const { get } = makeSlice();
+    const range = {
+      chipsetId: 'cs1',
+      startCol: 0,
+      startRow: 0,
+      width: 2,
+      height: 2,
+      cells: ['cs1:0', 'cs1:1', 'cs1:2', 'cs1:3'],
+    };
+
+    get().selectChipRange(range);
+    get().selectChip('cs1:0');
+    expect(get().selectedChipRange).toBeNull();
+  });
+
   it('setViewport で部分更新できる', () => {
     const { get } = makeSlice();
     get().setViewport({ zoom: 2 });

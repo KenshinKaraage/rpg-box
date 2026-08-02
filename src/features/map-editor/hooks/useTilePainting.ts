@@ -2,6 +2,7 @@
 import { useCallback, useRef } from 'react';
 import { useStore } from '@/stores';
 import type { MapEditTool } from '@/stores/mapEditorSlice';
+import type { ChipRangeSelection } from '@/types/map';
 import { screenToTile } from '../utils/coordTransform';
 import { floodFill } from '../utils/tileFill';
 import { TILE_SIZE } from '../utils/constants';
@@ -16,9 +17,21 @@ export function getTilesToPaint(
   tool: MapEditTool,
   tilePos: { tx: number; ty: number },
   _rectStart: { tx: number; ty: number } | null,
-  selectedChipId: string | null
+  selectedChipId: string | null,
+  selectedChipRange?: ChipRangeSelection | null
 ): TilePaintTarget[] {
   if (tool === 'pen') {
+    if (selectedChipRange) {
+      const targets: TilePaintTarget[] = [];
+      for (let row = 0; row < selectedChipRange.height; row++) {
+        for (let col = 0; col < selectedChipRange.width; col++) {
+          const chipId = selectedChipRange.cells[row * selectedChipRange.width + col];
+          if (!chipId) continue;
+          targets.push({ x: tilePos.tx + col, y: tilePos.ty + row, chipId });
+        }
+      }
+      return targets;
+    }
     if (!selectedChipId) return [];
     return [{ x: tilePos.tx, y: tilePos.ty, chipId: selectedChipId }];
   }
@@ -31,6 +44,7 @@ export function getTilesToPaint(
 export function useTilePainting(mapId: string, layerId: string) {
   const currentTool = useStore((s) => s.currentTool);
   const selectedChipId = useStore((s) => s.selectedChipId);
+  const selectedChipRange = useStore((s) => s.selectedChipRange);
   const viewport = useStore((s) => s.viewport);
   const maps = useStore((s) => s.maps);
   const setTile = useStore((s) => s.setTile);
@@ -68,14 +82,30 @@ export function useTilePainting(mapId: string, layerId: string) {
         return;
       }
 
-      const targets = getTilesToPaint(currentTool, { tx, ty }, null, selectedChipId);
+      const targets = getTilesToPaint(
+        currentTool,
+        { tx, ty },
+        null,
+        selectedChipId,
+        selectedChipRange
+      ).filter((t) => t.x >= 0 && t.x < map.width && t.y >= 0 && t.y < map.height);
       if (targets.length === 0) return;
       pushUndoState('map', { maps });
       targets.forEach(({ x, y, chipId }) => {
         setTile(mapId, layerId, x, y, chipId);
       });
     },
-    [currentTool, selectedChipId, viewport, maps, mapId, layerId, setTile, pushUndoState]
+    [
+      currentTool,
+      selectedChipId,
+      selectedChipRange,
+      viewport,
+      maps,
+      mapId,
+      layerId,
+      setTile,
+      pushUndoState,
+    ]
   );
 
   // 矩形選択: mouseup 時に矩形範囲の全タイルを一括適用

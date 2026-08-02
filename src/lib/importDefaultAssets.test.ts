@@ -57,7 +57,7 @@ describe('importDefaultAssets', () => {
   it('既存アセットはスキップされる', async () => {
     const existingAsset: AssetReference = {
       id: 'asset_1',
-      name: 't_mura01',
+      name: '[A]Grass1_pipo',
       type: 'image',
       data: 'data:image/png;base64,xxx',
       metadata: null,
@@ -66,7 +66,7 @@ describe('importDefaultAssets', () => {
     const addFolder = jest.fn();
     const result = await importDefaultAssets([existingAsset], addAsset, addFolder, []);
     expect(result.skipped).toBe(1);
-    expect(addAsset).not.toHaveBeenCalledWith(expect.objectContaining({ name: 't_mura01' }));
+    expect(addAsset).not.toHaveBeenCalledWith(expect.objectContaining({ name: '[A]Grass1_pipo' }));
   });
 
   it('既存フォルダがある場合は再作成しない', async () => {
