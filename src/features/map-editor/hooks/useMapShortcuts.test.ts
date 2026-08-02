@@ -23,4 +23,22 @@ describe('useMapShortcuts', () => {
     fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
     expect(onUndo).toHaveBeenCalled();
   });
+
+  it('Ctrl+C で onCopy が呼ばれる', () => {
+    const onCopy = jest.fn();
+    renderHook(() =>
+      useMapShortcuts({ onSetTool: jest.fn(), onUndo: jest.fn(), onRedo: jest.fn(), onCopy })
+    );
+    fireEvent.keyDown(window, { key: 'c', ctrlKey: true });
+    expect(onCopy).toHaveBeenCalled();
+  });
+
+  it('Ctrl+V で onPaste が呼ばれる', () => {
+    const onPaste = jest.fn();
+    renderHook(() =>
+      useMapShortcuts({ onSetTool: jest.fn(), onUndo: jest.fn(), onRedo: jest.fn(), onPaste })
+    );
+    fireEvent.keyDown(window, { key: 'v', ctrlKey: true });
+    expect(onPaste).toHaveBeenCalled();
+  });
 });

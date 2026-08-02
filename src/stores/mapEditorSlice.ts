@@ -15,6 +15,17 @@ export interface Viewport {
   zoom: number;
 }
 
+export interface TileCell {
+  x: number;
+  y: number;
+}
+
+/** マップキャンバス上で範囲選択した既存タイル（コピー用） */
+export interface TileSelection {
+  layerId: string;
+  cells: TileCell[];
+}
+
 /** 空オブジェクト配置用の特別ID */
 export const EMPTY_OBJECT_PREFAB_ID = '__empty__';
 
@@ -23,6 +34,8 @@ export interface MapEditorSlice {
   selectedChipId: string | null;
   /** チップパレットで範囲選択した複数タイル（スタンプ用）。単一チップ選択とは排他 */
   selectedChipRange: ChipRangeSelection | null;
+  /** マップキャンバス上で範囲選択した既存タイル（コピー用） */
+  tileSelection: TileSelection | null;
   viewport: Viewport;
   showGrid: boolean;
 
@@ -34,6 +47,7 @@ export interface MapEditorSlice {
   setTool: (tool: MapEditTool) => void;
   selectChip: (chipId: string | null) => void;
   selectChipRange: (range: ChipRangeSelection | null) => void;
+  setTileSelection: (selection: TileSelection | null) => void;
   setViewport: (v: Partial<Viewport>) => void;
   toggleGrid: () => void;
   setObjectFrameColor: (color: string) => void;
@@ -47,6 +61,7 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
   currentTool: 'pen',
   selectedChipId: null,
   selectedChipRange: null,
+  tileSelection: null,
   viewport: { x: 0, y: 0, zoom: 1 },
   showGrid: true,
   objectFrameColor: '#3b82f6',
@@ -64,6 +79,10 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
   selectChipRange: (range) =>
     set((s) => {
       s.selectedChipRange = range;
+    }),
+  setTileSelection: (selection) =>
+    set((s) => {
+      s.tileSelection = selection;
     }),
   setViewport: (v) =>
     set((s) => {

@@ -4920,9 +4920,9 @@ export function useAutoSave() {
 - [x] E: 消しゴム
 - [x] G: 塗りつぶし
 - [ ] 1-9: レイヤー切り替え（未実装）
-- [ ] Ctrl+C/V: コピー/ペースト（未実装、T171c と重複）
-- [ ] Delete: 選択削除（未実装）
-- [x] テスト追加（B/E/Ctrl+Z のみカバー）
+- [x] Ctrl+C/V: コピー/ペースト（T171c 側で実装。`onCopy`/`onPaste` を追加し、実処理は `map/page.tsx` から渡す）
+- [ ] Delete: 選択削除（未実装。タイル範囲選択(T171b)を消す操作はまだない）
+- [x] テスト追加（B/E/Ctrl+Z/Ctrl+C/Ctrl+V をカバー）
 
 **関連ファイル:**
 
@@ -4933,42 +4933,59 @@ export function useAutoSave() {
 
 #### [T171b] [US13] Implement multi-tile selection
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/hooks/useMultiTileSelect.ts` 作成
-- [ ] 範囲選択
-- [ ] Shift+クリックで追加選択
-- [ ] 選択範囲のハイライト
-- [ ] テスト追加
+- [x] `src/features/map-editor/hooks/useMultiTileSelect.ts` 作成
+- [x] 範囲選択（`select`ツールでマップキャンバス上をドラッグ。`useTilePainting`の`rect`ツールと同じ mousedown/mouseup パターン）
+- [x] Shift+クリックで追加選択（Shift押下でドラッグすると既存の`tileSelection`とマージ、Shiftなしは置き換え）
+- [x] 選択範囲のハイライト（`useMapCanvas.ts`でオレンジ半透明の矩形を各選択セルに描画）
+- [x] テスト追加（`cellsInRect`/`mergeCells`の純粋関数をカバー。ストア依存の副作用部分は`useObjectPlacement`等の既存フックと同様、フック単体テストは対象外）
+
+**注記:**
+
+- 選択状態は`mapEditorSlice.ts`の`tileSelection: {layerId, cells}`で管理。パレット側の`selectedChipRange`（T161、スタンプ用）とは別概念。
+- `MapCanvas.tsx`で`currentTool === 'select'`かつタイルレイヤーのときのみ本フックを使用（オブジェクトレイヤーは既存の`useObjectPlacement`の`select`が引き続き担当）。
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useMultiTileSelect.ts`
 - `src/features/map-editor/hooks/useMultiTileSelect.test.ts`
+- `src/stores/mapEditorSlice.ts`
+- `src/stores/mapEditorSlice.test.ts`
+- `src/features/map-editor/components/MapCanvas.tsx`
+- `src/features/map-editor/hooks/useMapCanvas.ts`
 
 ---
 
 #### [T171c] [US13] Implement tile copy/paste
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/utils/tileCopyPaste.ts` 作成
-- [ ] 選択範囲のコピー
-- [ ] オフセット付きペースト
-- [ ] テスト追加
+- [x] `src/features/map-editor/utils/tileCopyPaste.ts` 作成
+- [x] 選択範囲のコピー（`copyTiles(tiles, cells)`: 選択範囲の左上を原点とした相対座標`{dx,dy,chipId}`に変換）
+- [x] オフセット付きペースト（`pasteTiles(copied, anchor, mapWidth, mapHeight)`: 任意のanchor基準で配置、マップ範囲外は除外）
+- [x] テスト追加
+
+**注記:**
+
+- Ctrl+C/Ctrl+V を`useMapShortcuts`経由で配線（T171aのCtrl+C/V項目と重複するため、あわせて完了扱いに更新）。`map/page.tsx`側でコピー元は`tileSelection.layerId`のタイル、貼り付け先は現在アクティブなレイヤー。
+- ペースト位置は元の選択範囲の左上から`(1,1)`ずつ右下にずらしていくオフセット方式（連続Ctrl+Vで同じ場所に重ね貼りされないようにするため）。マウス位置追従のペーストプレビューは実装していない。
 
 **関連ファイル:**
 
 - `src/features/map-editor/utils/tileCopyPaste.ts`
 - `src/features/map-editor/utils/tileCopyPaste.test.ts`
+- `src/features/map-editor/hooks/useMapShortcuts.ts`
+- `src/features/map-editor/hooks/useMapShortcuts.test.ts`
+- `src/app/(editor)/map/page.tsx`
 
 ---
 
@@ -8136,7 +8153,7 @@ item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/
 | 10    | マップ基盤                     | ✅ 完了 (15/15)       |                                                                                                                                                                                                                                                                              |
 | 11    | マップデータページ             | ✅ 完了 (7/7)         |                                                                                                                                                                                                                                                                              |
 | 12    | オブジェクトプレハブ           | ✅ 完了 (6/6)         |                                                                                                                                                                                                                                                                              |
-| 13    | マップ編集ページ               | 🔶 一部未着手 (17/20) | 残: キャンバス側タイル範囲選択(T171b)、スタンプ配置/コピペ(T171c)、レイヤー切替/Delete(T171a)。T161（パレット側の複数タイル選択）は完了                                                                                                                                      |
+| 13    | マップ編集ページ               | 🔶 一部未着手 (19/20) | 残: T171aのレイヤー切替(1-9)・選択削除(Delete)のみ。T161(パレット複数選択)/T171b(キャンバス範囲選択)/T171c(コピペ)は完了                                                                                                                                                     |
 | 14    | UI Foundation                  | ✅ 完了 (17/17)       | T184 ActionComponent 廃止                                                                                                                                                                                                                                                    |
 | 15    | Screen Design                  | ✅ 完了 (14/14)       | T197b ActionComponent 廃止                                                                                                                                                                                                                                                   |
 | 16    | Object UI                      | ⬜ 未着手 (0/3)       | T198〜T203は廃止（Phase12/13と重複、オブジェクトUIとは無関係）。実体はT256〜T258（`/ui/objects`は"Coming Soon"スタブのまま）                                                                                                                                                 |

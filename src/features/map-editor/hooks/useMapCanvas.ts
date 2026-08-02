@@ -25,6 +25,8 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   const showGrid = useStore((s) => s.showGrid);
   const objectFrameColor = useStore((s) => s.objectFrameColor);
   const selectedObjectId = useStore((s) => s.selectedObjectId);
+  const selectedLayerId = useStore((s) => s.selectedLayerId);
+  const tileSelection = useStore((s) => s.tileSelection);
 
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const tileRendererRef = useRef<TileRenderer | null>(null);
@@ -33,7 +35,9 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   // assetId → Blob URL のキャッシュ（Base64 デコードを初回のみ実行するため）
   const blobUrlCache = useRef<Map<string, string>>(new Map());
   // スプライトテクスチャキャッシュ（imageId → texture + size）
-  const spriteTextureCache = useRef<Map<string, { texture: WebGLTexture; width: number; height: number }>>(new Map());
+  const spriteTextureCache = useRef<
+    Map<string, { texture: WebGLTexture; width: number; height: number }>
+  >(new Map());
 
   // テクスチャロード完了時に再レンダーをトリガーするカウンタ
   const [textureGen, setTextureGen] = useState(0);
@@ -162,6 +166,46 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         }
       }
     }
+    // タイル範囲選択ハイライト
+    if (
+      tileSelection &&
+      tileSelection.layerId === selectedLayerId &&
+      tileSelection.cells.length > 0
+    ) {
+      const gridProgram = gridProgramRef.current;
+      if (gridProgram) {
+        gl.useProgram(gridProgram.program);
+        twgl.setUniforms(gridProgram, {
+          u_matrix: matrix,
+          u_color: [0.98, 0.45, 0.09, 0.35], // orange-500, 半透明
+        });
+        const selectionPositions: number[] = [];
+        for (const cell of tileSelection.cells) {
+          const px = cell.x * TILE_SIZE;
+          const py = cell.y * TILE_SIZE;
+          selectionPositions.push(
+            px,
+            py,
+            px + TILE_SIZE,
+            py,
+            px,
+            py + TILE_SIZE,
+            px + TILE_SIZE,
+            py,
+            px + TILE_SIZE,
+            py + TILE_SIZE,
+            px,
+            py + TILE_SIZE
+          );
+        }
+        const selectionBuffer = twgl.createBufferInfoFromArrays(gl, {
+          a_position: { numComponents: 2, data: new Float32Array(selectionPositions) },
+        });
+        twgl.setBuffersAndAttributes(gl, gridProgram, selectionBuffer);
+        twgl.drawBufferInfo(gl, selectionBuffer, gl.TRIANGLES);
+      }
+    }
+
     // オブジェクトレイヤーのオブジェクト描画
     for (const layer of map.layers) {
       if (layer.visible === false) continue;
@@ -184,13 +228,15 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
 
         // スプライト画像の描画（フレームより先に描画してフレームが上に来るようにする）
         const spriteComp = obj.components.find((c) => c.type === 'sprite');
-        const spriteData = spriteComp as unknown as {
-          imageId?: string;
-          spriteMode?: string;
-          frameWidth?: number;
-          frameHeight?: number;
-          animFrameCount?: number;
-        } | undefined;
+        const spriteData = spriteComp as unknown as
+          | {
+              imageId?: string;
+              spriteMode?: string;
+              frameWidth?: number;
+              frameHeight?: number;
+              animFrameCount?: number;
+            }
+          | undefined;
         const spriteProgram = spriteProgramRef.current;
         if (spriteData?.imageId && spriteProgram) {
           const imageId = spriteData.imageId;
@@ -227,7 +273,10 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
             const texW = cached.width;
             const texH = cached.height;
 
-            let u0 = 0, u1 = 1, v0 = 0, v1 = 1;
+            let u0 = 0,
+              u1 = 1,
+              v0 = 0,
+              v1 = 1;
             if (spriteMode === 'directional' && frameWidth > 0 && frameHeight > 0) {
               // 1フレーム目、下向き（行0）
               u0 = 0;
@@ -244,13 +293,20 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
             // spriteMode === 'single' && frameWidth === 0: フル画像 (u0=0, u1=1, v0=0, v1=1)
 
             const positions = new Float32Array([
-              px, py, px + TILE_SIZE, py, px, py + TILE_SIZE,
-              px + TILE_SIZE, py, px + TILE_SIZE, py + TILE_SIZE, px, py + TILE_SIZE,
+              px,
+              py,
+              px + TILE_SIZE,
+              py,
+              px,
+              py + TILE_SIZE,
+              px + TILE_SIZE,
+              py,
+              px + TILE_SIZE,
+              py + TILE_SIZE,
+              px,
+              py + TILE_SIZE,
             ]);
-            const texcoords = new Float32Array([
-              u0, v0, u1, v0, u0, v1,
-              u1, v0, u1, v1, u0, v1,
-            ]);
+            const texcoords = new Float32Array([u0, v0, u1, v0, u0, v1, u1, v0, u1, v1, u0, v1]);
             const spriteBuffer = twgl.createBufferInfoFromArrays(gl, {
               a_position: { numComponents: 2, data: positions },
               a_texcoord: { numComponents: 2, data: texcoords },
@@ -278,17 +334,57 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         // Top, Right, Bottom, Left strips as two triangles each
         const framePositions = new Float32Array([
           // Top
-          px, py, px + TILE_SIZE, py, px, py + fw,
-          px + TILE_SIZE, py, px + TILE_SIZE, py + fw, px, py + fw,
+          px,
+          py,
+          px + TILE_SIZE,
+          py,
+          px,
+          py + fw,
+          px + TILE_SIZE,
+          py,
+          px + TILE_SIZE,
+          py + fw,
+          px,
+          py + fw,
           // Bottom
-          px, py + TILE_SIZE - fw, px + TILE_SIZE, py + TILE_SIZE - fw, px, py + TILE_SIZE,
-          px + TILE_SIZE, py + TILE_SIZE - fw, px + TILE_SIZE, py + TILE_SIZE, px, py + TILE_SIZE,
+          px,
+          py + TILE_SIZE - fw,
+          px + TILE_SIZE,
+          py + TILE_SIZE - fw,
+          px,
+          py + TILE_SIZE,
+          px + TILE_SIZE,
+          py + TILE_SIZE - fw,
+          px + TILE_SIZE,
+          py + TILE_SIZE,
+          px,
+          py + TILE_SIZE,
           // Left
-          px, py, px + fw, py, px, py + TILE_SIZE,
-          px + fw, py, px + fw, py + TILE_SIZE, px, py + TILE_SIZE,
+          px,
+          py,
+          px + fw,
+          py,
+          px,
+          py + TILE_SIZE,
+          px + fw,
+          py,
+          px + fw,
+          py + TILE_SIZE,
+          px,
+          py + TILE_SIZE,
           // Right
-          px + TILE_SIZE - fw, py, px + TILE_SIZE, py, px + TILE_SIZE - fw, py + TILE_SIZE,
-          px + TILE_SIZE, py, px + TILE_SIZE, py + TILE_SIZE, px + TILE_SIZE - fw, py + TILE_SIZE,
+          px + TILE_SIZE - fw,
+          py,
+          px + TILE_SIZE,
+          py,
+          px + TILE_SIZE - fw,
+          py + TILE_SIZE,
+          px + TILE_SIZE,
+          py,
+          px + TILE_SIZE,
+          py + TILE_SIZE,
+          px + TILE_SIZE - fw,
+          py + TILE_SIZE,
         ]);
         const frameBuffer = twgl.createBufferInfoFromArrays(gl, {
           a_position: { numComponents: 2, data: framePositions },
@@ -304,9 +400,12 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           const markerTop = py - 4;
           const markerBottom = py - 12;
           const markerPositions = new Float32Array([
-            cx, markerTop,
-            cx - 6, markerBottom,
-            cx + 6, markerBottom,
+            cx,
+            markerTop,
+            cx - 6,
+            markerBottom,
+            cx + 6,
+            markerBottom,
           ]);
           const markerBuffer = twgl.createBufferInfoFromArrays(gl, {
             a_position: { numComponents: 2, data: markerPositions },
@@ -316,5 +415,19 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         }
       }
     }
-  }, [maps, chipsets, assets, viewport, showGrid, mapId, canvasRef, textureGen, resizeGen, objectFrameColor, selectedObjectId]);
+  }, [
+    maps,
+    chipsets,
+    assets,
+    viewport,
+    showGrid,
+    mapId,
+    canvasRef,
+    textureGen,
+    resizeGen,
+    objectFrameColor,
+    selectedObjectId,
+    selectedLayerId,
+    tileSelection,
+  ]);
 }

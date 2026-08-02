@@ -85,6 +85,26 @@ describe('mapEditorSlice', () => {
     expect(get().selectedChipRange).toBeNull();
   });
 
+  it('setTileSelection でタイル範囲選択を設定できる', () => {
+    const { get } = makeSlice();
+    const selection = {
+      layerId: 'layer1',
+      cells: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ],
+    };
+    get().setTileSelection(selection);
+    expect(get().tileSelection).toEqual(selection);
+  });
+
+  it('setTileSelection(null) で選択解除できる', () => {
+    const { get } = makeSlice();
+    get().setTileSelection({ layerId: 'layer1', cells: [{ x: 0, y: 0 }] });
+    get().setTileSelection(null);
+    expect(get().tileSelection).toBeNull();
+  });
+
   it('setViewport で部分更新できる', () => {
     const { get } = makeSlice();
     get().setViewport({ zoom: 2 });
