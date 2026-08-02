@@ -101,7 +101,7 @@ export function AssetPreview({ asset, folderName, onRename, onDelete }: AssetPre
           />
         )}
         {asset.type === 'audio' && (
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex w-full flex-col items-center gap-3">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-3xl">
               🎵
             </div>
