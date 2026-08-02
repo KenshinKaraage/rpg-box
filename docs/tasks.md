@@ -4947,14 +4947,14 @@ export function useAutoSave() {
 - [x] `src/features/map-editor/hooks/useMultiTileSelect.ts` 作成
 - [x] 範囲選択（`select`ツールでマップキャンバス上をドラッグ。`useTilePainting`の`rect`ツールと同じ mousedown/mouseup パターン）
 - [x] Shift+クリックで追加選択（Shift押下でドラッグすると既存の`tileSelection`とマージ、Shiftなしは置き換え）
-- [x] 選択範囲のハイライト（確定済み選択: `useMapCanvas.ts`でオレンジ半透明の矩形を各選択セルに描画。ドラッグ中: 赤枠のライブプレビューをChipPaletteの`liveDrag`と同じ仕組みでリアルタイム描画）
+- [x] 選択範囲のハイライト（ドラッグ中・確定後とも赤枠。ChipPaletteの`liveDrag`と同じ仕組みでリアルタイム描画）
 - [x] テスト追加（`cellsInRect`/`mergeCells`の純粋関数をカバー。ストア依存の副作用部分は`useObjectPlacement`等の既存フックと同様、フック単体テストは対象外）
 
 **注記:**
 
 - 選択状態は`mapEditorSlice.ts`の`tileSelection: {layerId, cells}`で管理。パレット側の`selectedChipRange`（T161、スタンプ用）とは別概念。
 - `MapCanvas.tsx`で`currentTool === 'select'`かつタイルレイヤーのときのみ本フックを使用（オブジェクトレイヤーは既存の`useObjectPlacement`の`select`が引き続き担当）。
-- ドラッグ中のライブプレビューは`useMultiTileSelect.ts`内のローカル`useState`（`liveRect`）で管理し、`useMapCanvas(canvasRef, mapId, liveSelectionRect)`に渡してWebGLで赤枠（4枚の塗りつぶし矩形、`pushFrameRect`ヘルパー）として描画。確定後の選択は従来通りオレンジ半透明のセル塗りつぶしのまま（Shift追加で非連続領域になっても正しく表現できるため）。
+- ドラッグ中のライブプレビューは`useMultiTileSelect.ts`内のローカル`useState`（`liveRect`）で管理し、`useMapCanvas(canvasRef, mapId, liveSelectionRect)`に渡してWebGLで赤枠（4枚の塗りつぶし矩形、`pushFrameRect`ヘルパー）として描画。確定後もドラッグ中と見た目を統一するため、オレンジ半透明のセル塗りつぶしはやめ、`tileSelection.cells`のバウンディングボックスを同じ赤枠で描画する方式に変更（Shiftで非連続領域を追加選択した場合は外接矩形になる点に注意）。
 
 **関連ファイル:**
 

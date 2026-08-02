@@ -236,54 +236,27 @@ export function useMapCanvas(
         }
       }
     }
-    // タイル範囲選択ハイライト
-    if (
-      tileSelection &&
-      tileSelection.layerId === selectedLayerId &&
-      tileSelection.cells.length > 0
-    ) {
-      const gridProgram = gridProgramRef.current;
-      if (gridProgram) {
-        gl.useProgram(gridProgram.program);
-        twgl.setUniforms(gridProgram, {
-          u_matrix: matrix,
-          u_color: [0.98, 0.45, 0.09, 0.35], // orange-500, 半透明
-        });
-        const selectionPositions: number[] = [];
-        for (const cell of tileSelection.cells) {
-          const px = cell.x * TILE_SIZE;
-          const py = cell.y * TILE_SIZE;
-          selectionPositions.push(
-            px,
-            py,
-            px + TILE_SIZE,
-            py,
-            px,
-            py + TILE_SIZE,
-            px + TILE_SIZE,
-            py,
-            px + TILE_SIZE,
-            py + TILE_SIZE,
-            px,
-            py + TILE_SIZE
-          );
+    // タイル範囲選択の赤枠（ドラッグ中はライブプレビュー、確定後は選択範囲のバウンディングボックス）
+    const selectionBoundingBox = liveSelectionRect
+      ? {
+          minX: Math.min(liveSelectionRect.start.x, liveSelectionRect.end.x),
+          maxX: Math.max(liveSelectionRect.start.x, liveSelectionRect.end.x),
+          minY: Math.min(liveSelectionRect.start.y, liveSelectionRect.end.y),
+          maxY: Math.max(liveSelectionRect.start.y, liveSelectionRect.end.y),
         }
-        const selectionBuffer = twgl.createBufferInfoFromArrays(gl, {
-          a_position: { numComponents: 2, data: new Float32Array(selectionPositions) },
-        });
-        twgl.setBuffersAndAttributes(gl, gridProgram, selectionBuffer);
-        twgl.drawBufferInfo(gl, selectionBuffer, gl.TRIANGLES);
-      }
-    }
+      : tileSelection && tileSelection.layerId === selectedLayerId && tileSelection.cells.length > 0
+        ? {
+            minX: Math.min(...tileSelection.cells.map((c) => c.x)),
+            maxX: Math.max(...tileSelection.cells.map((c) => c.x)),
+            minY: Math.min(...tileSelection.cells.map((c) => c.y)),
+            maxY: Math.max(...tileSelection.cells.map((c) => c.y)),
+          }
+        : null;
 
-    // タイル範囲選択のライブドラッグプレビュー（赤枠、ChipPalette の liveDrag と同じ仕組み）
-    if (liveSelectionRect) {
+    if (selectionBoundingBox) {
       const gridProgram = gridProgramRef.current;
       if (gridProgram) {
-        const minX = Math.min(liveSelectionRect.start.x, liveSelectionRect.end.x);
-        const maxX = Math.max(liveSelectionRect.start.x, liveSelectionRect.end.x);
-        const minY = Math.min(liveSelectionRect.start.y, liveSelectionRect.end.y);
-        const maxY = Math.max(liveSelectionRect.start.y, liveSelectionRect.end.y);
+        const { minX, maxX, minY, maxY } = selectionBoundingBox;
 
         gl.useProgram(gridProgram.program);
         twgl.setUniforms(gridProgram, {
