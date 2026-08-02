@@ -36,6 +36,8 @@ export interface MapEditorSlice {
   selectedChipRange: ChipRangeSelection | null;
   /** マップキャンバス上で範囲選択した既存タイル（コピー用） */
   tileSelection: TileSelection | null;
+  /** マップキャンバス上でマウスカーソルが乗っているタイル座標（ペースト位置に使用） */
+  hoverTile: TileCell | null;
   viewport: Viewport;
   showGrid: boolean;
 
@@ -48,6 +50,7 @@ export interface MapEditorSlice {
   selectChip: (chipId: string | null) => void;
   selectChipRange: (range: ChipRangeSelection | null) => void;
   setTileSelection: (selection: TileSelection | null) => void;
+  setHoverTile: (cell: TileCell | null) => void;
   setViewport: (v: Partial<Viewport>) => void;
   toggleGrid: () => void;
   setObjectFrameColor: (color: string) => void;
@@ -62,6 +65,7 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
   selectedChipId: null,
   selectedChipRange: null,
   tileSelection: null,
+  hoverTile: null,
   viewport: { x: 0, y: 0, zoom: 1 },
   showGrid: true,
   objectFrameColor: '#3b82f6',
@@ -83,6 +87,10 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
   setTileSelection: (selection) =>
     set((s) => {
       s.tileSelection = selection;
+    }),
+  setHoverTile: (cell) =>
+    set((s) => {
+      s.hoverTile = cell;
     }),
   setViewport: (v) =>
     set((s) => {

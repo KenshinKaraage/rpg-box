@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
+import { useToast } from '@/components/common/Toast';
 import { useStore } from '@/stores';
 import { MapList, PrefabList } from '@/features/map-editor';
 import { MapCanvas } from '@/features/map-editor/components/MapCanvas';
@@ -30,6 +31,8 @@ import type { ImageMetadata } from '@/types/assets';
 import type { TileCell } from '@/stores/mapEditorSlice';
 
 export default function MapEditPage() {
+  const toast = useToast();
+
   // Map state
   const maps = useStore((s) => s.maps);
   const selectedMapId = useStore((s) => s.selectedMapId);
@@ -94,7 +97,6 @@ export default function MapEditPage() {
   const [clipboard, setClipboard] = useState<{ origin: TileCell; tiles: CopiedTile[] } | null>(
     null
   );
-  const [pasteOffset, setPasteOffset] = useState(1);
 
   // レイヤー/マッププロパティの変更を Undo 対象にするラッパー
   // （変更前の maps 参照を積んでから元の store アクションを呼ぶだけ）
@@ -194,20 +196,16 @@ export default function MapEditPage() {
     const originX = Math.min(...tileSelection.cells.map((c) => c.x));
     const originY = Math.min(...tileSelection.cells.map((c) => c.y));
     setClipboard({ origin: { x: originX, y: originY }, tiles });
-    setPasteOffset(1);
+    toast.success(`${tiles.length}マスをコピーしました`);
   };
 
   const handlePaste = () => {
     if (!clipboard || !selectedMapId || !selectedLayerId || !selectedMap) return;
-    const anchor = {
-      x: clipboard.origin.x + pasteOffset,
-      y: clipboard.origin.y + pasteOffset,
-    };
+    const anchor = useStore.getState().hoverTile ?? clipboard.origin;
     const targets = pasteTiles(clipboard.tiles, anchor, selectedMap.width, selectedMap.height);
     if (targets.length === 0) return;
     pushUndoState('map', { maps });
     targets.forEach(({ x, y, chipId }) => setTile(selectedMapId, selectedLayerId, x, y, chipId));
-    setPasteOffset((o) => o + 1);
   };
 
   useMapShortcuts({

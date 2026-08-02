@@ -105,6 +105,14 @@ describe('mapEditorSlice', () => {
     expect(get().tileSelection).toBeNull();
   });
 
+  it('setHoverTile でホバー中タイル座標を設定できる', () => {
+    const { get } = makeSlice();
+    get().setHoverTile({ x: 3, y: 4 });
+    expect(get().hoverTile).toEqual({ x: 3, y: 4 });
+    get().setHoverTile(null);
+    expect(get().hoverTile).toBeNull();
+  });
+
   it('setViewport で部分更新できる', () => {
     const { get } = makeSlice();
     get().setViewport({ zoom: 2 });

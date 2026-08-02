@@ -28,6 +28,7 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
   const addPrefab = useStore((s) => s.addPrefab);
   const prefabs = useStore((s) => s.prefabs);
   const viewport = useStore((s) => s.viewport);
+  const setHoverTile = useStore((s) => s.setHoverTile);
   const map = maps.find((m) => m.id === mapId);
   const selectedLayer = map?.layers.find((l) => l.id === selectedLayerId) ?? null;
   const isObjectLayer = selectedLayer?.type === 'object';
@@ -43,8 +44,6 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     object: MapObject;
   } | null>(null);
 
-  useMapCanvas(canvasRef, mapId);
-
   const { handleWheel, handleMouseDown, handleMouseMove, handleMouseUp } = useMapViewport(
     canvasRef,
     map?.width ?? 20,
@@ -55,6 +54,8 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
   const { paint, commitRect } = useTilePainting(mapId, selectedLayerId ?? '');
   const objPlacement = useObjectPlacement(mapId, selectedLayerId ?? '');
   const multiSelect = useMultiTileSelect(mapId, selectedLayerId ?? '');
+
+  useMapCanvas(canvasRef, mapId, multiSelect.liveRect);
 
   // ホイールイベントは passive:false で登録する必要があるため useEffect で直接アタッチ
   useEffect(() => {
@@ -159,13 +160,24 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     handleMouseMove(e.nativeEvent);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const sx = e.clientX - rect.left;
+    const sy = e.clientY - rect.top;
+
+    // ペースト位置に使うため、ボタン押下の有無に関わらずホバー中のタイル座標を更新する
+    const { tx, ty } = screenToTile(sx, sy, viewport, TILE_SIZE);
+    if (map && tx >= 0 && tx < map.width && ty >= 0 && ty < map.height) {
+      setHoverTile({ x: tx, y: ty });
+    } else {
+      setHoverTile(null);
+    }
+
     if (e.buttons & 1) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
       if (isObjectLayer) {
         objPlacement.handleMouseMove(sx, sy);
-      } else if (currentTool !== 'select') {
+      } else if (currentTool === 'select') {
+        multiSelect.handleMouseMove(sx, sy);
+      } else {
         paint(sx, sy);
       }
     }
@@ -182,6 +194,7 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
           handleCanvasMouseDown(e);
         }}
         onMouseMove={handleCanvasMouseMove}
+        onMouseLeave={() => setHoverTile(null)}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
         onDragOver={(e) => {

@@ -1128,10 +1128,15 @@ export function useAutoSave() {
 - [x] スタック表示（複数同時表示）
 - [x] テスト追加
 
+**注記:**
+
+- コンポーネント自体は完了していたが、`ToastProvider`がどこにもマウントされておらず実際には未使用だった（他画面に`// TODO: toast通知（実装後に追加）`という書きかけコメントが残っていた）。T171cのマップタイルコピーで初めて`AppShell.tsx`に`ToastProvider`を配線し、実際の利用箇所ができた。
+
 **関連ファイル:**
 
 - `src/components/common/Toast.tsx`
 - `src/components/common/Toast.test.tsx`
+- `src/components/common/AppShell.tsx`
 
 ---
 
@@ -4942,13 +4947,14 @@ export function useAutoSave() {
 - [x] `src/features/map-editor/hooks/useMultiTileSelect.ts` 作成
 - [x] 範囲選択（`select`ツールでマップキャンバス上をドラッグ。`useTilePainting`の`rect`ツールと同じ mousedown/mouseup パターン）
 - [x] Shift+クリックで追加選択（Shift押下でドラッグすると既存の`tileSelection`とマージ、Shiftなしは置き換え）
-- [x] 選択範囲のハイライト（`useMapCanvas.ts`でオレンジ半透明の矩形を各選択セルに描画）
+- [x] 選択範囲のハイライト（確定済み選択: `useMapCanvas.ts`でオレンジ半透明の矩形を各選択セルに描画。ドラッグ中: 赤枠のライブプレビューをChipPaletteの`liveDrag`と同じ仕組みでリアルタイム描画）
 - [x] テスト追加（`cellsInRect`/`mergeCells`の純粋関数をカバー。ストア依存の副作用部分は`useObjectPlacement`等の既存フックと同様、フック単体テストは対象外）
 
 **注記:**
 
 - 選択状態は`mapEditorSlice.ts`の`tileSelection: {layerId, cells}`で管理。パレット側の`selectedChipRange`（T161、スタンプ用）とは別概念。
 - `MapCanvas.tsx`で`currentTool === 'select'`かつタイルレイヤーのときのみ本フックを使用（オブジェクトレイヤーは既存の`useObjectPlacement`の`select`が引き続き担当）。
+- ドラッグ中のライブプレビューは`useMultiTileSelect.ts`内のローカル`useState`（`liveRect`）で管理し、`useMapCanvas(canvasRef, mapId, liveSelectionRect)`に渡してWebGLで赤枠（4枚の塗りつぶし矩形、`pushFrameRect`ヘルパー）として描画。確定後の選択は従来通りオレンジ半透明のセル塗りつぶしのまま（Shift追加で非連続領域になっても正しく表現できるため）。
 
 **関連ファイル:**
 
@@ -4977,7 +4983,8 @@ export function useAutoSave() {
 **注記:**
 
 - Ctrl+C/Ctrl+V を`useMapShortcuts`経由で配線（T171aのCtrl+C/V項目と重複するため、あわせて完了扱いに更新）。`map/page.tsx`側でコピー元は`tileSelection.layerId`のタイル、貼り付け先は現在アクティブなレイヤー。
-- ペースト位置は元の選択範囲の左上から`(1,1)`ずつ右下にずらしていくオフセット方式（連続Ctrl+Vで同じ場所に重ね貼りされないようにするため）。マウス位置追従のペーストプレビューは実装していない。
+- ペースト位置は現在のマウスカーソル位置（`mapEditorSlice.ts`の`hoverTile`、`MapCanvas.tsx`のmousemoveで常時更新）を左上として貼り付け。カーソルがキャンバス外なら元のコピー範囲の左上にフォールバック。`hoverTile`は`map/page.tsx`側では`useStore.getState()`で都度読むだけ（購読しない）にして、マウス移動のたびにページ全体が再レンダーされないようにしている。
+- コピー成功時は`useToast()`（T028で実装済みだが未配線だった`ToastProvider`/`Toast.tsx`）で「Nマスをコピーしました」という成功トーストを表示。`AppShell.tsx`に`ToastProvider`を追加してアプリ全体で使えるようにした（従来はどこにもマウントされておらず実質未使用だった）。
 
 **関連ファイル:**
 
@@ -4986,6 +4993,9 @@ export function useAutoSave() {
 - `src/features/map-editor/hooks/useMapShortcuts.ts`
 - `src/features/map-editor/hooks/useMapShortcuts.test.ts`
 - `src/app/(editor)/map/page.tsx`
+- `src/app/(editor)/map/page.test.tsx`
+- `src/components/common/AppShell.tsx`
+- `src/stores/mapEditorSlice.ts`
 
 ---
 

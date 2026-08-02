@@ -1,9 +1,14 @@
 'use client';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useStore } from '@/stores';
 import type { TileCell } from '@/stores/mapEditorSlice';
 import { screenToTile } from '../utils/coordTransform';
 import { TILE_SIZE } from '../utils/constants';
+
+export interface DragRect {
+  start: TileCell;
+  end: TileCell;
+}
 
 export function cellsInRect(start: TileCell, end: TileCell): TileCell[] {
   const minX = Math.min(start.x, end.x);
@@ -35,6 +40,20 @@ export function useMultiTileSelect(mapId: string, layerId: string) {
   // 矩形選択の開始タイル座標（mousedown 時に記録）
   const startRef = useRef<TileCell | null>(null);
   const shiftRef = useRef(false);
+  // ドラッグ中のライブプレビュー（ChipPalette の liveDrag と同じ仕組み）
+  const [liveRect, setLiveRect] = useState<DragRect | null>(null);
+
+  const clampToMap = useCallback(
+    (tx: number, ty: number): TileCell | null => {
+      const map = maps.find((m) => m.id === mapId);
+      if (!map) return null;
+      return {
+        x: Math.min(Math.max(tx, 0), map.width - 1),
+        y: Math.min(Math.max(ty, 0), map.height - 1),
+      };
+    },
+    [maps, mapId]
+  );
 
   const handleMouseDown = useCallback(
     (screenX: number, screenY: number, shiftKey: boolean) => {
@@ -45,9 +64,23 @@ export function useMultiTileSelect(mapId: string, layerId: string) {
       if (!startRef.current) {
         startRef.current = { x: tx, y: ty };
         shiftRef.current = shiftKey;
+        setLiveRect({ start: { x: tx, y: ty }, end: { x: tx, y: ty } });
       }
     },
     [viewport, maps, mapId]
+  );
+
+  // ドラッグ中: ライブプレビューの終点を更新する
+  const handleMouseMove = useCallback(
+    (screenX: number, screenY: number) => {
+      const start = startRef.current;
+      if (!start) return;
+      const { tx, ty } = screenToTile(screenX, screenY, viewport, TILE_SIZE);
+      const end = clampToMap(tx, ty);
+      if (!end) return;
+      setLiveRect({ start, end });
+    },
+    [viewport, clampToMap]
   );
 
   // mouseup 時に矩形範囲を確定する（Shift 押下時は既存選択に追加）
@@ -55,6 +88,7 @@ export function useMultiTileSelect(mapId: string, layerId: string) {
     (screenX: number, screenY: number) => {
       const start = startRef.current;
       startRef.current = null;
+      setLiveRect(null);
       if (!start) return;
 
       const map = maps.find((m) => m.id === mapId);
@@ -76,5 +110,5 @@ export function useMultiTileSelect(mapId: string, layerId: string) {
 
   const clearSelection = useCallback(() => setTileSelection(null), [setTileSelection]);
 
-  return { handleMouseDown, commitSelection, clearSelection };
+  return { handleMouseDown, handleMouseMove, commitSelection, clearSelection, liveRect };
 }

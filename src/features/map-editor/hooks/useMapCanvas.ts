@@ -8,6 +8,7 @@ import { getVisibleTileRange } from '../utils/visibleTiles';
 import { TILE_SIZE } from '../utils/constants';
 import { dataUrlToBlob } from '@/hooks/useBlobUrl';
 import { TileRenderer } from '@/engine/rendering/TileRenderer';
+import type { DragRect } from './useMultiTileSelect';
 
 /** hex色文字列 (#RRGGBB) を [r, g, b, a] (0-1) に変換 */
 function hexToGlColor(hex: string, alpha = 1): [number, number, number, number] {
@@ -17,7 +18,76 @@ function hexToGlColor(hex: string, alpha = 1): [number, number, number, number] 
   return [r, g, b, alpha];
 }
 
-export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>, mapId: string) {
+/** 矩形の外周を太さ fw の塗りつぶし矩形4枚として頂点を積む（WebGL の lineWidth は信頼できないため） */
+function pushFrameRect(
+  positions: number[],
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  fw: number
+) {
+  positions.push(
+    // Top
+    x,
+    y,
+    x + w,
+    y,
+    x,
+    y + fw,
+    x + w,
+    y,
+    x + w,
+    y + fw,
+    x,
+    y + fw,
+    // Bottom
+    x,
+    y + h - fw,
+    x + w,
+    y + h - fw,
+    x,
+    y + h,
+    x + w,
+    y + h - fw,
+    x + w,
+    y + h,
+    x,
+    y + h,
+    // Left
+    x,
+    y,
+    x + fw,
+    y,
+    x,
+    y + h,
+    x + fw,
+    y,
+    x + fw,
+    y + h,
+    x,
+    y + h,
+    // Right
+    x + w - fw,
+    y,
+    x + w,
+    y,
+    x + w - fw,
+    y + h,
+    x + w,
+    y,
+    x + w,
+    y + h,
+    x + w - fw,
+    y + h
+  );
+}
+
+export function useMapCanvas(
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  mapId: string,
+  liveSelectionRect?: DragRect | null
+) {
   const maps = useStore((s) => s.maps);
   const chipsets = useStore((s) => s.chipsets);
   const assets = useStore((s) => s.assets);
@@ -203,6 +273,37 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         });
         twgl.setBuffersAndAttributes(gl, gridProgram, selectionBuffer);
         twgl.drawBufferInfo(gl, selectionBuffer, gl.TRIANGLES);
+      }
+    }
+
+    // タイル範囲選択のライブドラッグプレビュー（赤枠、ChipPalette の liveDrag と同じ仕組み）
+    if (liveSelectionRect) {
+      const gridProgram = gridProgramRef.current;
+      if (gridProgram) {
+        const minX = Math.min(liveSelectionRect.start.x, liveSelectionRect.end.x);
+        const maxX = Math.max(liveSelectionRect.start.x, liveSelectionRect.end.x);
+        const minY = Math.min(liveSelectionRect.start.y, liveSelectionRect.end.y);
+        const maxY = Math.max(liveSelectionRect.start.y, liveSelectionRect.end.y);
+
+        gl.useProgram(gridProgram.program);
+        twgl.setUniforms(gridProgram, {
+          u_matrix: matrix,
+          u_color: [0.94, 0.11, 0.11, 1], // red-600
+        });
+        const framePositions: number[] = [];
+        pushFrameRect(
+          framePositions,
+          minX * TILE_SIZE,
+          minY * TILE_SIZE,
+          (maxX - minX + 1) * TILE_SIZE,
+          (maxY - minY + 1) * TILE_SIZE,
+          2
+        );
+        const frameBuffer = twgl.createBufferInfoFromArrays(gl, {
+          a_position: { numComponents: 2, data: new Float32Array(framePositions) },
+        });
+        twgl.setBuffersAndAttributes(gl, gridProgram, frameBuffer);
+        twgl.drawBufferInfo(gl, frameBuffer, gl.TRIANGLES);
       }
     }
 
@@ -429,5 +530,6 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
     selectedObjectId,
     selectedLayerId,
     tileSelection,
+    liveSelectionRect,
   ]);
 }

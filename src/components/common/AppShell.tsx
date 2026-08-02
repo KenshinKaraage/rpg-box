@@ -3,13 +3,14 @@
 import { useStore } from '@/stores';
 import { AutoSaveProvider } from './AutoSaveProvider';
 import { Header } from './Header';
+import { ToastProvider } from './Toast';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const isRestoring = useStore((s) => s.isRestoring);
   const isImportingAssets = useStore((s) => s.isImportingAssets);
 
   return (
-    <>
+    <ToastProvider>
       <AutoSaveProvider />
       {isRestoring ? (
         <div className="flex min-h-screen items-center justify-center bg-background">
@@ -32,6 +33,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </>
       )}
-    </>
+    </ToastProvider>
   );
 }
