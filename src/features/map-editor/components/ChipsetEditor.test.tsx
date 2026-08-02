@@ -81,15 +81,16 @@ describe('ChipsetEditor', () => {
     expect(screen.getByRole('tab', { name: 'フィールド定義' })).toBeInTheDocument();
   });
 
-  it('デフォルトではチップグリッドは表示されない（モーダルを開くまで）', () => {
+  it('デフォルトでチップグリッドが表示されている', () => {
     render(<ChipsetEditor {...defaultProps} />);
-    expect(screen.queryByTestId('chip-grid')).not.toBeInTheDocument();
+    expect(screen.getByTestId('chip-grid')).toBeInTheDocument();
   });
 
-  it('「チップ一覧を編集」ボタンでモーダルが開きチップグリッドが表示される', () => {
+  it('未選択でも「編集」ボタンでモーダルを開ける（モーダル内でチップを選べるため）', () => {
     render(<ChipsetEditor {...defaultProps} />);
-    fireEvent.click(screen.getByRole('button', { name: /チップ一覧を編集/ }));
-    expect(screen.getByTestId('chip-grid')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /編集/ })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /編集/ }));
+    expect(screen.getByText('チップを選択してください')).toBeInTheDocument();
   });
 
   it('フィールド定義タブに切り替えるとフィールドが表示される', async () => {
@@ -105,10 +106,9 @@ describe('ChipsetEditor', () => {
     expect(screen.queryByDisplayValue('通行可能')).not.toBeInTheDocument();
   });
 
-  /** モーダルを開いてチップグリッドの canvas を返す */
-  function openModalAndGetGrid() {
+  /** チップグリッドの canvas を返す（座標計算用に getBoundingClientRect をモック） */
+  function getGrid() {
     render(<ChipsetEditor {...defaultProps} />);
-    fireEvent.click(screen.getByRole('button', { name: /チップ一覧を編集/ }));
     const canvas = screen.getByTestId('chip-grid') as HTMLCanvasElement;
     // canvas 座標をモック (PLACEHOLDER_COLS=8, DISPLAY_SIZE=32 → width=256)
     Object.defineProperty(canvas, 'getBoundingClientRect', {
@@ -118,8 +118,8 @@ describe('ChipsetEditor', () => {
     return canvas;
   }
 
-  it('未選択のチップをクリックすると選択され ChipPropertyEditor が表示される', () => {
-    const canvas = openModalAndGetGrid();
+  it('未選択のチップをクリックすると選択され右カラムに ChipPropertyEditor が表示される', () => {
+    const canvas = getGrid();
     // (16, 16) → col=0, row=0 → chipIndex=0
     fireEvent.click(canvas, { clientX: 16, clientY: 16 });
     expect(screen.getByTestId('chip-property-editor')).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe('ChipsetEditor', () => {
   });
 
   it('選択中のチップを再度クリックすると passable がトグルされる（選択は維持）', () => {
-    const canvas = openModalAndGetGrid();
+    const canvas = getGrid();
     fireEvent.click(canvas, { clientX: 16, clientY: 16 }); // chip 0 を選択
     fireEvent.click(canvas, { clientX: 16, clientY: 16 }); // 同じチップを再クリック → トグル
     // chip 0 は passable: true → false にトグルされる
@@ -136,6 +136,16 @@ describe('ChipsetEditor', () => {
     });
     // 選択状態は維持されるので ChipPropertyEditor は表示されたまま
     expect(screen.getByTestId('chip-property-editor')).toBeInTheDocument();
+  });
+
+  it('チップ選択後に「編集」ボタンでモーダルが開き ChipPropertyEditor が表示される', () => {
+    const canvas = getGrid();
+    fireEvent.click(canvas, { clientX: 16, clientY: 16 }); // chip 0 を選択
+    // 右カラムとモーダルの両方に ChipPropertyEditor が存在しうるので、事前は1件だけ
+    expect(screen.getAllByTestId('chip-property-editor')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: /編集/ }));
+    // モーダルが開くと右カラム分と合わせて2件になる
+    expect(screen.getAllByTestId('chip-property-editor')).toHaveLength(2);
   });
 
   it('画像セクションが表示される', () => {
