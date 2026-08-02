@@ -81,8 +81,14 @@ describe('ChipsetEditor', () => {
     expect(screen.getByRole('tab', { name: 'フィールド定義' })).toBeInTheDocument();
   });
 
-  it('デフォルトでチップグリッドが表示されている', () => {
+  it('デフォルトではチップグリッドは表示されない（モーダルを開くまで）', () => {
     render(<ChipsetEditor {...defaultProps} />);
+    expect(screen.queryByTestId('chip-grid')).not.toBeInTheDocument();
+  });
+
+  it('「チップ一覧を編集」ボタンでモーダルが開きチップグリッドが表示される', () => {
+    render(<ChipsetEditor {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: /チップ一覧を編集/ }));
     expect(screen.getByTestId('chip-grid')).toBeInTheDocument();
   });
 
@@ -99,33 +105,37 @@ describe('ChipsetEditor', () => {
     expect(screen.queryByDisplayValue('通行可能')).not.toBeInTheDocument();
   });
 
-  it('チップをクリックすると ChipPropertyEditor が表示される', () => {
+  /** モーダルを開いてチップグリッドの canvas を返す */
+  function openModalAndGetGrid() {
     render(<ChipsetEditor {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: /チップ一覧を編集/ }));
     const canvas = screen.getByTestId('chip-grid') as HTMLCanvasElement;
     // canvas 座標をモック (PLACEHOLDER_COLS=8, DISPLAY_SIZE=32 → width=256)
     Object.defineProperty(canvas, 'getBoundingClientRect', {
       value: () => ({ left: 0, top: 0, right: 256, bottom: 256, width: 256, height: 256 }),
       configurable: true,
     });
+    return canvas;
+  }
+
+  it('未選択のチップをクリックすると選択され ChipPropertyEditor が表示される', () => {
+    const canvas = openModalAndGetGrid();
     // (16, 16) → col=0, row=0 → chipIndex=0
     fireEvent.click(canvas, { clientX: 16, clientY: 16 });
     expect(screen.getByTestId('chip-property-editor')).toBeInTheDocument();
+    expect(defaultProps.onUpdateChipProperty).not.toHaveBeenCalled();
   });
 
-  it('右クリックで onUpdateChipProperty が呼ばれ passable がトグルされる（選択状態は変わらない）', () => {
-    render(<ChipsetEditor {...defaultProps} />);
-    const canvas = screen.getByTestId('chip-grid') as HTMLCanvasElement;
-    Object.defineProperty(canvas, 'getBoundingClientRect', {
-      value: () => ({ left: 0, top: 0, right: 256, bottom: 256, width: 256, height: 256 }),
-      configurable: true,
-    });
-    // chip 0 は passable: true → 右クリックで false にトグルされる
-    fireEvent.contextMenu(canvas, { clientX: 16, clientY: 16 });
+  it('選択中のチップを再度クリックすると passable がトグルされる（選択は維持）', () => {
+    const canvas = openModalAndGetGrid();
+    fireEvent.click(canvas, { clientX: 16, clientY: 16 }); // chip 0 を選択
+    fireEvent.click(canvas, { clientX: 16, clientY: 16 }); // 同じチップを再クリック → トグル
+    // chip 0 は passable: true → false にトグルされる
     expect(defaultProps.onUpdateChipProperty).toHaveBeenCalledWith('cs_001', 0, {
       passable: false,
     });
-    // 選択状態は変わらないので ChipPropertyEditor は表示されないまま
-    expect(screen.queryByTestId('chip-property-editor')).not.toBeInTheDocument();
+    // 選択状態は維持されるので ChipPropertyEditor は表示されたまま
+    expect(screen.getByTestId('chip-property-editor')).toBeInTheDocument();
   });
 
   it('画像セクションが表示される', () => {

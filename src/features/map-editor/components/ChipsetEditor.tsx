@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { FieldRow } from '@/features/data-editor/components/FieldRow';
 import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
 import { useStore } from '@/stores';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Modal } from '@/components/common/Modal';
 import { dataUrlToBlob } from '@/hooks/useBlobUrl';
 import type { ImageMetadata } from '@/types/assets';
 import { ChipPropertyEditor } from './ChipPropertyEditor';
@@ -63,6 +64,7 @@ export function ChipsetEditor({
   );
   const [selectedChipIndex, setSelectedChipIndex] = useState<number | null>(null);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
+  const [isChipEditModalOpen, setIsChipEditModalOpen] = useState(false);
 
   const chipset = chipsets.find((c) => c.id === selectedChipsetId) ?? null;
   const assets = useStore((state) => state.assets);
@@ -70,12 +72,14 @@ export function ChipsetEditor({
   const handleSelectChipset = (id: string) => {
     setSelectedChipsetId(id);
     setSelectedChipIndex(null);
+    setIsChipEditModalOpen(false);
   };
 
   const handleAddChipset = () => {
     const newId = onAddChipset();
     setSelectedChipsetId(newId);
     setSelectedChipIndex(null);
+    setIsChipEditModalOpen(false);
   };
 
   const handleAddField = () => {
@@ -211,9 +215,9 @@ export function ChipsetEditor({
       </div>
 
       {chipset && (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          {/* 常時表示: 名前・画像・タイルサイズ設定 */}
-          <div className="shrink-0 space-y-4 overflow-auto border-b p-3">
+        <div className="min-h-0 flex-1 overflow-auto">
+          {/* 名前・画像・タイルサイズ設定 */}
+          <div className="space-y-4 border-b p-3">
             {/* 名前 */}
             <div className="space-y-1">
               <Label className="text-xs">名前</Label>
@@ -341,8 +345,8 @@ export function ChipsetEditor({
           </div>
 
           {/* タブ: チップ一覧 / フィールド定義 */}
-          <Tabs defaultValue="chips" className="flex min-h-0 flex-1 flex-col">
-            <TabsList className="mx-3 mt-2 shrink-0 grid w-auto grid-cols-2">
+          <Tabs defaultValue="chips">
+            <TabsList className="mx-3 mt-2 grid w-auto grid-cols-2">
               <TabsTrigger value="chips" className="text-xs">
                 チップ一覧
               </TabsTrigger>
@@ -351,50 +355,26 @@ export function ChipsetEditor({
               </TabsTrigger>
             </TabsList>
 
-            {/* チップ一覧タブ: プロパティは常時表示、グリッドのみ独立スクロール */}
-            <TabsContent value="chips" className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              {selectedChipIndex !== null && (
-                <div className="shrink-0 border-b p-3">
-                  <ChipPropertyEditor
-                    chipset={chipset}
-                    chipIndex={selectedChipIndex}
-                    onUpdateChipProperty={onUpdateChipProperty}
-                  />
-                </div>
-              )}
-              <div className="min-h-0 flex-1 overflow-auto p-3">
-                <div className="space-y-2">
-                  <Label className="text-xs">
-                    チップ一覧{chipImageMeta ? `（${chipCount} チップ）` : ''}
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    右クリックで通行可否をその場で切り替え
-                  </p>
-                  <ChipGridCanvas
-                    imageDataUrl={chipImageMeta ? (chipImageMeta.imgAsset.data as string) : null}
-                    imageSize={
-                      chipImageMeta
-                        ? {
-                            w: chipImageMeta.metadata.width,
-                            h: chipImageMeta.metadata.height,
-                          }
-                        : null
-                    }
-                    tileWidth={chipset.tileWidth}
-                    tileHeight={chipset.tileHeight}
-                    chipCount={chipCount}
-                    chipCols={chipCols}
-                    selectedChipIndex={selectedChipIndex}
-                    passableMap={passableMap}
-                    onSelect={setSelectedChipIndex}
-                    onTogglePassable={handleTogglePassable}
-                  />
-                </div>
+            {/* チップ一覧タブ: グリッド・プロパティ編集ともにモーダルで行う（右カラムが狭いため） */}
+            <TabsContent value="chips" className="p-3">
+              <div className="space-y-2">
+                <Label className="text-xs">
+                  チップ一覧{chipImageMeta ? `（${chipCount} チップ）` : ''}
+                </Label>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 w-full text-xs"
+                  onClick={() => setIsChipEditModalOpen(true)}
+                >
+                  <Pencil className="mr-1 h-3 w-3" />
+                  チップ一覧を編集
+                </Button>
               </div>
             </TabsContent>
 
             {/* フィールド定義タブ */}
-            <TabsContent value="fields" className="min-h-0 flex-1 overflow-auto p-3">
+            <TabsContent value="fields" className="p-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">フィールド定義</Label>
@@ -439,6 +419,51 @@ export function ChipsetEditor({
           </Tabs>
         </div>
       )}
+
+      {/* チップ一覧編集モーダル: 左にグリッド、右にプロパティ。狭い右カラムから切り離して余裕を持たせる */}
+      <Modal
+        open={isChipEditModalOpen && chipset !== null}
+        onOpenChange={setIsChipEditModalOpen}
+        title="編集"
+        size="xl"
+      >
+        {chipset && (
+          <div className="flex max-h-[70vh] gap-4">
+            <div className="min-w-0 flex-1 overflow-auto">
+              <p className="mb-2 text-xs text-muted-foreground">
+                クリックでチップを選択、選択中のチップをクリックすると通行可否を切り替え
+              </p>
+              <ChipGridCanvas
+                imageDataUrl={chipImageMeta ? (chipImageMeta.imgAsset.data as string) : null}
+                imageSize={
+                  chipImageMeta
+                    ? { w: chipImageMeta.metadata.width, h: chipImageMeta.metadata.height }
+                    : null
+                }
+                tileWidth={chipset.tileWidth}
+                tileHeight={chipset.tileHeight}
+                chipCount={chipCount}
+                chipCols={chipCols}
+                selectedChipIndex={selectedChipIndex}
+                passableMap={passableMap}
+                onSelect={setSelectedChipIndex}
+                onTogglePassable={handleTogglePassable}
+              />
+            </div>
+            <div className="w-56 shrink-0 overflow-auto border-l pl-4">
+              {selectedChipIndex !== null ? (
+                <ChipPropertyEditor
+                  chipset={chipset}
+                  chipIndex={selectedChipIndex}
+                  onUpdateChipProperty={onUpdateChipProperty}
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">チップを選択してください</p>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
@@ -611,16 +636,15 @@ function ChipGridCanvas({
     return chipIndex >= 0 && chipIndex < chipCount ? chipIndex : null;
   };
 
+  // クリック: 未選択のチップなら選択、既に選択中のチップなら通行可否をその場でトグル
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const chipIndex = chipIndexFromEvent(e);
-    if (chipIndex !== null) onSelect(chipIndex);
-  };
-
-  // 右クリック: 選択はそのままに、そのチップの通行可否だけをその場でトグル
-  const handleContextMenu = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const chipIndex = chipIndexFromEvent(e);
-    if (chipIndex !== null) onTogglePassable(chipIndex);
+    if (chipIndex === null) return;
+    if (chipIndex === selectedChipIndex) {
+      onTogglePassable(chipIndex);
+    } else {
+      onSelect(chipIndex);
+    }
   };
 
   return (
@@ -629,7 +653,6 @@ function ChipGridCanvas({
       width={canvasW}
       height={canvasH}
       onClick={handleClick}
-      onContextMenu={handleContextMenu}
       draggable={false}
       onDragStart={(e) => e.preventDefault()}
       style={{ cursor: 'pointer', display: 'block', width: `${canvasW}px`, height: `${canvasH}px` }}
