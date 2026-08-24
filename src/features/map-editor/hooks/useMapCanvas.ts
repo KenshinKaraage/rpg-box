@@ -94,9 +94,10 @@ export function useMapCanvas(
   const viewport = useStore((s) => s.viewport);
   const showGrid = useStore((s) => s.showGrid);
   const objectFrameColor = useStore((s) => s.objectFrameColor);
-  const selectedObjectId = useStore((s) => s.selectedObjectId);
+  const selectedObjectIds = useStore((s) => s.selectedObjectIds);
   const selectedLayerId = useStore((s) => s.selectedLayerId);
   const tileSelection = useStore((s) => s.tileSelection);
+  const hoverTile = useStore((s) => s.hoverTile);
 
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const tileRendererRef = useRef<TileRenderer | null>(null);
@@ -236,50 +237,6 @@ export function useMapCanvas(
         }
       }
     }
-    // タイル範囲選択の赤枠（ドラッグ中はライブプレビュー、確定後は選択範囲のバウンディングボックス）
-    const selectionBoundingBox = liveSelectionRect
-      ? {
-          minX: Math.min(liveSelectionRect.start.x, liveSelectionRect.end.x),
-          maxX: Math.max(liveSelectionRect.start.x, liveSelectionRect.end.x),
-          minY: Math.min(liveSelectionRect.start.y, liveSelectionRect.end.y),
-          maxY: Math.max(liveSelectionRect.start.y, liveSelectionRect.end.y),
-        }
-      : tileSelection && tileSelection.layerId === selectedLayerId && tileSelection.cells.length > 0
-        ? {
-            minX: Math.min(...tileSelection.cells.map((c) => c.x)),
-            maxX: Math.max(...tileSelection.cells.map((c) => c.x)),
-            minY: Math.min(...tileSelection.cells.map((c) => c.y)),
-            maxY: Math.max(...tileSelection.cells.map((c) => c.y)),
-          }
-        : null;
-
-    if (selectionBoundingBox) {
-      const gridProgram = gridProgramRef.current;
-      if (gridProgram) {
-        const { minX, maxX, minY, maxY } = selectionBoundingBox;
-
-        gl.useProgram(gridProgram.program);
-        twgl.setUniforms(gridProgram, {
-          u_matrix: matrix,
-          u_color: [0.94, 0.11, 0.11, 1], // red-600
-        });
-        const framePositions: number[] = [];
-        pushFrameRect(
-          framePositions,
-          minX * TILE_SIZE,
-          minY * TILE_SIZE,
-          (maxX - minX + 1) * TILE_SIZE,
-          (maxY - minY + 1) * TILE_SIZE,
-          2
-        );
-        const frameBuffer = twgl.createBufferInfoFromArrays(gl, {
-          a_position: { numComponents: 2, data: new Float32Array(framePositions) },
-        });
-        twgl.setBuffersAndAttributes(gl, gridProgram, frameBuffer);
-        twgl.drawBufferInfo(gl, frameBuffer, gl.TRIANGLES);
-      }
-    }
-
     // オブジェクトレイヤーのオブジェクト描画
     for (const layer of map.layers) {
       if (layer.visible === false) continue;
@@ -298,7 +255,7 @@ export function useMapCanvas(
 
         const px = tx * TILE_SIZE;
         const py = ty * TILE_SIZE;
-        const isSelected = obj.id === selectedObjectId;
+        const isSelected = selectedObjectIds.includes(obj.id);
 
         // スプライト画像の描画（フレームより先に描画してフレームが上に来るようにする）
         const spriteComp = obj.components.find((c) => c.type === 'sprite');
@@ -489,6 +446,77 @@ export function useMapCanvas(
         }
       }
     }
+
+    // タイル/オブジェクトの範囲選択の赤枠（ドラッグ中はライブプレビュー、確定後は選択範囲のバウンディングボックス）
+    // オブジェクトより後に描画し、選択中であることが常に最前面で分かるようにする
+    const selectionBoundingBox = liveSelectionRect
+      ? {
+          minX: Math.min(liveSelectionRect.start.x, liveSelectionRect.end.x),
+          maxX: Math.max(liveSelectionRect.start.x, liveSelectionRect.end.x),
+          minY: Math.min(liveSelectionRect.start.y, liveSelectionRect.end.y),
+          maxY: Math.max(liveSelectionRect.start.y, liveSelectionRect.end.y),
+        }
+      : tileSelection && tileSelection.layerId === selectedLayerId && tileSelection.cells.length > 0
+        ? {
+            minX: Math.min(...tileSelection.cells.map((c) => c.x)),
+            maxX: Math.max(...tileSelection.cells.map((c) => c.x)),
+            minY: Math.min(...tileSelection.cells.map((c) => c.y)),
+            maxY: Math.max(...tileSelection.cells.map((c) => c.y)),
+          }
+        : null;
+
+    if (selectionBoundingBox) {
+      const gridProgram = gridProgramRef.current;
+      if (gridProgram) {
+        const { minX, maxX, minY, maxY } = selectionBoundingBox;
+
+        gl.useProgram(gridProgram.program);
+        twgl.setUniforms(gridProgram, {
+          u_matrix: matrix,
+          u_color: [0.94, 0.11, 0.11, 1], // red-600
+        });
+        const framePositions: number[] = [];
+        pushFrameRect(
+          framePositions,
+          minX * TILE_SIZE,
+          minY * TILE_SIZE,
+          (maxX - minX + 1) * TILE_SIZE,
+          (maxY - minY + 1) * TILE_SIZE,
+          2
+        );
+        const frameBuffer = twgl.createBufferInfoFromArrays(gl, {
+          a_position: { numComponents: 2, data: new Float32Array(framePositions) },
+        });
+        twgl.setBuffersAndAttributes(gl, gridProgram, frameBuffer);
+        twgl.drawBufferInfo(gl, frameBuffer, gl.TRIANGLES);
+      }
+    }
+
+    // ホバー中タイルのプレビュー枠（一番最前面。ライブドラッグ中のみ、選択枠と重なるため非表示）
+    if (hoverTile && !liveSelectionRect) {
+      const gridProgram = gridProgramRef.current;
+      if (gridProgram) {
+        gl.useProgram(gridProgram.program);
+        twgl.setUniforms(gridProgram, {
+          u_matrix: matrix,
+          u_color: [1, 1, 1, 0.6], // 白半透明: 確定選択（赤）と区別
+        });
+        const hoverPositions: number[] = [];
+        pushFrameRect(
+          hoverPositions,
+          hoverTile.x * TILE_SIZE,
+          hoverTile.y * TILE_SIZE,
+          TILE_SIZE,
+          TILE_SIZE,
+          2
+        );
+        const hoverBuffer = twgl.createBufferInfoFromArrays(gl, {
+          a_position: { numComponents: 2, data: new Float32Array(hoverPositions) },
+        });
+        twgl.setBuffersAndAttributes(gl, gridProgram, hoverBuffer);
+        twgl.drawBufferInfo(gl, hoverBuffer, gl.TRIANGLES);
+      }
+    }
   }, [
     maps,
     chipsets,
@@ -500,9 +528,10 @@ export function useMapCanvas(
     textureGen,
     resizeGen,
     objectFrameColor,
-    selectedObjectId,
+    selectedObjectIds,
     selectedLayerId,
     tileSelection,
+    hoverTile,
     liveSelectionRect,
   ]);
 }

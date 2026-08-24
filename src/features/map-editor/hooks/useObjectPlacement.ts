@@ -1,12 +1,14 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useStore } from '@/stores';
 import { EMPTY_OBJECT_PREFAB_ID } from '@/stores/mapEditorSlice';
+import type { TileCell } from '@/stores/mapEditorSlice';
 import { screenToTile } from '../utils/coordTransform';
 import { TILE_SIZE } from '../utils/constants';
 import { generateId } from '@/lib/utils';
 import { TransformComponent } from '@/types/components/TransformComponent';
+import { cellsInRect, type DragRect } from './useMultiTileSelect';
 import type { GameMap, MapObject } from '@/types/map';
 
 /**
@@ -23,7 +25,9 @@ export function useObjectPlacement(mapId: string, layerId: string) {
   const updateObject = useStore((s) => s.updateObject);
   const deleteObject = useStore((s) => s.deleteObject);
   const selectObject = useStore((s) => s.selectObject);
+  const selectObjects = useStore((s) => s.selectObjects);
   const selectedObjectId = useStore((s) => s.selectedObjectId);
+  const selectedObjectIds = useStore((s) => s.selectedObjectIds);
   const pushUndoState = useStore((s) => s.pushUndoState);
 
   // ドラッグ中の状態（Undo用にドラッグ開始時点の maps 参照を保持）
@@ -33,6 +37,12 @@ export function useObjectPlacement(mapId: string, layerId: string) {
     startGridY: number;
     startMaps: GameMap[];
   } | null>(null);
+
+  // 矩形選択ドラッグの状態（空マスから開始した場合のみ）
+  const rectSelectRef = useRef<TileCell | null>(null);
+  const rectShiftRef = useRef(false);
+  // ドラッグ中のライブプレビュー（useMultiTileSelect の liveRect と同じ仕組み）
+  const [liveRect, setLiveRect] = useState<DragRect | null>(null);
 
   const getLayer = useCallback(() => {
     const map = maps.find((m) => m.id === mapId);
@@ -62,7 +72,7 @@ export function useObjectPlacement(mapId: string, layerId: string) {
    * - 選択: 選択 + ドラッグ開始
    */
   const handleMouseDown = useCallback(
-    (screenX: number, screenY: number) => {
+    (screenX: number, screenY: number, shiftKey = false) => {
       const { tx, ty } = screenToTile(screenX, screenY, viewport, TILE_SIZE);
       const map = maps.find((m) => m.id === mapId);
       if (!map) return;
@@ -72,10 +82,25 @@ export function useObjectPlacement(mapId: string, layerId: string) {
         case 'select': {
           const obj = getObjectAtTile(tx, ty);
           if (obj) {
-            selectObject(obj.id);
+            if (shiftKey) {
+              // Shiftクリック: 選択への追加/除外をトグル
+              const already = selectedObjectIds.includes(obj.id);
+              selectObjects(
+                already
+                  ? selectedObjectIds.filter((id) => id !== obj.id)
+                  : [...selectedObjectIds, obj.id]
+              );
+            } else {
+              // 通常クリック: 複数選択中でも単独選択に切り替える
+              // （複数選択をまとめて移動する機能は未実装のため、ドラッグ移動は常に単独選択で行う）
+              selectObject(obj.id);
+            }
             dragRef.current = { objectId: obj.id, startGridX: tx, startGridY: ty, startMaps: maps };
           } else {
-            selectObject(null);
+            // 空マス: 矩形選択ドラッグを開始（mouseup で範囲内のオブジェクトをまとめて選択）
+            rectSelectRef.current = { x: tx, y: ty };
+            rectShiftRef.current = shiftKey;
+            setLiveRect({ start: { x: tx, y: ty }, end: { x: tx, y: ty } });
             dragRef.current = null;
           }
           break;
@@ -128,18 +153,29 @@ export function useObjectPlacement(mapId: string, layerId: string) {
       deleteObject,
       pushUndoState,
       selectObject,
+      selectObjects,
       selectedObjectId,
+      selectedObjectIds,
     ]
   );
 
-  /** mousemove: ドラッグ中のオブジェクト移動 */
+  /** mousemove: 矩形選択ドラッグ中はライブプレビューを更新、オブジェクトドラッグ中は移動 */
   const handleMouseMove = useCallback(
     (screenX: number, screenY: number) => {
-      if (!dragRef.current) return;
-
       const { tx, ty } = screenToTile(screenX, screenY, viewport, TILE_SIZE);
       const map = maps.find((m) => m.id === mapId);
       if (!map) return;
+
+      if (rectSelectRef.current) {
+        const end: TileCell = {
+          x: Math.min(Math.max(tx, 0), map.width - 1),
+          y: Math.min(Math.max(ty, 0), map.height - 1),
+        };
+        setLiveRect({ start: rectSelectRef.current, end });
+        return;
+      }
+
+      if (!dragRef.current) return;
       if (tx < 0 || tx >= map.width || ty < 0 || ty >= map.height) return;
 
       const layer = getLayer();
@@ -168,8 +204,33 @@ export function useObjectPlacement(mapId: string, layerId: string) {
     [viewport, maps, mapId, layerId, getLayer, getObjectAtTile, updateObject]
   );
 
-  /** mouseup: ドラッグ終了。位置が変わっていればドラッグ開始時点を Undo に記録 */
+  /** mouseup: 矩形選択ドラッグなら範囲内のオブジェクトを確定選択、オブジェクトドラッグなら位置が変わっていればUndoに記録 */
   const handleMouseUp = useCallback(() => {
+    const rectStart = rectSelectRef.current;
+    if (rectStart) {
+      rectSelectRef.current = null;
+      const rectEnd = liveRect?.end ?? rectStart;
+      setLiveRect(null);
+
+      const layer = getLayer();
+      const cellSet = new Set(cellsInRect(rectStart, rectEnd).map((c) => `${c.x},${c.y}`));
+      const hitIds = (layer?.objects ?? [])
+        .filter((o) => {
+          const t = o.components.find((c) => c.type === 'transform') as
+            | TransformComponent
+            | undefined;
+          return t && cellSet.has(`${t.x},${t.y}`);
+        })
+        .map((o) => o.id);
+
+      if (rectShiftRef.current) {
+        selectObjects(Array.from(new Set([...selectedObjectIds, ...hitIds])));
+      } else {
+        selectObjects(hitIds);
+      }
+      return;
+    }
+
     const drag = dragRef.current;
     dragRef.current = null;
     if (!drag) return;
@@ -184,7 +245,7 @@ export function useObjectPlacement(mapId: string, layerId: string) {
     if (transform.x === drag.startGridX && transform.y === drag.startGridY) return; // 移動していなければ記録しない
 
     pushUndoState('map', { maps: drag.startMaps });
-  }, [getLayer, pushUndoState]);
+  }, [getLayer, pushUndoState, liveRect, selectObjects, selectedObjectIds]);
 
   /** 選択中のオブジェクトを削除 */
   const deleteSelectedObject = useCallback(() => {
@@ -248,5 +309,7 @@ export function useObjectPlacement(mapId: string, layerId: string) {
     handleDropPrefab,
     deleteSelectedObject,
     getObjectAtTile,
+    /** 矩形選択ドラッグ中のライブプレビュー（useMultiTileSelect の liveRect と同じ形） */
+    liveRect,
   };
 }

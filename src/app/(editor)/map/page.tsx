@@ -43,6 +43,7 @@ export default function MapEditPage() {
   // Layer / object state
   const selectedLayerId = useStore((s) => s.selectedLayerId);
   const selectedObjectId = useStore((s) => s.selectedObjectId);
+  const selectedObjectIds = useStore((s) => s.selectedObjectIds);
   const selectLayer = useStore((s) => s.selectLayer);
   const updateLayer = useStore((s) => s.updateLayer);
   const updateMap = useStore((s) => s.updateMap);
@@ -51,6 +52,7 @@ export default function MapEditPage() {
   const deleteLayer = useStore((s) => s.deleteLayer);
   const reorderLayers = useStore((s) => s.reorderLayers);
   const selectObject = useStore((s) => s.selectObject);
+  const selectObjects = useStore((s) => s.selectObjects);
   const deleteObject = useStore((s) => s.deleteObject);
 
   // Prefab state
@@ -210,7 +212,17 @@ export default function MapEditPage() {
   };
 
   const handleDeleteSelection = () => {
-    if (!tileSelection || !selectedMapId) return;
+    if (!selectedMapId || !selectedLayerId) return;
+
+    if (selectedLayer?.type === 'object') {
+      if (selectedObjectIds.length === 0) return;
+      pushUndoState('map', { maps });
+      selectedObjectIds.forEach((id) => deleteObject(selectedMapId, selectedLayerId, id));
+      selectObjects([]);
+      return;
+    }
+
+    if (!tileSelection) return;
     pushUndoState('map', { maps });
     tileSelection.cells.forEach(({ x, y }) =>
       setTile(selectedMapId, tileSelection.layerId, x, y, '')
@@ -412,7 +424,11 @@ export default function MapEditPage() {
       }
       right={
         <div className="h-full overflow-auto bg-muted/20">
-          {selectedObjectId ? (
+          {selectedObjectIds.length > 1 ? (
+            <div className="p-4 text-sm text-muted-foreground">
+              {selectedObjectIds.length}件選択中（複数選択時のプロパティ編集は未対応）
+            </div>
+          ) : selectedObjectId ? (
             <MapPropertyPanel
               selectedObjectId={selectedObjectId}
               mapId={selectedMapId ?? ''}

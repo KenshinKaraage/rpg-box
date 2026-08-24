@@ -55,7 +55,7 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
   const objPlacement = useObjectPlacement(mapId, selectedLayerId ?? '');
   const multiSelect = useMultiTileSelect(mapId, selectedLayerId ?? '');
 
-  useMapCanvas(canvasRef, mapId, multiSelect.liveRect);
+  useMapCanvas(canvasRef, mapId, isObjectLayer ? objPlacement.liveRect : multiSelect.liveRect);
 
   // ホイールイベントは passive:false で登録する必要があるため useEffect で直接アタッチ
   useEffect(() => {
@@ -149,7 +149,7 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
       if (isObjectLayer) {
-        objPlacement.handleMouseDown(sx, sy);
+        objPlacement.handleMouseDown(sx, sy, e.shiftKey);
       } else if (currentTool === 'select') {
         multiSelect.handleMouseDown(sx, sy, e.shiftKey);
       } else {

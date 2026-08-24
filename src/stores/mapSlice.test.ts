@@ -540,6 +540,7 @@ describe('mapSlice', () => {
       });
 
       expect(result.current.selectedObjectId).toBe('obj_001');
+      expect(result.current.selectedObjectIds).toEqual(['obj_001']);
     });
 
     it('null で選択解除できる', () => {
@@ -554,6 +555,54 @@ describe('mapSlice', () => {
       });
 
       expect(result.current.selectedObjectId).toBeNull();
+      expect(result.current.selectedObjectIds).toEqual([]);
+    });
+  });
+
+  describe('selectObjects', () => {
+    it('複数のオブジェクトIDを選択できる（矩形選択・Shiftクリック用）', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.selectObjects(['obj_001', 'obj_002', 'obj_003']);
+      });
+
+      expect(result.current.selectedObjectIds).toEqual(['obj_001', 'obj_002', 'obj_003']);
+      // プロパティパネル用の主選択は最後の要素
+      expect(result.current.selectedObjectId).toBe('obj_003');
+    });
+
+    it('空配列を渡すと選択が解除される', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.selectObjects(['obj_001', 'obj_002']);
+      });
+
+      act(() => {
+        result.current.selectObjects([]);
+      });
+
+      expect(result.current.selectedObjectIds).toEqual([]);
+      expect(result.current.selectedObjectId).toBeNull();
+    });
+
+    it('削除されたオブジェクトは選択一覧からも除外される', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.addMap(createTestMap('map_001', 'フィールド'));
+        result.current.addLayer('map_001', createTestLayer('layer_001', 'オブジェクト', 'object'));
+        result.current.addObject('map_001', 'layer_001', createTestObject('obj_001', '宝箱'));
+        result.current.addObject('map_001', 'layer_001', createTestObject('obj_002', '宝箱2'));
+        result.current.selectObjects(['obj_001', 'obj_002']);
+      });
+
+      act(() => {
+        result.current.deleteObject('map_001', 'layer_001', 'obj_001');
+      });
+
+      expect(result.current.selectedObjectIds).toEqual(['obj_002']);
     });
   });
 

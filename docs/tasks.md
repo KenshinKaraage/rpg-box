@@ -4788,7 +4788,7 @@ export function useAutoSave() {
 #### [T166] [US13] Create useMapCanvas hook
 
 - **ステータス:** [x] 完了
-- **ブランチ:** feature/T242-chipset-editor-ui
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -4797,6 +4797,12 @@ export function useAutoSave() {
 - [x] Canvas 初期化
 - [x] レンダリングループ
 - [x] リサイズ対応
+- [x] ホバー中タイルのプレビュー枠表示（`hoverTile`を白半透明の枠で描画。ライブドラッグ中のみ非表示にして選択枠と重ならないようにする）
+- [x] 各種オーバーレイのz順序を明示的に整理（下から: タイル→グリッド→オブジェクト（青枠）→選択の赤枠（ライブ/確定）→ホバーの白枠）
+
+**注記:**
+
+- ホバー枠は`pushFrameRect`ヘルパー（T171bで追加）を再利用。以前は選択の赤枠をオブジェクト描画より前に描いていたため、確定済みタイル選択がある状態だとオブジェクトがそれを覆い隠し、かつホバー枠も（選択の有無に関わらず）実質出なくなるバグがあった。オブジェクト描画→選択の赤枠→ホバーの白枠の順に描き直すことで、複数選択ドラッグ中の矩形もオブジェクトより手前に見えるように修正。
 
 **関連ファイル:**
 
@@ -4829,7 +4835,7 @@ export function useAutoSave() {
 #### [T168] [US13] Create useObjectPlacement hook
 
 - **ステータス:** [x] 完了
-- **ブランチ:** main
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -4839,11 +4845,21 @@ export function useAutoSave() {
 - [x] switch で currentTool を最優先判定
 - [x] ドラッグ移動（select ツール）
 - [x] ダブルクリックでイベントモーダル（T172 と連携）
+- [x] オブジェクトの矩形選択（`select`ツールで空マスからドラッグ→範囲内のオブジェクトをまとめて選択。タイル側の`useMultiTileSelect`と同じ`cellsInRect`/ライブプレビュー方式を再利用）
+- [x] Shift+クリックで選択の追加/除外トグル、Shift+矩形選択で既存選択にマージ
+
+**注記:**
+
+- 選択状態は`mapSlice.ts`の`selectedObjectId`（単一・プロパティパネル用の主選択）と`selectedObjectIds: string[]`（複数選択・ハイライト/削除用）の2つで管理。`selectObject(id)`は`selectedObjectIds`も`[id]`に同期し、`selectObjects(ids)`は`selectedObjectId`を配列の最後の要素に同期するため、既存の単一選択系コードは変更なしで動作する。
+- 複数選択したオブジェクトをまとめてドラッグ移動する機能は未実装（通常クリックは常に単独選択に切り替わってからドラッグする）。複数選択後にDelete/Backspaceで一括削除は対応済み（`map/page.tsx`の`handleDeleteSelection`）。プロパティパネルは2件以上選択時「N件選択中」の表示のみで、複数オブジェクトの共通プロパティ一括編集（ui-flow-design.md記載の仕様）は未対応 — 将来対応。
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useObjectPlacement.ts`
 - `src/features/map-editor/components/MapCanvas.tsx`
+- `src/stores/mapSlice.ts`
+- `src/stores/mapSlice.test.ts`
+- `src/app/(editor)/map/page.tsx`
 
 ---
 

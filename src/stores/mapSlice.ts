@@ -19,8 +19,11 @@ export interface MapSlice {
   /** 選択中のレイヤーID */
   selectedLayerId: string | null;
 
-  /** 選択中のオブジェクトID */
+  /** 選択中のオブジェクトID（複数選択時は最後に選択したID） */
   selectedObjectId: string | null;
+
+  /** 選択中のオブジェクトID一覧（矩形選択・Shiftクリックでの複数選択用） */
+  selectedObjectIds: string[];
 
   // Map CRUD
   addMap: (map: GameMap) => void;
@@ -48,6 +51,8 @@ export interface MapSlice {
   ) => void;
   deleteObject: (mapId: string, layerId: string, objectId: string) => void;
   selectObject: (id: string | null) => void;
+  /** 矩形選択・Shiftクリックで複数のオブジェクトを選択状態にする */
+  selectObjects: (ids: string[]) => void;
 
   // Chipset CRUD
   addChipset: (chipset: Chipset) => void;
@@ -88,6 +93,7 @@ export const createMapSlice = <T extends MapSlice>(
   selectedMapId: null,
   selectedLayerId: null,
   selectedObjectId: null,
+  selectedObjectIds: [],
 
   // =========================================================================
   // Map CRUD
@@ -117,6 +123,7 @@ export const createMapSlice = <T extends MapSlice>(
         state.selectedMapId = null;
         state.selectedLayerId = null;
         state.selectedObjectId = null;
+        state.selectedObjectIds = [];
       }
     }),
 
@@ -127,6 +134,7 @@ export const createMapSlice = <T extends MapSlice>(
       const map = id ? state.maps.find((m) => m.id === id) : null;
       state.selectedLayerId = map?.layers.find((l) => l.type === 'tile')?.id ?? null;
       state.selectedObjectId = null;
+      state.selectedObjectIds = [];
     }),
 
   // =========================================================================
@@ -167,6 +175,7 @@ export const createMapSlice = <T extends MapSlice>(
     set((state) => {
       state.selectedLayerId = id;
       state.selectedObjectId = null;
+      state.selectedObjectIds = [];
     }),
 
   reorderLayers: (mapId: string, fromIndex: number, toIndex: number) =>
@@ -250,11 +259,19 @@ export const createMapSlice = <T extends MapSlice>(
       if (state.selectedObjectId === objectId) {
         state.selectedObjectId = null;
       }
+      state.selectedObjectIds = state.selectedObjectIds.filter((oid) => oid !== objectId);
     }),
 
   selectObject: (id: string | null) =>
     set((state) => {
       state.selectedObjectId = id;
+      state.selectedObjectIds = id ? [id] : [];
+    }),
+
+  selectObjects: (ids: string[]) =>
+    set((state) => {
+      state.selectedObjectIds = ids;
+      state.selectedObjectId = ids.length > 0 ? ids[ids.length - 1]! : null;
     }),
 
   // =========================================================================
