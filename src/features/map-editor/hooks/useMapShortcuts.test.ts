@@ -41,4 +41,22 @@ describe('useMapShortcuts', () => {
     fireEvent.keyDown(window, { key: 'v', ctrlKey: true });
     expect(onPaste).toHaveBeenCalled();
   });
+
+  it('Delete で onDelete が呼ばれる', () => {
+    const onDelete = jest.fn();
+    renderHook(() =>
+      useMapShortcuts({ onSetTool: jest.fn(), onUndo: jest.fn(), onRedo: jest.fn(), onDelete })
+    );
+    fireEvent.keyDown(window, { key: 'Delete' });
+    expect(onDelete).toHaveBeenCalled();
+  });
+
+  it('Backspace でも onDelete が呼ばれる', () => {
+    const onDelete = jest.fn();
+    renderHook(() =>
+      useMapShortcuts({ onSetTool: jest.fn(), onUndo: jest.fn(), onRedo: jest.fn(), onDelete })
+    );
+    fireEvent.keyDown(window, { key: 'Backspace' });
+    expect(onDelete).toHaveBeenCalled();
+  });
 });

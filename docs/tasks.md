@@ -4681,7 +4681,7 @@ export function useAutoSave() {
 **注記:**
 
 - `ChipRangeSelection`に選択範囲内の各セルのチップIDを行優先で並べた`cells: string[]`を追加（`ChipPalette.tsx`のドラッグ確定時に計算）。これにより`useTilePainting.ts`の`getTilesToPaint`がチップセット画像の情報を持たなくても範囲をそのまま消費でき、ペンツールで`selectedChipRange`があればアンカー位置起点で範囲分のタイルを一括配置するように対応（マップ範囲外のセルは自動でクリップ）。これでパレットで複数タイル選択→キャンバスにスタンプ配置、まで一通り動作する。
-- キャンバス側で既存タイルを範囲選択する機能（T171b）や矩形コピペ（T171c）、レイヤー切替/Delete（T171a）は引き続き未実装。
+- キャンバス側で既存タイルを範囲選択する機能（T171b）や矩形コピペ（T171c）は当時未実装だったが、その後すべて完了（T171a含む）。
 - あわせて、`public/assets/images/map_chip/`のデフォルトマップチップ素材が新しいpipoya形式（`[A]*_pipo.png`＝オートタイル、`[Base]BaseChip_pipo.png`＝通常チップ）に差し替わったため、`src/lib/defaultAssets.ts`のマップチップ一覧を新ファイルに合わせて更新
 
 **関連ファイル:**
@@ -4914,8 +4914,8 @@ export function useAutoSave() {
 
 #### [T171a] [US13] Implement map editor shortcuts
 
-- **ステータス:** [~] 進行中
-- **ブランチ:** feature/T242-chipset-editor-ui
+- **ステータス:** [x] 完了
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -4924,15 +4924,20 @@ export function useAutoSave() {
 - [x] B: ペンツール
 - [x] E: 消しゴム
 - [x] G: 塗りつぶし
-- [ ] 1-9: レイヤー切り替え（未実装）
 - [x] Ctrl+C/V: コピー/ペースト（T171c 側で実装。`onCopy`/`onPaste` を追加し、実処理は `map/page.tsx` から渡す）
-- [ ] Delete: 選択削除（未実装。タイル範囲選択(T171b)を消す操作はまだない）
-- [x] テスト追加（B/E/Ctrl+Z/Ctrl+C/Ctrl+V をカバー）
+- [x] Delete/Backspace: 選択削除（`onDelete` を追加。`map/page.tsx`の`handleDeleteSelection`で`tileSelection`(T171b)の各セルを`setTile(..., '')`でクリアし、Undo登録後に選択解除）
+- [x] テスト追加（B/E/Ctrl+Z/Ctrl+C/Ctrl+V/Delete/Backspace をカバー）
+
+**注記:**
+
+- 1-9キーでのレイヤー切り替えは現時点では不要と判断し、完了条件から除外（対象外）。必要になれば別タスクとして起こす。
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useMapShortcuts.ts`
 - `src/features/map-editor/hooks/useMapShortcuts.test.ts`
+- `src/app/(editor)/map/page.tsx`
+- `src/stores/mapEditorSlice.ts`
 
 ---
 
@@ -8178,7 +8183,7 @@ item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/
 | 10    | マップ基盤                     | ✅ 完了 (15/15)       |                                                                                                                                                                                                                                                                              |
 | 11    | マップデータページ             | ✅ 完了 (7/7)         |                                                                                                                                                                                                                                                                              |
 | 12    | オブジェクトプレハブ           | ✅ 完了 (6/6)         |                                                                                                                                                                                                                                                                              |
-| 13    | マップ編集ページ               | 🔶 一部未着手 (19/20) | 残: T171aのレイヤー切替(1-9)・選択削除(Delete)のみ。T161(パレット複数選択)/T171b(キャンバス範囲選択)/T171c(コピペ)は完了                                                                                                                                                     |
+| 13    | マップ編集ページ               | ✅ 完了 (20/20)       | T171a: レイヤー切替(1-9)は不要と判断し完了条件から除外。Delete/Backspaceでの選択削除は実装済み                                                                                                                                                                               |
 | 14    | UI Foundation                  | ✅ 完了 (17/17)       | T184 ActionComponent 廃止                                                                                                                                                                                                                                                    |
 | 15    | Screen Design                  | ✅ 完了 (14/14)       | T197b ActionComponent 廃止                                                                                                                                                                                                                                                   |
 | 16    | Object UI                      | ⬜ 未着手 (0/3)       | T198〜T203は廃止（Phase12/13と重複、オブジェクトUIとは無関係）。実体はT256〜T258（`/ui/objects`は"Coming Soon"スタブのまま）                                                                                                                                                 |

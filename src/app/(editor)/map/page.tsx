@@ -75,6 +75,7 @@ export default function MapEditPage() {
   const selectChip = useStore((s) => s.selectChip);
   const selectChipRange = useStore((s) => s.selectChipRange);
   const setTile = useStore((s) => s.setTile);
+  const setTileSelection = useStore((s) => s.setTileSelection);
   const setViewport = useStore((s) => s.setViewport);
   const toggleGrid = useStore((s) => s.toggleGrid);
 
@@ -208,12 +209,22 @@ export default function MapEditPage() {
     targets.forEach(({ x, y, chipId }) => setTile(selectedMapId, selectedLayerId, x, y, chipId));
   };
 
+  const handleDeleteSelection = () => {
+    if (!tileSelection || !selectedMapId) return;
+    pushUndoState('map', { maps });
+    tileSelection.cells.forEach(({ x, y }) =>
+      setTile(selectedMapId, tileSelection.layerId, x, y, '')
+    );
+    setTileSelection(null);
+  };
+
   useMapShortcuts({
     onSetTool: setTool,
     onUndo: undo,
     onRedo: redo,
     onCopy: handleCopy,
     onPaste: handlePaste,
+    onDelete: handleDeleteSelection,
   });
 
   // 選択中チップセットの画像データとサイズを取得

@@ -8,9 +8,17 @@ interface Handlers {
   onRedo: () => void;
   onCopy?: () => void;
   onPaste?: () => void;
+  onDelete?: () => void;
 }
 
-export function useMapShortcuts({ onSetTool, onUndo, onRedo, onCopy, onPaste }: Handlers) {
+export function useMapShortcuts({
+  onSetTool,
+  onUndo,
+  onRedo,
+  onCopy,
+  onPaste,
+  onDelete,
+}: Handlers) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -48,9 +56,13 @@ export function useMapShortcuts({ onSetTool, onUndo, onRedo, onCopy, onPaste }: 
       if (key === 'v' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         onPaste?.();
+        return;
+      }
+      if (key === 'delete' || key === 'backspace') {
+        onDelete?.();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onSetTool, onUndo, onRedo, onCopy, onPaste]);
+  }, [onSetTool, onUndo, onRedo, onCopy, onPaste, onDelete]);
 }
