@@ -51,11 +51,24 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     TILE_SIZE
   );
 
-  const { paint, commitRect } = useTilePainting(mapId, selectedLayerId ?? '');
+  const {
+    paint,
+    commitRect,
+    endStroke,
+    liveRect: rectLiveRect,
+  } = useTilePainting(mapId, selectedLayerId ?? '');
   const objPlacement = useObjectPlacement(mapId, selectedLayerId ?? '');
   const multiSelect = useMultiTileSelect(mapId, selectedLayerId ?? '');
 
-  useMapCanvas(canvasRef, mapId, isObjectLayer ? objPlacement.liveRect : multiSelect.liveRect);
+  const liveSelectionRect = isObjectLayer
+    ? objPlacement.liveRect
+    : currentTool === 'select'
+      ? multiSelect.liveRect
+      : currentTool === 'rect'
+        ? rectLiveRect
+        : null;
+
+  useMapCanvas(canvasRef, mapId, liveSelectionRect);
 
   // ホイールイベントは passive:false で登録する必要があるため useEffect で直接アタッチ
   useEffect(() => {
@@ -222,6 +235,7 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
           } else {
             const domRect = e.currentTarget.getBoundingClientRect();
             commitRect(e.clientX - domRect.left, e.clientY - domRect.top);
+            endStroke();
           }
         }}
       />

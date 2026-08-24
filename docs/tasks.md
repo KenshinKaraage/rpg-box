@@ -4814,7 +4814,7 @@ export function useAutoSave() {
 #### [T167] [US13] Create useTilePainting hook
 
 - **ステータス:** [x] 完了
-- **ブランチ:** feature/T242-chipset-editor-ui
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -4822,13 +4822,21 @@ export function useAutoSave() {
 - [x] `src/features/map-editor/hooks/useTilePainting.ts` 作成
 - [x] マウスイベント処理
 - [x] ツール別の描画処理
-- [x] アンドゥ対応
+- [x] アンドゥ対応（ペン/消しゴムの一筆・矩形塗りつぶし1回ともに単一のUndoエントリになるよう修正。下記注記参照）
+- [x] 矩形塗りつぶしのライブプレビュー枠（ドラッグ中、タイル/オブジェクト選択と同じ赤枠の仕組みで塗りつぶし範囲を表示）
 - [x] テスト追加
+
+**注記:**
+
+- **不具合修正**: ペン/消しゴムでドラッグして塗る際、`paint()`が mousemove のたびに無条件で`pushUndoState`していたため、1回の一筆（ストローク）が数十〜100件（`MAX_HISTORY`上限）のUndo履歴を消費し、Ctrl+Zを1回押しても実質何も戻らないように見える不具合があった。`strokeActiveRef`でストローク内の最初の実変化時のみ1回だけUndoを積むように修正し、`filterChangedTargets()`（新規・テスト追加）で実際にチップが変わるセルのみを対象にした。ストロークの終了（mouseup）は新設の`endStroke()`で`MapCanvas.tsx`から通知する。
+- 矩形塗りつぶし（`rect`ツール）自体は元々`commitRect`でmouseup時に1回だけ`pushUndoState`しており、Undo自体は正しく機能していた。ライブプレビュー枠が無く「今どこが塗られるか」見えなかったのが分かりにくさの一因だったため、`useMultiTileSelect`と同じ`DragRect`/赤枠描画を流用してドラッグ中に範囲を表示するようにした。
+- `paint`/`commitRect`/`endStroke`/`liveRect`を返すようになったため、`MapCanvas.tsx`側で`currentTool`に応じて`useMapCanvas`に渡す`liveSelectionRect`を選択する処理を追加（select→タイル/オブジェクト矩形選択、rect→塗りつぶしプレビュー、それ以外→null）。
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useTilePainting.ts`
 - `src/features/map-editor/hooks/useTilePainting.test.ts`
+- `src/features/map-editor/components/MapCanvas.tsx`
 
 ---
 
