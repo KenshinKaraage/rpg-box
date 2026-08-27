@@ -28,6 +28,8 @@ export interface EditorSlice {
   undo: () => void;
   /** 現在のページを一段階Redo */
   redo: () => void;
+  /** IndexedDBから復元した履歴でページの undo/redo スタックを丸ごと置き換える（UndoHistoryProvider用） */
+  hydratePageHistory: (page: string, undoStack: unknown[], redoStack: unknown[]) => void;
 }
 
 export const createEditorSlice = <T extends EditorSlice>(
@@ -94,5 +96,11 @@ export const createEditorSlice = <T extends EditorSlice>(
       undoStack.push(before);
 
       Object.assign(state, popped);
+    }),
+
+  hydratePageHistory: (page, undoStack, redoStack) =>
+    set((state) => {
+      state.undoStacks[page] = undoStack;
+      state.redoStacks[page] = redoStack;
     }),
 });

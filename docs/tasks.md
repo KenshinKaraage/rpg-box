@@ -873,8 +873,8 @@ export function useAutoSave() {
 
 #### [T026c] Implement per-page undo history
 
-- **ステータス:** [~] 進行中（全主要エディタページへの展開が完了。IndexedDB永続化は未着手）
-- **ブランチ:** -
+- **ステータス:** [~] 進行中（全主要エディタページへの展開・IndexedDB永続化とも完了。チップセットプロパティ編集のみ対象外で残存）
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -887,7 +887,7 @@ export function useAutoSave() {
 - [x] マップエディタのカバー範囲を拡大: マップ追加/複製/削除、レイヤー追加/削除/並び替え/表示切替/チップセット割当、マップ設定（フィールド/値）編集、オブジェクトプロパティパネル（名前/コンポーネント追加・削除・値変更/削除）— いずれも `state.maps` 配下の変更なので同じ `{ maps }` スナップショットで統一的にカバー
 - [x] 連続入力（テキスト/数値フィールドの1文字ごとの`onChange`）が1キー入力ごとに別々のUndoを積んでいた不具合を修正。`MapPropertyPanel.tsx`にフォーカス単位の編集セッション（`editingRef`）を導入し、同一セッション中は最初の変更時のみUndoを積むように変更（フォーカスが外れる/選択オブジェクトが変わるとセッションはリセット）
 - [x] 数値入力欄で全消去すると即座にフォールバック値（0/1等）にスナップされる不具合を修正。`src/features/data-editor/components/fields/NumberFieldEditor.tsx`（ローカル文字列stateを持ち空欄を許容する既存コンポーネント）を`className`/`placeholder`対応に拡張し、マップエディタの全コンポーネントプロパティパネル（Transform/Collider/Sprite/Movement/Trigger/ObjectCanvas/Controller/Variables）の生の`<Input type="number">`をこれに置き換えて統一
-- [ ] ページ切り替え時の履歴永続化（IndexedDB `undoHistory` ストア・`saveUndoHistory`/`loadUndoHistory` は実装済みで未接続。「保存後も履歴維持」要件に対応する後続タスク）
+- [x] ページ切り替え時の履歴永続化（`UndoHistoryProvider.tsx`新設。T021で先行実装されていた`saveUndoHistory`/`loadUndoHistory`をようやく配線し、「保存後も履歴維持」要件に対応）
 - [x] `データ設定`ページ（`/data`）へ展開: データ型/エントリのCRUD、フィールドスキーマ編集、フォーム入力すべてをUndo対象に。共通の `useUndoEditSession`（連続入力バッチ化）・`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`（Ctrl+Z等、独自実装ではなく既存の汎用ショートカット基盤を使用）フックを新設し、他ページからも再利用可能にした
 - [x] `クラス編集`ページ（`/data/classes`）へ展開: クラス追加/複製/削除、フィールド追加/削除、ID/名前/説明/フィールド設定編集をUndo対象に（`ClassEditor.tsx`は`DataTypeEditor.tsx`と同じフィールド編集パターン）
 - [x] `変数編集`ページ（`/data/variables`）へ展開: 変数追加/複製/削除、ID/名前/型/説明/初期値/フィールド設定編集をUndo対象に
@@ -906,6 +906,8 @@ export function useAutoSave() {
 
 - `src/stores/editorSlice.ts`
 - `src/stores/editorSlice.test.ts`
+- `src/components/common/UndoHistoryProvider.tsx`（+test）
+- `src/components/common/AppShell.tsx`
 - `src/stores/mapEditorSlice.ts`
 - `src/features/map-editor/hooks/useTilePainting.ts`
 - `src/features/map-editor/hooks/useObjectPlacement.ts`

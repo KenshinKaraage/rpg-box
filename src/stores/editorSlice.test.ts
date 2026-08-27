@@ -109,6 +109,28 @@ describe('editorSlice', () => {
     expect(get().undoStacks['map']).toHaveLength(1);
   });
 
+  it('hydratePageHistory はページの undo/redo スタックを丸ごと置き換える', () => {
+    const { get } = makeSlice();
+    get().setCurrentPage('map');
+    get().pushUndoState('map', { foo: 'stale' }); // 既存の履歴は上書きされる想定
+
+    get().hydratePageHistory('map', [{ foo: 'loaded-undo' }], [{ foo: 'loaded-redo' }]);
+
+    expect(get().undoStacks['map']).toEqual([{ foo: 'loaded-undo' }]);
+    expect(get().redoStacks['map']).toEqual([{ foo: 'loaded-redo' }]);
+  });
+
+  it('hydratePageHistory は他のページの履歴に影響しない', () => {
+    const { get } = makeSlice();
+    get().setCurrentPage('data');
+    get().pushUndoState('data', { foo: 'data-state' });
+
+    get().hydratePageHistory('map', [{ foo: 'map-loaded' }], []);
+
+    expect(get().undoStacks['data']).toEqual([{ foo: 'data-state' }]);
+    expect(get().undoStacks['map']).toEqual([{ foo: 'map-loaded' }]);
+  });
+
   it('複数フィールドのスナップショットを丸ごと復元できる', () => {
     const { get } = makeSlice();
     get().setCurrentPage('map');
