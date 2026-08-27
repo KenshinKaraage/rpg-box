@@ -879,28 +879,16 @@ export function useAutoSave() {
 
 **完了条件:**
 
-- [x] `src/stores/editorSlice.ts` 作成（design.md#EditorSlice 準拠。ファイル名は当初案の `undoSlice.ts` ではなく design.md の型名に合わせて `editorSlice.ts`）
-- [x] ページごとの履歴スタック管理（`undoStacks`/`redoStacks: Record<string, unknown[]>`、`pushUndoState`/`undo`/`redo` は `Object.assign` によるページ単位の丸ごとスナップショット復元）
-- [x] 最大履歴サイズ設定（100件、requirements.md準拠）
-- [x] テスト追加（`editorSlice.test.ts`）
-- [x] マップエディタを旧・差分方式（`mapEditorSlice.ts` の `undoStack`/`redoStack`/`MapEditAction`）からこの汎用スライスに移行（タイル塗り・オブジェクト追加/削除/移動）
-- [x] マップエディタのカバー範囲を拡大: マップ追加/複製/削除、レイヤー追加/削除/並び替え/表示切替/チップセット割当、マップ設定（フィールド/値）編集、オブジェクトプロパティパネル（名前/コンポーネント追加・削除・値変更/削除）— いずれも `state.maps` 配下の変更なので同じ `{ maps }` スナップショットで統一的にカバー
-- [x] 連続入力（テキスト/数値フィールドの1文字ごとの`onChange`）が1キー入力ごとに別々のUndoを積んでいた不具合を修正。`MapPropertyPanel.tsx`にフォーカス単位の編集セッション（`editingRef`）を導入し、同一セッション中は最初の変更時のみUndoを積むように変更（フォーカスが外れる/選択オブジェクトが変わるとセッションはリセット）
-- [x] 数値入力欄で全消去すると即座にフォールバック値（0/1等）にスナップされる不具合を修正。`src/features/data-editor/components/fields/NumberFieldEditor.tsx`（ローカル文字列stateを持ち空欄を許容する既存コンポーネント）を`className`/`placeholder`対応に拡張し、マップエディタの全コンポーネントプロパティパネル（Transform/Collider/Sprite/Movement/Trigger/ObjectCanvas/Controller/Variables）の生の`<Input type="number">`をこれに置き換えて統一
-- [x] ページ切り替え時の履歴永続化（`UndoHistoryProvider.tsx`新設。T021で先行実装されていた`saveUndoHistory`/`loadUndoHistory`をようやく配線し、「保存後も履歴維持」要件に対応）
-- [x] `データ設定`ページ（`/data`）へ展開: データ型/エントリのCRUD、フィールドスキーマ編集、フォーム入力すべてをUndo対象に。共通の `useUndoEditSession`（連続入力バッチ化）・`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`（Ctrl+Z等、独自実装ではなく既存の汎用ショートカット基盤を使用）フックを新設し、他ページからも再利用可能にした
-- [x] `クラス編集`ページ（`/data/classes`）へ展開: クラス追加/複製/削除、フィールド追加/削除、ID/名前/説明/フィールド設定編集をUndo対象に（`ClassEditor.tsx`は`DataTypeEditor.tsx`と同じフィールド編集パターン）
-- [x] `変数編集`ページ（`/data/variables`）へ展開: 変数追加/複製/削除、ID/名前/型/説明/初期値/フィールド設定編集をUndo対象に
-- [x] `イベントテンプレート`ページ（`/event/templates`）へ展開: テンプレート追加/複製/削除/ID変更、名前・説明編集、アクションブロック・引数の追加削除・フィールド編集をUndo対象に。アクションブロックはマップエディタ/UIエディタとも共有されるため、各ブロックに個別実装せず「配列長の変化」で追加削除（単発）とフィールド編集（連続・バッチ化）を汎用的に判別する方式を採用。`WaitActionBlock.tsx`の数値入力フォールバック不具合も修正（Audio/Camera/Map/Objectの同種不具合は未修正で残存）
-- [x] `スクリプトエディタ`（`/script/events`, `/script/components`）へ展開: 同じ`scripts`ストアを編集するため`'script'`ページキーを共有。スクリプト追加/削除/並び替え、引数/返り値/コンポーネントフィールドの編集をUndo対象に。Monacoエディタ本文はストアへのcommit時点（onChange）のみ編集セッション単位でバッチ化し、Monaco自体のテキストUndo（Ctrl+Z）には関与しない設計
-- [x] `UI画面設計`ページ（`/ui/screens`）へ展開: キャンバス/UIオブジェクト/テンプレート/ファンクションのCRUD、プロパティパネル編集をUndo対象に。要素のドラッグ移動/リサイズ/回転はマップエディタのオブジェクト移動と同じくmouseup時に1回だけ積む方式。未対応: Vertex/AnimationTrack系のネストしたproperty-fieldsエディタ、ActionBlockEditor内部の細粒度編集（follow-up）
-- [x] 全ページ横断で新設した共通フック: `useUndoEditSession`（連続入力のセッション単位バッチ化）、既存の`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`を独自実装せず再利用（CLAUDE.md「ショートカットキーは一元管理」に準拠）
-- [ ] チップセットのプロパティ編集（`updateChipProperty` 等、`/map/data` ページ側）は対象外のまま。同ページに `EditorSlice` を配線する際に合わせて対応
-
-**背景:**
-
-- マップエディタに元々あった `mapEditorSlice.ts` の差分（diff）ベースUndoが、`Component` クラスインスタンスを `structuredClone` しようとして `DataCloneError` で壊れていた。design.md/requirements.md を確認したところ、そもそも仕様は診断分のペー​ジ単位の丸ごとスナップショット方式（`EditorSlice`）であり、既存実装は仕様に準拠していなかったため作り直した。
-- Zustand が immer ミドルウェアを使用しているため、`set()` ごとに状態木は構造的に新しくなる（過去の参照は変化しない）。これによりインメモリ履歴では手動クローンが一切不要になった。
+- [x] `src/stores/editorSlice.ts` 作成（design.md#EditorSlice 準拠）
+- [x] ページごとの履歴スタック管理（`undoStacks`/`redoStacks`、100件上限）
+- [x] テスト追加
+- [x] マップエディタを新スライスに移行（旧 `mapEditorSlice.ts` の差分方式Undoを廃止）
+- [x] マップエディタの対象範囲を拡大（マップ/レイヤー/マップ設定/オブジェクトプロパティ全般）
+- [x] 連続入力の1文字ごとUndo化・数値欄クリア時のフォールバック値スナップ、既知の不具合2件を修正
+- [x] IndexedDBへの履歴永続化（`UndoHistoryProvider.tsx`）
+- [x] `データ設定`/`クラス編集`/`変数編集`/`イベントテンプレート`/`スクリプトエディタ`/`UI画面設計`の各ページへ展開
+- [x] 共通フック `useUndoEditSession`（連続入力のバッチ化）新設
+- [ ] チップセットのプロパティ編集（`/map/data`）は対象外のまま
 
 **関連ファイル:**
 
