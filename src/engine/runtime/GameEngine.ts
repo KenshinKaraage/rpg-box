@@ -75,7 +75,8 @@ export class GameEngine {
   private sharedScriptRunner: ScriptRunner | null = null;
 
   constructor(canvas: HTMLCanvasElement, projectData: ProjectData) {
-    const gl = canvas.getContext('webgl');
+    // antialias:false — MSAAが有効だと隣接タイル境界に半透明の隙間が出ることがある
+    const gl = canvas.getContext('webgl', { antialias: false });
     if (!gl) throw new Error('WebGL not supported');
 
     this.canvas = canvas;
@@ -709,9 +710,11 @@ export class GameEngine {
     // Convert camera center to top-left for renderer
     const halfW = canvas.width / (2 * viewport.zoom);
     const halfH = canvas.height / (2 * viewport.zoom);
+    // x/y は整数ピクセルにスナップする（カメラがプレイヤーを追従して連続的に動くとサブピクセル位置に
+    // なりやすく、タイル境界のAAカバレッジがフレームごとにズレてチラつく隙間の原因になる）
     const renderViewport = {
-      x: (viewport.x - halfW) * viewport.zoom,
-      y: (viewport.y - halfH) * viewport.zoom,
+      x: Math.round((viewport.x - halfW) * viewport.zoom),
+      y: Math.round((viewport.y - halfH) * viewport.zoom),
       zoom: viewport.zoom,
     };
 

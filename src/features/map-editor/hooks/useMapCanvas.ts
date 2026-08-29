@@ -120,7 +120,9 @@ export function useMapCanvas(
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext('webgl');
+    // antialias:false — MSAAが有効だと、隣接タイルの頂点座標が数学的に一致していても
+    // ドローコールをまたいだエッジのカバレッジ計算がズレて境界に半透明の隙間が出ることがある
+    const gl = canvas.getContext('webgl', { antialias: false });
     if (!gl) return;
     glRef.current = gl;
     gl.clearColor(0, 0, 0, 1); // 未描画エリアを黒に
@@ -154,12 +156,17 @@ export function useMapCanvas(
     const mapSize = { w: map.width, h: map.height };
 
     // 投影行列: ワールド座標 → クリップ座標
+    // viewport.x/y は整数ピクセルにスナップしてから使う（サブピクセル位置だとタイル境界のAAカバレッジが
+    // フレームごとに微妙にズレてチラつく隙間の原因になる）。screenToTile 等の入力判定には影響しないよう
+    // 元の viewport state 自体は変更せず、行列計算用にローカルで丸めるだけ
     const z = viewport.zoom;
+    const vx = Math.round(viewport.x);
+    const vy = Math.round(viewport.y);
     const matrix = twgl.m4.ortho(
-      viewport.x / z,
-      (viewport.x + canvas.width) / z,
-      (viewport.y + canvas.height) / z,
-      viewport.y / z,
+      vx / z,
+      (vx + canvas.width) / z,
+      (vy + canvas.height) / z,
+      vy / z,
       -1,
       1
     );

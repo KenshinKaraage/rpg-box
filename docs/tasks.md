@@ -6238,11 +6238,14 @@ Phase 12 の T155「Create PrefabList」+ T156「Create PrefabPreview」が先�
 - [x] 全タイルレイヤーの描画（visible 範囲最適化）
 - [x] ビューポート正射行列の計算
 - [x] `src/engine/rendering/TileRenderer.ts`（エディタと共有、バッチ描画）
+- [x] タイル境界に隙間が出る不具合を修正（WebGLコンテキストに`antialias: false`を指定し、カメラ座標を整数ピクセルにスナップ）
 
 **関連ファイル:**
 
 - `src/engine/runtime/MapRenderer.ts`
 - `src/engine/rendering/TileRenderer.ts`
+- `src/engine/runtime/GameEngine.ts`
+- `src/features/map-editor/hooks/useMapCanvas.ts`
 
 ---
 
