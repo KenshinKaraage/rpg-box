@@ -710,11 +710,9 @@ export class GameEngine {
     // Convert camera center to top-left for renderer
     const halfW = canvas.width / (2 * viewport.zoom);
     const halfH = canvas.height / (2 * viewport.zoom);
-    // x/y は整数ピクセルにスナップする（カメラがプレイヤーを追従して連続的に動くとサブピクセル位置に
-    // なりやすく、タイル境界のAAカバレッジがフレームごとにズレてチラつく隙間の原因になる）
     const renderViewport = {
-      x: Math.round((viewport.x - halfW) * viewport.zoom),
-      y: Math.round((viewport.y - halfH) * viewport.zoom),
+      x: (viewport.x - halfW) * viewport.zoom,
+      y: (viewport.y - halfH) * viewport.zoom,
       zoom: viewport.zoom,
     };
 
