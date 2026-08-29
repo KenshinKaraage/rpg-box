@@ -1401,14 +1401,16 @@ export function useAutoSave() {
 
 - [x] `src/features/data-editor/components/fields/NumberFieldEditor.tsx` 作成
 - [x] 数値入力 UI
-- [x] min/max/step 制約の適用
+- [x] min/max/step 制約の適用（入力途中ではクランプせず、blur確定時にのみ適用。空欄のままblurするとmin、なければ0にフォールバック）
 - [x] インライン バリデーションエラー表示
 - [x] テスト追加
+- [x] マップの幅/高さ入力欄（`MapSettingsEditor.tsx`）を独自clamp処理からこのコンポーネントに置き換え
 
 **関連ファイル:**
 
 - `src/features/data-editor/components/fields/NumberFieldEditor.tsx`
 - `src/features/data-editor/components/fields/NumberFieldEditor.test.tsx`
+- `src/features/map-editor/components/MapSettingsEditor.tsx`
 
 ---
 

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { generateId } from '@/lib/utils';
 import type { GameMap, MapLayer, Chipset } from '@/types/map';
+import { NumberFieldEditor } from '@/features/data-editor/components/fields/NumberFieldEditor';
 import { LayerEditor } from './LayerEditor';
 
 interface MapSettingsEditorProps {
@@ -44,18 +45,14 @@ export function MapSettingsEditor({
     onUpdateMap(map.id, { name: e.target.value });
   };
 
-  const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    if (!isNaN(value)) {
-      onUpdateMap(map.id, { width: Math.max(20, Math.min(999, value)) });
-    }
+  // 幅/高さの範囲クランプ（20〜999、15〜999）は NumberFieldEditor 側で
+  // フォーカスが外れた（確定）時にだけ適用される。入力途中ではクランプしない。
+  const handleWidthChange = (value: number) => {
+    onUpdateMap(map.id, { width: Math.round(value) });
   };
 
-  const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    if (!isNaN(value)) {
-      onUpdateMap(map.id, { height: Math.max(15, Math.min(999, value)) });
-    }
+  const handleHeightChange = (value: number) => {
+    onUpdateMap(map.id, { height: Math.round(value) });
   };
 
   const handleAddLayer = () => {
@@ -118,13 +115,13 @@ export function MapSettingsEditor({
               <Label htmlFor="map-width" className="text-xs text-muted-foreground">
                 幅
               </Label>
-              <Input
+              <NumberFieldEditor
                 id="map-width"
-                type="number"
-                min={20}
-                max={999}
                 value={map.width}
                 onChange={handleWidthChange}
+                min={20}
+                max={999}
+                step={1}
                 data-testid="map-width-input"
               />
             </div>
@@ -132,13 +129,13 @@ export function MapSettingsEditor({
               <Label htmlFor="map-height" className="text-xs text-muted-foreground">
                 高さ
               </Label>
-              <Input
+              <NumberFieldEditor
                 id="map-height"
-                type="number"
-                min={15}
-                max={999}
                 value={map.height}
                 onChange={handleHeightChange}
+                min={15}
+                max={999}
+                step={1}
                 data-testid="map-height-input"
               />
             </div>
