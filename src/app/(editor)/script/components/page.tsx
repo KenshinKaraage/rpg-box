@@ -21,12 +21,12 @@ type RightTab = 'settings' | 'fields';
 
 export default function ComponentScriptPage() {
   const scripts = useStore((state) => state.scripts);
-  const selectedScriptId = useStore((state) => state.selectedScriptId);
+  const selectedScriptId = useStore((state) => state.selectedComponentScriptId);
   const addScript = useStore((state) => state.addScript);
   const updateScript = useStore((state) => state.updateScript);
   const deleteScript = useStore((state) => state.deleteScript);
   const moveScript = useStore((state) => state.moveScript);
-  const selectScript = useStore((state) => state.selectScript);
+  const selectScript = useStore((state) => state.selectComponentScript);
   const seedDefaultComponentScripts = useStore((state) => state.seedDefaultComponentScripts);
   const dataTypes = useStore((state) => state.dataTypes);
   const [rightTab, setRightTab] = useState<RightTab>('settings');
@@ -89,8 +89,9 @@ export default function ComponentScriptPage() {
 
   // Selected script
   const selectedScript = useMemo(
-    () => (selectedScriptId ? (scripts.find((s) => s.id === selectedScriptId) ?? null) : null),
-    [scripts, selectedScriptId]
+    () =>
+      selectedScriptId ? (componentScripts.find((s) => s.id === selectedScriptId) ?? null) : null,
+    [componentScripts, selectedScriptId]
   );
 
   const handleAdd = () => {

@@ -3668,6 +3668,7 @@ export function useAutoSave() {
 - [x] CRUD アクション
 - [x] 階層構造（内部スクリプト）対応
 - [x] テスト追加
+- [x] 選択状態をイベント/コンポーネントページで独立させる（`selectedEventScriptId`/`selectedComponentScriptId`）。単一の`selectedScriptId`共有だと、片方のページで選択したスクリプトがもう片方のページにも残って表示される不具合があった
 
 **関連ファイル:**
 
