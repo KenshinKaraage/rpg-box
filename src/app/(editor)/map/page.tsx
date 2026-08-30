@@ -26,6 +26,7 @@ import { useBlobUrl } from '@/hooks/useBlobUrl';
 import { generateId } from '@/lib/utils';
 import { createDefaultMap } from '@/features/map-editor/utils/createDefaultMap';
 import { copyTiles, pasteTiles, type CopiedTile } from '@/features/map-editor/utils/tileCopyPaste';
+import { resolveDefaultChipsetId } from '@/features/map-editor/utils/resolveDefaultChipset';
 import type { GameMap, Prefab } from '@/types/map';
 import type { ImageMetadata } from '@/types/assets';
 import type { TileCell } from '@/stores/mapEditorSlice';
@@ -114,17 +115,16 @@ export default function MapEditPage() {
     setCurrentPage('map');
   }, [setCurrentPage]);
 
-  // レイヤー切り替え時: 選択チップが新レイヤーのチップセットに含まれなければリセット
+  // レイヤー切り替え時: そのレイヤーで最後に選択していたチップセット（なければ先頭）を選択し直す。
+  // 現在の選択が新レイヤーでも有効かどうかに関わらず、必ず切り替え先レイヤー自身の記憶を優先する
+  // （複数レイヤーが同じチップセットを共有している場合、そのままだと切り替わったように見えないため）
   useEffect(() => {
     if (!selectedLayer) {
       selectChip(null);
       return;
     }
-    const currentChipsetId = selectedChipId?.split(':')[0] ?? null;
-    if (currentChipsetId && !selectedLayer.chipsetIds.includes(currentChipsetId)) {
-      const firstChipsetId = selectedLayer.chipsetIds[0] ?? null;
-      selectChip(firstChipsetId ? `${firstChipsetId}:0` : null);
-    }
+    const nextChipsetId = resolveDefaultChipsetId(selectedLayer);
+    selectChip(nextChipsetId ? `${nextChipsetId}:0` : null);
   }, [selectedLayerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Map handlers ---
@@ -319,6 +319,8 @@ export default function MapEditPage() {
                         chipsetIds: [...layer.chipsetIds, id],
                       });
                     }
+                    // どのチップセットを見ていたかはレイヤーに保存する（Undo対象外の付随情報）
+                    updateLayer(selectedMapId, selectedLayerId, { selectedChipsetId: id });
                   }
                   selectChip(`${id}:0`);
                 }}

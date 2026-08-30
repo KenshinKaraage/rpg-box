@@ -28,6 +28,7 @@ export interface MapLayer {
   type: 'tile' | 'object';
   visible: boolean;
   chipsetIds: string[]; // このレイヤーで使用するチップセットIDの配列
+  selectedChipsetId?: string; // このレイヤーで最後に選択していたチップセットID
   tiles?: string[][]; // tiles[y][x] = "chipsetId:chipIndex" 形式
   objects?: MapObject[];
 }

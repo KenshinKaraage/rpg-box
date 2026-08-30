@@ -4627,10 +4627,13 @@ export function useAutoSave() {
 - [x] `src/app/(editor)/map/page.tsx` 作成
 - [x] ThreeColumnLayout 使用
 - [x] 左: パレット、中央: キャンバス、右: プロパティ
+- [x] レイヤー切り替え時、割当済みチップセットがあればデフォルト選択（未選択のままにならない）。選択中チップセットは`MapLayer.selectedChipsetId`としてレイヤーごとに保存され、再訪問時に復元される
 
 **関連ファイル:**
 
 - `src/app/(editor)/map/page.tsx`
+- `src/types/map.ts`
+- `src/features/map-editor/utils/resolveDefaultChipset.ts`（+test）
 
 ---
 
