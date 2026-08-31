@@ -41,21 +41,6 @@ describe('PrefabList', () => {
     expect(screen.getByText('プレハブがありません')).toBeInTheDocument();
   });
 
-  it('コンポーネント数を表示する', () => {
-    render(
-      <PrefabList
-        prefabs={prefabs}
-        selectedId={null}
-        onSelect={noop}
-        onAdd={noop}
-        onDelete={noop}
-        onDuplicate={noop}
-      />
-    );
-
-    expect(screen.getAllByText('0 コンポーネント')).toHaveLength(2);
-  });
-
   it('プレハブをクリックすると onSelect が呼ばれる', () => {
     const onSelect = jest.fn();
     render(

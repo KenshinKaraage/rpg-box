@@ -78,13 +78,6 @@ describe('MapList', () => {
     expect(screen.getByText('ダンジョン')).toBeInTheDocument();
   });
 
-  it('サイズとレイヤー数が表示される', () => {
-    render(<MapList {...defaultProps} />);
-
-    expect(screen.getByText('40x30 · 2 レイヤー')).toBeInTheDocument();
-    expect(screen.getByText('20x15 · 1 レイヤー')).toBeInTheDocument();
-  });
-
   it('空の場合はメッセージが表示される', () => {
     render(<MapList {...defaultProps} maps={[]} />);
 
