@@ -50,12 +50,8 @@ describe('VariableEditor', () => {
     expect(screen.getByDisplayValue('テスト用の変数です')).toBeInTheDocument();
   });
 
-  it('初期値はデフォルトで折りたたまれており、トグルを開くと表示される', () => {
+  it('初期値は常に表示される（トグルなし）', () => {
     render(<VariableEditor {...defaultProps} />);
-
-    expect(screen.queryByDisplayValue('100')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('初期値'));
 
     expect(screen.getByDisplayValue('100')).toBeInTheDocument();
   });
