@@ -354,7 +354,6 @@ export default function DataPage() {
         left={
           <DataTypeList
             dataTypes={dataTypes}
-            dataEntries={dataEntries}
             selectedId={selectedDataTypeId}
             onSelect={handleSelectDataType}
             onAdd={handleAddDataType}
