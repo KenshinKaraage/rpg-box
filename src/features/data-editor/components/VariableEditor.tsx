@@ -144,7 +144,7 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
   };
 
   return (
-    <form className="space-y-3 p-4" onSubmit={handleSubmit(() => {})} onBlur={endEditSession}>
+    <form className="space-y-4 p-4" onSubmit={handleSubmit(() => {})} onBlur={endEditSession}>
       {/* 変数ID */}
       <div className="space-y-2">
         <Label htmlFor="variableId">変数ID</Label>
