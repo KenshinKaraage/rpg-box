@@ -136,6 +136,15 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
     );
   }
 
+  // fieldType.renderConfig() の onChange（型固有の設定変更、例: 参照クラスやmin/max）
+  const handleFieldTypeConfigChange = (updates: Record<string, unknown>) => {
+    const newFieldType = createFieldTypeInstance(variable.fieldType.type);
+    if (!newFieldType) return;
+    Object.assign(newFieldType, variable.fieldType, updates);
+    beginEditIfNeeded({ variables });
+    onUpdate(variable.id, { fieldType: newFieldType });
+  };
+
   return (
     <form className="space-y-6 p-4" onSubmit={handleSubmit(() => {})} onBlur={endEditSession}>
       {/* 変数ID */}
@@ -193,6 +202,16 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
         </Select>
       </div>
 
+      {/* クラス型の場合: 参照クラス選択を型のすぐ下に表示 */}
+      {watchFieldTypeName === 'class' && (
+        <div className="space-y-2">
+          {variable.fieldType.renderConfig({
+            onChange: handleFieldTypeConfigChange,
+            context: configContext,
+          })}
+        </div>
+      )}
+
       {/* 配列フラグ */}
       <div className="flex items-center space-x-2">
         <Checkbox
@@ -238,82 +257,80 @@ export function VariableEditor({ variable, onUpdate }: VariableEditorProps) {
             初期値
           </Label>
         </div>
-        <div className="mt-2 pl-7">
-          {watchIsArray ? (
-            <div className="space-y-1">
-              {(Array.isArray(watchInitialValue) ? watchInitialValue : []).map(
-                (item: unknown, index: number) => (
-                  <div key={index} className="flex items-start gap-1 rounded border p-2">
-                    <span className="mt-1 w-5 shrink-0 text-center text-xs text-muted-foreground">
-                      {index}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      {variable.fieldType.renderEditor({
-                        value: item,
-                        onChange: (newVal) => {
-                          const arr = [...(watchInitialValue as unknown[])];
-                          arr[index] = newVal;
+        <CollapsibleContent>
+          <div className="mt-2 pl-7">
+            {watchIsArray ? (
+              <div className="space-y-1">
+                {(Array.isArray(watchInitialValue) ? watchInitialValue : []).map(
+                  (item: unknown, index: number) => (
+                    <div key={index} className="flex items-start gap-1 rounded border p-2">
+                      <span className="mt-1 w-5 shrink-0 text-center text-xs text-muted-foreground">
+                        {index}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        {variable.fieldType.renderEditor({
+                          value: item,
+                          onChange: (newVal) => {
+                            const arr = [...(watchInitialValue as unknown[])];
+                            arr[index] = newVal;
+                            setValue('initialValue', arr);
+                            onFieldChange('initialValue', arr);
+                          },
+                        })}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => {
+                          const arr = (watchInitialValue as unknown[]).filter(
+                            (_, i) => i !== index
+                          );
                           setValue('initialValue', arr);
                           onFieldChange('initialValue', arr);
-                        },
-                      })}
+                        }}
+                        aria-label="削除"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => {
-                        const arr = (watchInitialValue as unknown[]).filter((_, i) => i !== index);
-                        setValue('initialValue', arr);
-                        onFieldChange('initialValue', arr);
-                      }}
-                      aria-label="削除"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                )
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={() => {
-                  const arr = [
-                    ...(Array.isArray(watchInitialValue) ? watchInitialValue : []),
-                    variable.fieldType.getDefaultValue(),
-                  ];
-                  setValue('initialValue', arr);
-                  onFieldChange('initialValue', arr);
-                }}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                追加
-              </Button>
-            </div>
-          ) : (
-            variable.fieldType.renderEditor({
-              value: watchInitialValue,
-              onChange: (value) => {
-                setValue('initialValue', value);
-                onFieldChange('initialValue', value);
-              },
-            })
-          )}
-        </div>
-        <CollapsibleContent>
-          <div className="mt-3 space-y-3 rounded-md border bg-muted/30 p-3 ml-7">
-            {variable.fieldType.renderConfig({
-              onChange: (updates) => {
-                const newFieldType = createFieldTypeInstance(variable.fieldType.type);
-                if (!newFieldType) return;
-                Object.assign(newFieldType, variable.fieldType, updates);
-                beginEditIfNeeded({ variables });
-                onUpdate(variable.id, { fieldType: newFieldType });
-              },
-              context: configContext,
-            })}
+                  )
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    const arr = [
+                      ...(Array.isArray(watchInitialValue) ? watchInitialValue : []),
+                      variable.fieldType.getDefaultValue(),
+                    ];
+                    setValue('initialValue', arr);
+                    onFieldChange('initialValue', arr);
+                  }}
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  追加
+                </Button>
+              </div>
+            ) : (
+              variable.fieldType.renderEditor({
+                value: watchInitialValue,
+                onChange: (value) => {
+                  setValue('initialValue', value);
+                  onFieldChange('initialValue', value);
+                },
+              })
+            )}
           </div>
+          {watchFieldTypeName !== 'class' && (
+            <div className="mt-3 space-y-3 rounded-md border bg-muted/30 p-3 ml-7">
+              {variable.fieldType.renderConfig({
+                onChange: handleFieldTypeConfigChange,
+                context: configContext,
+              })}
+            </div>
+          )}
         </CollapsibleContent>
       </Collapsible>
     </form>

@@ -5,7 +5,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { VariableEditor } from './VariableEditor';
 import { useStore } from '@/stores';
 import type { Variable } from '@/types/variable';
-import { NumberFieldType } from '@/types/fields';
+import { NumberFieldType, ClassFieldType } from '@/types/fields';
 
 // ResizeObserver mock for Radix UI components
 global.ResizeObserver = class ResizeObserver {
@@ -47,8 +47,17 @@ describe('VariableEditor', () => {
 
     expect(screen.getByDisplayValue('var_001')).toBeInTheDocument();
     expect(screen.getByDisplayValue('テスト変数')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('100')).toBeInTheDocument();
     expect(screen.getByDisplayValue('テスト用の変数です')).toBeInTheDocument();
+  });
+
+  it('初期値はデフォルトで折りたたまれており、トグルを開くと表示される', () => {
+    render(<VariableEditor {...defaultProps} />);
+
+    expect(screen.queryByDisplayValue('100')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('初期値'));
+
+    expect(screen.getByDisplayValue('100')).toBeInTheDocument();
   });
 
   it('変数名を変更するとonUpdateが呼ばれる', async () => {
@@ -81,6 +90,22 @@ describe('VariableEditor', () => {
         initialValue: [],
       });
     });
+  });
+
+  it('クラス型の場合、参照クラス選択が型のすぐ下に（トグルを開かなくても）表示される', () => {
+    const classVariable: Variable = {
+      ...mockVariable,
+      fieldType: new ClassFieldType(),
+    };
+    render(<VariableEditor {...defaultProps} variable={classVariable} />);
+
+    expect(screen.getByText('参照クラス')).toBeInTheDocument();
+  });
+
+  it('数値型の場合は参照クラス選択が表示されない', () => {
+    render(<VariableEditor {...defaultProps} />);
+
+    expect(screen.queryByText('参照クラス')).not.toBeInTheDocument();
   });
 
   describe('Undo連続入力のバッチ化', () => {
