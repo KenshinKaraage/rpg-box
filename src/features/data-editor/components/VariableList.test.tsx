@@ -48,14 +48,6 @@ describe('VariableList', () => {
     expect(screen.getByText('アイテムリスト')).toBeInTheDocument();
   });
 
-  it('型の表示が正しい', () => {
-    render(<VariableList {...defaultProps} />);
-
-    // FieldTypeのlabelが表示される
-    expect(screen.getByText('数値')).toBeInTheDocument();
-    expect(screen.getByText('文字列[]')).toBeInTheDocument();
-  });
-
   it('空の場合はメッセージが表示される', () => {
     render(<VariableList {...defaultProps} variables={[]} />);
 

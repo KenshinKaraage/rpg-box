@@ -873,39 +873,29 @@ export function useAutoSave() {
 
 #### [T026c] Implement per-page undo history
 
-- **ステータス:** [~] 進行中（全主要エディタページへの展開が完了。IndexedDB永続化は未着手）
-- **ブランチ:** -
+- **ステータス:** [~] 進行中（全主要エディタページへの展開・IndexedDB永続化とも完了。チップセットプロパティ編集のみ対象外で残存）
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
 
-- [x] `src/stores/editorSlice.ts` 作成（design.md#EditorSlice 準拠。ファイル名は当初案の `undoSlice.ts` ではなく design.md の型名に合わせて `editorSlice.ts`）
-- [x] ページごとの履歴スタック管理（`undoStacks`/`redoStacks: Record<string, unknown[]>`、`pushUndoState`/`undo`/`redo` は `Object.assign` によるページ単位の丸ごとスナップショット復元）
-- [x] 最大履歴サイズ設定（100件、requirements.md準拠）
-- [x] テスト追加（`editorSlice.test.ts`）
-- [x] マップエディタを旧・差分方式（`mapEditorSlice.ts` の `undoStack`/`redoStack`/`MapEditAction`）からこの汎用スライスに移行（タイル塗り・オブジェクト追加/削除/移動）
-- [x] マップエディタのカバー範囲を拡大: マップ追加/複製/削除、レイヤー追加/削除/並び替え/表示切替/チップセット割当、マップ設定（フィールド/値）編集、オブジェクトプロパティパネル（名前/コンポーネント追加・削除・値変更/削除）— いずれも `state.maps` 配下の変更なので同じ `{ maps }` スナップショットで統一的にカバー
-- [x] 連続入力（テキスト/数値フィールドの1文字ごとの`onChange`）が1キー入力ごとに別々のUndoを積んでいた不具合を修正。`MapPropertyPanel.tsx`にフォーカス単位の編集セッション（`editingRef`）を導入し、同一セッション中は最初の変更時のみUndoを積むように変更（フォーカスが外れる/選択オブジェクトが変わるとセッションはリセット）
-- [x] 数値入力欄で全消去すると即座にフォールバック値（0/1等）にスナップされる不具合を修正。`src/features/data-editor/components/fields/NumberFieldEditor.tsx`（ローカル文字列stateを持ち空欄を許容する既存コンポーネント）を`className`/`placeholder`対応に拡張し、マップエディタの全コンポーネントプロパティパネル（Transform/Collider/Sprite/Movement/Trigger/ObjectCanvas/Controller/Variables）の生の`<Input type="number">`をこれに置き換えて統一
-- [ ] ページ切り替え時の履歴永続化（IndexedDB `undoHistory` ストア・`saveUndoHistory`/`loadUndoHistory` は実装済みで未接続。「保存後も履歴維持」要件に対応する後続タスク）
-- [x] `データ設定`ページ（`/data`）へ展開: データ型/エントリのCRUD、フィールドスキーマ編集、フォーム入力すべてをUndo対象に。共通の `useUndoEditSession`（連続入力バッチ化）・`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`（Ctrl+Z等、独自実装ではなく既存の汎用ショートカット基盤を使用）フックを新設し、他ページからも再利用可能にした
-- [x] `クラス編集`ページ（`/data/classes`）へ展開: クラス追加/複製/削除、フィールド追加/削除、ID/名前/説明/フィールド設定編集をUndo対象に（`ClassEditor.tsx`は`DataTypeEditor.tsx`と同じフィールド編集パターン）
-- [x] `変数編集`ページ（`/data/variables`）へ展開: 変数追加/複製/削除、ID/名前/型/説明/初期値/フィールド設定編集をUndo対象に
-- [x] `イベントテンプレート`ページ（`/event/templates`）へ展開: テンプレート追加/複製/削除/ID変更、名前・説明編集、アクションブロック・引数の追加削除・フィールド編集をUndo対象に。アクションブロックはマップエディタ/UIエディタとも共有されるため、各ブロックに個別実装せず「配列長の変化」で追加削除（単発）とフィールド編集（連続・バッチ化）を汎用的に判別する方式を採用。`WaitActionBlock.tsx`の数値入力フォールバック不具合も修正（Audio/Camera/Map/Objectの同種不具合は未修正で残存）
-- [x] `スクリプトエディタ`（`/script/events`, `/script/components`）へ展開: 同じ`scripts`ストアを編集するため`'script'`ページキーを共有。スクリプト追加/削除/並び替え、引数/返り値/コンポーネントフィールドの編集をUndo対象に。Monacoエディタ本文はストアへのcommit時点（onChange）のみ編集セッション単位でバッチ化し、Monaco自体のテキストUndo（Ctrl+Z）には関与しない設計
-- [x] `UI画面設計`ページ（`/ui/screens`）へ展開: キャンバス/UIオブジェクト/テンプレート/ファンクションのCRUD、プロパティパネル編集をUndo対象に。要素のドラッグ移動/リサイズ/回転はマップエディタのオブジェクト移動と同じくmouseup時に1回だけ積む方式。未対応: Vertex/AnimationTrack系のネストしたproperty-fieldsエディタ、ActionBlockEditor内部の細粒度編集（follow-up）
-- [x] 全ページ横断で新設した共通フック: `useUndoEditSession`（連続入力のセッション単位バッチ化）、既存の`useKeyboardShortcut`+`CommonShortcuts.undo/redo/redoAlt`を独自実装せず再利用（CLAUDE.md「ショートカットキーは一元管理」に準拠）
-- [ ] チップセットのプロパティ編集（`updateChipProperty` 等、`/map/data` ページ側）は対象外のまま。同ページに `EditorSlice` を配線する際に合わせて対応
-
-**背景:**
-
-- マップエディタに元々あった `mapEditorSlice.ts` の差分（diff）ベースUndoが、`Component` クラスインスタンスを `structuredClone` しようとして `DataCloneError` で壊れていた。design.md/requirements.md を確認したところ、そもそも仕様は診断分のペー​ジ単位の丸ごとスナップショット方式（`EditorSlice`）であり、既存実装は仕様に準拠していなかったため作り直した。
-- Zustand が immer ミドルウェアを使用しているため、`set()` ごとに状態木は構造的に新しくなる（過去の参照は変化しない）。これによりインメモリ履歴では手動クローンが一切不要になった。
+- [x] `src/stores/editorSlice.ts` 作成（design.md#EditorSlice 準拠）
+- [x] ページごとの履歴スタック管理（`undoStacks`/`redoStacks`、100件上限）
+- [x] テスト追加
+- [x] マップエディタを新スライスに移行（旧 `mapEditorSlice.ts` の差分方式Undoを廃止）
+- [x] マップエディタの対象範囲を拡大（マップ/レイヤー/マップ設定/オブジェクトプロパティ全般）
+- [x] 連続入力の1文字ごとUndo化・数値欄クリア時のフォールバック値スナップ、既知の不具合2件を修正
+- [x] IndexedDBへの履歴永続化（`UndoHistoryProvider.tsx`）
+- [x] `データ設定`/`クラス編集`/`変数編集`/`イベントテンプレート`/`スクリプトエディタ`/`UI画面設計`の各ページへ展開
+- [x] 共通フック `useUndoEditSession`（連続入力のバッチ化）新設
+- [ ] チップセットのプロパティ編集（`/map/data`）は対象外のまま
 
 **関連ファイル:**
 
 - `src/stores/editorSlice.ts`
 - `src/stores/editorSlice.test.ts`
+- `src/components/common/UndoHistoryProvider.tsx`（+test）
+- `src/components/common/AppShell.tsx`
 - `src/stores/mapEditorSlice.ts`
 - `src/features/map-editor/hooks/useTilePainting.ts`
 - `src/features/map-editor/hooks/useObjectPlacement.ts`
@@ -1128,10 +1118,15 @@ export function useAutoSave() {
 - [x] スタック表示（複数同時表示）
 - [x] テスト追加
 
+**注記:**
+
+- コンポーネント自体は完了していたが、`ToastProvider`がどこにもマウントされておらず実際には未使用だった（他画面に`// TODO: toast通知（実装後に追加）`という書きかけコメントが残っていた）。T171cのマップタイルコピーで初めて`AppShell.tsx`に`ToastProvider`を配線し、実際の利用箇所ができた。
+
 **関連ファイル:**
 
 - `src/components/common/Toast.tsx`
 - `src/components/common/Toast.test.tsx`
+- `src/components/common/AppShell.tsx`
 
 ---
 
@@ -1406,14 +1401,16 @@ export function useAutoSave() {
 
 - [x] `src/features/data-editor/components/fields/NumberFieldEditor.tsx` 作成
 - [x] 数値入力 UI
-- [x] min/max/step 制約の適用
+- [x] min/max/step 制約の適用（入力途中ではクランプせず、blur確定時にのみ適用。空欄のままblurするとmin、なければ0にフォールバック）
 - [x] インライン バリデーションエラー表示
 - [x] テスト追加
+- [x] マップの幅/高さ入力欄（`MapSettingsEditor.tsx`）を独自clamp処理からこのコンポーネントに置き換え
 
 **関連ファイル:**
 
 - `src/features/data-editor/components/fields/NumberFieldEditor.tsx`
 - `src/features/data-editor/components/fields/NumberFieldEditor.test.tsx`
+- `src/features/map-editor/components/MapSettingsEditor.tsx`
 
 ---
 
@@ -1824,6 +1821,8 @@ export function useAutoSave() {
 - [x] 配列フラグ
 - [x] 初期値設定
 - [x] テスト追加
+- [x] クラス型選択時、参照クラス選択欄を型のすぐ下に常時表示（従来は折りたたみ内に埋もれていた）
+- [x] 「初期値」トグルの不具合修正: 対象のdivが`CollapsibleContent`の外にあり常時表示されていたのを、正しく開閉されるように修正
 
 **関連ファイル:**
 
@@ -2763,6 +2762,7 @@ export function useAutoSave() {
 - [x] 追加/削除ボタン
 - [ ] ドラッグ&ドロップ並び替え（後続タスクで対応）
 - [x] テスト追加
+- [x] 各項目に枠（border-2）を表示、「Xフィールド・Xエントリ」の件数表示は削除
 
 **関連ファイル:**
 
@@ -3671,6 +3671,7 @@ export function useAutoSave() {
 - [x] CRUD アクション
 - [x] 階層構造（内部スクリプト）対応
 - [x] テスト追加
+- [x] 選択状態をイベント/コンポーネントページで独立させる（`selectedEventScriptId`/`selectedComponentScriptId`）。単一の`selectedScriptId`共有だと、片方のページで選択したスクリプトがもう片方のページにも残って表示される不具合があった
 
 **関連ファイル:**
 
@@ -4629,10 +4630,13 @@ export function useAutoSave() {
 - [x] `src/app/(editor)/map/page.tsx` 作成
 - [x] ThreeColumnLayout 使用
 - [x] 左: パレット、中央: キャンバス、右: プロパティ
+- [x] レイヤー切り替え時、割当済みチップセットがあればデフォルト選択（未選択のままにならない）。選択中チップセットは`MapLayer.selectedChipsetId`としてレイヤーごとに保存され、再訪問時に復元される
 
 **関連ファイル:**
 
 - `src/app/(editor)/map/page.tsx`
+- `src/types/map.ts`
+- `src/features/map-editor/utils/resolveDefaultChipset.ts`（+test）
 
 ---
 
@@ -4661,22 +4665,36 @@ export function useAutoSave() {
 
 #### [T161] [US13] Create ChipPalette
 
-- **ステータス:** [~] 進行中
-- **ブランチ:** feature/T242-chipset-editor-ui
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
 
 - [x] `src/features/map-editor/components/ChipPalette.tsx` 作成
 - [x] チップセット画像からタイル選択（単一クリックのみ）
-- [ ] 選択範囲表示（未実装、単一選択のハイライトのみ）
-- [ ] 複数タイル選択（スタンプ用）（未実装、T171b と重複）
-- [x] テスト追加
+- [x] 選択範囲表示（ドラッグ範囲・確定済み範囲選択・単一選択いずれもハイライト、単一選択は従来通り1マス分の矩形）
+- [x] 複数タイル選択（スタンプ用）: mousedown/mousemove/mouseupでドラッグ範囲選択→`onSelectRange`で`ChipRangeSelection`（`types/map.ts`に追加）を返す。1マスのみのドラッグは従来通り`onSelectChip`（単発クリック互換）。オートタイルは列方向のみ（行は常に0）で範囲確定。`mapEditorSlice.ts`に`selectedChipRange`/`selectChipRange`を追加し、単一選択とは排他的に管理
+- [x] テスト追加（範囲選択4件を追加、既存クリック系テストは mousedown+mouseup 方式に変更）
+
+**注記:**
+
+- `ChipRangeSelection`に選択範囲内の各セルのチップIDを行優先で並べた`cells: string[]`を追加（`ChipPalette.tsx`のドラッグ確定時に計算）。これにより`useTilePainting.ts`の`getTilesToPaint`がチップセット画像の情報を持たなくても範囲をそのまま消費でき、ペンツールで`selectedChipRange`があればアンカー位置起点で範囲分のタイルを一括配置するように対応（マップ範囲外のセルは自動でクリップ）。これでパレットで複数タイル選択→キャンバスにスタンプ配置、まで一通り動作する。
+- キャンバス側で既存タイルを範囲選択する機能（T171b）や矩形コピペ（T171c）は当時未実装だったが、その後すべて完了（T171a含む）。
+- あわせて、`public/assets/images/map_chip/`のデフォルトマップチップ素材が新しいpipoya形式（`[A]*_pipo.png`＝オートタイル、`[Base]BaseChip_pipo.png`＝通常チップ）に差し替わったため、`src/lib/defaultAssets.ts`のマップチップ一覧を新ファイルに合わせて更新
 
 **関連ファイル:**
 
 - `src/features/map-editor/components/ChipPalette.tsx`
 - `src/features/map-editor/components/ChipPalette.test.tsx`
+- `src/types/map.ts`
+- `src/stores/mapEditorSlice.ts`
+- `src/stores/mapEditorSlice.test.ts`
+- `src/features/map-editor/hooks/useTilePainting.ts`
+- `src/features/map-editor/hooks/useTilePainting.test.ts`
+- `src/app/(editor)/map/page.tsx`
+- `src/lib/defaultAssets.ts`
+- `src/lib/importDefaultAssets.test.ts`
 
 ---
 
@@ -4769,7 +4787,7 @@ export function useAutoSave() {
 #### [T166] [US13] Create useMapCanvas hook
 
 - **ステータス:** [x] 完了
-- **ブランチ:** feature/T242-chipset-editor-ui
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -4778,6 +4796,12 @@ export function useAutoSave() {
 - [x] Canvas 初期化
 - [x] レンダリングループ
 - [x] リサイズ対応
+- [x] ホバー中タイルのプレビュー枠表示（`hoverTile`を白半透明の枠で描画。ライブドラッグ中のみ非表示にして選択枠と重ならないようにする）
+- [x] 各種オーバーレイのz順序を明示的に整理（下から: タイル→グリッド→オブジェクト（青枠）→選択の赤枠（ライブ/確定）→ホバーの白枠）
+
+**注記:**
+
+- ホバー枠は`pushFrameRect`ヘルパー（T171bで追加）を再利用。以前は選択の赤枠をオブジェクト描画より前に描いていたため、確定済みタイル選択がある状態だとオブジェクトがそれを覆い隠し、かつホバー枠も（選択の有無に関わらず）実質出なくなるバグがあった。オブジェクト描画→選択の赤枠→ホバーの白枠の順に描き直すことで、複数選択ドラッグ中の矩形もオブジェクトより手前に見えるように修正。
 
 **関連ファイル:**
 
@@ -4789,7 +4813,7 @@ export function useAutoSave() {
 #### [T167] [US13] Create useTilePainting hook
 
 - **ステータス:** [x] 完了
-- **ブランチ:** feature/T242-chipset-editor-ui
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -4797,20 +4821,28 @@ export function useAutoSave() {
 - [x] `src/features/map-editor/hooks/useTilePainting.ts` 作成
 - [x] マウスイベント処理
 - [x] ツール別の描画処理
-- [x] アンドゥ対応
+- [x] アンドゥ対応（ペン/消しゴムの一筆・矩形塗りつぶし1回ともに単一のUndoエントリになるよう修正。下記注記参照）
+- [x] 矩形塗りつぶしのライブプレビュー枠（ドラッグ中、タイル/オブジェクト選択と同じ赤枠の仕組みで塗りつぶし範囲を表示）
 - [x] テスト追加
+
+**注記:**
+
+- **不具合修正**: ペン/消しゴムでドラッグして塗る際、`paint()`が mousemove のたびに無条件で`pushUndoState`していたため、1回の一筆（ストローク）が数十〜100件（`MAX_HISTORY`上限）のUndo履歴を消費し、Ctrl+Zを1回押しても実質何も戻らないように見える不具合があった。`strokeActiveRef`でストローク内の最初の実変化時のみ1回だけUndoを積むように修正し、`filterChangedTargets()`（新規・テスト追加）で実際にチップが変わるセルのみを対象にした。ストロークの終了（mouseup）は新設の`endStroke()`で`MapCanvas.tsx`から通知する。
+- 矩形塗りつぶし（`rect`ツール）自体は元々`commitRect`でmouseup時に1回だけ`pushUndoState`しており、Undo自体は正しく機能していた。ライブプレビュー枠が無く「今どこが塗られるか」見えなかったのが分かりにくさの一因だったため、`useMultiTileSelect`と同じ`DragRect`/赤枠描画を流用してドラッグ中に範囲を表示するようにした。
+- `paint`/`commitRect`/`endStroke`/`liveRect`を返すようになったため、`MapCanvas.tsx`側で`currentTool`に応じて`useMapCanvas`に渡す`liveSelectionRect`を選択する処理を追加（select→タイル/オブジェクト矩形選択、rect→塗りつぶしプレビュー、それ以外→null）。
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useTilePainting.ts`
 - `src/features/map-editor/hooks/useTilePainting.test.ts`
+- `src/features/map-editor/components/MapCanvas.tsx`
 
 ---
 
 #### [T168] [US13] Create useObjectPlacement hook
 
 - **ステータス:** [x] 完了
-- **ブランチ:** main
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -4820,11 +4852,21 @@ export function useAutoSave() {
 - [x] switch で currentTool を最優先判定
 - [x] ドラッグ移動（select ツール）
 - [x] ダブルクリックでイベントモーダル（T172 と連携）
+- [x] オブジェクトの矩形選択（`select`ツールで空マスからドラッグ→範囲内のオブジェクトをまとめて選択。タイル側の`useMultiTileSelect`と同じ`cellsInRect`/ライブプレビュー方式を再利用）
+- [x] Shift+クリックで選択の追加/除外トグル、Shift+矩形選択で既存選択にマージ
+
+**注記:**
+
+- 選択状態は`mapSlice.ts`の`selectedObjectId`（単一・プロパティパネル用の主選択）と`selectedObjectIds: string[]`（複数選択・ハイライト/削除用）の2つで管理。`selectObject(id)`は`selectedObjectIds`も`[id]`に同期し、`selectObjects(ids)`は`selectedObjectId`を配列の最後の要素に同期するため、既存の単一選択系コードは変更なしで動作する。
+- 複数選択したオブジェクトをまとめてドラッグ移動する機能は未実装（通常クリックは常に単独選択に切り替わってからドラッグする）。複数選択後にDelete/Backspaceで一括削除は対応済み（`map/page.tsx`の`handleDeleteSelection`）。プロパティパネルは2件以上選択時「N件選択中」の表示のみで、複数オブジェクトの共通プロパティ一括編集（ui-flow-design.md記載の仕様）は未対応 — 将来対応。
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useObjectPlacement.ts`
 - `src/features/map-editor/components/MapCanvas.tsx`
+- `src/stores/mapSlice.ts`
+- `src/stores/mapSlice.test.ts`
+- `src/app/(editor)/map/page.tsx`
 
 ---
 
@@ -4895,8 +4937,8 @@ export function useAutoSave() {
 
 #### [T171a] [US13] Implement map editor shortcuts
 
-- **ステータス:** [~] 進行中
-- **ブランチ:** feature/T242-chipset-editor-ui
+- **ステータス:** [x] 完了
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
@@ -4905,56 +4947,83 @@ export function useAutoSave() {
 - [x] B: ペンツール
 - [x] E: 消しゴム
 - [x] G: 塗りつぶし
-- [ ] 1-9: レイヤー切り替え（未実装）
-- [ ] Ctrl+C/V: コピー/ペースト（未実装、T171c と重複）
-- [ ] Delete: 選択削除（未実装）
-- [x] テスト追加（B/E/Ctrl+Z のみカバー）
+- [x] Ctrl+C/V: コピー/ペースト（T171c 側で実装。`onCopy`/`onPaste` を追加し、実処理は `map/page.tsx` から渡す）
+- [x] Delete/Backspace: 選択削除（`onDelete` を追加。`map/page.tsx`の`handleDeleteSelection`で`tileSelection`(T171b)の各セルを`setTile(..., '')`でクリアし、Undo登録後に選択解除）
+- [x] テスト追加（B/E/Ctrl+Z/Ctrl+C/Ctrl+V/Delete/Backspace をカバー）
+
+**注記:**
+
+- 1-9キーでのレイヤー切り替えは現時点では不要と判断し、完了条件から除外（対象外）。必要になれば別タスクとして起こす。
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useMapShortcuts.ts`
 - `src/features/map-editor/hooks/useMapShortcuts.test.ts`
+- `src/app/(editor)/map/page.tsx`
+- `src/stores/mapEditorSlice.ts`
 
 ---
 
 #### [T171b] [US13] Implement multi-tile selection
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/hooks/useMultiTileSelect.ts` 作成
-- [ ] 範囲選択
-- [ ] Shift+クリックで追加選択
-- [ ] 選択範囲のハイライト
-- [ ] テスト追加
+- [x] `src/features/map-editor/hooks/useMultiTileSelect.ts` 作成
+- [x] 範囲選択（`select`ツールでマップキャンバス上をドラッグ。`useTilePainting`の`rect`ツールと同じ mousedown/mouseup パターン）
+- [x] Shift+クリックで追加選択（Shift押下でドラッグすると既存の`tileSelection`とマージ、Shiftなしは置き換え）
+- [x] 選択範囲のハイライト（ドラッグ中・確定後とも赤枠。ChipPaletteの`liveDrag`と同じ仕組みでリアルタイム描画）
+- [x] テスト追加（`cellsInRect`/`mergeCells`の純粋関数をカバー。ストア依存の副作用部分は`useObjectPlacement`等の既存フックと同様、フック単体テストは対象外）
+
+**注記:**
+
+- 選択状態は`mapEditorSlice.ts`の`tileSelection: {layerId, cells}`で管理。パレット側の`selectedChipRange`（T161、スタンプ用）とは別概念。
+- `MapCanvas.tsx`で`currentTool === 'select'`かつタイルレイヤーのときのみ本フックを使用（オブジェクトレイヤーは既存の`useObjectPlacement`の`select`が引き続き担当）。
+- ドラッグ中のライブプレビューは`useMultiTileSelect.ts`内のローカル`useState`（`liveRect`）で管理し、`useMapCanvas(canvasRef, mapId, liveSelectionRect)`に渡してWebGLで赤枠（4枚の塗りつぶし矩形、`pushFrameRect`ヘルパー）として描画。確定後もドラッグ中と見た目を統一するため、オレンジ半透明のセル塗りつぶしはやめ、`tileSelection.cells`のバウンディングボックスを同じ赤枠で描画する方式に変更（Shiftで非連続領域を追加選択した場合は外接矩形になる点に注意）。
 
 **関連ファイル:**
 
 - `src/features/map-editor/hooks/useMultiTileSelect.ts`
 - `src/features/map-editor/hooks/useMultiTileSelect.test.ts`
+- `src/stores/mapEditorSlice.ts`
+- `src/stores/mapEditorSlice.test.ts`
+- `src/features/map-editor/components/MapCanvas.tsx`
+- `src/features/map-editor/hooks/useMapCanvas.ts`
 
 ---
 
 #### [T171c] [US13] Implement tile copy/paste
 
-- **ステータス:** [ ] 未着手
-- **ブランチ:** -
+- **ステータス:** [x] 完了
+- **ブランチ:** fix/T263-T264-hamburger-and-audio-fixes
 - **PR:** -
 
 **完了条件:**
 
-- [ ] `src/features/map-editor/utils/tileCopyPaste.ts` 作成
-- [ ] 選択範囲のコピー
-- [ ] オフセット付きペースト
-- [ ] テスト追加
+- [x] `src/features/map-editor/utils/tileCopyPaste.ts` 作成
+- [x] 選択範囲のコピー（`copyTiles(tiles, cells)`: 選択範囲の左上を原点とした相対座標`{dx,dy,chipId}`に変換）
+- [x] オフセット付きペースト（`pasteTiles(copied, anchor, mapWidth, mapHeight)`: 任意のanchor基準で配置、マップ範囲外は除外）
+- [x] テスト追加
+
+**注記:**
+
+- Ctrl+C/Ctrl+V を`useMapShortcuts`経由で配線（T171aのCtrl+C/V項目と重複するため、あわせて完了扱いに更新）。`map/page.tsx`側でコピー元は`tileSelection.layerId`のタイル、貼り付け先は現在アクティブなレイヤー。
+- ペースト位置は現在のマウスカーソル位置（`mapEditorSlice.ts`の`hoverTile`、`MapCanvas.tsx`のmousemoveで常時更新）を左上として貼り付け。カーソルがキャンバス外なら元のコピー範囲の左上にフォールバック。`hoverTile`は`map/page.tsx`側では`useStore.getState()`で都度読むだけ（購読しない）にして、マウス移動のたびにページ全体が再レンダーされないようにしている。
+- コピー成功時は`useToast()`（T028で実装済みだが未配線だった`ToastProvider`/`Toast.tsx`）で「Nマスをコピーしました」という成功トーストを表示。`AppShell.tsx`に`ToastProvider`を追加してアプリ全体で使えるようにした（従来はどこにもマウントされておらず実質未使用だった）。
 
 **関連ファイル:**
 
 - `src/features/map-editor/utils/tileCopyPaste.ts`
 - `src/features/map-editor/utils/tileCopyPaste.test.ts`
+- `src/features/map-editor/hooks/useMapShortcuts.ts`
+- `src/features/map-editor/hooks/useMapShortcuts.test.ts`
+- `src/app/(editor)/map/page.tsx`
+- `src/app/(editor)/map/page.test.tsx`
+- `src/components/common/AppShell.tsx`
+- `src/stores/mapEditorSlice.ts`
 
 ---
 
@@ -6178,11 +6247,14 @@ Phase 12 の T155「Create PrefabList」+ T156「Create PrefabPreview」が先�
 - [x] 全タイルレイヤーの描画（visible 範囲最適化）
 - [x] ビューポート正射行列の計算
 - [x] `src/engine/rendering/TileRenderer.ts`（エディタと共有、バッチ描画）
+- [x] タイル境界に隙間が出る不具合を修正（WebGLコンテキストに`antialias: false`を指定）
 
 **関連ファイル:**
 
 - `src/engine/runtime/MapRenderer.ts`
 - `src/engine/rendering/TileRenderer.ts`
+- `src/engine/runtime/GameEngine.ts`
+- `src/features/map-editor/hooks/useMapCanvas.ts`
 
 ---
 
@@ -7661,11 +7733,26 @@ Phase 12 の T155「Create PrefabList」+ T156「Create PrefabPreview」が先�
 - [x] チップ表示数を画像サイズ÷タイルサイズで動的に計算（固定64→動的）
 - [x] スプライト表示確認用テストページ追加（`/test/sprite`）
 
+**追加改善（マップデータページでの操作性）:**
+
+右カラム（`w-inspector`、300px）が縦にも狭く、チップグリッド＋プロパティフォームが窮屈だったため、design.md/requirements.mdの3カラム構成から意図的に外れ、「右カラムでの直接編集」と「モーダルでの編集」の両方を使えるようにした（どちらか一方に統一はしない）。
+
+- [x] 右カラム（チップ一覧タブ）: 名前・画像・タイルサイズ〜チップグリッドまでを1つのスクロール領域にまとめ、選択中チップの`ChipPropertyEditor`はその**下に固定表示**（`shrink-0`、スクロールしても位置が変わらない）。グリッド単体の独立スクロールはやめ、右カラム全体が1つのスクロールになるよう変更
+- [x] グリッド上のクリック挙動: 未選択のチップをクリック＝選択、**既に選択中のチップを再度クリック**＝選択を維持したまま`passable`（通行可能）をその場でトグル。右クリックでのトグルは廃止（左クリックのみに統一）
+- [x] 「編集」ボタン（チップ一覧ラベルの隣）: クリックすると`Modal`（`size="xl"`, 800px, `max-h-[70vh]`）が開き、左にチップグリッド・右に選択中チップの`ChipPropertyEditor`を並べたレイアウトで編集できる。右カラムが窮屈なときの代替手段で、右カラムでの直接編集と排他ではない（同じ`selectedChipIndex`/`onUpdateChipProperty`を共有するので、どちらで編集しても即座にもう片方にも反映される）
+- [x] モーダルはチップ未選択でも開ける（モーダル内のグリッドからチップを選べるため、「編集」ボタンは常時有効）
+
+**注記:**
+
+- モーダルは`chipset !== null`であれば`open`可能（`selectedChipIndex`の有無では制御しない）
+- チップセット切り替え・新規追加時（`handleSelectChipset`/`handleAddChipset`）はモーダルを閉じ、選択もクリアする（開いたまま別チップセットの中身が表示され続けるのを防止）
+
 **関連ファイル:**
 
 - `src/features/data-editor/components/fields/ImageFieldEditor.tsx`
 - `src/types/fields/ImageFieldType.tsx`
 - `src/features/map-editor/components/ChipsetEditor.tsx`
+- `src/features/map-editor/components/ChipsetEditor.test.tsx`
 - `src/lib/importDefaultAssets.ts`
 - `src/lib/importDefaultAssets.test.ts`
 - `src/app/test/sprite/page.tsx`
@@ -8107,30 +8194,30 @@ item/skill の `effects` 配列を `add_status`/`remove_status` から `status`/
 
 ### フェーズ別サマリー
 
-| Phase | 名称                           | 状態                  | 備考                                                                                                                                                                                                                  |
-| ----- | ------------------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0     | プロジェクトセットアップ       | ✅ 完了 (18/18)       |                                                                                                                                                                                                                       |
-| 1     | 型定義・基盤                   | 🔶 一部未着手 (19/30) | 残: autoSave refactor, per-page undo, ShortcutHelpModal, ValidationManager, InlineError, useValidation, SearchModal, ReferenceSearchModal, ClipboardManager, useClipboard, 汎用PropertyPanel（全てPolish/必要時実装） |
-| 2     | 基本フィールドタイプ           | 🔶 ほぼ完了 (16/20)   | 残: Formula/Script FieldType (未定義、必要時に実装)。EffectFieldTypeは実装済みだったがタスク未更新                                                                                                                    |
-| 3     | ゲーム設定                     | ✅ 完了 (4/4)         |                                                                                                                                                                                                                       |
-| 4     | 変数・クラス・フィールドセット | ✅ 完了 (17/17)       |                                                                                                                                                                                                                       |
-| 5     | P1 フィールドタイプ            | ✅ 完了 (8/8)         |                                                                                                                                                                                                                       |
-| 6     | アセット管理                   | 🔶 ほぼ完了 (17/20)   | 残: フォルダD&D, アセット移動。T081は廃止(T083統合)                                                                                                                                                                   |
-| 7     | データ設定                     | ✅ 完了 (12/12)       |                                                                                                                                                                                                                       |
-| 8     | イベントシステム               | ✅ 完了 (29/29)       |                                                                                                                                                                                                                       |
-| 9     | スクリプトエディタ             | ✅ 完了 (17/17)       | T126b D&D実装済み                                                                                                                                                                                                     |
-| 10    | マップ基盤                     | ✅ 完了 (15/15)       |                                                                                                                                                                                                                       |
-| 11    | マップデータページ             | ✅ 完了 (7/7)         |                                                                                                                                                                                                                       |
-| 12    | オブジェクトプレハブ           | ✅ 完了 (6/6)         |                                                                                                                                                                                                                       |
-| 13    | マップ編集ページ               | 🔶 一部未着手 (16/20) | 残: マルチタイル選択(T161/T171b), コピペ(T171c), レイヤー切替/Delete(T171a)                                                                                                                                           |
-| 14    | UI Foundation                  | ✅ 完了 (17/17)       | T184 ActionComponent 廃止                                                                                                                                                                                             |
-| 15    | Screen Design                  | ✅ 完了 (14/14)       | T197b ActionComponent 廃止                                                                                                                                                                                            |
-| 16    | Object UI                      | ⬜ 未着手 (0/3)       | T198〜T203は廃止（Phase12/13と重複、オブジェクトUIとは無関係）。実体はT256〜T258（`/ui/objects`は"Coming Soon"スタブのまま）                                                                                          |
-| 17    | Timeline                       | ⬜ 未着手 (0/6)       | TimelineBands のみ存在                                                                                                                                                                                                |
-| 18    | Game Engine                    | ✅ 完了 (57/58)       | T217 PlayerAPI 廃止。残: T224a 統合テスト                                                                                                                                                                             |
-| 19    | Test Play                      | 🔶 一部実装 (0/5)     | TestPlayOverlay 実装済み、タスク未更新                                                                                                                                                                                |
-| 20    | Polish                         | 🚧 進行中 (4/15)      |                                                                                                                                                                                                                       |
-| 21    | Lite/Full テンプレートシステム | 🚧 進行中 (1/7)       | T246 廃止                                                                                                                                                                                                             |
+| Phase | 名称                           | 状態                  | 備考                                                                                                                                                                                                                                                                               |
+| ----- | ------------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | プロジェクトセットアップ       | ✅ 完了 (18/18)       |                                                                                                                                                                                                                                                                                    |
+| 1     | 型定義・基盤                   | 🔶 一部未着手 (20/30) | 残: autoSave refactor, ShortcutHelpModal, ValidationManager, InlineError, useValidation, SearchModal, ReferenceSearchModal, ClipboardManager, useClipboard, 汎用PropertyPanel（全てPolish/必要時実装）。T026cはIndexedDB永続化まで完了、チップセットプロパティ編集のみ対象外で残存 |
+| 2     | 基本フィールドタイプ           | 🔶 ほぼ完了 (16/20)   | 残: Formula/Script FieldType (未定義、必要時に実装)。EffectFieldTypeは実装済みだったがタスク未更新                                                                                                                                                                                 |
+| 3     | ゲーム設定                     | ✅ 完了 (4/4)         |                                                                                                                                                                                                                                                                                    |
+| 4     | 変数・クラス・フィールドセット | ✅ 完了 (17/17)       |                                                                                                                                                                                                                                                                                    |
+| 5     | P1 フィールドタイプ            | ✅ 完了 (8/8)         |                                                                                                                                                                                                                                                                                    |
+| 6     | アセット管理                   | 🔶 ほぼ完了 (17/20)   | 残: フォルダD&D, アセット移動。T081は廃止(T083統合)                                                                                                                                                                                                                                |
+| 7     | データ設定                     | ✅ 完了 (12/12)       |                                                                                                                                                                                                                                                                                    |
+| 8     | イベントシステム               | ✅ 完了 (29/29)       |                                                                                                                                                                                                                                                                                    |
+| 9     | スクリプトエディタ             | ✅ 完了 (17/17)       | T126b D&D実装済み                                                                                                                                                                                                                                                                  |
+| 10    | マップ基盤                     | ✅ 完了 (15/15)       |                                                                                                                                                                                                                                                                                    |
+| 11    | マップデータページ             | ✅ 完了 (7/7)         |                                                                                                                                                                                                                                                                                    |
+| 12    | オブジェクトプレハブ           | ✅ 完了 (6/6)         |                                                                                                                                                                                                                                                                                    |
+| 13    | マップ編集ページ               | ✅ 完了 (20/20)       | T171a: レイヤー切替(1-9)は不要と判断し完了条件から除外。Delete/Backspaceでの選択削除は実装済み                                                                                                                                                                                     |
+| 14    | UI Foundation                  | ✅ 完了 (17/17)       | T184 ActionComponent 廃止                                                                                                                                                                                                                                                          |
+| 15    | Screen Design                  | ✅ 完了 (14/14)       | T197b ActionComponent 廃止                                                                                                                                                                                                                                                         |
+| 16    | Object UI                      | ⬜ 未着手 (0/3)       | T198〜T203は廃止（Phase12/13と重複、オブジェクトUIとは無関係）。実体はT256〜T258（`/ui/objects`は"Coming Soon"スタブのまま）                                                                                                                                                       |
+| 17    | Timeline                       | ⬜ 未着手 (0/6)       | TimelineBands のみ存在                                                                                                                                                                                                                                                             |
+| 18    | Game Engine                    | ✅ 完了 (57/58)       | T217 PlayerAPI 廃止。残: T224a 統合テスト                                                                                                                                                                                                                                          |
+| 19    | Test Play                      | 🔶 一部実装 (0/5)     | TestPlayOverlay 実装済み、タスク未更新                                                                                                                                                                                                                                             |
+| 20    | Polish                         | 🚧 進行中 (4/15)      |                                                                                                                                                                                                                                                                                    |
+| 21    | Lite/Full テンプレートシステム | 🚧 進行中 (1/7)       | T246 廃止                                                                                                                                                                                                                                                                          |
 
 ### 優先度凡例
 

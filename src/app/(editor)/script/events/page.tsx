@@ -22,12 +22,12 @@ type RightTab = 'settings' | 'test';
 
 export default function EventScriptPage() {
   const scripts = useStore((state) => state.scripts);
-  const selectedScriptId = useStore((state) => state.selectedScriptId);
+  const selectedScriptId = useStore((state) => state.selectedEventScriptId);
   const addScript = useStore((state) => state.addScript);
   const updateScript = useStore((state) => state.updateScript);
   const deleteScript = useStore((state) => state.deleteScript);
   const moveScript = useStore((state) => state.moveScript);
-  const selectScript = useStore((state) => state.selectScript);
+  const selectScript = useStore((state) => state.selectEventScript);
   const classes = useStore((state) => state.classes);
   const dataTypes = useStore((state) => state.dataTypes);
   const [rightTab, setRightTab] = useState<RightTab>('settings');
@@ -79,8 +79,8 @@ export default function EventScriptPage() {
 
   // Selected script
   const selectedScript = useMemo(
-    () => (selectedScriptId ? (scripts.find((s) => s.id === selectedScriptId) ?? null) : null),
-    [scripts, selectedScriptId]
+    () => (selectedScriptId ? (eventScripts.find((s) => s.id === selectedScriptId) ?? null) : null),
+    [eventScripts, selectedScriptId]
   );
 
   const handleAdd = () => {

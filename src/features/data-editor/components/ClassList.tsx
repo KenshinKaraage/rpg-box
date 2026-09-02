@@ -60,9 +60,6 @@ export function ClassList({
                     data-testid={`class-item-${customClass.id}`}
                   >
                     <div className="font-medium">{customClass.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {customClass.fields.length} フィールド
-                    </div>
                   </li>
                 </ContextMenuTrigger>
                 <ContextMenuContent>

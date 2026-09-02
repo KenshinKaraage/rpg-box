@@ -20,9 +20,10 @@ describe('scriptSlice', () => {
       expect(result.current).toEqual([]);
     });
 
-    it('selectedScriptId は null', () => {
-      const { result } = renderHook(() => useStore((state) => state.selectedScriptId));
-      expect(result.current).toBeNull();
+    it('selectedEventScriptId / selectedComponentScriptId は null', () => {
+      const { result } = renderHook(() => useStore());
+      expect(result.current.selectedEventScriptId).toBeNull();
+      expect(result.current.selectedComponentScriptId).toBeNull();
     });
   });
 
@@ -94,19 +95,34 @@ describe('scriptSlice', () => {
       expect(result.current.scripts[0]?.name).toBe('変数');
     });
 
-    it('IDを変更すると selectedScriptId も更新される', () => {
+    it('IDを変更すると selectedEventScriptId も更新される', () => {
       const { result } = renderHook(() => useStore());
 
       act(() => {
         result.current.addScript(createScript('s1', 'スクリプト', 'event'));
-        result.current.selectScript('s1');
+        result.current.selectEventScript('s1');
       });
 
       act(() => {
         result.current.updateScript('s1', { id: 's1_renamed' });
       });
 
-      expect(result.current.selectedScriptId).toBe('s1_renamed');
+      expect(result.current.selectedEventScriptId).toBe('s1_renamed');
+    });
+
+    it('IDを変更すると selectedComponentScriptId も更新される', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.addScript(createScript('c1', 'コンポーネント', 'component'));
+        result.current.selectComponentScript('c1');
+      });
+
+      act(() => {
+        result.current.updateScript('c1', { id: 'c1_renamed' });
+      });
+
+      expect(result.current.selectedComponentScriptId).toBe('c1_renamed');
     });
   });
 
@@ -125,19 +141,19 @@ describe('scriptSlice', () => {
       expect(result.current.scripts).toHaveLength(0);
     });
 
-    it('選択中のスクリプトを削除すると selectedScriptId が null になる', () => {
+    it('選択中のスクリプトを削除すると selectedEventScriptId が null になる', () => {
       const { result } = renderHook(() => useStore());
 
       act(() => {
         result.current.addScript(createScript('s1', 'スクリプト', 'event'));
-        result.current.selectScript('s1');
+        result.current.selectEventScript('s1');
       });
 
       act(() => {
         result.current.deleteScript('s1');
       });
 
-      expect(result.current.selectedScriptId).toBeNull();
+      expect(result.current.selectedEventScriptId).toBeNull();
     });
 
     it('ネストされた内部スクリプトも再帰的に削除される', () => {
@@ -231,30 +247,42 @@ describe('scriptSlice', () => {
     });
   });
 
-  describe('selectScript', () => {
+  describe('selectEventScript / selectComponentScript', () => {
     it('スクリプトを選択できる', () => {
       const { result } = renderHook(() => useStore());
 
       act(() => {
         result.current.addScript(createScript('s1', 'スクリプト', 'event'));
-        result.current.selectScript('s1');
+        result.current.selectEventScript('s1');
       });
 
-      expect(result.current.selectedScriptId).toBe('s1');
+      expect(result.current.selectedEventScriptId).toBe('s1');
     });
 
     it('null を渡すと選択解除', () => {
       const { result } = renderHook(() => useStore());
 
       act(() => {
-        result.current.selectScript('s1');
+        result.current.selectEventScript('s1');
       });
 
       act(() => {
-        result.current.selectScript(null);
+        result.current.selectEventScript(null);
       });
 
-      expect(result.current.selectedScriptId).toBeNull();
+      expect(result.current.selectedEventScriptId).toBeNull();
+    });
+
+    it('イベント側とコンポーネント側の選択は独立している', () => {
+      const { result } = renderHook(() => useStore());
+
+      act(() => {
+        result.current.selectEventScript('s1');
+        result.current.selectComponentScript('c1');
+      });
+
+      expect(result.current.selectedEventScriptId).toBe('s1');
+      expect(result.current.selectedComponentScriptId).toBe('c1');
     });
   });
 

@@ -30,6 +30,20 @@ function mockCanvasRect(canvas: HTMLCanvasElement, w: number, h: number) {
   });
 }
 
+/** mousedown → (必要なら移動先で) mouseup を発火してクリック/ドラッグ選択をシミュレートする。
+ * mouseup は window に対して発火する必要がある（コンポーネントが window にリスナーを張るため）。 */
+function dragSelect(
+  canvas: HTMLCanvasElement,
+  from: { clientX: number; clientY: number },
+  to: { clientX: number; clientY: number } = from
+) {
+  fireEvent.mouseDown(canvas, from);
+  if (to !== from) {
+    fireEvent.mouseMove(window, to);
+  }
+  fireEvent.mouseUp(window, to);
+}
+
 describe('ChipPalette', () => {
   it('チップセットが未選択の場合にメッセージを表示', () => {
     render(
@@ -75,7 +89,7 @@ describe('ChipPalette', () => {
     mockCanvasRect(canvas, 64, 64);
 
     // (16, 16) → col=0, row=0 → chipIndex=0
-    fireEvent.click(canvas, { clientX: 16, clientY: 16 });
+    dragSelect(canvas, { clientX: 16, clientY: 16 });
     expect(onSelect).toHaveBeenCalledWith('cs1:0');
   });
 
@@ -94,7 +108,7 @@ describe('ChipPalette', () => {
     mockCanvasRect(canvas, 64, 64);
 
     // (48, 16) → col=1, row=0 → chipIndex=1
-    fireEvent.click(canvas, { clientX: 48, clientY: 16 });
+    dragSelect(canvas, { clientX: 48, clientY: 16 });
     expect(onSelect).toHaveBeenCalledWith('cs1:1');
   });
 
@@ -113,7 +127,7 @@ describe('ChipPalette', () => {
     mockCanvasRect(canvas, 64, 64);
 
     // (16, 48) → col=0, row=1 → chipIndex=2
-    fireEvent.click(canvas, { clientX: 16, clientY: 48 });
+    dragSelect(canvas, { clientX: 16, clientY: 48 });
     expect(onSelect).toHaveBeenCalledWith('cs1:2');
   });
 
@@ -134,7 +148,118 @@ describe('ChipPalette', () => {
     mockCanvasRect(canvas, 64, 32);
 
     // (48, 16) → col=1 → chipId='cs2:1'
-    fireEvent.click(canvas, { clientX: 48, clientY: 16 });
+    dragSelect(canvas, { clientX: 48, clientY: 16 });
     expect(onSelect).toHaveBeenCalledWith('cs2:1');
+  });
+
+  describe('複数タイル選択（スタンプ用）', () => {
+    it('ドラッグして複数マスを選択すると onSelectRange が呼ばれる（通常タイル）', () => {
+      const onSelect = jest.fn();
+      const onSelectRange = jest.fn();
+      render(
+        <ChipPalette
+          chipset={mockChipset}
+          imageDataUrl={TEST_BLOB_URL}
+          imageSize={IMAGE_SIZE}
+          onSelectChip={onSelect}
+          selectedChipId={null}
+          onSelectRange={onSelectRange}
+        />
+      );
+      const canvas = screen.getByRole('img') as HTMLCanvasElement;
+      mockCanvasRect(canvas, 64, 64);
+
+      // (0,0)から(48,48)へドラッグ → col0-1, row0-1 の 2x2 範囲
+      dragSelect(canvas, { clientX: 16, clientY: 16 }, { clientX: 48, clientY: 48 });
+
+      expect(onSelectRange).toHaveBeenCalledWith({
+        chipsetId: 'cs1',
+        startCol: 0,
+        startRow: 0,
+        width: 2,
+        height: 2,
+        cells: ['cs1:0', 'cs1:1', 'cs1:2', 'cs1:3'],
+      });
+      // 左上セルは selectedChipId としても通知される（表示中チップセットの情報を保つため）
+      expect(onSelect).toHaveBeenCalledWith('cs1:0');
+    });
+
+    it('逆方向にドラッグしても範囲が正規化される', () => {
+      const onSelectRange = jest.fn();
+      render(
+        <ChipPalette
+          chipset={mockChipset}
+          imageDataUrl={TEST_BLOB_URL}
+          imageSize={IMAGE_SIZE}
+          onSelectChip={jest.fn()}
+          selectedChipId={null}
+          onSelectRange={onSelectRange}
+        />
+      );
+      const canvas = screen.getByRole('img') as HTMLCanvasElement;
+      mockCanvasRect(canvas, 64, 64);
+
+      // 右下(col1,row1)から左上(col0,row0)へドラッグ
+      dragSelect(canvas, { clientX: 48, clientY: 48 }, { clientX: 16, clientY: 16 });
+
+      expect(onSelectRange).toHaveBeenCalledWith({
+        chipsetId: 'cs1',
+        startCol: 0,
+        startRow: 0,
+        width: 2,
+        height: 2,
+        cells: ['cs1:0', 'cs1:1', 'cs1:2', 'cs1:3'],
+      });
+    });
+
+    it('1マスのみのドラッグ（実質クリック）では onSelectRange は null で呼ばれ onSelectChip が使われる', () => {
+      const onSelect = jest.fn();
+      const onSelectRange = jest.fn();
+      render(
+        <ChipPalette
+          chipset={mockChipset}
+          imageDataUrl={TEST_BLOB_URL}
+          imageSize={IMAGE_SIZE}
+          onSelectChip={onSelect}
+          selectedChipId={null}
+          onSelectRange={onSelectRange}
+        />
+      );
+      const canvas = screen.getByRole('img') as HTMLCanvasElement;
+      mockCanvasRect(canvas, 64, 64);
+
+      dragSelect(canvas, { clientX: 16, clientY: 16 });
+
+      expect(onSelect).toHaveBeenCalledWith('cs1:0');
+      expect(onSelectRange).toHaveBeenCalledWith(null);
+    });
+
+    it('オートタイルは行方向を無視し列方向のみで範囲を確定する', () => {
+      const onSelectRange = jest.fn();
+      render(
+        <ChipPalette
+          chipset={autotileChipset}
+          imageDataUrl={TEST_BLOB_URL}
+          imageSize={{ w: 64, h: 160 }}
+          onSelectChip={jest.fn()}
+          selectedChipId={null}
+          onSelectRange={onSelectRange}
+        />
+      );
+      const canvas = screen.getByRole('img') as HTMLCanvasElement;
+      mockCanvasRect(canvas, 64, 32);
+
+      // col0からcol1へドラッグ（縦方向の座標変化があってもrowは常に0扱い）
+      dragSelect(canvas, { clientX: 16, clientY: 16 }, { clientX: 48, clientY: 16 });
+
+      expect(onSelectRange).toHaveBeenCalledWith({
+        chipsetId: 'cs2',
+        startCol: 0,
+        startRow: 0,
+        width: 2,
+        height: 1,
+        cells: ['cs2:0', 'cs2:1'],
+      });
+    });
   });
 });

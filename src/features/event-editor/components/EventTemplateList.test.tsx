@@ -46,13 +46,6 @@ describe('EventTemplateList', () => {
     expect(screen.getByText('HP回復')).toBeInTheDocument();
   });
 
-  it('アクション数が表示される', () => {
-    render(<EventTemplateList {...defaultProps} />);
-
-    expect(screen.getByText('2 アクション')).toBeInTheDocument();
-    expect(screen.getByText('1 アクション')).toBeInTheDocument();
-  });
-
   it('空の場合はメッセージが表示される', () => {
     render(<EventTemplateList {...defaultProps} templates={[]} />);
 

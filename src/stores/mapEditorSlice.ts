@@ -5,6 +5,7 @@
  *
  * Undo/Redo は editorSlice.ts（design.md#EditorSlice）に統合されている。
  */
+import type { ChipRangeSelection } from '@/types/map';
 
 export type MapEditTool = 'select' | 'pen' | 'eraser' | 'fill' | 'rect';
 
@@ -14,12 +15,29 @@ export interface Viewport {
   zoom: number;
 }
 
+export interface TileCell {
+  x: number;
+  y: number;
+}
+
+/** マップキャンバス上で範囲選択した既存タイル（コピー用） */
+export interface TileSelection {
+  layerId: string;
+  cells: TileCell[];
+}
+
 /** 空オブジェクト配置用の特別ID */
 export const EMPTY_OBJECT_PREFAB_ID = '__empty__';
 
 export interface MapEditorSlice {
   currentTool: MapEditTool;
   selectedChipId: string | null;
+  /** チップパレットで範囲選択した複数タイル（スタンプ用）。単一チップ選択とは排他 */
+  selectedChipRange: ChipRangeSelection | null;
+  /** マップキャンバス上で範囲選択した既存タイル（コピー用） */
+  tileSelection: TileSelection | null;
+  /** マップキャンバス上でマウスカーソルが乗っているタイル座標（ペースト位置に使用） */
+  hoverTile: TileCell | null;
   viewport: Viewport;
   showGrid: boolean;
 
@@ -30,6 +48,9 @@ export interface MapEditorSlice {
 
   setTool: (tool: MapEditTool) => void;
   selectChip: (chipId: string | null) => void;
+  selectChipRange: (range: ChipRangeSelection | null) => void;
+  setTileSelection: (selection: TileSelection | null) => void;
+  setHoverTile: (cell: TileCell | null) => void;
   setViewport: (v: Partial<Viewport>) => void;
   toggleGrid: () => void;
   setObjectFrameColor: (color: string) => void;
@@ -42,6 +63,9 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
 ): MapEditorSlice => ({
   currentTool: 'pen',
   selectedChipId: null,
+  selectedChipRange: null,
+  tileSelection: null,
+  hoverTile: null,
   viewport: { x: 0, y: 0, zoom: 1 },
   showGrid: true,
   objectFrameColor: '#3b82f6',
@@ -54,6 +78,19 @@ export const createMapEditorSlice = <T extends MapEditorSlice>(
   selectChip: (chipId) =>
     set((s) => {
       s.selectedChipId = chipId;
+      s.selectedChipRange = null;
+    }),
+  selectChipRange: (range) =>
+    set((s) => {
+      s.selectedChipRange = range;
+    }),
+  setTileSelection: (selection) =>
+    set((s) => {
+      s.tileSelection = selection;
+    }),
+  setHoverTile: (cell) =>
+    set((s) => {
+      s.hoverTile = cell;
     }),
   setViewport: (v) =>
     set((s) => {

@@ -2,15 +2,18 @@
 
 import { useStore } from '@/stores';
 import { AutoSaveProvider } from './AutoSaveProvider';
+import { UndoHistoryProvider } from './UndoHistoryProvider';
 import { Header } from './Header';
+import { ToastProvider } from './Toast';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const isRestoring = useStore((s) => s.isRestoring);
   const isImportingAssets = useStore((s) => s.isImportingAssets);
 
   return (
-    <>
+    <ToastProvider>
       <AutoSaveProvider />
+      <UndoHistoryProvider />
       {isRestoring ? (
         <div className="flex min-h-screen items-center justify-center bg-background">
           <div className="text-center">
@@ -32,6 +35,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </>
       )}
-    </>
+    </ToastProvider>
   );
 }

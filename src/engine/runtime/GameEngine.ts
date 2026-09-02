@@ -75,7 +75,8 @@ export class GameEngine {
   private sharedScriptRunner: ScriptRunner | null = null;
 
   constructor(canvas: HTMLCanvasElement, projectData: ProjectData) {
-    const gl = canvas.getContext('webgl');
+    // antialias:false — MSAAが有効だと隣接タイル境界に半透明の隙間が出ることがある
+    const gl = canvas.getContext('webgl', { antialias: false });
     if (!gl) throw new Error('WebGL not supported');
 
     this.canvas = canvas;

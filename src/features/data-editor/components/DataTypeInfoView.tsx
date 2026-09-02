@@ -64,7 +64,7 @@ export function DataTypeInfoView({
       </div>
 
       {/* データ型基本情報（編集可能） */}
-      <div className="space-y-4 border-b p-5">
+      <div className="space-y-4 border-b p-4">
         <div className="space-y-2">
           <Label htmlFor="dataTypeId">データ型ID</Label>
           <Input
@@ -113,7 +113,7 @@ export function DataTypeInfoView({
       </div>
 
       {/* フィールド一覧（読み取り専用サマリー） */}
-      <div className="flex-1 overflow-auto p-5">
+      <div className="flex-1 overflow-auto p-4">
         <h4 className="mb-3 text-sm font-bold text-muted-foreground">
           フィールド ({dataType.fields.length})
         </h4>
@@ -140,7 +140,7 @@ export function DataTypeInfoView({
       </div>
 
       {/* フィールド編集ボタン */}
-      <div className="border-t p-5">
+      <div className="border-t p-4">
         <Button
           variant="outline"
           className="w-full border-primary text-primary"

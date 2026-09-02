@@ -6,9 +6,19 @@ interface Handlers {
   onSetTool: (tool: MapEditTool) => void;
   onUndo: () => void;
   onRedo: () => void;
+  onCopy?: () => void;
+  onPaste?: () => void;
+  onDelete?: () => void;
 }
 
-export function useMapShortcuts({ onSetTool, onUndo, onRedo }: Handlers) {
+export function useMapShortcuts({
+  onSetTool,
+  onUndo,
+  onRedo,
+  onCopy,
+  onPaste,
+  onDelete,
+}: Handlers) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -36,9 +46,23 @@ export function useMapShortcuts({ onSetTool, onUndo, onRedo }: Handlers) {
       ) {
         e.preventDefault();
         onRedo();
+        return;
+      }
+      if (key === 'c' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        onCopy?.();
+        return;
+      }
+      if (key === 'v' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        onPaste?.();
+        return;
+      }
+      if (key === 'delete' || key === 'backspace') {
+        onDelete?.();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onSetTool, onUndo, onRedo]);
+  }, [onSetTool, onUndo, onRedo, onCopy, onPaste, onDelete]);
 }

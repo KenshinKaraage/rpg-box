@@ -128,7 +128,6 @@ export function PrefabList({
                 <Square className="h-4 w-4 text-muted-foreground" />
                 空オブジェクト
               </div>
-              <div className="text-xs text-muted-foreground">Transform のみ</div>
             </li>
           )}
 
@@ -182,9 +181,6 @@ export function PrefabList({
                     <PrefabThumbnail prefab={prefab} assets={assets} size={32} />
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">{prefab.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {prefab.prefab.components.length} コンポーネント
-                      </div>
                     </div>
                   </div>
                 </li>

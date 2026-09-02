@@ -28,6 +28,7 @@ export interface MapLayer {
   type: 'tile' | 'object';
   visible: boolean;
   chipsetIds: string[]; // このレイヤーで使用するチップセットIDの配列
+  selectedChipsetId?: string; // このレイヤーで最後に選択していたチップセットID
   tiles?: string[][]; // tiles[y][x] = "chipsetId:chipIndex" 形式
   objects?: MapObject[];
 }
@@ -53,6 +54,19 @@ export interface Chipset {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fields: FieldType<any>[];
   chips: ChipProperty[];
+}
+
+/** チップパレットで範囲選択した複数タイル（スタンプ用） */
+export interface ChipRangeSelection {
+  chipsetId: string;
+  /** 範囲の左上セルの列・行（オートタイルは行=0固定） */
+  startCol: number;
+  startRow: number;
+  /** 範囲の幅・高さ（チップ数） */
+  width: number;
+  height: number;
+  /** 範囲内の各セルのチップID（"chipsetId:index"形式）を行優先で並べたもの。長さ = width * height */
+  cells: string[];
 }
 
 export interface ChipProperty {

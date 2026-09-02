@@ -60,9 +60,6 @@ export function MapList({
                     data-testid={`map-item-${map.id}`}
                   >
                     <div className="font-medium">{map.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {map.width}x{map.height} · {map.layers.length} レイヤー
-                    </div>
                   </li>
                 </ContextMenuTrigger>
                 <ContextMenuContent>

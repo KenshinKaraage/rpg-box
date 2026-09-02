@@ -32,12 +32,98 @@ describe('NumberFieldEditor', () => {
       expect(onChange).toHaveBeenCalledWith(100);
     });
 
-    it('空文字入力で NaN が渡される', () => {
+    it('空文字入力では onChange が呼ばれない（NaN を外に伝播させない）', () => {
       const onChange = jest.fn();
       render(<NumberFieldEditor {...defaultProps} onChange={onChange} />);
 
       fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '' } });
-      expect(onChange).toHaveBeenCalledWith(NaN);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(screen.getByRole('spinbutton')).toHaveValue(null); // 表示上は空欄のまま保持される
+    });
+  });
+
+  describe('min/max クランプ（確定=blur時のみ適用）', () => {
+    it('入力途中（onChange時点）ではクランプされない', () => {
+      const onChange = jest.fn();
+      render(
+        <NumberFieldEditor {...defaultProps} value={20} min={20} max={999} onChange={onChange} />
+      );
+
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '2' } });
+      expect(onChange).toHaveBeenCalledWith(2);
+      expect(screen.getByRole('spinbutton')).toHaveValue(2);
+    });
+
+    it('全消去してから新しい数値を入力できる（毎キー入力でスナップされない）', () => {
+      const onChange = jest.fn();
+      render(
+        <NumberFieldEditor {...defaultProps} value={20} min={20} max={999} onChange={onChange} />
+      );
+
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '' } });
+      expect(screen.getByRole('spinbutton')).toHaveValue(null);
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '5' } });
+      expect(screen.getByRole('spinbutton')).toHaveValue(5);
+      expect(onChange).toHaveBeenLastCalledWith(5);
+    });
+
+    it('blur時にminより小さければminへクランプされる', () => {
+      const onChange = jest.fn();
+      render(
+        <NumberFieldEditor {...defaultProps} value={5} min={20} max={999} onChange={onChange} />
+      );
+
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '5' } });
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChange).toHaveBeenLastCalledWith(20);
+      expect(screen.getByRole('spinbutton')).toHaveValue(20);
+    });
+
+    it('blur時にmaxを超えていればmaxへクランプされる', () => {
+      const onChange = jest.fn();
+      render(
+        <NumberFieldEditor {...defaultProps} value={999} min={20} max={999} onChange={onChange} />
+      );
+
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '5000' } });
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChange).toHaveBeenLastCalledWith(999);
+      expect(screen.getByRole('spinbutton')).toHaveValue(999);
+    });
+
+    it('blur時に範囲内なら値がすでに一致している限りonChangeは再度呼ばれない', () => {
+      const onChange = jest.fn();
+      render(
+        <NumberFieldEditor {...defaultProps} value={20} min={20} max={999} onChange={onChange} />
+      );
+
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '50' } });
+      onChange.mockClear();
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChange).not.toHaveBeenCalled();
+      expect(screen.getByRole('spinbutton')).toHaveValue(50);
+    });
+
+    it('空欄のままblurするとmin値にフォールバックする', () => {
+      const onChange = jest.fn();
+      render(
+        <NumberFieldEditor {...defaultProps} value={40} min={20} max={999} onChange={onChange} />
+      );
+
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '' } });
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChange).toHaveBeenLastCalledWith(20);
+      expect(screen.getByRole('spinbutton')).toHaveValue(20);
+    });
+
+    it('min未指定で空欄のままblurすると0にフォールバックする', () => {
+      const onChange = jest.fn();
+      render(<NumberFieldEditor {...defaultProps} value={40} onChange={onChange} />);
+
+      fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '' } });
+      fireEvent.blur(screen.getByRole('spinbutton'));
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(screen.getByRole('spinbutton')).toHaveValue(0);
     });
   });
 

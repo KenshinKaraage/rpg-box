@@ -62,9 +62,6 @@ export function EventTemplateList({
                     data-testid={`template-item-${template.id}`}
                   >
                     <div className="font-medium">{template.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {template.actions.length} アクション
-                    </div>
                   </li>
                 </ContextMenuTrigger>
                 <ContextMenuContent>

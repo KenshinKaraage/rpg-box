@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { FieldRow } from '@/features/data-editor/components/FieldRow';
 import { ImageFieldEditor } from '@/features/data-editor/components/fields/ImageFieldEditor';
 import { useStore } from '@/stores';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Modal } from '@/components/common/Modal';
 import { dataUrlToBlob } from '@/hooks/useBlobUrl';
 import type { ImageMetadata } from '@/types/assets';
 import { ChipPropertyEditor } from './ChipPropertyEditor';
@@ -63,6 +64,7 @@ export function ChipsetEditor({
   );
   const [selectedChipIndex, setSelectedChipIndex] = useState<number | null>(null);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
+  const [isChipEditModalOpen, setIsChipEditModalOpen] = useState(false);
 
   const chipset = chipsets.find((c) => c.id === selectedChipsetId) ?? null;
   const assets = useStore((state) => state.assets);
@@ -70,12 +72,14 @@ export function ChipsetEditor({
   const handleSelectChipset = (id: string) => {
     setSelectedChipsetId(id);
     setSelectedChipIndex(null);
+    setIsChipEditModalOpen(false);
   };
 
   const handleAddChipset = () => {
     const newId = onAddChipset();
     setSelectedChipsetId(newId);
     setSelectedChipIndex(null);
+    setIsChipEditModalOpen(false);
   };
 
   const handleAddField = () => {
@@ -133,6 +137,22 @@ export function ChipsetEditor({
       return Boolean(value);
     });
   }, [chipset, chipCount]);
+
+  // グリッドで選択中のチップを再クリック: 選択を維持したまま通行可否だけをトグルする
+  const handleTogglePassable = useCallback(
+    (chipIndex: number) => {
+      if (!chipset) return;
+      const passableField = chipset.fields.find((f) => f.id === 'passable');
+      if (!passableField) return;
+      const chip = chipset.chips.find((c) => c.index === chipIndex);
+      const currentValue = chip?.values['passable'] ?? passableField.getDefaultValue();
+      onUpdateChipProperty(chipset.id, chipIndex, {
+        ...(chip?.values ?? {}),
+        passable: !currentValue,
+      });
+    },
+    [chipset, onUpdateChipProperty]
+  );
 
   if (chipsets.length === 0) {
     return (
@@ -196,225 +216,290 @@ export function ChipsetEditor({
 
       {chipset && (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          {/* 常時表示: 名前・画像・タイルサイズ設定 */}
-          <div className="shrink-0 space-y-4 overflow-auto border-b p-3">
-            {/* 名前 */}
-            <div className="space-y-1">
-              <Label className="text-xs">名前</Label>
-              <Input
-                value={chipset.name}
-                onChange={(e) => onUpdateChipset(chipset.id, { name: e.target.value })}
-                className="h-8 text-sm"
-              />
-            </div>
+          <div className="min-h-0 flex-1 overflow-auto">
+            {/* 名前・画像・タイルサイズ設定 */}
+            <div className="space-y-4 border-b p-3">
+              {/* 名前 */}
+              <div className="space-y-1">
+                <Label className="text-xs">名前</Label>
+                <Input
+                  value={chipset.name}
+                  onChange={(e) => onUpdateChipset(chipset.id, { name: e.target.value })}
+                  className="h-8 text-sm"
+                />
+              </div>
 
-            {/* 画像 */}
-            <div className="space-y-1">
-              <Label className="text-xs">画像</Label>
-              <ImageFieldEditor
-                value={chipset.imageId || null}
-                onChange={(id) => {
-                  onUpdateChipset(chipset.id, { imageId: id ?? '' });
-                  // 画像変更時: 全チップのデフォルト値を初期化
-                  if (id) {
-                    const imgAsset = assets.find((a) => a.id === id);
-                    const meta = imgAsset?.metadata as ImageMetadata | null;
-                    if (meta?.width && meta?.height) {
-                      const cols = Math.max(1, Math.floor(meta.width / chipset.tileWidth));
-                      const rows = Math.max(1, Math.floor(meta.height / chipset.tileHeight));
-                      const total = cols * rows;
-                      // デフォルト値で全チップを初期化（既存のチップは保持）
-                      const existingMap = new Map(chipset.chips.map((c) => [c.index, c]));
-                      const defaultValues: Record<string, unknown> = {};
-                      for (const field of chipset.fields) {
-                        defaultValues[field.id] = field.getDefaultValue();
+              {/* 画像 */}
+              <div className="space-y-1">
+                <Label className="text-xs">画像</Label>
+                <ImageFieldEditor
+                  value={chipset.imageId || null}
+                  onChange={(id) => {
+                    onUpdateChipset(chipset.id, { imageId: id ?? '' });
+                    // 画像変更時: 全チップのデフォルト値を初期化
+                    if (id) {
+                      const imgAsset = assets.find((a) => a.id === id);
+                      const meta = imgAsset?.metadata as ImageMetadata | null;
+                      if (meta?.width && meta?.height) {
+                        const cols = Math.max(1, Math.floor(meta.width / chipset.tileWidth));
+                        const rows = Math.max(1, Math.floor(meta.height / chipset.tileHeight));
+                        const total = cols * rows;
+                        // デフォルト値で全チップを初期化（既存のチップは保持）
+                        const existingMap = new Map(chipset.chips.map((c) => [c.index, c]));
+                        const defaultValues: Record<string, unknown> = {};
+                        for (const field of chipset.fields) {
+                          defaultValues[field.id] = field.getDefaultValue();
+                        }
+                        const newChips = Array.from({ length: total }, (_, i) => {
+                          const existing = existingMap.get(i);
+                          return existing ?? { index: i, values: { ...defaultValues } };
+                        });
+                        onUpdateChipset(chipset.id, { chips: newChips });
                       }
-                      const newChips = Array.from({ length: total }, (_, i) => {
-                        const existing = existingMap.get(i);
-                        return existing ?? { index: i, values: { ...defaultValues } };
-                      });
-                      onUpdateChipset(chipset.id, { chips: newChips });
                     }
-                  }
-                }}
-                showPreview={false}
-              />
-            </div>
+                  }}
+                  showPreview={false}
+                />
+              </div>
 
-            {/* タイルサイズ */}
-            <div className="space-y-1">
-              <Label className="text-xs">タイルサイズ</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  value={chipset.tileWidth}
-                  onChange={(e) =>
-                    onUpdateChipset(chipset.id, { tileWidth: parseInt(e.target.value, 10) || 32 })
-                  }
-                  className="h-8 w-20 text-sm"
-                />
-                <span className="self-center text-xs text-muted-foreground">×</span>
-                <Input
-                  type="number"
-                  value={chipset.tileHeight}
-                  onChange={(e) =>
-                    onUpdateChipset(chipset.id, { tileHeight: parseInt(e.target.value, 10) || 32 })
-                  }
-                  className="h-8 w-20 text-sm"
-                />
-                <span className="self-center text-xs text-muted-foreground">px</span>
-              </div>
-            </div>
-
-            {/* 隣接変形・アニメーション */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`autotile-${chipset.id}`}
-                  checked={chipset.autotile ?? false}
-                  onCheckedChange={(checked) =>
-                    onUpdateChipset(chipset.id, { autotile: checked === true })
-                  }
-                />
-                <Label htmlFor={`autotile-${chipset.id}`} className="text-xs">
-                  隣接変形（オートタイル）
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`animated-${chipset.id}`}
-                  checked={chipset.animated ?? false}
-                  onCheckedChange={(checked) =>
-                    onUpdateChipset(chipset.id, { animated: checked === true })
-                  }
-                />
-                <Label htmlFor={`animated-${chipset.id}`} className="text-xs">
-                  アニメーション
-                </Label>
-              </div>
-              {chipset.animated && (
-                <div className="ml-6 flex items-center gap-2">
-                  <Label className="text-xs text-muted-foreground">フレーム数</Label>
+              {/* タイルサイズ */}
+              <div className="space-y-1">
+                <Label className="text-xs">タイルサイズ</Label>
+                <div className="flex gap-2">
                   <Input
                     type="number"
-                    value={chipset.animFrameCount ?? 3}
-                    min={2}
+                    value={chipset.tileWidth}
                     onChange={(e) =>
-                      onUpdateChipset(chipset.id, {
-                        animFrameCount: parseInt(e.target.value, 10) || 3,
-                      })
+                      onUpdateChipset(chipset.id, { tileWidth: parseInt(e.target.value, 10) || 32 })
                     }
-                    className="h-7 w-16 text-xs"
+                    className="h-8 w-20 text-sm"
                   />
-                  <Label className="text-xs text-muted-foreground">間隔</Label>
+                  <span className="self-center text-xs text-muted-foreground">×</span>
                   <Input
                     type="number"
-                    value={chipset.animIntervalMs ?? 200}
-                    min={1}
+                    value={chipset.tileHeight}
                     onChange={(e) =>
                       onUpdateChipset(chipset.id, {
-                        animIntervalMs: parseInt(e.target.value, 10) || 200,
+                        tileHeight: parseInt(e.target.value, 10) || 32,
                       })
                     }
-                    className="h-7 w-20 text-xs"
+                    className="h-8 w-20 text-sm"
                   />
-                  <span className="text-xs text-muted-foreground">ms</span>
+                  <span className="self-center text-xs text-muted-foreground">px</span>
                 </div>
-              )}
+              </div>
+
+              {/* 隣接変形・アニメーション */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`autotile-${chipset.id}`}
+                    checked={chipset.autotile ?? false}
+                    onCheckedChange={(checked) =>
+                      onUpdateChipset(chipset.id, { autotile: checked === true })
+                    }
+                  />
+                  <Label htmlFor={`autotile-${chipset.id}`} className="text-xs">
+                    隣接変形（オートタイル）
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`animated-${chipset.id}`}
+                    checked={chipset.animated ?? false}
+                    onCheckedChange={(checked) =>
+                      onUpdateChipset(chipset.id, { animated: checked === true })
+                    }
+                  />
+                  <Label htmlFor={`animated-${chipset.id}`} className="text-xs">
+                    アニメーション
+                  </Label>
+                </div>
+                {chipset.animated && (
+                  <div className="ml-6 flex items-center gap-2">
+                    <Label className="text-xs text-muted-foreground">フレーム数</Label>
+                    <Input
+                      type="number"
+                      value={chipset.animFrameCount ?? 3}
+                      min={2}
+                      onChange={(e) =>
+                        onUpdateChipset(chipset.id, {
+                          animFrameCount: parseInt(e.target.value, 10) || 3,
+                        })
+                      }
+                      className="h-7 w-16 text-xs"
+                    />
+                    <Label className="text-xs text-muted-foreground">間隔</Label>
+                    <Input
+                      type="number"
+                      value={chipset.animIntervalMs ?? 200}
+                      min={1}
+                      onChange={(e) =>
+                        onUpdateChipset(chipset.id, {
+                          animIntervalMs: parseInt(e.target.value, 10) || 200,
+                        })
+                      }
+                      className="h-7 w-20 text-xs"
+                    />
+                    <span className="text-xs text-muted-foreground">ms</span>
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* タブ: チップ一覧 / フィールド定義 */}
+            <Tabs defaultValue="chips">
+              <TabsList className="mx-3 mt-2 grid w-auto grid-cols-2">
+                <TabsTrigger value="chips" className="text-xs">
+                  チップ一覧
+                </TabsTrigger>
+                <TabsTrigger value="fields" className="text-xs">
+                  フィールド定義
+                </TabsTrigger>
+              </TabsList>
+
+              {/* チップ一覧タブ: 右カラムでも編集可能。窮屈なら「編集」でモーダルへ */}
+              <TabsContent value="chips" className="p-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">
+                      チップ一覧{chipImageMeta ? `（${chipCount} チップ）` : ''}
+                    </Label>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={() => setIsChipEditModalOpen(true)}
+                    >
+                      <Pencil className="mr-1 h-3 w-3" />
+                      編集
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    選択中のチップをクリックすると通行可否を切り替え
+                  </p>
+                  <ChipGridCanvas
+                    imageDataUrl={chipImageMeta ? (chipImageMeta.imgAsset.data as string) : null}
+                    imageSize={
+                      chipImageMeta
+                        ? { w: chipImageMeta.metadata.width, h: chipImageMeta.metadata.height }
+                        : null
+                    }
+                    tileWidth={chipset.tileWidth}
+                    tileHeight={chipset.tileHeight}
+                    chipCount={chipCount}
+                    chipCols={chipCols}
+                    selectedChipIndex={selectedChipIndex}
+                    passableMap={passableMap}
+                    onSelect={setSelectedChipIndex}
+                    onTogglePassable={handleTogglePassable}
+                  />
+                </div>
+              </TabsContent>
+
+              {/* フィールド定義タブ */}
+              <TabsContent value="fields" className="p-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">フィールド定義</Label>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={handleAddField}
+                    >
+                      <Plus className="mr-1 h-3 w-3" />
+                      追加
+                    </Button>
+                  </div>
+                  {chipset.fields.length === 0 ? (
+                    <div className="text-xs text-muted-foreground">フィールドがありません</div>
+                  ) : (
+                    <div className="space-y-1">
+                      {chipset.fields.map((field) => (
+                        <FieldRow
+                          key={field.id}
+                          field={field}
+                          isExpanded={expandedFields.has(field.id)}
+                          onToggleExpand={() =>
+                            setExpandedFields((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(field.id)) next.delete(field.id);
+                              else next.add(field.id);
+                              return next;
+                            })
+                          }
+                          onIdChange={() => {}}
+                          onNameChange={(name) => handleFieldConfigChange(field.id, { name })}
+                          onTypeChange={(type) => handleFieldTypeChange(field.id, type)}
+                          onConfigChange={(updates) => handleFieldConfigChange(field.id, updates)}
+                          onDelete={() => onDeleteChipsetField(chipset.id, field.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
-          {/* タブ: チップ一覧 / フィールド定義 */}
-          <Tabs defaultValue="chips" className="flex min-h-0 flex-1 flex-col">
-            <TabsList className="mx-3 mt-2 shrink-0 grid w-auto grid-cols-2">
-              <TabsTrigger value="chips" className="text-xs">
-                チップ一覧
-              </TabsTrigger>
-              <TabsTrigger value="fields" className="text-xs">
-                フィールド定義
-              </TabsTrigger>
-            </TabsList>
-
-            {/* チップ一覧タブ */}
-            <TabsContent value="chips" className="min-h-0 flex-1 overflow-auto p-3">
-              <div className="space-y-2">
-                <Label className="text-xs">
-                  チップ一覧{chipImageMeta ? `（${chipCount} チップ）` : ''}
-                </Label>
-                <ChipGridCanvas
-                  imageDataUrl={chipImageMeta ? (chipImageMeta.imgAsset.data as string) : null}
-                  imageSize={
-                    chipImageMeta
-                      ? {
-                          w: chipImageMeta.metadata.width,
-                          h: chipImageMeta.metadata.height,
-                        }
-                      : null
-                  }
-                  tileWidth={chipset.tileWidth}
-                  tileHeight={chipset.tileHeight}
-                  chipCount={chipCount}
-                  chipCols={chipCols}
-                  selectedChipIndex={selectedChipIndex}
-                  passableMap={passableMap}
-                  onSelect={setSelectedChipIndex}
-                />
-              </div>
-
-              {/* 選択チップのプロパティ */}
+          {/* 選択中チップのプロパティ: 右カラム下部に固定表示（スクロールしても位置が変わらない） */}
+          {selectedChipIndex !== null && (
+            <div className="shrink-0 border-t p-3">
               <ChipPropertyEditor
                 chipset={chipset}
                 chipIndex={selectedChipIndex}
                 onUpdateChipProperty={onUpdateChipProperty}
               />
-            </TabsContent>
-
-            {/* フィールド定義タブ */}
-            <TabsContent value="fields" className="min-h-0 flex-1 overflow-auto p-3">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">フィールド定義</Label>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-7 text-xs"
-                    onClick={handleAddField}
-                  >
-                    <Plus className="mr-1 h-3 w-3" />
-                    追加
-                  </Button>
-                </div>
-                {chipset.fields.length === 0 ? (
-                  <div className="text-xs text-muted-foreground">フィールドがありません</div>
-                ) : (
-                  <div className="space-y-1">
-                    {chipset.fields.map((field) => (
-                      <FieldRow
-                        key={field.id}
-                        field={field}
-                        isExpanded={expandedFields.has(field.id)}
-                        onToggleExpand={() =>
-                          setExpandedFields((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(field.id)) next.delete(field.id);
-                            else next.add(field.id);
-                            return next;
-                          })
-                        }
-                        onIdChange={() => {}}
-                        onNameChange={(name) => handleFieldConfigChange(field.id, { name })}
-                        onTypeChange={(type) => handleFieldTypeChange(field.id, type)}
-                        onConfigChange={(updates) => handleFieldConfigChange(field.id, updates)}
-                        onDelete={() => onDeleteChipsetField(chipset.id, field.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          )}
         </div>
       )}
+
+      {/* 編集モーダル: 左にグリッド、右にプロパティ。右カラムが窮屈なときの逃げ道で、右カラムでの直接編集と並行して使える */}
+      <Modal
+        open={isChipEditModalOpen && chipset !== null}
+        onOpenChange={setIsChipEditModalOpen}
+        title="編集"
+        size="xl"
+      >
+        {chipset && (
+          <div className="flex max-h-[70vh] gap-4">
+            <div className="min-w-0 flex-1 overflow-auto">
+              <p className="mb-2 text-xs text-muted-foreground">
+                クリックでチップを選択、選択中のチップをクリックすると通行可否を切り替え
+              </p>
+              <ChipGridCanvas
+                imageDataUrl={chipImageMeta ? (chipImageMeta.imgAsset.data as string) : null}
+                imageSize={
+                  chipImageMeta
+                    ? { w: chipImageMeta.metadata.width, h: chipImageMeta.metadata.height }
+                    : null
+                }
+                tileWidth={chipset.tileWidth}
+                tileHeight={chipset.tileHeight}
+                chipCount={chipCount}
+                chipCols={chipCols}
+                selectedChipIndex={selectedChipIndex}
+                passableMap={passableMap}
+                onSelect={setSelectedChipIndex}
+                onTogglePassable={handleTogglePassable}
+              />
+            </div>
+            <div className="w-56 shrink-0 overflow-auto border-l pl-4">
+              {selectedChipIndex !== null ? (
+                <ChipPropertyEditor
+                  chipset={chipset}
+                  chipIndex={selectedChipIndex}
+                  onUpdateChipProperty={onUpdateChipProperty}
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">チップを選択してください</p>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
@@ -433,6 +518,7 @@ interface ChipGridCanvasProps {
   selectedChipIndex: number | null;
   passableMap: ReadonlyArray<boolean | null>;
   onSelect: (index: number) => void;
+  onTogglePassable: (index: number) => void;
 }
 
 function ChipGridCanvas({
@@ -445,6 +531,7 @@ function ChipGridCanvas({
   selectedChipIndex,
   passableMap,
   onSelect,
+  onTogglePassable,
 }: ChipGridCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -567,9 +654,10 @@ function ChipGridCanvas({
     };
   }, []);
 
-  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  /** クライアント座標からチップインデックスを求める（範囲外は null） */
+  const chipIndexFromEvent = (e: React.MouseEvent<HTMLCanvasElement>): number | null => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return null;
 
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -581,7 +669,16 @@ function ChipGridCanvas({
     const row = Math.floor(y / DISPLAY_SIZE);
     const chipIndex = row * chipCols + col;
 
-    if (chipIndex >= 0 && chipIndex < chipCount) {
+    return chipIndex >= 0 && chipIndex < chipCount ? chipIndex : null;
+  };
+
+  // クリック: 未選択のチップなら選択、既に選択中のチップなら通行可否をその場でトグル
+  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const chipIndex = chipIndexFromEvent(e);
+    if (chipIndex === null) return;
+    if (chipIndex === selectedChipIndex) {
+      onTogglePassable(chipIndex);
+    } else {
       onSelect(chipIndex);
     }
   };

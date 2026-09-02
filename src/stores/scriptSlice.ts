@@ -8,8 +8,11 @@ export interface ScriptSlice {
   /** スクリプト一覧 */
   scripts: Script[];
 
-  /** 選択中のスクリプトID */
-  selectedScriptId: string | null;
+  /** イベントスクリプトページで選択中のスクリプトID（ページごとに独立） */
+  selectedEventScriptId: string | null;
+
+  /** コンポーネントスクリプトページで選択中のスクリプトID（ページごとに独立） */
+  selectedComponentScriptId: string | null;
 
   /** スクリプトを追加 */
   addScript: (script: Script) => void;
@@ -20,8 +23,11 @@ export interface ScriptSlice {
   /** スクリプトを削除（内部スクリプトも連鎖削除） */
   deleteScript: (id: string) => void;
 
-  /** スクリプトを選択 */
-  selectScript: (id: string | null) => void;
+  /** イベントスクリプトページの選択を変更 */
+  selectEventScript: (id: string | null) => void;
+
+  /** コンポーネントスクリプトページの選択を変更 */
+  selectComponentScript: (id: string | null) => void;
 
   /** IDでスクリプトを取得 */
   getScriptById: (id: string) => Script | undefined;
@@ -44,7 +50,8 @@ export const createScriptSlice = <T extends ScriptSlice>(
   get: () => T
 ): ScriptSlice => ({
   scripts: [],
-  selectedScriptId: null,
+  selectedEventScriptId: null,
+  selectedComponentScriptId: null,
 
   addScript: (script: Script) =>
     set((state) => {
@@ -56,8 +63,9 @@ export const createScriptSlice = <T extends ScriptSlice>(
       const index = state.scripts.findIndex((s) => s.id === id);
       if (index !== -1) {
         state.scripts[index] = { ...state.scripts[index], ...updates } as Script;
-        if (updates.id && updates.id !== id && state.selectedScriptId === id) {
-          state.selectedScriptId = updates.id;
+        if (updates.id && updates.id !== id) {
+          if (state.selectedEventScriptId === id) state.selectedEventScriptId = updates.id;
+          if (state.selectedComponentScriptId === id) state.selectedComponentScriptId = updates.id;
         }
       }
     }),
@@ -77,14 +85,22 @@ export const createScriptSlice = <T extends ScriptSlice>(
       collectDescendants(id);
 
       state.scripts = state.scripts.filter((s) => !idsToDelete.has(s.id));
-      if (state.selectedScriptId && idsToDelete.has(state.selectedScriptId)) {
-        state.selectedScriptId = null;
+      if (state.selectedEventScriptId && idsToDelete.has(state.selectedEventScriptId)) {
+        state.selectedEventScriptId = null;
+      }
+      if (state.selectedComponentScriptId && idsToDelete.has(state.selectedComponentScriptId)) {
+        state.selectedComponentScriptId = null;
       }
     }),
 
-  selectScript: (id: string | null) =>
+  selectEventScript: (id: string | null) =>
     set((state) => {
-      state.selectedScriptId = id;
+      state.selectedEventScriptId = id;
+    }),
+
+  selectComponentScript: (id: string | null) =>
+    set((state) => {
+      state.selectedComponentScriptId = id;
     }),
 
   getScriptById: (id: string) => {
@@ -126,7 +142,9 @@ export const createScriptSlice = <T extends ScriptSlice>(
       } else {
         // Insert before the sibling at `index`
         const targetSibling = siblings[index];
-        const insertAt = targetSibling ? state.scripts.indexOf(targetSibling) : state.scripts.length;
+        const insertAt = targetSibling
+          ? state.scripts.indexOf(targetSibling)
+          : state.scripts.length;
         state.scripts.splice(insertAt, 0, script);
       }
     }),

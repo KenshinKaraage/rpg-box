@@ -11,11 +11,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import {
-  AccountMenu,
   AccountMenuProps,
   ExportMenu,
   ExportMenuProps,
-  HelpMenu,
   HelpMenuProps,
   ProjectMenu,
   ProjectMenuProps,
@@ -27,17 +25,13 @@ export interface HamburgerMenuProps {
   project?: ProjectMenuProps;
   export?: ExportMenuProps;
   settings?: SettingsMenuProps;
+  // ヘルプ（ドキュメント/バージョン情報）・アカウント（認証、Phase 2）は
+  // 未実装のため一旦非表示。実装時に復活させる。
   help?: HelpMenuProps;
   account?: AccountMenuProps;
 }
 
-export function HamburgerMenu({
-  project,
-  export: exportProps,
-  settings,
-  help,
-  account,
-}: HamburgerMenuProps) {
+export function HamburgerMenu({ project, export: exportProps }: HamburgerMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -51,11 +45,11 @@ export function HamburgerMenu({
         <DropdownMenuSeparator />
         <ExportMenu {...exportProps} />
         <DropdownMenuSeparator />
-        <SettingsMenu {...settings} />
-        <DropdownMenuSeparator />
+        <SettingsMenu />
+        {/* <DropdownMenuSeparator />
         <HelpMenu {...help} />
         <DropdownMenuSeparator />
-        <AccountMenu {...account} />
+        <AccountMenu {...account} /> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );

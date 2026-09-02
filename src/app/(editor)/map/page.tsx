@@ -1,6 +1,6 @@
 'use client';
 import '@/features/event-editor/registry/register';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Select,
@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
+import { useToast } from '@/components/common/Toast';
 import { useStore } from '@/stores';
 import { MapList, PrefabList } from '@/features/map-editor';
 import { MapCanvas } from '@/features/map-editor/components/MapCanvas';
@@ -24,10 +25,15 @@ import { applyZoom } from '@/features/map-editor/hooks/useMapViewport';
 import { useBlobUrl } from '@/hooks/useBlobUrl';
 import { generateId } from '@/lib/utils';
 import { createDefaultMap } from '@/features/map-editor/utils/createDefaultMap';
+import { copyTiles, pasteTiles, type CopiedTile } from '@/features/map-editor/utils/tileCopyPaste';
+import { resolveDefaultChipsetId } from '@/features/map-editor/utils/resolveDefaultChipset';
 import type { GameMap, Prefab } from '@/types/map';
 import type { ImageMetadata } from '@/types/assets';
+import type { TileCell } from '@/stores/mapEditorSlice';
 
 export default function MapEditPage() {
+  const toast = useToast();
+
   // Map state
   const maps = useStore((s) => s.maps);
   const selectedMapId = useStore((s) => s.selectedMapId);
@@ -38,6 +44,7 @@ export default function MapEditPage() {
   // Layer / object state
   const selectedLayerId = useStore((s) => s.selectedLayerId);
   const selectedObjectId = useStore((s) => s.selectedObjectId);
+  const selectedObjectIds = useStore((s) => s.selectedObjectIds);
   const selectLayer = useStore((s) => s.selectLayer);
   const updateLayer = useStore((s) => s.updateLayer);
   const updateMap = useStore((s) => s.updateMap);
@@ -46,6 +53,7 @@ export default function MapEditPage() {
   const deleteLayer = useStore((s) => s.deleteLayer);
   const reorderLayers = useStore((s) => s.reorderLayers);
   const selectObject = useStore((s) => s.selectObject);
+  const selectObjects = useStore((s) => s.selectObjects);
   const deleteObject = useStore((s) => s.deleteObject);
 
   // Prefab state
@@ -62,10 +70,15 @@ export default function MapEditPage() {
   // Editor UI state
   const currentTool = useStore((s) => s.currentTool);
   const selectedChipId = useStore((s) => s.selectedChipId);
+  const selectedChipRange = useStore((s) => s.selectedChipRange);
+  const tileSelection = useStore((s) => s.tileSelection);
   const viewport = useStore((s) => s.viewport);
   const showGrid = useStore((s) => s.showGrid);
   const setTool = useStore((s) => s.setTool);
   const selectChip = useStore((s) => s.selectChip);
+  const selectChipRange = useStore((s) => s.selectChipRange);
+  const setTile = useStore((s) => s.setTile);
+  const setTileSelection = useStore((s) => s.setTileSelection);
   const setViewport = useStore((s) => s.setViewport);
   const toggleGrid = useStore((s) => s.toggleGrid);
 
@@ -84,6 +97,11 @@ export default function MapEditPage() {
   const selectedMap = maps.find((m) => m.id === selectedMapId) ?? null;
   const selectedLayer = selectedMap?.layers.find((l) => l.id === selectedLayerId) ?? null;
 
+  // タイルコピー&ペースト用クリップボード（ページ内のみで完結する一時状態）
+  const [clipboard, setClipboard] = useState<{ origin: TileCell; tiles: CopiedTile[] } | null>(
+    null
+  );
+
   // レイヤー/マッププロパティの変更を Undo 対象にするラッパー
   // （変更前の maps 参照を積んでから元の store アクションを呼ぶだけ）
   function withUndo<Args extends unknown[]>(fn: (...args: Args) => void): (...args: Args) => void {
@@ -97,17 +115,16 @@ export default function MapEditPage() {
     setCurrentPage('map');
   }, [setCurrentPage]);
 
-  // レイヤー切り替え時: 選択チップが新レイヤーのチップセットに含まれなければリセット
+  // レイヤー切り替え時: そのレイヤーで最後に選択していたチップセット（なければ先頭）を選択し直す。
+  // 現在の選択が新レイヤーでも有効かどうかに関わらず、必ず切り替え先レイヤー自身の記憶を優先する
+  // （複数レイヤーが同じチップセットを共有している場合、そのままだと切り替わったように見えないため）
   useEffect(() => {
     if (!selectedLayer) {
       selectChip(null);
       return;
     }
-    const currentChipsetId = selectedChipId?.split(':')[0] ?? null;
-    if (currentChipsetId && !selectedLayer.chipsetIds.includes(currentChipsetId)) {
-      const firstChipsetId = selectedLayer.chipsetIds[0] ?? null;
-      selectChip(firstChipsetId ? `${firstChipsetId}:0` : null);
-    }
+    const nextChipsetId = resolveDefaultChipsetId(selectedLayer);
+    selectChip(nextChipsetId ? `${nextChipsetId}:0` : null);
   }, [selectedLayerId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Map handlers ---
@@ -172,7 +189,55 @@ export default function MapEditPage() {
     selectPrefab(newId);
   };
 
-  useMapShortcuts({ onSetTool: setTool, onUndo: undo, onRedo: redo });
+  // --- コピー&ペースト ---
+  const handleCopy = () => {
+    if (!tileSelection) return;
+    const layer = selectedMap?.layers.find((l) => l.id === tileSelection.layerId);
+    if (!layer?.tiles) return;
+    const tiles = copyTiles(layer.tiles, tileSelection.cells);
+    if (tiles.length === 0) return;
+    const originX = Math.min(...tileSelection.cells.map((c) => c.x));
+    const originY = Math.min(...tileSelection.cells.map((c) => c.y));
+    setClipboard({ origin: { x: originX, y: originY }, tiles });
+    toast.success(`${tiles.length}マスをコピーしました`);
+  };
+
+  const handlePaste = () => {
+    if (!clipboard || !selectedMapId || !selectedLayerId || !selectedMap) return;
+    const anchor = useStore.getState().hoverTile ?? clipboard.origin;
+    const targets = pasteTiles(clipboard.tiles, anchor, selectedMap.width, selectedMap.height);
+    if (targets.length === 0) return;
+    pushUndoState('map', { maps });
+    targets.forEach(({ x, y, chipId }) => setTile(selectedMapId, selectedLayerId, x, y, chipId));
+  };
+
+  const handleDeleteSelection = () => {
+    if (!selectedMapId || !selectedLayerId) return;
+
+    if (selectedLayer?.type === 'object') {
+      if (selectedObjectIds.length === 0) return;
+      pushUndoState('map', { maps });
+      selectedObjectIds.forEach((id) => deleteObject(selectedMapId, selectedLayerId, id));
+      selectObjects([]);
+      return;
+    }
+
+    if (!tileSelection) return;
+    pushUndoState('map', { maps });
+    tileSelection.cells.forEach(({ x, y }) =>
+      setTile(selectedMapId, tileSelection.layerId, x, y, '')
+    );
+    setTileSelection(null);
+  };
+
+  useMapShortcuts({
+    onSetTool: setTool,
+    onUndo: undo,
+    onRedo: redo,
+    onCopy: handleCopy,
+    onPaste: handlePaste,
+    onDelete: handleDeleteSelection,
+  });
 
   // 選択中チップセットの画像データとサイズを取得
   const selectedChipsetId = selectedChipId?.split(':')[0] ?? null;
@@ -254,6 +319,8 @@ export default function MapEditPage() {
                         chipsetIds: [...layer.chipsetIds, id],
                       });
                     }
+                    // どのチップセットを見ていたかはレイヤーに保存する（Undo対象外の付随情報）
+                    updateLayer(selectedMapId, selectedLayerId, { selectedChipsetId: id });
                   }
                   selectChip(`${id}:0`);
                 }}
@@ -280,6 +347,8 @@ export default function MapEditPage() {
                 imageSize={chipsetImageSize}
                 selectedChipId={selectedChipId}
                 onSelectChip={selectChip}
+                selectedRange={selectedChipRange}
+                onSelectRange={selectChipRange}
               />
             </div>
           </TabsContent>
@@ -357,7 +426,11 @@ export default function MapEditPage() {
       }
       right={
         <div className="h-full overflow-auto bg-muted/20">
-          {selectedObjectId ? (
+          {selectedObjectIds.length > 1 ? (
+            <div className="p-4 text-sm text-muted-foreground">
+              {selectedObjectIds.length}件選択中（複数選択時のプロパティ編集は未対応）
+            </div>
+          ) : selectedObjectId ? (
             <MapPropertyPanel
               selectedObjectId={selectedObjectId}
               mapId={selectedMapId ?? ''}

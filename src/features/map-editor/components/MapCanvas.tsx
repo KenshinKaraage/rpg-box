@@ -5,6 +5,7 @@ import { useMapCanvas } from '../hooks/useMapCanvas';
 import { useMapViewport } from '../hooks/useMapViewport';
 import { useTilePainting } from '../hooks/useTilePainting';
 import { useObjectPlacement } from '../hooks/useObjectPlacement';
+import { useMultiTileSelect } from '../hooks/useMultiTileSelect';
 import { screenToTile } from '../utils/coordTransform';
 import { TILE_SIZE } from '../utils/constants';
 import { EventEditorModal } from '@/features/event-editor/components/EventEditorModal';
@@ -20,12 +21,14 @@ interface MapCanvasProps {
 export function MapCanvas({ mapId }: MapCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const maps = useStore((s) => s.maps);
+  const currentTool = useStore((s) => s.currentTool);
   const selectedLayerId = useStore((s) => s.selectedLayerId);
   const updateObject = useStore((s) => s.updateObject);
   const deleteObject = useStore((s) => s.deleteObject);
   const addPrefab = useStore((s) => s.addPrefab);
   const prefabs = useStore((s) => s.prefabs);
   const viewport = useStore((s) => s.viewport);
+  const setHoverTile = useStore((s) => s.setHoverTile);
   const map = maps.find((m) => m.id === mapId);
   const selectedLayer = map?.layers.find((l) => l.id === selectedLayerId) ?? null;
   const isObjectLayer = selectedLayer?.type === 'object';
@@ -35,9 +38,11 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
   const [eventModalObject, setEventModalObject] = useState<MapObject | null>(null);
 
   // コンテキストメニュー state
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; object: MapObject } | null>(null);
-
-  useMapCanvas(canvasRef, mapId);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    object: MapObject;
+  } | null>(null);
 
   const { handleWheel, handleMouseDown, handleMouseMove, handleMouseUp } = useMapViewport(
     canvasRef,
@@ -46,8 +51,24 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     TILE_SIZE
   );
 
-  const { paint, commitRect } = useTilePainting(mapId, selectedLayerId ?? '');
+  const {
+    paint,
+    commitRect,
+    endStroke,
+    liveRect: rectLiveRect,
+  } = useTilePainting(mapId, selectedLayerId ?? '');
   const objPlacement = useObjectPlacement(mapId, selectedLayerId ?? '');
+  const multiSelect = useMultiTileSelect(mapId, selectedLayerId ?? '');
+
+  const liveSelectionRect = isObjectLayer
+    ? objPlacement.liveRect
+    : currentTool === 'select'
+      ? multiSelect.liveRect
+      : currentTool === 'rect'
+        ? rectLiveRect
+        : null;
+
+  useMapCanvas(canvasRef, mapId, liveSelectionRect);
 
   // ホイールイベントは passive:false で登録する必要があるため useEffect で直接アタッチ
   useEffect(() => {
@@ -57,33 +78,38 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     return () => canvas.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-
   // ダブルクリック: オブジェクトのイベントモーダルを開く
-  const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isObjectLayer || !selectedLayerId) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const sx = e.clientX - rect.left;
-    const sy = e.clientY - rect.top;
-    const { tx, ty } = screenToTile(sx, sy, viewport, TILE_SIZE);
-    const obj = objPlacement.getObjectAtTile(tx, ty);
-    if (!obj) return;
-    // ドラッグをキャンセル
-    objPlacement.handleMouseUp();
-    setEventModalObject(obj);
-    setEventModalOpen(true);
-  }, [isObjectLayer, selectedLayerId, viewport, objPlacement]);
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!isObjectLayer || !selectedLayerId) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      const { tx, ty } = screenToTile(sx, sy, viewport, TILE_SIZE);
+      const obj = objPlacement.getObjectAtTile(tx, ty);
+      if (!obj) return;
+      // ドラッグをキャンセル
+      objPlacement.handleMouseUp();
+      setEventModalObject(obj);
+      setEventModalOpen(true);
+    },
+    [isObjectLayer, selectedLayerId, viewport, objPlacement]
+  );
 
   // イベントモーダル保存
-  const handleEventSave = useCallback((triggerIndex: number, actions: EditableAction[]) => {
-    if (!eventModalObject || !selectedLayerId) return;
-    const newComponents = [...eventModalObject.components];
-    const comp = newComponents[triggerIndex];
-    if (!comp) return;
-    const cloned = comp.clone();
-    (cloned as unknown as { actions: EditableAction[] }).actions = actions;
-    newComponents[triggerIndex] = cloned;
-    updateObject(mapId, selectedLayerId, eventModalObject.id, { components: newComponents });
-  }, [eventModalObject, selectedLayerId, mapId, updateObject]);
+  const handleEventSave = useCallback(
+    (triggerIndex: number, actions: EditableAction[]) => {
+      if (!eventModalObject || !selectedLayerId) return;
+      const newComponents = [...eventModalObject.components];
+      const comp = newComponents[triggerIndex];
+      if (!comp) return;
+      const cloned = comp.clone();
+      (cloned as unknown as { actions: EditableAction[] }).actions = actions;
+      newComponents[triggerIndex] = cloned;
+      updateObject(mapId, selectedLayerId, eventModalObject.id, { components: newComponents });
+    },
+    [eventModalObject, selectedLayerId, mapId, updateObject]
+  );
 
   // 右クリック → コンテキストメニュー
   const handleContextMenu = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -109,10 +135,11 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
     if (!contextMenu) return;
     const obj = contextMenu.object;
     // Transform 以外のコンポーネントをコピー
-    const components = obj.components
-      .filter((c) => c.type !== 'transform')
-      .map((c) => c.clone());
-    const id = generateId('prefab', prefabs.map((p) => p.id));
+    const components = obj.components.filter((c) => c.type !== 'transform').map((c) => c.clone());
+    const id = generateId(
+      'prefab',
+      prefabs.map((p) => p.id)
+    );
     const newPrefab: Prefab = {
       id,
       name: obj.name,
@@ -135,7 +162,9 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
       if (isObjectLayer) {
-        objPlacement.handleMouseDown(sx, sy);
+        objPlacement.handleMouseDown(sx, sy, e.shiftKey);
+      } else if (currentTool === 'select') {
+        multiSelect.handleMouseDown(sx, sy, e.shiftKey);
       } else {
         paint(sx, sy);
       }
@@ -144,12 +173,23 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     handleMouseMove(e.nativeEvent);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const sx = e.clientX - rect.left;
+    const sy = e.clientY - rect.top;
+
+    // ペースト位置に使うため、ボタン押下の有無に関わらずホバー中のタイル座標を更新する
+    const { tx, ty } = screenToTile(sx, sy, viewport, TILE_SIZE);
+    if (map && tx >= 0 && tx < map.width && ty >= 0 && ty < map.height) {
+      setHoverTile({ x: tx, y: ty });
+    } else {
+      setHoverTile(null);
+    }
+
     if (e.buttons & 1) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
       if (isObjectLayer) {
         objPlacement.handleMouseMove(sx, sy);
+      } else if (currentTool === 'select') {
+        multiSelect.handleMouseMove(sx, sy);
       } else {
         paint(sx, sy);
       }
@@ -167,6 +207,7 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
           handleCanvasMouseDown(e);
         }}
         onMouseMove={handleCanvasMouseMove}
+        onMouseLeave={() => setHoverTile(null)}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
         onDragOver={(e) => {
@@ -188,9 +229,13 @@ export function MapCanvas({ mapId }: MapCanvasProps) {
           handleMouseUp();
           if (isObjectLayer) {
             objPlacement.handleMouseUp();
+          } else if (currentTool === 'select') {
+            const domRect = e.currentTarget.getBoundingClientRect();
+            multiSelect.commitSelection(e.clientX - domRect.left, e.clientY - domRect.top);
           } else {
             const domRect = e.currentTarget.getBoundingClientRect();
             commitRect(e.clientX - domRect.left, e.clientY - domRect.top);
+            endStroke();
           }
         }}
       />

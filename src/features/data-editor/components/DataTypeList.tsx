@@ -9,11 +9,10 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
-import type { DataType, DataEntry } from '@/types/data';
+import type { DataType } from '@/types/data';
 
 interface DataTypeListProps {
   dataTypes: DataType[];
-  dataEntries: Record<string, DataEntry[]>;
   selectedId: string | null;
   onSelect: (id: string) => void;
   onAdd: () => void;
@@ -28,7 +27,6 @@ interface DataTypeListProps {
  */
 export function DataTypeList({
   dataTypes,
-  dataEntries,
   selectedId,
   onSelect,
   onAdd,
@@ -75,31 +73,20 @@ export function DataTypeList({
         ) : (
           <ul className="space-y-1.5" data-testid="datatype-list">
             {dataTypes.map((dataType) => {
-              const entryCount = dataEntries[dataType.id]?.length ?? 0;
               return (
                 <ContextMenu key={dataType.id}>
                   <ContextMenuTrigger asChild>
                     <li
                       className={cn(
-                        'cursor-pointer rounded-lg px-4 py-3 transition-colors',
+                        'cursor-pointer rounded-xl border-2 px-4 py-3 transition-colors',
                         selectedId === dataType.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-accent'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/50'
                       )}
                       onClick={() => onSelect(dataType.id)}
                       data-testid={`datatype-item-${dataType.id}`}
                     >
                       <div className="text-sm font-medium">{dataType.name}</div>
-                      <div
-                        className={cn(
-                          'mt-1 text-xs',
-                          selectedId === dataType.id
-                            ? 'text-primary-foreground/70'
-                            : 'text-muted-foreground'
-                        )}
-                      >
-                        {dataType.fields.length} フィールド · {entryCount} エントリ
-                      </div>
                     </li>
                   </ContextMenuTrigger>
                   <ContextMenuContent>

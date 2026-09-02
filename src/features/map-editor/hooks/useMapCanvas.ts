@@ -8,6 +8,7 @@ import { getVisibleTileRange } from '../utils/visibleTiles';
 import { TILE_SIZE } from '../utils/constants';
 import { dataUrlToBlob } from '@/hooks/useBlobUrl';
 import { TileRenderer } from '@/engine/rendering/TileRenderer';
+import type { DragRect } from './useMultiTileSelect';
 
 /** hex色文字列 (#RRGGBB) を [r, g, b, a] (0-1) に変換 */
 function hexToGlColor(hex: string, alpha = 1): [number, number, number, number] {
@@ -17,14 +18,86 @@ function hexToGlColor(hex: string, alpha = 1): [number, number, number, number] 
   return [r, g, b, alpha];
 }
 
-export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>, mapId: string) {
+/** 矩形の外周を太さ fw の塗りつぶし矩形4枚として頂点を積む（WebGL の lineWidth は信頼できないため） */
+function pushFrameRect(
+  positions: number[],
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  fw: number
+) {
+  positions.push(
+    // Top
+    x,
+    y,
+    x + w,
+    y,
+    x,
+    y + fw,
+    x + w,
+    y,
+    x + w,
+    y + fw,
+    x,
+    y + fw,
+    // Bottom
+    x,
+    y + h - fw,
+    x + w,
+    y + h - fw,
+    x,
+    y + h,
+    x + w,
+    y + h - fw,
+    x + w,
+    y + h,
+    x,
+    y + h,
+    // Left
+    x,
+    y,
+    x + fw,
+    y,
+    x,
+    y + h,
+    x + fw,
+    y,
+    x + fw,
+    y + h,
+    x,
+    y + h,
+    // Right
+    x + w - fw,
+    y,
+    x + w,
+    y,
+    x + w - fw,
+    y + h,
+    x + w,
+    y,
+    x + w,
+    y + h,
+    x + w - fw,
+    y + h
+  );
+}
+
+export function useMapCanvas(
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  mapId: string,
+  liveSelectionRect?: DragRect | null
+) {
   const maps = useStore((s) => s.maps);
   const chipsets = useStore((s) => s.chipsets);
   const assets = useStore((s) => s.assets);
   const viewport = useStore((s) => s.viewport);
   const showGrid = useStore((s) => s.showGrid);
   const objectFrameColor = useStore((s) => s.objectFrameColor);
-  const selectedObjectId = useStore((s) => s.selectedObjectId);
+  const selectedObjectIds = useStore((s) => s.selectedObjectIds);
+  const selectedLayerId = useStore((s) => s.selectedLayerId);
+  const tileSelection = useStore((s) => s.tileSelection);
+  const hoverTile = useStore((s) => s.hoverTile);
 
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const tileRendererRef = useRef<TileRenderer | null>(null);
@@ -33,7 +106,9 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   // assetId → Blob URL のキャッシュ（Base64 デコードを初回のみ実行するため）
   const blobUrlCache = useRef<Map<string, string>>(new Map());
   // スプライトテクスチャキャッシュ（imageId → texture + size）
-  const spriteTextureCache = useRef<Map<string, { texture: WebGLTexture; width: number; height: number }>>(new Map());
+  const spriteTextureCache = useRef<
+    Map<string, { texture: WebGLTexture; width: number; height: number }>
+  >(new Map());
 
   // テクスチャロード完了時に再レンダーをトリガーするカウンタ
   const [textureGen, setTextureGen] = useState(0);
@@ -45,7 +120,9 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext('webgl');
+    // antialias:false — MSAAが有効だと、隣接タイルの頂点座標が数学的に一致していても
+    // ドローコールをまたいだエッジのカバレッジ計算がズレて境界に半透明の隙間が出ることがある
+    const gl = canvas.getContext('webgl', { antialias: false });
     if (!gl) return;
     glRef.current = gl;
     gl.clearColor(0, 0, 0, 1); // 未描画エリアを黒に
@@ -180,17 +257,19 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
 
         const px = tx * TILE_SIZE;
         const py = ty * TILE_SIZE;
-        const isSelected = obj.id === selectedObjectId;
+        const isSelected = selectedObjectIds.includes(obj.id);
 
         // スプライト画像の描画（フレームより先に描画してフレームが上に来るようにする）
         const spriteComp = obj.components.find((c) => c.type === 'sprite');
-        const spriteData = spriteComp as unknown as {
-          imageId?: string;
-          spriteMode?: string;
-          frameWidth?: number;
-          frameHeight?: number;
-          animFrameCount?: number;
-        } | undefined;
+        const spriteData = spriteComp as unknown as
+          | {
+              imageId?: string;
+              spriteMode?: string;
+              frameWidth?: number;
+              frameHeight?: number;
+              animFrameCount?: number;
+            }
+          | undefined;
         const spriteProgram = spriteProgramRef.current;
         if (spriteData?.imageId && spriteProgram) {
           const imageId = spriteData.imageId;
@@ -227,7 +306,10 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
             const texW = cached.width;
             const texH = cached.height;
 
-            let u0 = 0, u1 = 1, v0 = 0, v1 = 1;
+            let u0 = 0,
+              u1 = 1,
+              v0 = 0,
+              v1 = 1;
             if (spriteMode === 'directional' && frameWidth > 0 && frameHeight > 0) {
               // 1フレーム目、下向き（行0）
               u0 = 0;
@@ -244,13 +326,20 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
             // spriteMode === 'single' && frameWidth === 0: フル画像 (u0=0, u1=1, v0=0, v1=1)
 
             const positions = new Float32Array([
-              px, py, px + TILE_SIZE, py, px, py + TILE_SIZE,
-              px + TILE_SIZE, py, px + TILE_SIZE, py + TILE_SIZE, px, py + TILE_SIZE,
+              px,
+              py,
+              px + TILE_SIZE,
+              py,
+              px,
+              py + TILE_SIZE,
+              px + TILE_SIZE,
+              py,
+              px + TILE_SIZE,
+              py + TILE_SIZE,
+              px,
+              py + TILE_SIZE,
             ]);
-            const texcoords = new Float32Array([
-              u0, v0, u1, v0, u0, v1,
-              u1, v0, u1, v1, u0, v1,
-            ]);
+            const texcoords = new Float32Array([u0, v0, u1, v0, u0, v1, u1, v0, u1, v1, u0, v1]);
             const spriteBuffer = twgl.createBufferInfoFromArrays(gl, {
               a_position: { numComponents: 2, data: positions },
               a_texcoord: { numComponents: 2, data: texcoords },
@@ -278,17 +367,57 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         // Top, Right, Bottom, Left strips as two triangles each
         const framePositions = new Float32Array([
           // Top
-          px, py, px + TILE_SIZE, py, px, py + fw,
-          px + TILE_SIZE, py, px + TILE_SIZE, py + fw, px, py + fw,
+          px,
+          py,
+          px + TILE_SIZE,
+          py,
+          px,
+          py + fw,
+          px + TILE_SIZE,
+          py,
+          px + TILE_SIZE,
+          py + fw,
+          px,
+          py + fw,
           // Bottom
-          px, py + TILE_SIZE - fw, px + TILE_SIZE, py + TILE_SIZE - fw, px, py + TILE_SIZE,
-          px + TILE_SIZE, py + TILE_SIZE - fw, px + TILE_SIZE, py + TILE_SIZE, px, py + TILE_SIZE,
+          px,
+          py + TILE_SIZE - fw,
+          px + TILE_SIZE,
+          py + TILE_SIZE - fw,
+          px,
+          py + TILE_SIZE,
+          px + TILE_SIZE,
+          py + TILE_SIZE - fw,
+          px + TILE_SIZE,
+          py + TILE_SIZE,
+          px,
+          py + TILE_SIZE,
           // Left
-          px, py, px + fw, py, px, py + TILE_SIZE,
-          px + fw, py, px + fw, py + TILE_SIZE, px, py + TILE_SIZE,
+          px,
+          py,
+          px + fw,
+          py,
+          px,
+          py + TILE_SIZE,
+          px + fw,
+          py,
+          px + fw,
+          py + TILE_SIZE,
+          px,
+          py + TILE_SIZE,
           // Right
-          px + TILE_SIZE - fw, py, px + TILE_SIZE, py, px + TILE_SIZE - fw, py + TILE_SIZE,
-          px + TILE_SIZE, py, px + TILE_SIZE, py + TILE_SIZE, px + TILE_SIZE - fw, py + TILE_SIZE,
+          px + TILE_SIZE - fw,
+          py,
+          px + TILE_SIZE,
+          py,
+          px + TILE_SIZE - fw,
+          py + TILE_SIZE,
+          px + TILE_SIZE,
+          py,
+          px + TILE_SIZE,
+          py + TILE_SIZE,
+          px + TILE_SIZE - fw,
+          py + TILE_SIZE,
         ]);
         const frameBuffer = twgl.createBufferInfoFromArrays(gl, {
           a_position: { numComponents: 2, data: framePositions },
@@ -304,9 +433,12 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
           const markerTop = py - 4;
           const markerBottom = py - 12;
           const markerPositions = new Float32Array([
-            cx, markerTop,
-            cx - 6, markerBottom,
-            cx + 6, markerBottom,
+            cx,
+            markerTop,
+            cx - 6,
+            markerBottom,
+            cx + 6,
+            markerBottom,
           ]);
           const markerBuffer = twgl.createBufferInfoFromArrays(gl, {
             a_position: { numComponents: 2, data: markerPositions },
@@ -316,5 +448,92 @@ export function useMapCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null
         }
       }
     }
-  }, [maps, chipsets, assets, viewport, showGrid, mapId, canvasRef, textureGen, resizeGen, objectFrameColor, selectedObjectId]);
+
+    // タイル/オブジェクトの範囲選択の赤枠（ドラッグ中はライブプレビュー、確定後は選択範囲のバウンディングボックス）
+    // オブジェクトより後に描画し、選択中であることが常に最前面で分かるようにする
+    const selectionBoundingBox = liveSelectionRect
+      ? {
+          minX: Math.min(liveSelectionRect.start.x, liveSelectionRect.end.x),
+          maxX: Math.max(liveSelectionRect.start.x, liveSelectionRect.end.x),
+          minY: Math.min(liveSelectionRect.start.y, liveSelectionRect.end.y),
+          maxY: Math.max(liveSelectionRect.start.y, liveSelectionRect.end.y),
+        }
+      : tileSelection && tileSelection.layerId === selectedLayerId && tileSelection.cells.length > 0
+        ? {
+            minX: Math.min(...tileSelection.cells.map((c) => c.x)),
+            maxX: Math.max(...tileSelection.cells.map((c) => c.x)),
+            minY: Math.min(...tileSelection.cells.map((c) => c.y)),
+            maxY: Math.max(...tileSelection.cells.map((c) => c.y)),
+          }
+        : null;
+
+    if (selectionBoundingBox) {
+      const gridProgram = gridProgramRef.current;
+      if (gridProgram) {
+        const { minX, maxX, minY, maxY } = selectionBoundingBox;
+
+        gl.useProgram(gridProgram.program);
+        twgl.setUniforms(gridProgram, {
+          u_matrix: matrix,
+          u_color: [0.94, 0.11, 0.11, 1], // red-600
+        });
+        const framePositions: number[] = [];
+        pushFrameRect(
+          framePositions,
+          minX * TILE_SIZE,
+          minY * TILE_SIZE,
+          (maxX - minX + 1) * TILE_SIZE,
+          (maxY - minY + 1) * TILE_SIZE,
+          2
+        );
+        const frameBuffer = twgl.createBufferInfoFromArrays(gl, {
+          a_position: { numComponents: 2, data: new Float32Array(framePositions) },
+        });
+        twgl.setBuffersAndAttributes(gl, gridProgram, frameBuffer);
+        twgl.drawBufferInfo(gl, frameBuffer, gl.TRIANGLES);
+      }
+    }
+
+    // ホバー中タイルのプレビュー枠（一番最前面。ライブドラッグ中のみ、選択枠と重なるため非表示）
+    if (hoverTile && !liveSelectionRect) {
+      const gridProgram = gridProgramRef.current;
+      if (gridProgram) {
+        gl.useProgram(gridProgram.program);
+        twgl.setUniforms(gridProgram, {
+          u_matrix: matrix,
+          u_color: [1, 1, 1, 0.6], // 白半透明: 確定選択（赤）と区別
+        });
+        const hoverPositions: number[] = [];
+        pushFrameRect(
+          hoverPositions,
+          hoverTile.x * TILE_SIZE,
+          hoverTile.y * TILE_SIZE,
+          TILE_SIZE,
+          TILE_SIZE,
+          2
+        );
+        const hoverBuffer = twgl.createBufferInfoFromArrays(gl, {
+          a_position: { numComponents: 2, data: new Float32Array(hoverPositions) },
+        });
+        twgl.setBuffersAndAttributes(gl, gridProgram, hoverBuffer);
+        twgl.drawBufferInfo(gl, hoverBuffer, gl.TRIANGLES);
+      }
+    }
+  }, [
+    maps,
+    chipsets,
+    assets,
+    viewport,
+    showGrid,
+    mapId,
+    canvasRef,
+    textureGen,
+    resizeGen,
+    objectFrameColor,
+    selectedObjectIds,
+    selectedLayerId,
+    tileSelection,
+    hoverTile,
+    liveSelectionRect,
+  ]);
 }

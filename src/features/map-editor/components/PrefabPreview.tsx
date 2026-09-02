@@ -37,7 +37,10 @@ export function PrefabPreview({ prefab }: PrefabPreviewProps) {
       <div className="border-b p-3">
         <h2 className="text-sm font-semibold">プレビュー</h2>
       </div>
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-4">
+      <div
+        className="flex flex-1 flex-col items-center justify-center gap-3 p-4"
+        data-testid="prefab-preview-placeholder"
+      >
         {src ? (
           <SpriteThumbnail
             src={src}
@@ -49,9 +52,6 @@ export function PrefabPreview({ prefab }: PrefabPreviewProps) {
           <Square className="text-muted-foreground" style={{ width: 96, height: 96 }} />
         )}
         <p className="text-sm font-medium">{prefab.name}</p>
-        <p className="text-xs text-muted-foreground">
-          コンポーネント: {prefab.prefab.components.length}個
-        </p>
       </div>
     </div>
   );

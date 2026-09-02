@@ -21,14 +21,6 @@ interface VariableListProps {
 }
 
 /**
- * 変数の型を表示用文字列に変換
- */
-function getTypeLabel(variable: Variable): string {
-  const baseType = variable.fieldType.label;
-  return variable.isArray ? `${baseType}[]` : baseType;
-}
-
-/**
  * 変数一覧コンポーネント
  */
 export function VariableList({
@@ -68,7 +60,6 @@ export function VariableList({
                     data-testid={`variable-item-${variable.id}`}
                   >
                     <div className="font-medium">{variable.name}</div>
-                    <div className="text-xs text-muted-foreground">{getTypeLabel(variable)}</div>
                   </li>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
