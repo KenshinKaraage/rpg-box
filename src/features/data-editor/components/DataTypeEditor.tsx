@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { NAME_FIELD_ID, type DataType } from '@/types/data';
 import type { FieldType } from '@/types/fields/FieldType';
@@ -10,14 +11,18 @@ import { createFieldTypeInstance } from '@/types/fields';
 import { generateId } from '@/lib/utils';
 import { useStore } from '@/stores';
 import { useUndoEditSession } from '@/hooks/useUndoEditSession';
+import { EndDropZone } from './EndDropZone';
 import { FieldRow } from './FieldRow';
 import { FieldTypeSelector } from './FieldTypeSelector';
+import type { DropTarget } from './fieldDragTypes';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFieldType = FieldType<any>;
 
 interface DataTypeEditorProps {
   dataType: DataType;
+  dropTarget: DropTarget | null;
+  newlyInsertedId: string | null;
   onAddField: (typeId: string, field: AnyFieldType) => void;
   onReplaceField: (typeId: string, fieldId: string, newField: AnyFieldType) => void;
   onDeleteField: (typeId: string, fieldId: string) => void;
@@ -26,6 +31,8 @@ interface DataTypeEditorProps {
 
 export function DataTypeEditor({
   dataType,
+  dropTarget,
+  newlyInsertedId,
   onAddField,
   onReplaceField,
   onDeleteField,
@@ -144,43 +151,44 @@ export function DataTypeEditor({
       </div>
 
       {/* フィールド一覧 */}
-      <div className="flex-1 overflow-auto p-3">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-bold">フィールド一覧</h3>
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-primary text-primary"
-            onClick={() => setFieldSelectorOpen(true)}
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            追加
-          </Button>
-        </div>
+      <div className="min-h-0 flex-1 overflow-auto p-4">
+        <SortableContext
+          items={dataType.fields.map((f) => f.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {dataType.fields.map((field) => (
+            <FieldRow
+              key={field.id}
+              field={field}
+              isExpanded={expandedFields.has(field.id)}
+              dropPosition={dropTarget?.fieldId === field.id ? dropTarget.position : null}
+              animateIn={field.id === newlyInsertedId}
+              onToggleExpand={() => toggleExpand(field.id)}
+              onIdChange={(newId) => handleFieldIdChange(field.id, newId)}
+              onNameChange={(name) => handleFieldNameChange(field.id, name)}
+              onTypeChange={(type) => handleFieldTypeChange(field.id, type)}
+              onConfigChange={(updates) => handleConfigChange(field.id, updates)}
+              onDelete={() => onDeleteField(dataType.id, field.id)}
+              undeletable={field.id === NAME_FIELD_ID}
+              configContext={enrichedContext}
+            />
+          ))}
+        </SortableContext>
 
-        {dataType.fields.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed p-6 text-center text-sm text-muted-foreground">
-            フィールドがありません
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {dataType.fields.map((field) => (
-              <FieldRow
-                key={field.id}
-                field={field}
-                isExpanded={expandedFields.has(field.id)}
-                onToggleExpand={() => toggleExpand(field.id)}
-                onIdChange={(newId) => handleFieldIdChange(field.id, newId)}
-                onNameChange={(name) => handleFieldNameChange(field.id, name)}
-                onTypeChange={(type) => handleFieldTypeChange(field.id, type)}
-                onConfigChange={(updates) => handleConfigChange(field.id, updates)}
-                onDelete={() => onDeleteField(dataType.id, field.id)}
-                undeletable={field.id === NAME_FIELD_ID}
-                configContext={enrichedContext}
-              />
-            ))}
-          </div>
-        )}
+        <EndDropZone
+          isEmpty={dataType.fields.length === 0}
+          showInsertLine={dropTarget?.fieldId === null}
+        />
+
+        <Button
+          size="sm"
+          variant="outline"
+          className="mt-2 w-full border-primary text-primary"
+          onClick={() => setFieldSelectorOpen(true)}
+        >
+          <Plus className="mr-1 h-4 w-4" />
+          フィールドを追加
+        </Button>
       </div>
 
       <FieldTypeSelector

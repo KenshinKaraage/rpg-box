@@ -8,3 +8,7 @@ export { DataTypeInfoView } from './components/DataTypeInfoView';
 export { DataEntryList } from './components/DataEntryList';
 export { FormBuilder } from './components/FormBuilder';
 export { FieldRow } from './components/FieldRow';
+export { FieldPalette } from './components/FieldPalette';
+export { DragPreview } from './components/DragPreview';
+export { END_DROP_ZONE_ID } from './components/fieldDragTypes';
+export type { ActiveDragData, DropPosition, DropTarget } from './components/fieldDragTypes';

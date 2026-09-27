@@ -1,6 +1,18 @@
 'use client';
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  pointerWithin,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragMoveEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import { Button } from '@/components/ui/button';
 import { useKeyboardShortcut, CommonShortcuts } from '@/hooks';
 import { ThreeColumnLayout } from '@/components/common/ThreeColumnLayout';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
@@ -10,11 +22,16 @@ import {
   DataTypeInfoView,
   DataEntryList,
   FormBuilder,
+  FieldPalette,
+  DragPreview,
+  END_DROP_ZONE_ID,
+  type ActiveDragData,
+  type DropTarget,
 } from '@/features/data-editor';
 import { useStore } from '@/stores';
 import { createDataType, createDataEntry } from '@/types/data';
 import { createFieldTypeInstance } from '@/types/fields';
-import type { FieldConfigContext } from '@/types/fields/FieldType';
+import type { FieldType, FieldConfigContext } from '@/types/fields/FieldType';
 import type { DataEntry } from '@/types/data';
 import { generateId } from '@/lib/utils';
 import {
@@ -24,6 +41,43 @@ import {
 import { importDefaultDataTypes } from '@/lib/importDefaultDataTypes';
 
 const EMPTY_ENTRIES: DataEntry[] = [];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFieldType = FieldType<any>;
+
+function resolveFieldIndex(fields: AnyFieldType[], target: DropTarget): number {
+  if (target.fieldId === null) return fields.length;
+  const idx = fields.findIndex((f) => f.id === target.fieldId);
+  if (idx === -1) return fields.length;
+  return target.position === 'before' ? idx : idx + 1;
+}
+
+function FieldPaletteWithHeader({
+  dataTypeName,
+  onBack,
+}: {
+  dataTypeName: string;
+  onBack: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between border-b px-5 py-4">
+        <h2 className="text-lg font-bold">{dataTypeName}</h2>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-primary text-primary"
+          onClick={onBack}
+        >
+          戻る
+        </Button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <FieldPalette />
+      </div>
+    </div>
+  );
+}
 
 /**
  * データ設定ページ
@@ -51,6 +105,7 @@ export default function DataPage() {
   const addFieldToDataType = useStore((state) => state.addFieldToDataType);
   const replaceDataTypeField = useStore((state) => state.replaceDataTypeField);
   const deleteDataTypeField = useStore((state) => state.deleteDataTypeField);
+  const reorderDataTypeFields = useStore((state) => state.reorderDataTypeFields);
 
   const addDataEntry = useStore((state) => state.addDataEntry);
   const updateDataEntryId = useStore((state) => state.updateDataEntryId);
@@ -106,6 +161,14 @@ export default function DataPage() {
 
   // フィールド編集モード
   const [isFieldEditing, setIsFieldEditing] = useState(false);
+  // フィールド編集に入る前に選択していたエントリ（「戻る」で復元する）
+  const [returnEntryId, setReturnEntryId] = useState<string | null>(null);
+
+  // フィールドD&D状態
+  const [activeData, setActiveData] = useState<ActiveDragData | null>(null);
+  const [activeWidth, setActiveWidth] = useState<number | null>(null);
+  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
+  const [newlyInsertedFieldId, setNewlyInsertedFieldId] = useState<string | null>(null);
 
   // インポート状態
   const [isImporting, setIsImporting] = useState(false);
@@ -291,6 +354,84 @@ export default function DataPage() {
     }
   };
 
+  // --- フィールドD&D ---
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveData((event.active.data.current as ActiveDragData) ?? null);
+    setActiveWidth(event.active.rect.current.initial?.width ?? null);
+  };
+
+  const handleDragMove = (event: DragMoveEvent) => {
+    const { over, active, activatorEvent, delta } = event;
+    const data = active.data.current as ActiveDragData | undefined;
+
+    if (data?.source !== 'palette') return;
+
+    if (!over) {
+      setDropTarget(null);
+      return;
+    }
+
+    if (over.id === END_DROP_ZONE_ID) {
+      setDropTarget({ fieldId: null, position: 'after' });
+      return;
+    }
+
+    const overId = String(over.id);
+    const startY = (activatorEvent as PointerEvent).clientY;
+    const currentY = startY + delta.y;
+    const overRect = over.rect;
+    const relY = (currentY - overRect.top) / overRect.height;
+
+    setDropTarget({ fieldId: overId, position: relY < 0.5 ? 'before' : 'after' });
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    const data = active.data.current as ActiveDragData | undefined;
+
+    if (data?.source === 'palette' && dropTarget && selectedDataType) {
+      const targetIndex = resolveFieldIndex(selectedDataType.fields, dropTarget);
+      const instance = createFieldTypeInstance(data.type);
+      if (instance) {
+        const id = generateId(
+          'field',
+          selectedDataType.fields.map((f) => f.id)
+        );
+        instance.id = id;
+        instance.name = '新しいフィールド';
+        withUndo(addFieldToDataType)(selectedDataType.id, instance);
+        const insertedAt = selectedDataType.fields.length;
+        if (targetIndex !== insertedAt) {
+          reorderDataTypeFields(selectedDataType.id, insertedAt, targetIndex);
+        }
+        setNewlyInsertedFieldId(id);
+      }
+    } else if (data?.source === 'field' && over && selectedDataType) {
+      const oldIndex = selectedDataType.fields.findIndex((f) => f.id === data.field.id);
+      const newIndex =
+        over.id === END_DROP_ZONE_ID
+          ? selectedDataType.fields.length - 1
+          : selectedDataType.fields.findIndex((f) => f.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        withUndo(reorderDataTypeFields)(selectedDataType.id, oldIndex, newIndex);
+      }
+      setNewlyInsertedFieldId(null);
+    }
+
+    setActiveData(null);
+    setActiveWidth(null);
+    setDropTarget(null);
+  };
+
+  const handleDragCancel = () => {
+    setActiveData(null);
+    setActiveWidth(null);
+    setDropTarget(null);
+  };
+
   // --- レンダリング ---
 
   // データタイプ切替時にフィールド編集モードを解除
@@ -299,10 +440,17 @@ export default function DataPage() {
     selectDataType(id);
   };
 
-  // フィールド編集モードに入る
+  // フィールド編集モードに入る（戻れるよう、直前の選択エントリを退避）
   const handleFieldEdit = () => {
-    selectDataEntry(null as unknown as string);
+    setReturnEntryId(selectedDataEntryId);
+    selectDataEntry(null);
     setIsFieldEditing(true);
+  };
+
+  // フィールド編集から戻る（入る前の状態に復元）
+  const handleFieldEditBack = () => {
+    setIsFieldEditing(false);
+    selectDataEntry(returnEntryId);
   };
 
   // エントリ選択時にフィールド編集モードを解除
@@ -331,6 +479,8 @@ export default function DataPage() {
       <DataTypeEditor
         key={`fields-${selectedDataTypeId}`}
         dataType={selectedDataType}
+        dropTarget={dropTarget}
+        newlyInsertedId={newlyInsertedFieldId}
         onAddField={withUndo(addFieldToDataType)}
         onReplaceField={replaceDataTypeField}
         onDeleteField={withUndo(deleteDataTypeField)}
@@ -349,7 +499,14 @@ export default function DataPage() {
   }
 
   return (
-    <>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={pointerWithin}
+      onDragStart={handleDragStart}
+      onDragMove={handleDragMove}
+      onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
+    >
       <ThreeColumnLayout
         left={
           <DataTypeList
@@ -364,17 +521,24 @@ export default function DataPage() {
           />
         }
         center={
-          <DataEntryList
-            entries={entries}
-            dataType={selectedDataType}
-            selectedId={selectedDataEntryId}
-            isFieldEditing={isFieldEditing}
-            onSelect={handleSelectEntry}
-            onFieldEdit={handleFieldEdit}
-            onAdd={handleAddEntry}
-            onDelete={handleDeleteEntry}
-            onDuplicate={handleDuplicateEntry}
-          />
+          isFieldEditing && selectedDataType ? (
+            <FieldPaletteWithHeader
+              dataTypeName={selectedDataType.name}
+              onBack={handleFieldEditBack}
+            />
+          ) : (
+            <DataEntryList
+              entries={entries}
+              dataType={selectedDataType}
+              selectedId={selectedDataEntryId}
+              isFieldEditing={isFieldEditing}
+              onSelect={handleSelectEntry}
+              onFieldEdit={handleFieldEdit}
+              onAdd={handleAddEntry}
+              onDelete={handleDeleteEntry}
+              onDuplicate={handleDuplicateEntry}
+            />
+          )
         }
         right={rightPanel}
       />
@@ -389,6 +553,10 @@ export default function DataPage() {
           onCancel={() => setDeleteConfirm(null)}
         />
       )}
-    </>
+
+      <DragOverlay dropAnimation={null}>
+        {activeData ? <DragPreview data={activeData} width={activeWidth} /> : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
