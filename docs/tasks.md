@@ -2868,7 +2868,7 @@ export function useAutoSave() {
 
 - **ステータス:** [x] 完了
 - **ブランチ:** feature/T266-field-dnd-editor
-- **PR:** -
+- **PR:** #4
 
 **完了条件:**
 
