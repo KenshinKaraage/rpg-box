@@ -24,6 +24,8 @@ interface DataTableFieldEditorProps {
   columns: DataTableColumn[];
 }
 
+const EMPTY_ENTRIES: DataEntry[] = [];
+
 function getEntryLabel(entry: DataEntry): string {
   const name = entry.values['name'];
   if (typeof name === 'string' && name) {
@@ -44,7 +46,8 @@ export function DataTableFieldEditor({
   referenceTypeId,
   columns,
 }: DataTableFieldEditorProps) {
-  const entries = useStore((state) => state.dataEntries[referenceTypeId] ?? []);
+  const entriesOrNull = useStore((state) => state.dataEntries[referenceTypeId] ?? null);
+  const entries = entriesOrNull ?? EMPTY_ENTRIES;
   const [addingEntryId, setAddingEntryId] = useState<string>('');
 
   // 列のフィールドタイプインスタンスをメモ化
