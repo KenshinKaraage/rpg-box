@@ -93,7 +93,7 @@ export function createDataType(id: string, name: string): DataType {
 export function createDataEntry(id: string, typeId: string, fields: FieldType<any>[]): DataEntry {
   const values: Record<string, unknown> = {};
   for (const field of fields) {
-    values[field.id] = field.getDefaultValue();
+    values[field.id] = field.getInitialValue();
   }
   return {
     id,

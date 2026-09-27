@@ -140,12 +140,18 @@ export abstract class FieldType<T = unknown> {
    */
   displayCondition?: DisplayCondition;
 
+  /** 未設定なら getDefaultValue() にフォールバック */
+  defaultValue?: T;
+
   /**
    * フィールドのデフォルト値を取得
-   * 新規レコード作成時に使用される
    * @returns デフォルト値
    */
   abstract getDefaultValue(): T;
+
+  getInitialValue(): T {
+    return this.defaultValue !== undefined ? this.defaultValue : this.getDefaultValue();
+  }
 
   /**
    * 値のバリデーションを実行
