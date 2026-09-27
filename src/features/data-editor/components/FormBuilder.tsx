@@ -108,7 +108,7 @@ export function FormBuilder({
 
         {dataType.fields.map((field) => {
           if (!visibility[field.id]) return null;
-          const value = entry.values[field.id] ?? field.getDefaultValue();
+          const value = entry.values[field.id] ?? field.getInitialValue();
           return (
             <div key={field.id} className="space-y-2">
               <Label>

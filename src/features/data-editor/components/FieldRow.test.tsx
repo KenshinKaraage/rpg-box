@@ -42,43 +42,30 @@ describe('FieldRow', () => {
       expect(screen.getByDisplayValue('名前フィールド')).toBeInTheDocument();
     });
 
-    it('フィールド名の入力欄のプレースホルダーが表示される', () => {
-      render(<FieldRow {...defaultProps} field={createStringField({ name: '' })} />);
-      expect(screen.getByPlaceholderText('フィールド名')).toBeInTheDocument();
-    });
-
-    it('タイプのセレクトボックスが表示される', () => {
-      render(<FieldRow {...defaultProps} />);
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
-    });
-
     it('削除ボタンが表示される', () => {
       render(<FieldRow {...defaultProps} field={createStringField({ name: 'HP' })} />);
       expect(screen.getByRole('button', { name: 'HPを削除' })).toBeInTheDocument();
     });
 
-    it('展開/折りたたみボタンが表示される', () => {
-      render(<FieldRow {...defaultProps} />);
-      // Collapsible trigger button
-      const buttons = screen.getAllByRole('button');
-      expect(buttons.length).toBeGreaterThan(0);
+    it('設定ボタン（歯車）が表示される', () => {
+      render(<FieldRow {...defaultProps} field={createStringField({ name: 'HP' })} />);
+      expect(screen.getByRole('button', { name: 'HPの設定' })).toBeInTheDocument();
     });
 
     it('折りたたまれた状態では設定パネルが非表示', () => {
       render(<FieldRow {...defaultProps} isExpanded={false} />);
-      // CommonFieldConfig の「必須フィールド」が表示されていない
       expect(screen.queryByText('必須フィールド')).not.toBeInTheDocument();
     });
 
     it('展開された状態では設定パネルが表示される', () => {
       render(<FieldRow {...defaultProps} isExpanded={true} />);
-      // CommonFieldConfig の「必須フィールド」が表示される
+      expect(screen.getByText('フィールドID')).toBeInTheDocument();
+      expect(screen.getByText('タイプ')).toBeInTheDocument();
       expect(screen.getByText('必須フィールド')).toBeInTheDocument();
     });
 
     it('展開時にフィールドタイプ固有の設定が表示される（StringFieldType のケース）', () => {
       render(<FieldRow {...defaultProps} isExpanded={true} />);
-      // StringFieldConfig の「最大文字数」が表示される
       expect(screen.getByText('最大文字数')).toBeInTheDocument();
       expect(screen.getByText('プレースホルダー')).toBeInTheDocument();
     });
@@ -94,9 +81,15 @@ describe('FieldRow', () => {
   describe('操作', () => {
     it('フィールド名を変更すると onNameChange が呼ばれる', () => {
       const onNameChange = jest.fn();
-      render(<FieldRow {...defaultProps} onNameChange={onNameChange} />);
+      render(
+        <FieldRow
+          {...defaultProps}
+          field={createStringField({ name: '名前' })}
+          onNameChange={onNameChange}
+        />
+      );
 
-      fireEvent.change(screen.getByPlaceholderText('フィールド名'), {
+      fireEvent.change(screen.getByDisplayValue('名前'), {
         target: { value: '新しい名前' },
       });
       expect(onNameChange).toHaveBeenCalledWith('新しい名前');
@@ -116,15 +109,18 @@ describe('FieldRow', () => {
       expect(onDelete).toHaveBeenCalledTimes(1);
     });
 
-    it('展開ボタンをクリックすると onToggleExpand が呼ばれる', async () => {
+    it('設定ボタンをクリックすると onToggleExpand が呼ばれる', async () => {
       const user = userEvent.setup();
       const onToggleExpand = jest.fn();
-      render(<FieldRow {...defaultProps} onToggleExpand={onToggleExpand} />);
+      render(
+        <FieldRow
+          {...defaultProps}
+          field={createStringField({ name: 'テスト' })}
+          onToggleExpand={onToggleExpand}
+        />
+      );
 
-      // Collapsible の展開トリガーボタン（最初のゴーストボタン）をクリック
-      const triggerButtons = screen.getAllByRole('button');
-      // 最初のボタンが展開/折りたたみトリガー
-      await user.click(triggerButtons[0]!);
+      await user.click(screen.getByRole('button', { name: 'テストの設定' }));
       expect(onToggleExpand).toHaveBeenCalledTimes(1);
     });
 
@@ -146,12 +142,36 @@ describe('FieldRow', () => {
       });
       expect(onConfigChange).toHaveBeenCalledWith({ maxLength: 100 });
     });
+
+    it('名前の直下にある初期値編集欄を変更すると onConfigChange が defaultValue で呼ばれる', () => {
+      const onConfigChange = jest.fn();
+      render(
+        <FieldRow
+          {...defaultProps}
+          field={createStringField({ name: '名前' })}
+          onConfigChange={onConfigChange}
+        />
+      );
+
+      const textboxes = screen.getAllByRole('textbox');
+      // 1つ目が名前入力欄、2つ目が初期値入力欄
+      fireEvent.change(textboxes[1]!, { target: { value: 'デフォルト' } });
+      expect(onConfigChange).toHaveBeenCalledWith({ defaultValue: 'デフォルト' });
+    });
+  });
+
+  describe('undeletable', () => {
+    it('undeletable が true の場合、削除ボタンが無効化される', () => {
+      render(
+        <FieldRow {...defaultProps} field={createStringField({ name: 'テスト' })} undeletable />
+      );
+      expect(screen.getByRole('button', { name: 'テストを削除' })).toBeDisabled();
+    });
   });
 
   describe('allowedTypes', () => {
-    it('allowedTypes が指定されていない場合は全タイプが表示される', () => {
-      render(<FieldRow {...defaultProps} />);
-      // セレクトボックスが存在する
+    it('allowedTypes が指定されていない場合は全タイプが表示される（展開時）', () => {
+      render(<FieldRow {...defaultProps} isExpanded={true} />);
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
   });

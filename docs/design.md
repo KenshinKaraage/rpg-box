@@ -1565,8 +1565,8 @@ features/data-editor/
 │   ├── DataTypeList.tsx       # 左カラム: データタイプ一覧
 │   ├── DataEntryList.tsx      # 中カラム: データ一覧（仮想化）
 │   ├── FormBuilder.tsx        # 右カラム: フォームビルダー
-│   ├── FieldEditor.tsx        # フィールド編集
-│   ├── FieldTypeSelector.tsx  # フィールドタイプ選択モーダル
+│   ├── FieldPalette.tsx       # フィールド編集時、中カラムに表示するタイプ別パレット（ドラッグ元）
+│   ├── FieldRow.tsx           # フィールド編集時、右カラムの1行（ドラッグ&ドロップで追加・並び替え）
 │   └── fields/                # フィールドタイプ別コンポーネント
 │       ├── NumberField.tsx
 │       ├── StringField.tsx

@@ -18,16 +18,17 @@ interface FieldTypeSelectorProps {
   onSelect: (type: string) => void;
 }
 
-interface Category {
+export interface Category {
   label: string;
   types: string[];
 }
 
 // =============================================================================
 // カテゴリ定義（UI表示のみ、レジストリに変更なし）
+// FieldPalette（フィールド編集のドラッグ元パレット）とも共有する
 // =============================================================================
 
-const CATEGORIES: Category[] = [
+export const FIELD_TYPE_CATEGORIES: Category[] = [
   { label: '基本', types: ['number', 'string', 'textarea', 'boolean', 'select', 'color'] },
   { label: '参照', types: ['dataSelect', 'dataList', 'dataTable', 'class', 'classList'] },
   { label: 'メディア', types: ['image', 'audio', 'font', 'effect'] },
@@ -45,7 +46,7 @@ export function FieldTypeSelector({ open, onOpenChange, onSelect }: FieldTypeSel
 
   const filteredCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return CATEGORIES.map((cat) => ({
+    return FIELD_TYPE_CATEGORIES.map((cat) => ({
       ...cat,
       types: cat.types.filter((type) => {
         const label = optionMap.get(type);

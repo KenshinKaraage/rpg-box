@@ -1,9 +1,9 @@
 'use client';
 
-import { ChevronRight, Trash2, GripVertical } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -11,18 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getFieldTypeOptions } from '@/types/fields';
-import type { FieldType } from '@/types/fields/FieldType';
 import type { FieldConfigContext } from '@/types/fields/FieldType';
+import { cn } from '@/lib/utils';
 import { CommonFieldConfig } from './fields/CommonFieldConfig';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyFieldType = FieldType<any>;
+import { FieldCard } from './FieldCard';
+import type { AnyFieldType, DropPosition } from './fieldDragTypes';
 
 interface FieldRowProps {
   field: AnyFieldType;
   isExpanded: boolean;
+  dropPosition?: DropPosition | null;
+  animateIn?: boolean;
   onToggleExpand: () => void;
   onIdChange: (newId: string) => void;
   onNameChange: (name: string) => void;
@@ -38,6 +38,8 @@ interface FieldRowProps {
 export function FieldRow({
   field,
   isExpanded,
+  dropPosition,
+  animateIn,
   onToggleExpand,
   onIdChange,
   onNameChange,
@@ -49,76 +51,70 @@ export function FieldRow({
   allowedTypes,
 }: FieldRowProps) {
   const fieldTypeOptions = getFieldTypeOptions(allowedTypes);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: field.id,
+    data: { source: 'field', field },
+  });
 
   return (
-    <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
-      <div className="rounded-xl border-2 bg-card">
-        {/* Header row */}
-        <div className="flex items-center gap-2 px-3 py-2">
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
-              <ChevronRight
-                className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-              />
-            </Button>
-          </CollapsibleTrigger>
-
-          <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground" />
-
-          <Input
-            className="flex-1"
-            value={field.name}
-            onChange={(e) => onNameChange(e.target.value)}
-            placeholder="フィールド名"
-          />
-
-          <Select value={field.type} onValueChange={onTypeChange}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {fieldTypeOptions.map((option) => (
-                <SelectItem key={option.type} value={option.type}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
-            onClick={onDelete}
-            disabled={undeletable}
-            aria-label={`${field.name}を削除`}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Expandable config panel */}
-        <CollapsibleContent>
-          <div className="space-y-3 border-t bg-muted/20 px-4 py-3">
-            <div className="space-y-2">
-              <Label className="text-xs">フィールドID</Label>
-              <Input
-                defaultValue={field.id}
-                disabled={undeletable}
-                onBlur={(e) => {
-                  const newId = e.target.value.trim();
-                  if (newId && newId !== field.id) {
-                    onIdChange(newId);
-                  }
-                }}
-                placeholder="フィールドID"
-              />
-            </div>
-            <CommonFieldConfig required={field.required} onChange={onConfigChange} />
-            {field.renderConfig({ onChange: onConfigChange, context: configContext })}
+    <FieldCard
+      fieldType={field}
+      value={field.getInitialValue()}
+      onValueChange={(value) => onConfigChange({ defaultValue: value })}
+      onNameChange={onNameChange}
+      onDelete={onDelete}
+      deleteDisabled={undeletable}
+      onGearClick={onToggleExpand}
+      dropPosition={dropPosition}
+      showChrome={isDragging}
+      cardRef={setNodeRef}
+      dataFieldRow={field.id}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      dragHandleProps={{ ...attributes, ...listeners }}
+      className={cn(
+        'mb-4 cursor-grab select-none active:cursor-grabbing',
+        animateIn && 'animate-in fade-in-0 slide-in-from-top-2 duration-200',
+        isDragging && 'opacity-30'
+      )}
+    >
+      {isExpanded && (
+        <div
+          className="space-y-3 rounded-lg border bg-muted/20 p-3"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div className="space-y-2">
+            <Label className="text-xs">フィールドID</Label>
+            <Input
+              defaultValue={field.id}
+              disabled={undeletable}
+              onBlur={(e) => {
+                const newId = e.target.value.trim();
+                if (newId && newId !== field.id) {
+                  onIdChange(newId);
+                }
+              }}
+              placeholder="フィールドID"
+            />
           </div>
-        </CollapsibleContent>
-      </div>
-    </Collapsible>
+          <div className="space-y-2">
+            <Label className="text-xs">タイプ</Label>
+            <Select value={field.type} onValueChange={onTypeChange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fieldTypeOptions.map((option) => (
+                  <SelectItem key={option.type} value={option.type}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <CommonFieldConfig required={field.required} onChange={onConfigChange} />
+          {field.renderConfig({ onChange: onConfigChange, context: configContext })}
+        </div>
+      )}
+    </FieldCard>
   );
 }

@@ -2858,6 +2858,40 @@ export function useAutoSave() {
 - `src/features/data-editor/components/DataTypeEditor.tsx`
 - `src/features/data-editor/components/DataTypeEditor.test.tsx`
 
+**備考:** フィールド追加(モーダル起動ボタン)の設置場所と並び替えUIをT266で再設計。
+「並び替え」は元々`reorderDataTypeFields`ストアアクションのみ実装され、UIからは
+一度も呼ばれていなかった（未接続のまま完了扱いになっていた）
+
+---
+
+#### [T266] [US8] Replace field add/reorder UI with drag-and-drop
+
+- **ステータス:** [x] 完了
+- **ブランチ:** feature/T266-field-dnd-editor
+- **PR:** #4
+
+**完了条件:**
+
+- [x] フィールド編集時、中央カラムにFieldPalette（タイプ別パレット）を表示
+- [x] パレットから右カラムへドラッグしてフィールド追加
+- [x] 既存フィールドのドラッグ並び替え（reorderDataTypeFieldsを実際にUIから使用）
+- [x] フィールド名のインライン直接編集・歯車アイコンでID/詳細設定
+- [x] フィールド一覧末尾に「+」ボタンを設置し、FieldTypeSelectorモーダル（T091）を
+      ドラッグの代替手段として維持
+- [x] テスト更新
+
+**備考:** 副次的に、フィールドごとの初期値設定（`FieldType.defaultValue`/`getInitialValue()`）、
+`DataListFieldEditor`/`DataTableFieldEditor`の無限ループバグ、ページ全体がスクロールしてしまう
+レイアウト不具合（`html`/`body`のoverflow）も合わせて修正。
+
+**関連ファイル:**
+
+- `src/features/data-editor/components/FieldPalette.tsx`（新規）
+- `src/features/data-editor/components/DataTypeEditor.tsx`
+- `src/features/data-editor/components/FieldRow.tsx`
+- `src/features/data-editor/components/FieldTypeSelector.tsx`（起動元のみ変更）
+- `src/app/(editor)/data/page.tsx`
+
 ---
 
 #### [T093] [US8] Define DataType and DataEntry types

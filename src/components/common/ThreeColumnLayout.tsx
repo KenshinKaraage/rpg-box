@@ -89,7 +89,7 @@ export function ThreeColumnLayout({
       }}
     >
       {/* Left column */}
-      <div className="overflow-auto border-r bg-background" data-testid="left-column">
+      <div className="min-h-0 overflow-auto border-r bg-background" data-testid="left-column">
         {left}
       </div>
 
@@ -101,7 +101,7 @@ export function ThreeColumnLayout({
       />
 
       {/* Center column */}
-      <div className="overflow-hidden bg-background" data-testid="center-column">
+      <div className="min-h-0 overflow-hidden bg-background" data-testid="center-column">
         {center}
       </div>
 
@@ -113,7 +113,7 @@ export function ThreeColumnLayout({
       />
 
       {/* Right column */}
-      <div className="overflow-auto border-l bg-background" data-testid="right-column">
+      <div className="min-h-0 overflow-auto border-l bg-background" data-testid="right-column">
         {right}
       </div>
     </div>
